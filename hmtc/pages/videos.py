@@ -1,0 +1,41 @@
+import dash
+from dash import html, dcc, callback, Input, Output, dash_table
+import dash_bootstrap_components as dbc
+from hmtc.models import Video
+
+dash.register_page(__name__)
+
+COLUMNS = ["youtube_id", "title", "upload_date"]
+
+table_data = [d for d in Video.select().dicts()]
+table = html.Div(
+    dash_table.DataTable(
+        table_data,
+        columns=[{"name": i, "id": i} for i in COLUMNS],
+        id="table",
+        page_size=20,
+        row_selectable="multi",
+        sort_action="native",
+        filter_action="native",
+        style_header={
+            "backgroundColor": "rgb(30, 30, 30)",
+            "color": "white",
+            "font-weight": "bold",
+        },
+        style_data={"backgroundColor": "rgb(50, 50, 50)", "color": "white"},
+    )
+)
+
+video_table = dbc.Container(table)
+
+layout = html.Div(
+    [
+        html.H1("Source Videos"),
+        html.Br(),
+        html.Div(
+            [html.Div(html.H1(n), className="cardBorders") for n in range(10)],
+            className="grid alignCards",
+        ),
+        html.Div(video_table, id="videos-table"),
+    ]
+)

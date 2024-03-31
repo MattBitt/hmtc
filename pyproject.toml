@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "hmtc"
+version = "0.1.0"
+description = ""
+authors = ["Matt Bittinger <mattsbitt@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+rich = "^13.7.1"
+textual = "^0.52.1"
+curses-menu = "^0.8.1"
+pyconsolemenu = "^1.0.4"
+black = "^24.3.0"
+ruff = "^0.3.3"
+loguru = "^0.7.2"
+pydantic = "^2.6.4"
+pydantic-settings = "^2.2.1"
+yt-dlp = "^2024.3.10"
+textual-dev = "^1.5.1"
+click = "^8.1.7"
+pony = "^0.7.17"
+peewee = "^3.17.1"
+psycopg2 = "^2.9.9"
+pytest = "^8.1.1"
+dash = "^2.16.1"
+pandas = "^2.2.1"
+dash-bootstrap-components = "^1.5.0"
+flask-admin = "^1.6.1"
+flask-peewee = "^3.0.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+update-playlists = "hmtc.main:update_playlists"
+main = "hmtc.main:main"

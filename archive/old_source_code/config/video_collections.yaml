@@ -1,0 +1,144 @@
+channels:
+  - channel_name: Harry Mack
+    url: https://www.youtube.com/c/HarryMack
+    collections:
+      - collection_name: Wordplay Wednesday
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAGLnngi0ZOTvNmuNt5uHJk
+        album_prefix: Wordplay Wednesday
+        track_prefix: "WW"
+        episode_number_patterns:
+          - Wordplay Wednesday \#([0-9]+)
+          - Wordplay Wednesday Episode ([0-9]+)
+          - Wordplay Wednesday w/ Harry Mack.*([0-9]+)
+          - Wordplay Tuesday \#([0-9]+)
+      
+      - collection_name: Omegle Bars
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPALgw6Ko7H78WxHC3pzxeZl
+        album_prefix: Omegle Bars
+        track_prefix: "OB"
+        episode_number_patterns:
+          - Omegle Bars ([0-9]+)
+          - Omegle Bars Episode ([0-9]+)
+          - Omegle Bars Ep. ([0-9]+)
+      
+      - collection_name: Guerrilla Bars
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPD7NJ92Jr8s8JFGdmOmMS95
+        album_prefix: Guerrilla Bars
+        track_prefix: "GB"
+        episode_number_patterns:
+          - Guerrilla Bars ([0-9]+)
+          - Guerrilla Bars \(Episode ([0-9]+)
+          - Guerrilla Bars Episode ([0-9]+)
+          - Best of Guerrilla Bars Part ([0-9]+)
+      
+      - collection_name: Busking With Bose
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAVe4uNYJZvgkSFk9jKpW1t
+        album_prefix: Busking With Bose
+        track_prefix: "BWB"
+        episode_number_patterns:
+          - Busking With Bose Ep. ([0-9]+)
+      
+      - collection_name: Behind the Bars
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPDVjUBHYPBOJYYC8sPhEILZ
+        album_prefix: Behind the Bars
+        track_prefix: "BtB"
+        episode_number_patterns:
+          - Behind The Bars ([0-9]+)
+      
+      - collection_name: Stream of Consciousness
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPCXcXB3GQFG-kpVcsnucw1k
+        album_prefix: Stream of Consciousness
+        track_prefix: "SoC"
+        episode_number_patterns:
+          - Stream Of Consciousness \#([0-9]+)
+          - Stream of Consciousness \#([0-9]+)
+      
+      - collection_name: Happy Hour
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAgM7MkLiO5CNeaaOZTZ86R
+        album_prefix: Happy Hour
+        track_prefix: "HH"
+        episode_number_patterns:
+          - LIVE \#([0-9]+)
+
+      - collection_name: Live Shows
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAcktPEn7PgQO0yn8bmKeTJ
+      
+      - collection_name: OG Public Freestyles
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAVZCuoMVAFys0mkVvvNawA
+      
+      - collection_name: Rhyming Connections Off-Top Conversations With Harry Mack
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPB0d7RFcZZlQEHQDAYUxBuz
+      
+      - collection_name: Happy Hour Highlights
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPBXWuzE5TWOEmxbAYjg4o6G
+      
+      - collection_name: Live Stream Highlights
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAHZP4a8mtTaoA8Q4D9B8nb
+      
+      - collection_name: Wordplay Wednesday Highlights
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPBh0ZL7TPhFS58teh09JrGU
+      
+      - collection_name: Dope Moments & Collabs
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPCL-FRXUleIyt5KpS8X4MCW
+      
+      - collection_name: Music Videos
+        url: https://www.youtube.com/playlist?list=PLtbrIhAJmrPAzDyP5sErLt04JuOG4Jata
+  
+  - channel_name: Harry Mack Clips
+    url: https://www.youtube.com/c/HarryMackClips
+    collections:
+      - collection_name: Omegle Bars Unreleased
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zKL9Ty5HiX33-C8aAoYj6mB
+        track_prefix: OB Unreleased
+
+      - collection_name: Guerrilla Bars Unreleased
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zJqDdVAuYWwjjvvFfe4xSip
+        track_prefix: GB Unreleased
+      
+      - collection_name: Guerrilla Bars Clips
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zKRXGaCmeBHoq-Td40GQU67
+        ignore: true
+      
+      - collection_name: Omegle Bars Clips
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zIcBwxMKSBgtByiP6qhC84J
+        ignore: true
+      
+      - collection_name: Busking With Bose Clips
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zJm10Pb88HWLFgGhTDGW0BE
+        ignore: true
+      
+      - collection_name: Energy Exchange 2022
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zLXQfWviOhqiOdvTp5MYbZZ
+        ignore: true
+      
+      - collection_name: Harry Mack Shorts
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zJQcrnv5G9L1n3v4xOuRhj7
+        ignore: true
+      
+      - collection_name: Live Show Clips
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zJyN425vIieKSkWWy6U9qVB
+        ignore: true
+      
+      - collection_name: Marc and Mack
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zKaw65CQ-hmvM-8u0J3QCBM
+        ignore: true
+      
+      - collection_name: Behind The Bars
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zLqq_g0D44cKCE0xEmenRUQ
+        ignore: true
+      
+      - collection_name: Educational Content
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zJnQxmSVV_Hh-pqXZS3hVwU
+        ignore: true
+      
+      - collection_name: Mack Talk
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zJ-jTzCIDEawC7FuvD5X46x
+        ignore: true
+      
+      - collection_name: Live Chat Clips
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zL7CkgfIfr52ZOy8CXRnwVT
+        ignore: true
+      
+      - collection_name: Happy Hour Clips
+        url: https://www.youtube.com/playlist?list=PLVuktCy_G9zLQwCsQi8mTxqzw6cl47aRH
+        ignore: true

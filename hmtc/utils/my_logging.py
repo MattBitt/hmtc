@@ -1,0 +1,21 @@
+from loguru import logger
+import sys
+
+
+def setup_logging(config):
+    log_level = config.get("GENERAL", "LOG_LEVEL")
+    logger.remove()
+    log_format = (
+        "<white>{time: HH:mm:ss.SSS} | </white>"
+        "<lvl>{message: <100}</lvl>"
+        "<lvl>[{level: <8}] "
+        "</lvl><yellow>{name}  {function}:{line}</yellow>"
+    )
+    # logger.configure(extra={"classname": "None"})
+    logger.add(sys.stderr, format=log_format, level=log_level, colorize=True)
+    logger.info("Starting program version: {}".format(config.get("GENERAL", "VERSION")))
+    logger.debug(
+        "The current environment is {}".format(config.get("GENERAL", "ENVIRONMENT"))
+    )
+    logger.debug("Log Level is currently {}".format(config.get("GENERAL", "LOG_LEVEL")))
+    return logger
