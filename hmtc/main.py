@@ -1,20 +1,15 @@
 from hmtc.config import init_config
 from hmtc.utils.my_logging import setup_logging
-from hmtc.utils.general import clear_screen
 from hmtc.db import setup_db, import_existing_tracks, import_existing_video_files_to_db
-from loguru import logger
-from pathlib import Path
 from datetime import timedelta, datetime
-import dash
-from dash import Dash, html, dcc, callback, Output, Input, dash_table, page_container
-import plotly.express as px
 import pandas as pd
 from hmtc.app import setup_app, setup_dash_app, setup_admin
-import dash_bootstrap_components as dbc
+
+from loguru import logger
 
 # from hmtc.section_manager import SectionManager
 
-from hmtc.models import Playlist, Series, Video, Section, get_section_with_timestamp
+from hmtc.models import Playlist, Series, Video
 
 
 df = pd.read_csv(
@@ -23,14 +18,20 @@ df = pd.read_csv(
 dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 
 
+def update_playlist(playlist):
+    now = datetime.now()
+    logger.info(f"Checking playlist {playlist.name}")
+    last_completed = playlist.last_update_completed
+    if not last_completed or (now - last_completed > timedelta(seconds=20)):
+        playlist.check_for_new_videos()
+
+
 def update_playlists():
+    logger.warning("Updating playlists")
     playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
 
     for p in playlists:
-        now = datetime.now()
-        last_completed = p.last_update_completed
-        if not last_completed or (now - last_completed > timedelta(hours=1)):
-            p.check_for_new_videos()
+        update_playlist(p)
 
 
 def create_video_sections():
@@ -38,8 +39,15 @@ def create_video_sections():
         vid.create_initial_section()
 
 
-def main():
-    clear_screen()
+def setup():
+    config = init_config()
+    setup_logging(config)
+    db = setup_db(config)
+    return db
+
+
+def main2():
+    # clear_screen()
 
     config = init_config()
     setup_logging(config)
@@ -47,9 +55,12 @@ def main():
     db = setup_db(config)
 
     app = setup_app(db)
-    dash_app = setup_dash_app(app)
-    admin = setup_admin(app)
-    dash_app.run(debug=True)
+    # update_playlists()
+    setup_admin(app)
+    app.run(debug=False)
+    # dash_app = setup_dash_app(app)
+    # dash_app.run_server(debug=True)
+    db.close()
     # dash_app.run(debug=True)
     exit()
     # this is the end of the main app loop.
@@ -57,7 +68,6 @@ def main():
     # move it above the app.run command to have it execute
 
     # needs to be run on a schedule
-    update_playlists()
 
     # using for testing
 
@@ -73,8 +83,6 @@ def main():
 
     # app = HMTCApp()
     # app.run()
-
-    db.close()
 
 
 if __name__ == "__main__":

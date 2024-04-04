@@ -1,7 +1,4 @@
-import peewee
-from flask import Flask
 
-import flask_admin as admin
 from flask_admin.contrib.peewee import ModelView
 
 from hmtc.models import (
@@ -11,15 +8,6 @@ from hmtc.models import (
     Playlist,
     Video,
     Series,
-    Album,
-    Track,
-    EpisodeNumberTemplate,
-    File,
-    Artist,
-    Beat,
-    BeatArtist,
-    TrackBeat,
-    Section,
 )
 
 

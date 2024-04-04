@@ -10,7 +10,7 @@ from peewee import (
     AutoField,
     BooleanField,
 )
-from datetime import datetime, timedelta
+from datetime import datetime
 from hmtc.utils.youtube_functions import fetch_video_ids_from, download_video_info
 from loguru import logger
 import re
@@ -158,7 +158,7 @@ class Playlist(BaseModel):
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
         ids = fetch_video_ids_from(self.url)
-
+        logger.info(f"Found {len(ids)} videos in playlist {self.name}")
         for youtube_id in ids:
             vid = Video.create_or_update(youtube_id=youtube_id, series=self.series)
             if vid:

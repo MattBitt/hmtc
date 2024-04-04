@@ -105,6 +105,7 @@ def get_series(series: str):
 def seed_database():
     # imports all manually entered data to get a new database up an running
     # be aware that this won't save any of the downloaded data
+    return
     for series_info in SERIES:
         series = Series().get_or_none(Series.name == series_info["name"])
         if not series:
@@ -172,7 +173,7 @@ def import_existing_video_files_to_db(path):
             else:
                 unfound = unfound + 1
 
-    logger.success(f"Finished importing files to the database.")
+    logger.success("Finished importing files to the database.")
     logger.debug(f"Found {found} new files.")
     logger.debug(f"There were {unfound} files found with no associated video")
 

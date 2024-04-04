@@ -28,6 +28,13 @@ pandas = "^2.2.1"
 dash-bootstrap-components = "^1.5.0"
 flask-admin = "^1.6.1"
 flask-peewee = "^3.0.4"
+dash-player = "^1.1.0"
+dash-extensions = "^1.0.14"
+ffmpeg = "^1.4"
+solara = "^1.30.0"
+websocket = "^0.2.1"
+simple-websocket = "^1.0.0"
+flask-sock = "^0.7.0"
 
 
 [build-system]

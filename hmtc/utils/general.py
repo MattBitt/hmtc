@@ -1,7 +1,6 @@
 import os
 import re
 from loguru import logger
-from collections import defaultdict
 import csv
 
 
