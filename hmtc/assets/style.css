@@ -1,0 +1,78 @@
+/**
+body {
+  background-color: #f123f0;
+}
+.mybutton {
+  font-family: Serif;
+}
+
+/* this selector has to be very specific to override the vuetify style 
+.v-btn.mybutton {
+  display: inline-block;
+  outline: none;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  border-radius: 500px;
+  transition-property: background-color, border-color, color, box-shadow, filter;
+  transition-duration: 0.3s;
+  border: 1px solid transparent;
+  letter-spacing: 2px;
+  width: 200px;
+  max-width: 70%;
+
+  text-align: center;
+  padding: 17px 48px;
+  color: #000;
+  background-color: #1ed760;
+  height: 48px;
+
+  background-color: #1ed760 !important;
+  font-size: 14px;
+
+  :hover {
+    transform: scale(1.04);
+    background-color: #21e065;
+  }
+}
+*/
+
+/* vuetify's background color css has very high CSS-specificity, so we use !important */
+:root {
+  --dark-blue: #233142;
+  --light-blue: #455d7a;
+  --salmon: #f95959;
+  --light-gray: #e3e3e3;
+}
+
+.appbar {
+  background-color: var(--salmon) !important;
+}
+
+.playlist-group {
+  background-color: var(--dark-blue) !important;
+}
+
+.playlist-card {
+  background-color: #fff000 !important;
+  border: 6px solid #00ff00 !important;
+  height: 300px;
+}
+
+.playlist-card-button-section {
+  width: 100%;
+  background-color: #111111 !important;
+}
+.playlist-card-button {
+  background-color: var(--salmon) !important;
+  text-color: #dddddd !important;
+}
+
+.playlist-card-button:hover {
+  background-color: #ff0000 !important;
+  color: #00ff00 !important;
+}
+
+.playlist-card-footer {
+  background-color: #f123f0 !important;
+}

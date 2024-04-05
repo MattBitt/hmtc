@@ -20,14 +20,16 @@ dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.mi
 
 def update_playlist(playlist):
     now = datetime.now()
-    logger.info(f"Checking playlist {playlist.name}")
+    logger.debug(
+        f"📕📕📕{playlist.name} was updated at {playlist.last_update_completed}"
+    )
     last_completed = playlist.last_update_completed
     if not last_completed or (now - last_completed > timedelta(seconds=20)):
         playlist.check_for_new_videos()
 
 
 def update_playlists():
-    logger.warning("Updating playlists")
+    logger.debug("Updating playlists")
     playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
 
     for p in playlists:
@@ -86,4 +88,4 @@ def main2():
 
 
 if __name__ == "__main__":
-    main()
+    main2()

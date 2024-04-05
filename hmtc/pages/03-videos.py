@@ -1,6 +1,6 @@
 import solara
 import pandas as pd
-from hmtc.components.app_bar import AppBar
+from hmtc.components.my_app_bar import MyAppBar
 from hmtc.models import Video
 
 
@@ -14,7 +14,7 @@ def get_videos():
 @solara.component
 def Page():
 
-    AppBar()
+    MyAppBar()
     df = get_videos()
 
     with solara.Column(margin=4):

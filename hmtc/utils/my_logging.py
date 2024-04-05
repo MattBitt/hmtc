@@ -8,8 +8,8 @@ def setup_logging(config):
     log_format = (
         "<white>{time: HH:mm:ss.SSS} | </white>"
         "<lvl>{message: <100}</lvl>"
-        "<lvl>[{level: <8}] "
-        "</lvl><yellow>{name}  {function}:{line}</yellow>"
+        # "<lvl>[{level: <8}] "
+        # "</lvl><yellow>{name}  {function}:{line}</yellow>"
     )
     # logger.configure(extra={"classname": "None"})
     logger.add(sys.stderr, format=log_format, level=log_level, colorize=True)

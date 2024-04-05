@@ -35,6 +35,7 @@ solara = "^1.30.0"
 websocket = "^0.2.1"
 simple-websocket = "^1.0.0"
 flask-sock = "^0.7.0"
+ipywatch = "^0.0.3"
 
 
 [build-system]

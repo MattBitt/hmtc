@@ -1,12 +1,12 @@
 import solara
-from hmtc.components.app_bar import AppBar
+from hmtc.components.my_app_bar import MyAppBar
 
 clicks = solara.reactive(0)
 
 
 @solara.component
 def Page():
-    AppBar()
+    MyAppBar()
     with solara.Column():
         color = "green"
         if clicks.value >= 5:

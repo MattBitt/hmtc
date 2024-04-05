@@ -1404,6 +1404,23 @@ doc = ["ipykernel", "jupyter-sphinx", "pydata-sphinx-theme", "sphinx (<7)", "sph
 test = ["jupyterlab (<4)", "nbformat (<5.10)", "pytest", "pytest-playwright", "solara[pytest]"]
 
 [[package]]
+name = "ipywatch"
+version = "0.0.3"
+description = "A debugbar tool for ipywidgets/reacton/solara"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "ipywatch-0.0.3-py3-none-any.whl", hash = "sha256:8bb0417466ed7df0d28cc31e5b5a049f6343de8334f685f88bb1e1ea48a41263"},
+    {file = "ipywatch-0.0.3.tar.gz", hash = "sha256:7660e5c3ee0ea07d903b7224fb973341ffb02a5e4c19f26848c776977b4db6f8"},
+]
+
+[package.dependencies]
+ipykernel = ">=6.20.1"
+
+[package.extras]
+dev = ["solara (>=1.26.1)"]
+
+[[package]]
 name = "ipywidgets"
 version = "8.1.2"
 description = "Jupyter interactive widgets"
@@ -3090,13 +3107,13 @@ files = [
 
 [[package]]
 name = "solara"
-version = "1.30.0"
+version = "1.30.1"
 description = ""
 optional = false
 python-versions = "*"
 files = [
-    {file = "solara-1.30.0-py2.py3-none-any.whl", hash = "sha256:ea7a996cac7def5b05fc2bfa6821e2cae0b7fe0d142c66b77cf2af4a66ad6b29"},
-    {file = "solara-1.30.0.tar.gz", hash = "sha256:718731c674628265c09560f2990794b6d308bdcfc0a07829bffae2f50c85f155"},
+    {file = "solara-1.30.1-py2.py3-none-any.whl", hash = "sha256:3f05f5268b81face8a5a5d4c5eae62c03571f76bef0a0e76f47ab83557a67253"},
+    {file = "solara-1.30.1.tar.gz", hash = "sha256:86ca619ce2e5209ebe0bda9f6f13036eac045dfea2a5f11def336f51e93d136f"},
 ]
 
 [package.dependencies]
@@ -3124,7 +3141,7 @@ watchfiles = {version = "*", markers = "python_version > \"3.6\""}
 websockets = "*"
 
 [package.extras]
-assets = ["solara-assets (==1.30.0)"]
+assets = ["solara-assets (==1.30.1)"]
 dev = ["black", "bqplot", "bqplot-image-gl", "bump2version", "codespell", "dask[dataframe]", "flake8", "ipyreact", "mdit-py-plugins", "mypy", "playwright", "plotly", "polars", "pre-commit", "pytest", "pytest-cov", "pytest-mock", "pytest-playwright", "pytest-timeout", "python-dotenv", "types-markdown", "types-pyyaml", "types-requests", "vaex-core", "vaex-hdf5", "vaex-jupyter"]
 documentation = ["altair", "bqplot", "folium", "ipycanvas", "ipyleaflet", "matplotlib", "numpy", "openai", "plotly", "tiktoken", "vaex-core", "vaex-hdf5", "vega-datasets"]
 extra = ["numpy", "pillow", "pygments", "pygments (==2.10)"]
@@ -3979,4 +3996,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5fecdf227ee98df51f86f0016eccdde9683311e335cfc5aa46ba17ec37298046"
+content-hash = "12ca4bc7be7970b34d8a0a6e38c3690382b192ccd09b632df6a17926e6f8b993"

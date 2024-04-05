@@ -99,7 +99,7 @@ class Video(BaseModel):
                 vid.save()
                 return vid
         else:
-            logger.debug("Video already exists in DB. skipping update")
+            # logger.debug("Video already exists in DB. skipping update")
             return existing
 
     def update_episode_number(self, title, templates):
