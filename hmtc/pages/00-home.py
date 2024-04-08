@@ -60,6 +60,7 @@ def Page():
     sales_data = np.floor(np.cumsum(gen.random(7) - 0.5) * 100 + 100)
     show_report = solara.use_reactive(False)
     MyAppBar()
+    solara.InputText("Name", value="Some random value", classes=["input1"])
     with solara.Column(style={"min-width": "600px"}):
         if show_report.value:
             with solara.Card("Report"):
