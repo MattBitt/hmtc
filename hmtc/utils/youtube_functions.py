@@ -5,14 +5,14 @@ from loguru import logger
 from pathlib import Path
 
 
-def fetch_video_ids_from(url):
+def fetch_video_ids_from(url, download_path):
     """
     playlist: dict with keys: name, url
 
     """
 
     # couldn't figure out how to get this list without saving it to disk first ...
-    download_file = Path("downloads/ids.txt")
+    download_file = Path(download_path) / "ids.txt"
     cmd = (
         f"yt-dlp --flat-playlist --print-to-file id {str(download_file)} {url}".split()
     )
@@ -34,14 +34,33 @@ def fetch_video_ids_from(url):
         return ids
 
 
-def get_video_info(id):
+def get_video_info(id, output_folder):
     url = f"https://www.youtube.com/watch?v={id}"
-    # yt-dlp -o --verbose --skip_download --writeinfojson "https://www.youtube.com/watch?v=ijVGIcVRIbk"
-    ydl_opts = {}
+    folder = Path(output_folder)
+    if not folder.exists():
+        folder.mkdir(parents=True)
+    else:
+        pass
+        # use to clean out temp folder once
+        # things are working
+        # for file in folder.glob("*"):
+        #     logger.debug(f"Removing {file}")
+        #     file.unlink()
+
+    # using 3 _ to split the date from the id since the id
+    # can have underscores in it
+    ydl_opts = {
+        "writethumbnail": True,
+        "skip_download": True,
+        "writeinfojson": True,
+        "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
+    }
+
     info = {}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(url)
+
         except Exception as e:
             logger.error(e)
             info["error"] = True
@@ -50,8 +69,11 @@ def get_video_info(id):
         return ydl.sanitize_info(info)
 
 
-def download_video_info(id):
-    video = get_video_info(id)
+def download_video_info(id, download_path):
+    video = get_video_info(id, download_path)
+    files = []
+    for f in Path(download_path).glob(f"*{id}*"):
+        files.append(f)
     if "error" in video.keys():
         return {
             "youtube_id": id,
@@ -61,7 +83,7 @@ def download_video_info(id):
             "private": False,
             "error": True,
             "error_info": video["error_info"],
-        }
+        }, ["errrrrrorrrr"]
 
     else:
         return {
@@ -73,4 +95,4 @@ def download_video_info(id):
             "private": False,
             "error": False,
             "error_info": "",
-        }
+        }, files

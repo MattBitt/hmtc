@@ -16,6 +16,9 @@
             ],
             "console": "integratedTerminal",
             "justMyCode": true,
+            "env": {
+                "BROWSER": "echo"
+            }
         },
         {
             "name": "Python Debugger: Current File with Arguments",

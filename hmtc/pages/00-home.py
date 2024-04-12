@@ -8,7 +8,7 @@ from typing import Callable
 import numpy as np
 
 
-seed = solara.reactive(42)
+seed = solara.reactive(0)
 
 
 @solara.component_vue("mycard2.vue")

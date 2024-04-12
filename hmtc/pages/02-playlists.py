@@ -13,6 +13,9 @@ def get_playlists():
 
 
 def time_since_update(playlist):
+    if not playlist.last_update_completed:
+        return "Never"
+
     t = datetime.now() - playlist.last_update_completed
 
     if t.seconds > (24 * 3600):
@@ -43,9 +46,9 @@ def PlaylistCardHeader(playlist):
 
 @solara.component
 def BodyDisplay(playlist):
-    solara.Markdown(f"#### {playlist.last_update_completed}")
-    solara.Markdown(f"#### {playlist.series.name}")
-    solara.Markdown(f"#### {playlist.album_per_episode}")
+    solara.Markdown(f"#### Series: {playlist.series.name}")
+    solara.Markdown(f"#### APE: {playlist.album_per_episode}")
+    solara.Markdown(f"#### {len(playlist.videos)} videos")
 
 
 @solara.component

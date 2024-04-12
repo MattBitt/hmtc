@@ -1,4 +1,5 @@
 from loguru import logger
+from hmtc.config import init_config
 from hmtc.models import (
     Playlist,
     Video,
@@ -15,11 +16,24 @@ from hmtc.models import (
     User,
     UserInfo,
     Post,
+    PlaylistVideo,
+    PlaylistAlbum,
+    VideoFile,
+    ArtistFile,
+    SeriesFile,
+    AlbumFile,
+    TrackFile,
     db,
 )
 from hmtc.media.mymedia import PLAYLISTS, SERIES
 from pathlib import Path
 from hmtc.utils.general import parse_video_file_name, csv_to_dict
+from datetime import timedelta, datetime
+
+
+def create_video_sections():
+    for vid in Video.select():
+        vid.create_initial_section()
 
 
 # try:
@@ -60,9 +74,15 @@ def setup_db(config):
             User,
             UserInfo,
             Post,
+            PlaylistVideo,
+            PlaylistAlbum,
+            VideoFile,
+            ArtistFile,
+            SeriesFile,
+            AlbumFile,
+            TrackFile,
         ]
     )
-    seed_database()
     return db
 
 
@@ -105,7 +125,7 @@ def get_series(series: str):
 def seed_database():
     # imports all manually entered data to get a new database up an running
     # be aware that this won't save any of the downloaded data
-    return
+    # return
     for series_info in SERIES:
         series = Series().get_or_none(Series.name == series_info["name"])
         if not series:
@@ -226,3 +246,39 @@ def import_existing_tracks(filename):
         # should also create a Track object with the words and stuff
         # but it shouldn't know anything about its position
         # within the Video (start/end)
+
+
+def update_playlist(playlist, download_path="./downloads", media_path="./media"):
+    now = datetime.now()
+    logger.debug(
+        f"📕📕📕{playlist.name} was updated at {playlist.last_update_completed}"
+    )
+    last_completed = playlist.last_update_completed
+    if not last_completed or (now - last_completed > timedelta(seconds=20)):
+        playlist.check_for_new_videos(download_path, media_path)
+
+
+def update_playlists(config):
+    logger.debug("Updating playlists")
+    playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
+    download_path = config.get("GENERAL", "DOWNLOAD_PATH")
+    media_path = config.get("MEDIA", "VIDEO_PATH")
+    for p in playlists:
+        update_playlist(p, download_path, media_path)
+
+
+def seed_empty_database(config):
+    seed_database()
+    create_video_sections()
+    track_csv = config.get("IMPORT", "TRACK_INFO")
+    import_existing_tracks(track_csv)  # turns the 'track' info into sections
+
+    # video_path = config.get("MEDIA", "VIDEO_PATH")
+    # import_existing_video_files_to_db(video_path)
+
+
+if __name__ == "__main__":
+    config = init_config()
+    db = setup_db(config)
+    seed_empty_database(config)
+    update_playlists(config)

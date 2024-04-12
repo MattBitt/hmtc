@@ -1,9 +1,5 @@
 all: run
 
-dev:
-	textual run --dev hmtc/main.py
-
-run:
-	textual run hmtc/main.py
-
+create_db:
+	python hmtc/db.py
 

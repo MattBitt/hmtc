@@ -1,7 +1,7 @@
 from hmtc.config import init_config
 from hmtc.utils.my_logging import setup_logging
 from hmtc.db import setup_db, import_existing_tracks, import_existing_video_files_to_db
-from datetime import timedelta, datetime
+
 import pandas as pd
 from hmtc.app import setup_app, setup_dash_app, setup_admin
 
@@ -18,34 +18,11 @@ df = pd.read_csv(
 dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 
 
-def update_playlist(playlist):
-    now = datetime.now()
-    logger.debug(
-        f"📕📕📕{playlist.name} was updated at {playlist.last_update_completed}"
-    )
-    last_completed = playlist.last_update_completed
-    if not last_completed or (now - last_completed > timedelta(seconds=20)):
-        playlist.check_for_new_videos()
-
-
-def update_playlists():
-    logger.debug("Updating playlists")
-    playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
-
-    for p in playlists:
-        update_playlist(p)
-
-
-def create_video_sections():
-    for vid in Video.select():
-        vid.create_initial_section()
-
-
 def setup():
     config = init_config()
     setup_logging(config)
     db = setup_db(config)
-    return db
+    return db, config
 
 
 def main2():

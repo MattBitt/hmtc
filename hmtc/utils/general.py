@@ -2,6 +2,7 @@ import os
 import re
 from loguru import logger
 import csv
+from pathlib import Path
 
 
 def clear_screen():
@@ -37,3 +38,14 @@ def csv_to_dict(filename):
         for line in csvFile:
             info.append(line)
     return info
+
+
+def move_file(source, target):
+    try:
+        s = Path(source)
+        t = Path(target)
+        return s.rename(t)
+
+    except Exception as e:
+        logger.error(e)
+        return False
