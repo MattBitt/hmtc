@@ -13,6 +13,20 @@ from hmtc.config import init_config
 app_title = solara.reactive("HMTC - ")
 
 
+# # all_series = [x.name for x in Series.select()]
+series = solara.reactive([x for x in Series.select()])
+# filters = solara.reactive(None)
+
+
+# videos = solara.reactive(None)
+
+
+# all_languages = "Python C++ Java JavaScript TypeScript BASIC".split()
+# languages = solara.reactive([all_languages[0]])
+# food = solara.reactive("Banana")
+# foods = ["Kiwi", "Banana", "Apple"]
+
+
 def get_video(video_id):
 
     query = (
@@ -56,9 +70,7 @@ def find_page(
 
 @dataclass
 class VideoFilters:
-    upload_date: tuple[str, str]
     series: str
-    title: str
 
 
 @solara.component
@@ -247,26 +259,142 @@ def VideosGalleryComponent(init_query=None):
 
 
 @solara.component
-def VideosView(videos):
-    for vid in videos:
-        solara.Markdown(f"{vid.id} - {vid.title}")
+def VideoDetailCard(video_id):
+    video = solara.use_reactive(Video.get(Video.id == video_id))
+
+    if video.value is not None:
+        vid = video.value
+        with solara.Card(title=vid.title):
+
+            solara.Markdown(vid.title)
+            # solara.Image(Path(vid.poster), width=f"300px")
+
+            solara.Markdown(vid.series.name)
+            solara.Markdown(f"**Uploaded**: {vid.upload_date}")
+            with solara.CardActions():
+
+                with solara.Link(f"/videos/{vid.id}"):
+                    solara.Button("Edit")
+
+                solara.Button("Delete")
+    else:
+        solara.Markdown("No video found")
+
+
+@solara.component
+def VideosView():
+    query = (
+        Video.select()
+        .join(PlaylistVideo)
+        .join(Playlist)
+        .switch(Video)
+        .join(Series)
+        .order_by("upload_date")
+        # .limit(15)
+    )
+
+    query = query.where(
+        Video.series.in_(
+            Series.select().where(Series.name.in_([n.name for n in series.value]))
+        )
+    )
+    videos.set([x for x in query])
+    with solara.ColumnsResponsive(12, large=[4, 4, 4]):
+        solara.Markdown(f"## Videos ({query.count()} found)")
+        for vid in query.limit(15):
+            # solara.Markdown(f"# {vid.title}")
+            VideoDetailCard(vid.id)
+    solara.Markdown("The end...")
+
+
+@solara.component
+def SeriesFilter():
+    series = solara.use_reactive(Series.select())
+    selected = solara.use_reactive([s for s in series.value])
+
+    with solara.Card("Series"):
+        solara.Markdown("## Help!")
+        # solara.ToggleButtonsMultiple(selected.value, series, dense=True)
+        for s in series.value:
+            with solara.ToggleButtonsSingle(value=selected):
+                solara.Button(
+                    s.name,
+                    icon_name="mdi-arrow-up-bold",
+                    value=(selected.value),
+                    text=True,
+                )
+        solara.Markdown(f"**Selected**: {selected.value}")
+
+
+@solara.component
+def Filters(series_filter):
+
+    with solara.Card("Filters"):
+
+        SeriesFilter()
+        with solara.CardActions():
+            solara.Button("Apply Filters")
+            solara.Button("Clear Filters")
+
+
+@solara.component
+def Search():
+    search_text = solara.use_reactive("")
+    with solara.Card("Search"):
+        with solara.Row():
+            solara.InputText("Search", value=search_text)
+            solara.Button(
+                "Search", on_click=lambda: logger.debug(f"Searching... {search_text}")
+            )
+
+
+@solara.component
+def Sort():
+    with solara.Card("Sort"):
+        solara.Button("Sort by Date")
+        solara.Button("Sort by Title")
+
+
+@solara.component
+def VideosToolBar(series_filter):
+
+    with solara.Columns():
+        with solara.Row():
+            # Filters(series_filter)
+            Search()
+            Sort()
+
+
+@solara.component
+def ToggleButton(value, on_click, text=False):
+    with solara.Button(on_click=on_click):
+        if text:
+            solara.Markdown(value)
+        else:
+            solara.Icon(value)
 
 
 @solara.component
 def Page():
     router = solara.use_router()
     level = solara.use_route_level()
-    videos = solara.use_reactive(None)
+    # selected_series = solara.use_reactive(Series.select())
 
     MyAppBar()
-    solara.Markdown(f"## {videos.value}")
-    solara.Button("Update Videos", on_click=lambda: videos.set(get_videos()))
+
+    def apply():
+        logger.debug("Applying")
+
+    def toggle(id):
+        logger.debug("Toggling")
+
     if router.parts[-1] == "videos":
-        if videos.value is not None:
-            VideosView(videos.value)
-        else:
-            solara.Text("No videos found")
+        solara.Markdown("## Videos View will go here")
 
     else:
+
         video_id = router.parts[level:][0]
-        VideoDetail(get_video(video_id))
+        if video_id.isdigit():
+            VideoDetail(get_video(video_id))
+        else:
+            solara.Markdown(f"Video Id not understood {video_id}")

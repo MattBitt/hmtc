@@ -5,7 +5,8 @@ from loguru import logger
 from pathlib import Path
 
 
-def fetch_video_ids_from(url, download_path):
+# this seems to work for playlists and channels
+def fetch_video_ids_from(url, download_path="."):
     """
     playlist: dict with keys: name, url
 
@@ -96,3 +97,10 @@ def download_video_info(id, download_path):
             "error": False,
             "error_info": "",
         }, files
+
+
+if __name__ == "__main__":
+    url = "https://www.youtube.com/channel/UC59ZRYCHev_IqjUhremZ8Tg"
+    ids = fetch_video_ids_from(url, "sandbox")
+    print(len(ids))
+    print(ids)

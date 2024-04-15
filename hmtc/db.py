@@ -23,9 +23,11 @@ from hmtc.models import (
     SeriesFile,
     AlbumFile,
     TrackFile,
+    Channel,
+    ChannelVideo,
     db,
 )
-from hmtc.media.mymedia import PLAYLISTS, SERIES
+from hmtc.media.mymedia import PLAYLISTS, SERIES, CHANNELS
 from pathlib import Path
 from hmtc.utils.general import parse_video_file_name, csv_to_dict
 from datetime import timedelta, datetime
@@ -33,7 +35,8 @@ from datetime import timedelta, datetime
 
 def create_video_sections():
     for vid in Video.select():
-        vid.create_initial_section()
+        if vid.sections == []:
+            vid.create_initial_section()
 
 
 # try:
@@ -45,17 +48,6 @@ def create_video_sections():
 
 
 def setup_db(config):
-    db_path = config.get("DATABASE", "PATH")
-
-    db.init(
-        db_path,
-        pragmas={
-            "journal_mode": "wal",
-            "cache_size": 10000,
-            "foreign_keys": 1,
-        },
-    )
-    db.connect()
 
     db.create_tables(
         [
@@ -81,6 +73,8 @@ def setup_db(config):
             SeriesFile,
             AlbumFile,
             TrackFile,
+            Channel,
+            ChannelVideo,
         ]
     )
     return db
@@ -126,6 +120,11 @@ def seed_database():
     # imports all manually entered data to get a new database up an running
     # be aware that this won't save any of the downloaded data
     # return
+    for channel_info in CHANNELS:
+        channel = Channel().get_or_none(Channel.name == channel_info["name"])
+        if not channel:
+            Channel.create(**channel_info)
+
     for series_info in SERIES:
         series = Series().get_or_none(Series.name == series_info["name"])
         if not series:
@@ -138,11 +137,20 @@ def seed_database():
         # a series (always)
         # an album (if album_per_episode is false)
         series = Series.get_or_none(Series.name == playlist_info.pop("series_name"))
+
         if not series:
             logger.error(
                 f"Series ({playlist_info['series_name']} for playlist {playlist_info['name']}) not found. Skipping Playlist"
             )
             continue
+
+        channel = Channel.get_or_none(Channel.name == playlist_info.pop("channel_name"))
+        if not channel:
+            logger.error(
+                f"Channel ({playlist_info['channel_name']} for playlist {playlist_info['name']}) not found. Skipping Playlist"
+            )
+            continue
+
         if not Playlist.get_or_none(Playlist.url == playlist_info["url"]):
 
             # remove the template strings in order to save them in
@@ -151,6 +159,7 @@ def seed_database():
 
             playlist = Playlist.create(**playlist_info)
             playlist.series = series
+            playlist.channel = channel
             playlist.save()
 
             for template in templates:
@@ -219,6 +228,11 @@ def import_existing_tracks(filename):
             logger.error("Video has no initial section created in the DB.")
             continue
 
+        if len(video.sections) > 1:
+            logger.error(
+                "New sections (after the initial) have already been created. Skipping import"
+            )
+            continue
         # for each 'track' insert a section break at the beginning
         # and at the end timestamps. mark the previous section
         # as talking, and the new section as music
@@ -254,7 +268,7 @@ def update_playlist(playlist, download_path="./downloads", media_path="./media")
         f"📕📕📕{playlist.name} was updated at {playlist.last_update_completed}"
     )
     last_completed = playlist.last_update_completed
-    if not last_completed or (now - last_completed > timedelta(seconds=20)):
+    if not last_completed or (now - last_completed > timedelta(hours=2)):
         playlist.check_for_new_videos(download_path, media_path)
 
 
@@ -268,17 +282,26 @@ def update_playlists(config):
 
 
 def seed_empty_database(config):
+    logger.debug("Seeding Database")
     seed_database()
-    create_video_sections()
-    track_csv = config.get("IMPORT", "TRACK_INFO")
-    import_existing_tracks(track_csv)  # turns the 'track' info into sections
+
+    # logger.debug("Creating initial sections in each video")
+    # create_video_sections()
+
+    # logger.debug("Creating sections from track data")
+    # track_csv = config.get("IMPORT", "TRACK_INFO")
+    # import_existing_tracks(track_csv)  # turns the 'track' info into sections
 
     # video_path = config.get("MEDIA", "VIDEO_PATH")
     # import_existing_video_files_to_db(video_path)
 
 
 if __name__ == "__main__":
+    # this creates a db from scratch
+    # only to be used for fresh data instance
     config = init_config()
     db = setup_db(config)
+
     seed_empty_database(config)
+    print("updating playlist")
     update_playlists(config)

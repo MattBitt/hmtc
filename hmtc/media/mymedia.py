@@ -16,6 +16,7 @@ PLAYLISTS = [
         "series_name": INTERVIEWS,
         "album_per_episode": True,
         "episode_number_templates": [],
+        "channel_name": "Harry Mack",
     },
     {
         "name": "Busking with Bose",
@@ -23,6 +24,7 @@ PLAYLISTS = [
         "series_name": AD_RAPS,
         "album_per_episode": True,
         "episode_number_templates": ["Ep. ([0-9]+)"],
+        "channel_name": "Harry Mack",
     },
     {
         "name": "Livestream Highlights",
@@ -31,6 +33,7 @@ PLAYLISTS = [
         "album_per_episode": False,
         "album_name": "Livestream Highlights",
         "episode_number_templates": [],
+        "channel_name": "Harry Mack",
     },
     {
         "name": OMEGLE,
@@ -41,6 +44,7 @@ PLAYLISTS = [
             "Omegle Bars Episode ([0-9]+)",
             "Omegle Bars Ep. ([0-9]+)",
         ],
+        "channel_name": "Harry Mack",
     },
     {
         "name": GUERRILLA,
@@ -51,6 +55,7 @@ PLAYLISTS = [
             "Guerrilla Bars \(Episode ([0-9]+)",
             "Guerrilla Bars Episode ([0-9]+)",
         ],
+        "channel_name": "Harry Mack",
     },
     {
         "name": "Wordplay Wednesday",
@@ -62,6 +67,7 @@ PLAYLISTS = [
             "Wordplay Wednesday w/ Harry Mack.*([0-9]+)",
             "Wordplay Tuesday \#([0-9]+)",
         ],
+        "channel_name": "Harry Mack",
     },
     {
         "name": "Exclusive Omegle Bars",
@@ -70,6 +76,7 @@ PLAYLISTS = [
         "album_name": "Exclusive Omegle Bars",
         "series_name": OMEGLE,
         "episode_number_templates": [],
+        "channel_name": "Harry Mack Clips",
     },
     {
         "name": "Unreleased Guerilla Bars",
@@ -78,6 +85,7 @@ PLAYLISTS = [
         "album_name": "Guerilla Bars Unreleased",
         "series_name": GUERRILLA,
         "episode_number_templates": [],
+        "channel_name": "Harry Mack Clips",
     },
 ]
 
@@ -116,5 +124,16 @@ SERIES = [
         "name": AD_RAPS,
         "start_date": date(2021, 1, 1),
         "end_date": date(2021, 12, 31),
+    },
+]
+
+CHANNELS = [
+    {
+        "name": "Harry Mack",
+        "url": "https://www.youtube.com/@HarryMack",
+    },
+    {
+        "name": "Harry Mack Clips",
+        "url": "https://www.youtube.com/@HarryMackClips",
     },
 ]

@@ -1,4 +1,5 @@
 from peewee import (
+    PostgresqlDatabase,
     SqliteDatabase,
     TextField,
     CharField,
@@ -19,8 +20,19 @@ from loguru import logger
 from pathlib import Path
 import re
 
-# used to init db in this file to avoid circular imports
-db = SqliteDatabase(None)
+from hmtc.config import init_config
+
+config = init_config()
+
+db_name = config.get("DATABASE", "NAME")
+user = config.get("DATABASE", "USER")
+password = config.get("DATABASE", "PASSWORD")
+host = config.get("DATABASE", "HOST")
+port = config.get("DATABASE", "PORT")
+
+
+db = PostgresqlDatabase(db_name, user=user, password=password, host=host, port=port)
+db.connect()
 
 
 class BaseModel(Model):
@@ -59,13 +71,48 @@ class Album(BaseModel):
     series = ForeignKeyField(Series, backref="albums", null=True)
 
 
+class Channel(BaseModel):
+    name = CharField(unique=True)
+    url = CharField(unique=True)
+    enabled = BooleanField(default=True)
+    last_update_completed = DateTimeField(null=True)
+
+    def check_for_new_videos(self):
+        # download list of videos from youtube
+        # as a list of youtube ids as strings "example abCdgeseg12"
+        ids = fetch_video_ids_from(self.url)
+        for id in ids:
+            try:
+                ChannelVideo.create(youtube_id=id, channel=self)
+            except IntegrityError:
+                continue
+
+        # once finished updating the playlist, update the last_updated field
+        self.last_update_completed = datetime.now()
+        self.save()
+        logger.debug(f"Finished updating channel {self.name}")
+
+    @property
+    def num_videos(self):
+        return self.channel_vids.count()
+
+
+class ChannelVideo(BaseModel):
+    # This shouldn't be confused with regular videos
+    # This is a list of videos that are on a channel
+    # I will use this to figure out what videos are missing
+    youtube_id = CharField(unique=True)
+    channel = ForeignKeyField(Channel, backref="channel_vids", null=True)
+
+
 class Playlist(BaseModel):
     name = CharField(unique=True)
     url = CharField(unique=True)
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
     album_per_episode = BooleanField(default=True)
-    series = ForeignKeyField(Series, backref="playlist", null=True)
+    series = ForeignKeyField(Series, backref="playlists", null=True)
+    channel = ForeignKeyField(Channel, backref="playlists", null=True)
 
     def check_for_new_videos(self, download_path, media_path):
 
@@ -101,6 +148,10 @@ class Playlist(BaseModel):
             .where(PlaylistVideo.playlist.id == self.id)
         )
 
+    @property
+    def num_videos(self):
+        return self.videos.count()
+
 
 # example for self-referential many-to-many relationship
 # class Person(Model):
@@ -117,7 +168,7 @@ class Video(BaseModel):
     episode = CharField(null=True)
     upload_date = DateField(null=True)
     duration = IntegerField(null=True)
-    description = CharField(null=True)
+    description = TextField(null=True)
 
     file_path = CharField()  # should be a relative path
 
@@ -245,12 +296,20 @@ class Video(BaseModel):
         return sorted(self.sections, key=lambda x: x.start)
 
     @property
+    def num_sections(self):
+        return len(self.all_sections)
+
+    @property
     def existing_files(self):
         return (
             File.select()
             .join(Video)
             .where(File.video.id == self.id and File.downloaded == True)
         )
+
+    @property
+    def num_files(self):
+        return len(self.existing_files)
 
     @property
     def poster(self):
