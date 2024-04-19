@@ -1,15 +1,21 @@
 import solara
 import solara.lab
-from solara.alias import rv
-from hmtc.components.my_app_bar import MyAppBar
-from hmtc.models import Playlist, Video, Series
-from datetime import datetime, timedelta
+import peewee
+from hmtc.models import Playlist, Series, Channel
+from datetime import datetime
 from loguru import logger
+from solara.lab import task
 
+all_series = [s.name for s in Series.select()]
+all_channels = [c.name for c in Channel.select()]
 
-def get_playlists():
-    query = Playlist.select().join(Series).order_by(Series).order_by(Playlist.name)
-    return query
+name = solara.reactive("")
+url = solara.reactive("http://www.youtube.com")
+series = solara.reactive(all_series[0])
+enabled = solara.reactive(True)
+album_per_episode = solara.reactive(False)
+channel = solara.reactive(all_channels[0])
+add_videos_enabled = solara.reactive(True)
 
 
 def time_since_update(playlist):
@@ -25,133 +31,123 @@ def time_since_update(playlist):
     elif t.seconds < 3600 and t.seconds > 60:
         return str(f"{(t.seconds // 60)} minutes ago")
     else:
-        return str(f"Just now")
+        return str("Just now")
 
 
-@solara.component
-def PlaylistButton():
-    with solara.Row():
-        solara.Button(
-            "Add playlist",
-            on_click=lambda: logger.debug("Add playlist"),
-            classes=[],
+def add_new_playlist():
+    try:
+        playlist = Playlist.create(
+            name="New Playlist",
+            url="http://www.youtube.com",
+            series=Series.get(),
+            channel=Channel.get(),
         )
+        logger.debug(f"Created new playlist: {playlist.name}")
+    except peewee.IntegrityError:
+        logger.debug("Playlist already exists")
+        return
 
 
-@solara.component
-def PlaylistCardHeader(playlist):
-    with solara.Div(classes=["card-header"]):
-        solara.Markdown(playlist.name)
+def save_playlist(playlist):
+    if playlist is None:
+        logger.error("Playlist not found")
+        return
+    if not name == "":
+        playlist.name = name.value
+        playlist.url = url.value
+        playlist.series = Series.get(Series.name == series.value)
+        playlist.enabled = enabled.value
+        playlist.album_per_episode = album_per_episode.value
+        playlist.channel = Channel.get(Channel.name == channel.value)
+        playlist.add_videos_enabled = add_videos_enabled.value
+        playlist.save()
+        logger.debug("Updated playlist name")
 
 
-@solara.component
-def BodyDisplay(playlist):
-    solara.Markdown(f"#### Series: {playlist.series.name}")
-    solara.Markdown(f"#### APE: {playlist.album_per_episode}")
-    solara.Markdown(f"#### {len(playlist.videos)} videos")
+def PlaylistDetail(playlist_id):
+    playlist = Playlist.select().where(Playlist.id == playlist_id).get()
+    name.set(playlist.name)
+    url.set(playlist.url)
+    series.set(playlist.series.name)
+    channel.set(playlist.channel.name)
+
+    def update_playlist():
+        save_playlist(playlist)
+
+    with solara.Card():
+        solara.InputText(label="Name", value=name, continuous_update=False)
+        solara.InputText(label="URL", value=url, continuous_update=False)
+        solara.Select(label="Series", value=series, values=all_series)
+        solara.Select(label="Channel", value=channel, values=all_channels)
+        solara.Checkbox(label="Enabled", value=enabled)
+        solara.Checkbox(label="Add Videos Enabled", value=add_videos_enabled)
+
+        with solara.CardActions():
+            solara.Button(label="Save", on_click=update_playlist)
 
 
-@solara.component
-def BodyEdit(playlist):
-    solara.InputText("Name", value=playlist.name, classes=["input1"])
-    solara.InputText(
-        "Last Updated",
-        value=playlist.last_update_completed,
-        classes=["input2"],
-    )
-    solara.InputText("Series Name", value=playlist.series.name)
-    solara.InputText("Separate APE?", value=playlist.album_per_episode)
-
-
-@solara.component
-def PlaylistCardBody(playlist, editing):
-    with solara.Column(classes=["card-body"]):
-        if editing:
-            BodyEdit(playlist)
-        else:
-            BodyDisplay(playlist)
-
-
-@solara.component
-def PlaylistCardControlPanel(editing, set_editing, set_updating):
-    # not sure if this is the best way to do this
-    # need to figure out how to pass the playlist object
-    # from the on_click event without 'calling' the
-    # function
-
-    with solara.Row(gap="10px", justify="center"):
-        solara.Button(
-            "Edit Playlist" if not editing else "Cancel",
-            on_click=lambda: set_editing(not editing),
-            classes=[],
-        )
-
-        solara.Button(
-            "Update playlist",
-            on_click=lambda: set_updating(True),
-            classes=[],
-        )
-
-
-@solara.component
-def PlaylistCardStatusBar(status_bar_text):
-    with solara.Column(align="center", classes=["footer"]):
-        solara.Text(status_bar_text)
+#       solara.Markdown(f"URL: {playlist.url}")
+#        solara.Markdown(f"Series: {playlist.series.name}")
 
 
 @solara.component
 def PlaylistCard(playlist):
-    updated, set_updated = solara.use_state(False)
-    updating, set_updating = solara.use_state(False)
-    since_updated, set_since_updated = solara.use_state(time_since_update(playlist))
-    editing, set_editing = solara.use_state(False)
-    status_bar_text = solara.use_reactive("")
+    updating = solara.use_reactive(False)
 
-    def refresh_playlist(playlist):
-        logger.debug(f"💥💥💥 Running update_playlist_videos for {playlist.name}")
-        set_updating(True)
+    @task
+    def update():
+
+        logger.debug(f"Updating playlist {playlist.name}")
+        updating.set(True)
+        # time.sleep(3)
         playlist.check_for_new_videos()
-        set_updated(True)
-        set_updating(False)
+        updating.set(False)
+        logger.success(f"Updated database from Playlist {playlist.name}")
 
-    if editing:
-        status_bar_text = f"Editing {playlist.name} Playlist"
-    elif updating:
-        # not sure why this doesn't update the status bar
-        status_bar_text = f"Updating {playlist.name} Playlist"
-        logger.debug(f"🏠🏠🏠Updating {playlist.name} Playlist")
-        refresh_playlist(playlist)
-    else:
-        status_bar_text = f"Last updated: {since_updated}"
+    with solara.Card():
+        if updating.value is False:
+            solara.Markdown(playlist.name)
+            solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
 
-    if updated:
-        set_since_updated(time_since_update(playlist))
-        set_updated(False)
-
-    with solara.Card(classes=["playlist-card"]):
-        PlaylistCardHeader(playlist)
-        PlaylistCardBody(playlist, editing=editing)
-        PlaylistCardControlPanel(
-            editing=editing,
-            set_editing=set_editing,
-            set_updating=set_updating,
-        )
-        PlaylistCardStatusBar(status_bar_text)
-
-
-@solara.component
-def PlaylistsGroup():
-    playlists = solara.use_reactive(get_playlists())
-
-    with solara.ColumnsResponsive(12, large=[4, 4, 4]):
-        for playlist in playlists.value:
-            PlaylistCard(
-                playlist,
+            solara.Markdown(f"Channel: {playlist.channel.name}")
+            solara.Markdown(f"Series: {playlist.series.name}")
+            solara.Markdown(f"URL: {playlist.url}")
+            solara.Markdown(f"Last Updated: {time_since_update(playlist)}")
+            solara.Markdown(
+                f"New Video Status: {'Enabled' if playlist.add_videos_enabled else 'Disabled'} "
             )
+            with solara.CardActions():
+                with solara.Link(f"/playlists/{playlist.id}"):
+                    solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
+                solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
+                solara.Button(label="Update", on_click=update)
+        else:
+            solara.SpinnerSolara()
 
 
 @solara.component
 def Page():
+    router = solara.use_router()
+    level = solara.use_route_level()
+    # selected_series = solara.use_reactive(Series.select())
 
-    MyAppBar()
-    PlaylistsGroup()
+    def update():
+        logger.debug("Updating")
+        for p in Playlist.select().where(Playlist.enabled == True):
+            p.check_for_new_videos()
+        logger.success("Updated all playlists")
+
+    if router.parts[-1] == "playlists":
+        solara.Button("Add New Playlist", on_click=add_new_playlist)
+        solara.Button("Update All Playlists", on_click=update)
+        with solara.ColumnsResponsive(
+            12,
+            large=3,
+        ):
+            for playlist in Playlist.select().order_by(Playlist.updated_at.desc()):
+                PlaylistCard(playlist)
+
+    else:
+
+        playlist_id = router.parts[level:][0]
+        PlaylistDetail(playlist_id)

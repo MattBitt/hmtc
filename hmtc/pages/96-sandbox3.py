@@ -60,7 +60,7 @@ def FilteredPage(df: pl.DataFrame, filter_values: solara.Reactive[FilterValues])
 
 @solara.component
 def DFVis(df: pl.DataFrame):
-    solara.Markdown(f"## DataFrame")
+    solara.Markdown("## DataFrame")
     solara.DataFrame(df.to_pandas(), items_per_page=5)
     px.histogram(df, x=["Carb. (g)", "Sodium"])
 

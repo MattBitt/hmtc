@@ -3,13 +3,11 @@ from hmtc.utils.my_logging import setup_logging
 from hmtc.db import setup_db, import_existing_tracks, import_existing_video_files_to_db
 
 import pandas as pd
-from hmtc.app import setup_app, setup_dash_app, setup_admin
+from hmtc.app import setup_app, setup_admin
 
-from loguru import logger
 
 # from hmtc.section_manager import SectionManager
 
-from hmtc.models import Playlist, Series, Video
 
 
 df = pd.read_csv(

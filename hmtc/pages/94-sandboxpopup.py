@@ -1,7 +1,6 @@
 import solara
 import solara.lab
 from hmtc.components.my_app_bar import MyAppBar
-from hmtc.pages import app_state
 
 from typing import Callable
 

@@ -3,6 +3,7 @@ import subprocess
 import os
 from loguru import logger
 from pathlib import Path
+from hmtc.utils.general import is_disk_full
 
 
 # this seems to work for playlists and channels
@@ -70,6 +71,42 @@ def get_video_info(id, output_folder):
         return ydl.sanitize_info(info)
 
 
+def download_media_files(id, output_folder):
+    url = f"https://www.youtube.com/watch?v={id}"
+    folder = Path(output_folder)
+    if not is_disk_full(folder):
+        if not folder.exists():
+            folder.mkdir(parents=True)
+    else:
+        logger.error(f"Disk is full: {folder}")
+        raise Exception(f"Disk is full: {folder}")
+        # using 3 _ to split the date from the id since the id
+    # can have underscores in it
+    ydl_opts = {
+        "writethumbnail": False,
+        "skip_download": False,
+        "writeinfojson": False,
+        "formats": ["247", "251"],
+        "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
+    }
+
+    info = {}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(url)
+
+            files = []
+            for f in Path(output_folder).glob(f"*{id}*"):
+                files.append(f)
+
+        except Exception as e:
+            logger.error(e)
+            info["error"] = True
+            info["error_info"] = e
+        # ℹ️ ydl.sanitize_info makes the info json-serializable
+        return ydl.sanitize_info(info), files
+
+
 def download_video_info(id, download_path):
     video = get_video_info(id, download_path)
     files = []
@@ -100,7 +137,11 @@ def download_video_info(id, download_path):
 
 
 if __name__ == "__main__":
+    # harry mack's channel
     url = "https://www.youtube.com/channel/UC59ZRYCHev_IqjUhremZ8Tg"
-    ids = fetch_video_ids_from(url, "sandbox")
-    print(len(ids))
-    print(ids)
+
+    # i ain't gotta worry
+    id = "3oPCYzT1ek4"
+    result = download_media_files(id, ".")
+    if result:
+        print(result)

@@ -1,9 +1,7 @@
 import solara
 import solara.lab
-from archive.sol import sidebar, main_content
 from hmtc.components.my_app_bar import MyAppBar
-from hmtc.pages import app_state
-from hmtc.models import Channel, Video, Playlist
+from hmtc.models import Channel, Playlist
 from loguru import logger
 
 
@@ -28,7 +26,7 @@ def Page():
             solara.Markdown(f"### {channel.name}")
             solara.Markdown(f"**{channel.num_videos}** Videos on Channel")
 
-            solara.Markdown(f"### My DB")
+            solara.Markdown("### My DB")
             total = 0
             for playlist in channel.playlists:
                 cnt = playlist.videos.count()

@@ -1,10 +1,16 @@
 import solara
 from hmtc.main import setup
-
+from loguru import logger
 from pathlib import Path
+import shutil
+
 
 db, config = setup()
 
+download_folder = Path(config.get("GENERAL", "DOWNLOAD_PATH"))
+for f in download_folder.glob("*"):
+    logger.warning(f"Removing existing file in downloads: {f}")
+    f.unlink()
 
 app_state = solara.reactive(0)
 

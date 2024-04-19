@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_admin import Admin
-from flask_admin.menu import MenuLink
 import solara.server.flask
 
 from hmtc.admin_views import (
@@ -11,7 +10,7 @@ from hmtc.admin_views import (
     VideoAdmin,
 )
 import dash
-from dash import Dash, html, dcc
+from dash import Dash, html
 import pandas as pd
 
 import dash_bootstrap_components as dbc

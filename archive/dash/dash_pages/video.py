@@ -1,12 +1,8 @@
 import dash
-from dash import html, dash_table, dcc
+from dash import html
 import dash_bootstrap_components as dbc
 import dash_player
 from hmtc.models import Video, Section, File
-from loguru import logger
-from pathlib import Path
-from dash import Dash, dcc, html, Input, Output, State, callback, ctx
-import json
 
 dash.register_page(__name__, path_template="/video/<video_id>")
 

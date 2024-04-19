@@ -1,6 +1,6 @@
+import os
 from peewee import (
     PostgresqlDatabase,
-    SqliteDatabase,
     TextField,
     CharField,
     IntegerField,
@@ -13,9 +13,13 @@ from peewee import (
     IntegrityError,
 )
 from datetime import datetime
-from hmtc.utils.youtube_functions import fetch_video_ids_from, download_video_info
+from hmtc.utils.youtube_functions import (
+    fetch_video_ids_from,
+    download_video_info,
+    download_media_files,
+)
 from hmtc.utils.general import move_file
-from hmtc.utils.image import convert_webp_to_png, convert_jpg_to_png
+from hmtc.utils.image import convert_webp_to_png
 from loguru import logger
 from pathlib import Path
 import re
@@ -33,6 +37,30 @@ port = config.get("DATABASE", "PORT")
 
 db = PostgresqlDatabase(db_name, user=user, password=password, host=host, port=port)
 db.connect()
+
+
+def get_file_type(file):
+    try:
+        f = Path(file.local_path) / file.filename
+    except AttributeError:
+        f = file
+    ext = f.suffix
+    if ext in [".mkv", ".mp4", ".webm"]:
+        filetype = "video"
+    elif ext in [".mp3", ".wav"]:
+        filetype = "audio"
+    elif ext in [".srt", ".vtt"]:
+        filetype = "subtitle"
+    elif ext in [".nfo", ".info.json", ".json"]:
+        filetype = "info"
+    elif ext in [".jpg", ".jpeg", ".png"]:
+
+        filetype = "image"
+    elif ext == ".webp":
+        raise ValueError("Webp files should be converted to png")
+    else:
+        raise ValueError(f"Unknown file type: {f}")
+    return filetype
 
 
 class BaseModel(Model):
@@ -58,11 +86,30 @@ class File(BaseModel):
         self.save()
         return self
 
+    @classmethod
+    def add_to_db(cls, file):
+        existing = cls.get_or_none(File.filename == file.name)
+        if not existing:
+            f = File.create(
+                local_path=file.parent, filename=file.name, extension=file.suffix
+            )
+            return f
+        else:
+            return existing
+
 
 class Series(BaseModel):
     name = CharField(unique=True)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
+
+    @property
+    def enabled_videos(self):
+        return self.videos.where(Video.enabled == True).count()
+
+    @property
+    def total_videos(self):
+        return self.videos.count()
 
 
 class Album(BaseModel):
@@ -113,44 +160,45 @@ class Playlist(BaseModel):
     album_per_episode = BooleanField(default=True)
     series = ForeignKeyField(Series, backref="playlists", null=True)
     channel = ForeignKeyField(Channel, backref="playlists", null=True)
+    add_videos_enabled = BooleanField(default=True)
 
-    def check_for_new_videos(self, download_path, media_path):
+    def check_for_new_videos(self):
+        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
 
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
         ids = fetch_video_ids_from(self.url, download_path)
         logger.debug(f"Found {len(ids)} videos in playlist {self.name}")
         for youtube_id in ids:
-            if not youtube_id in self.video_list:
-                vid = Video.create_new(
-                    youtube_id=youtube_id,
-                    series=self.series,
-                    playlist=self,
-                    download_path=download_path,
-                    media_path=media_path,
-                )
+            vid = Video.create_new(
+                youtube_id=youtube_id,
+                series=self.series,
+                playlist=self,
+                enabled=self.add_videos_enabled,
+            )
             if vid:
                 vid.update_episode_number(vid.title, self.episode_number_templates)
 
         # once finished updating the playlist, update the last_updated field
         self.last_update_completed = datetime.now()
         self.save()
+        logger.success("Finished updating playlist {self.name}")
 
     def __repr__(self):
         return f"Playlist({self.name=})"
 
-    @property
-    def video_list(self):
-        return (
-            Playlist.select(Video.youtube_id)
-            .join(PlaylistVideo)
-            .join(Video)
-            .where(PlaylistVideo.playlist.id == self.id)
-        )
+    # @property
+    # def video_list(self):
+    #     return (
+    #         Playlist.select(Video.youtube_id)
+    #         .join(PlaylistVideo)
+    #         .join(Video)
+    #         .where(PlaylistVideo.playlist.id == self.id)
+    #     )
 
-    @property
-    def num_videos(self):
-        return self.videos.count()
+    # @property
+    # def num_videos(self):
+    #     return self.videos.count()
 
 
 # example for self-referential many-to-many relationship
@@ -162,6 +210,29 @@ class Playlist(BaseModel):
 #     to_person = ForeignKeyField(Person, related_name='followed_by')
 
 
+def process_downloaded_files(video, files):
+    for downloaded_file in files:
+        ext = downloaded_file.suffix
+        if ext == ".webp":
+            converted = convert_webp_to_png(downloaded_file)
+            Path(downloaded_file).unlink()
+            files.pop(files.index(downloaded_file))
+            files.append(converted)
+            ext = ".png"
+            downloaded_file = converted
+
+        existing = (
+            File.select().where(File.filename == downloaded_file.name).get_or_none()
+        )
+        if not existing:
+            if "webp" in downloaded_file.name:
+                raise ValueError("asdfWebp files should be converted to png")
+            video.add_file(downloaded_file)
+            video.save()
+
+    return video, files
+
+
 class Video(BaseModel):
     youtube_id = CharField(unique=True)
     title = CharField()
@@ -171,7 +242,7 @@ class Video(BaseModel):
     description = TextField(null=True)
 
     file_path = CharField()  # should be a relative path
-
+    enabled = BooleanField(default=True)
     private = BooleanField(default=False)
     error = BooleanField(default=False)
     error_info = CharField(null=True)
@@ -204,72 +275,70 @@ class Video(BaseModel):
                 return sect
         return None
 
-    def add_file(self, file, file_type):
+    def add_file(self, file, file_type=None):
 
-        new_path = self.file_path / (file.name)
+        new_path = Path(self.file_path) / (file.name)
         new_file = move_file(file, new_path)
-
-        f = File.create(
-            local_path=new_file.parent,
-            filename=new_file.name,
-            extension=new_file.suffix,
+        existing = File.select().where(
+            (File.filename == new_file.name)
+            & (File.local_path == new_file.parent)
+            & (new_file.suffix == File.extension)
         )
-        VideoFile.create(file=f, video=self, file_type=file_type)
+        if not existing:
+            if file_type is None:
+                file_type = get_file_type(new_file)
+            f = File.create(
+                local_path=new_file.parent,
+                filename=new_file.name,
+                extension=new_file.suffix,
+            )
+            VideoFile.create(file=f, video=self, file_type=file_type)
 
     @classmethod
     def create_new(
-        cls, youtube_id, series, playlist=None, download_path=".", media_path="."
+        cls,
+        youtube_id,
+        series,
+        playlist=None,
+        enabled=None,
     ):
-        existing = cls.get_or_none(Video.youtube_id == youtube_id)
+        existing = cls.select().where(cls.youtube_id == youtube_id)
+        if existing:
+            # logger.debug(
+            #     "Tried to create a video that already exists in database 🟡🟡🟡"
+            # )
+            return None
 
-        if not existing:
+        info, files = cls.download_video_info(youtube_id)
+        if info is None:
+            logger.error(f"Error downloading video info for {youtube_id}")
+            return None
+        vid = cls.create(**info, series=series)
+        process_downloaded_files(vid, files)
+        vid.refresh_video_info()
+        vid.create_initial_section()
+        vid.save()
+        if playlist:
+            PlaylistVideo.create(video=vid, playlist=playlist)
 
-            video_info, files = download_video_info(youtube_id, download_path)
-            if video_info["error"]:
-                logger.error(f"{video_info['error_info']}")
-                return None
-            else:
-                new_path = Path(Path(media_path) / video_info["upload_date"][0:4])
-                if not new_path.exists():
-                    new_path.mkdir(parents=True, exist_ok=True)
-                video_info["file_path"] = new_path
-                vid = Video.create(**video_info, series=series)
+        return vid
 
-                for downloaded_file in files:
+    @classmethod
+    def download_video_info(cls, youtube_id):
+        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
+        media_path = config.get("MEDIA", "VIDEO_PATH")
 
-                    ext = Path(downloaded_file).suffix
-                    match ext:
-                        case ".json":
-                            filetype = "info"
-                        case ".webp":
-                            filetype = "poster"
-                            downloaded_file = convert_webp_to_png(downloaded_file)
-                        case ".jpg":
-                            # downloaded_file = convert_jpg_to_png(downloaded_file)
-                            filetype = "poster"
-                        case ".png":
-                            filetype = "poster"
-                        case _:
-                            logger.debug(f"filetype unknown {downloaded_file}")
-                            filetype = "UNKNOWN"
-                    vid.add_file(downloaded_file, filetype)
-                vid.create_initial_section()
-                vid.save()
-                if playlist:
-                    PlaylistVideo.create(video=vid, playlist=playlist)
-                return vid
+        video_info, files = download_video_info(youtube_id, download_path)
+        if video_info["error"] or files is None:
+            logger.error(f"{video_info['error_info']}")
+            return None, None
         else:
-            try:
-                pass
-                # PlaylistVideo.create(video=existing, playlist=playlist)
+            new_path = Path(Path(media_path) / video_info["upload_date"][0:4])
+            if not new_path.exists():
+                new_path.mkdir(parents=True, exist_ok=True)
 
-            except IntegrityError:
-                # logger.debug(
-                #     "Video already exists in DB from this playlist. skipping update"
-                # )
-                pass
-
-            return existing
+            video_info["file_path"] = new_path
+            return video_info, files
 
     def update_episode_number(self, title, templates):
         for template in templates:
@@ -278,6 +347,36 @@ class Video(BaseModel):
                 return match.group(1)
 
             return ""
+
+    def refresh_video_info(self):
+        for file in self.files:
+            logger.debug(f"Processing file {file.file.filename} for video {self.title}")
+
+        info, files = self.download_video_info(self.youtube_id)
+        process_downloaded_files(self, files)
+        for file in files:
+            if "webp" in file.name:
+                files.pop(files.index(file))
+                continue
+
+            self.add_file(file)
+        self.title = info["title"]
+        self.upload_date = info["upload_date"]
+        self.duration = info["duration"]
+        self.description = info["description"]
+        self.save()
+
+    def download_video(self):
+        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
+        if self.has_video:
+            logger.debug(
+                "Video already downloaded. Delete it from the folder to redownload"
+            )
+            return
+        result, files = download_media_files(self.youtube_id, download_path)
+        if result:
+            for file in files:
+                self.add_file(file)
 
     @property
     def section_breaks(self):
@@ -299,13 +398,8 @@ class Video(BaseModel):
     def num_sections(self):
         return len(self.all_sections)
 
-    @property
-    def existing_files(self):
-        return (
-            File.select()
-            .join(Video)
-            .where(File.video.id == self.id and File.downloaded == True)
-        )
+    def __repr__(self):
+        return f"Video({self.title=})"
 
     @property
     def num_files(self):
@@ -313,13 +407,57 @@ class Video(BaseModel):
 
     @property
     def poster(self):
-        for vf in self.files:
-            if vf.file.filename.endswith(".png"):
-                return Path(vf.file.local_path + "/" + vf.file.filename)
-        return None
 
-    def __repr__(self):
-        return f"Video({self.title=})"
+        vf = (
+            VideoFile.select(File.filename)
+            .join(File)
+            .where((VideoFile.video_id == self.id) & (VideoFile.file_type == "image"))
+        ).get_or_none()
+        path = Path(config.get("MEDIA", "VIDEO_PATH"))
+        if vf:
+            return path / vf.file.filename[:4] / vf.file.filename
+
+        return ""
+
+    @property
+    def has_video(self):
+        return self.files.where(VideoFile.file_type == "video").count() > 0
+
+    @property
+    def has_audio(self):
+        return self.files.where(VideoFile.file_type == "audio").count() > 0
+
+    @property
+    def has_subtitle(self):
+        return self.files.where(VideoFile.file_type == "subtitle").count() > 0
+
+    @property
+    def has_poster(self):
+        return self.files.where(VideoFile.file_type == "image").count() > 0
+
+    @property
+    def upload_date_str(self):
+        return self.upload_date.strftime("%Y%m%d")
+
+    def extract_audio(self):
+        if not self.has_video:
+            logger.error(f"No video file found for {self.title}")
+            return
+
+        video_file = (
+            VideoFile.select(File)
+            .join(File)
+            .where((VideoFile.video_id == self.id) & (VideoFile.file_type == "video"))
+        ).get()
+        path = Path(video_file.file.local_path)
+        vf = path / video_file.file.filename
+        af = path / f"{self.upload_date_str}___{self.youtube_id}.mp3"
+
+        command = f"ffmpeg -i {vf} -vn -acodec libmp3lame -y {af}"
+        logger.debug(f"Running command: {command}")
+        os.system(command)
+
+        self.add_file(af, file_type="audio")
 
 
 class EpisodeNumberTemplate(BaseModel):
@@ -428,12 +566,6 @@ class VideoFile(BaseModel):
     video = ForeignKeyField(Video, backref="files")
     file_type = CharField(null=True)  # should probably be an enum
 
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("file", "video"), True),
-        )
-
 
 class SeriesFile(BaseModel):
     file = ForeignKeyField(File, backref="seriess")
@@ -510,3 +642,39 @@ class Post(BaseModel):
 
     def __str__(self):
         return self.title
+
+
+def add_files_to_db():
+    # this will add existing media files to the database
+    media_path = Path("/mnt/c/DATA/hmtc_files/media")
+    for mp in media_path.rglob("*"):
+        if mp.is_file() and mp.stem[4] == "-":
+            # currently date is in YYYY-MM-DD format
+            # need to replace with YYYYMMDD
+            new_name = mp.name.replace("-", "")
+            mp = mp.rename(mp.parent / new_name)
+
+        existing = File.select().where(
+            (File.filename == mp.name)
+            & (File.local_path == mp.parent)
+            & (File.extension == mp.suffix)
+        )
+        if not existing:
+            f = File.create(
+                local_path=mp.parent,
+                filename=mp.name,
+                extension=mp.suffix,
+            )
+
+
+def create_video_file_associations():
+    videos = Video.select()
+    for vid in videos:
+        files = File.select().where(File.filename.contains(vid.youtube_id))
+        for file in files:
+            VideoFile.create(file=file, video=vid, file_type=get_file_type(file))
+
+
+if __name__ == "__main__":
+    # add_files_to_db()
+    create_video_file_associations()

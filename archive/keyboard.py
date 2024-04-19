@@ -1,6 +1,6 @@
 import json
 
-from dash_extensions.enrich import DashProxy, html, Input, Output, State, dcc
+from dash_extensions.enrich import DashProxy, html, Input, Output, State
 from dash_extensions import Keyboard
 
 # Create small example app
