@@ -55,6 +55,9 @@ def get_video_info(id, output_folder):
         "writethumbnail": True,
         "skip_download": True,
         "writeinfojson": True,
+        "writeautomaticsub": True,
+        "subtitlesformat": "vtt",
+        "subtitleslangs": ["en"],
         "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
     }
 

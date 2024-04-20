@@ -22,6 +22,27 @@ def count_types(files):
     return num_files
 
 
+@solara.component
+def FileTypesCard(db, folder):
+    db_files_type_counts = count_types(db)
+    folder_files_type_counts = count_types(folder)
+
+    with solara.Card(title="Files in db"):
+
+        solara.Markdown(f"**{len(db)} files in db**")
+        for key, num in enumerate(sorted(folder_files_type_counts)):
+            solara.Markdown(f"**{num}** files: {folder_files_type_counts[num]}")
+
+    with solara.Card(title="Files in Folder"):
+
+        solara.Markdown(f"**{len(folder)}** files in folder and subfolders")
+
+        for key, num in enumerate(sorted(db_files_type_counts)):
+            if num:
+                solara.Markdown(f"**{num}** files: {db_files_type_counts[num]}")
+
+
+@solara.component
 def DBversusFileCards(db_files, folder_files):
     db_files_list = {Path(file.local_path, file.filename) for file in db_files}
     folder_files_list = {file for file in folder_files}
@@ -32,13 +53,12 @@ def DBversusFileCards(db_files, folder_files):
     def file_diffs():
         logger.debug("Running File Tests")
 
+    solara.Button("Compare Files in Folder vs DB", on_click=file_diffs)
     if len(diff) == 0:
         solara.Markdown("No differences in files vs Database")
-        solara.Button("Run File Tests Anyway", on_click=file_diffs)
         return
 
-    db_files_type_counts = count_types(db_files)
-    folder_files_type_counts = count_types(folder_files)
+    FileTypesCard(db_files_list, folder_files_list)
 
     with solara.Card():
 
@@ -50,45 +70,18 @@ def DBversusFileCards(db_files, folder_files):
         for ext in diff_file_counts:
             solara.Markdown(f"**{diff_file_counts[ext]}** files: {ext}")
 
-    with solara.Card(title="Files in db"):
-
-        files = db_files
-        solara.Markdown(f"**{len(db_files_list)} files in db**")
-        for key, num in enumerate(sorted(folder_files_type_counts)):
-            solara.Markdown(f"**{num}** files: {folder_files_type_counts[num]}")
-
-    with solara.Card(title="Files in Database"):
-        folder = Path(config.get("MEDIA", "VIDEO_PATH"))
-        files = folder_files
-        solara.Markdown(f"**{len(files)}** files in folder and subfolders")
-
-        for key, num in enumerate(sorted(db_files_type_counts)):
-            if num:
-                solara.Markdown(f"**{num}** files: {db_files_type_counts[num]}")
-
-    with solara.Card(title="Files in Folder (not in DB)"):
+    with solara.Card(title="Files in Database (not in Folder)"):
 
         diff = db_files_list - folder_files_list
-        solara.Markdown(f"**{len(diff)}** files in db but not in folder")
+        if len(diff) < 10:
+            for file in diff:
+                solara.Markdown(f"**{file}**")
+        else:
+            solara.Markdown(f"**{len(diff)}** files in db but not in folder")
 
     with solara.Card(title="Files in folder not in db"):
         diff = folder_files_list - db_files_list
         solara.Markdown(f"**{len(diff)}** files in folder but not in db")
-
-    with solara.Card(title="Video Files (not video files)"):
-        solara.Markdown(f"**{video_files.count()}** video file associations in db")
-        max_files = 0
-        vid = None
-        same_length = 0
-        for video in video_files:
-            if len(video.files) > max_files:
-                max_files = len(video.files)
-                vid = video
-        solara.Markdown(f"Video {vid} had the most files: {max_files}")
-        solara.Markdown("Files")
-        with solara.Column():
-            for v in vid.files:
-                solara.Markdown(f"**{v.file.filename}**")
 
 
 def download_missing_videos():
@@ -96,22 +89,17 @@ def download_missing_videos():
     for video in videos:
         if not video.has_video:
             video.download_video()
+            logger.debug("starting sleep")
             time.sleep(10)
+            logger.debug("finished sleep")
 
 
-@solara.component
-def FileTypesCard():
-    with solara.Card():
-        solara.Markdown("Video Files")
-        have_video = 0
-
-        videos = Video.select().where(Video.enabled == True)
-        total = videos.count()
-        for vid in videos:
-            if vid.has_video:
-                have_video += 1
-        solara.Markdown(f"**{have_video}** videos have a 'video' file")
-        solara.Markdown(f"**{total - have_video}** videos DONT have a 'video' file")
+def extract_missing_audio():
+    videos = Video.select().where(Video.enabled == True)
+    for video in videos:
+        if video.has_video and not video.has_audio:
+            video.extract_audio()
+            time.sleep(1)
 
 
 @solara.component
@@ -128,5 +116,8 @@ def Page():
             solara.Button(
                 "Download all missing videos", on_click=download_missing_videos
             )
-
-        FileTypesCard()
+        with solara.Card():
+            solara.Button(
+                "Extract all missing audio from downloaded videos",
+                on_click=extract_missing_audio,
+            )
