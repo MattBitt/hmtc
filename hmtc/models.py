@@ -15,7 +15,7 @@ from peewee import (
 from datetime import datetime
 from hmtc.utils.youtube_functions import (
     fetch_video_ids_from,
-    download_video_info,
+    download_video_info_from_id,
     download_media_files,
 )
 from hmtc.utils.general import move_file
@@ -148,6 +148,7 @@ class ChannelVideo(BaseModel):
     # This shouldn't be confused with regular videos
     # This is a list of videos that are on a channel
     # I will use this to figure out what videos are missing
+    # they don't appear on a playlist
     youtube_id = CharField(unique=True)
     channel = ForeignKeyField(Channel, backref="channel_vids", null=True)
 
@@ -170,7 +171,7 @@ class Playlist(BaseModel):
         ids = fetch_video_ids_from(self.url, download_path)
         logger.debug(f"Found {len(ids)} videos in playlist {self.name}")
         for youtube_id in ids:
-            vid = Video.create_new(
+            vid = Video.create_from_yt_id(
                 youtube_id=youtube_id,
                 series=self.series,
                 playlist=self,
@@ -230,7 +231,7 @@ def process_downloaded_files(video, files):
             video.add_file(downloaded_file)
             video.save()
 
-    return video, files
+    # return video, files
 
 
 class Video(BaseModel):
@@ -278,30 +279,33 @@ class Video(BaseModel):
     def add_file(self, file, file_type=None):
 
         new_path = Path(self.file_path) / (file.name)
+
         new_file = move_file(file, new_path)
+        if new_file == "":
+            logger.error(f"Error moving file {file} to {new_path}")
+            return
+
         existing = File.select().where(
             (File.filename == new_file.name)
             & (File.local_path == new_file.parent)
             & (new_file.suffix == File.extension)
         )
-        if not existing:
-            if file_type is None:
-                file_type = get_file_type(new_file)
-            f = File.create(
-                local_path=new_file.parent,
-                filename=new_file.name,
-                extension=new_file.suffix,
-            )
-            VideoFile.create(file=f, video=self, file_type=file_type)
+        if existing:
+            return existing
+
+        if file_type is None:
+            file_type = get_file_type(new_file)
+
+        f = File.create(
+            local_path=new_file.parent,
+            filename=new_file.name,
+            extension=new_file.suffix,
+        )
+        VideoFile.create(file=f, video=self, file_type=file_type)
+        return f
 
     @classmethod
-    def create_new(
-        cls,
-        youtube_id,
-        series,
-        playlist=None,
-        enabled=None,
-    ):
+    def create_from_yt_id(cls, youtube_id, series, playlist=None, enabled=None):
         existing = cls.select().where(cls.youtube_id == youtube_id)
         if existing:
             # logger.debug(
@@ -313,22 +317,37 @@ class Video(BaseModel):
         if info is None:
             logger.error(f"Error downloading video info for {youtube_id}")
             return None
+
         vid = cls.create(**info, series=series)
+
         process_downloaded_files(vid, files)
+
         vid.refresh_video_info()
+
         vid.create_initial_section()
+
         vid.save()
+
         if playlist:
             PlaylistVideo.create(video=vid, playlist=playlist)
 
         return vid
 
-    @classmethod
-    def download_video_info(cls, youtube_id):
+    def download_video_info(self, youtube_id):
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
         media_path = config.get("MEDIA", "VIDEO_PATH")
 
-        video_info, files = download_video_info(youtube_id, download_path)
+        thumbnail = not self.has_poster
+        subtitle = not self.has_subtitle
+        info = not self.has_info
+
+        if not (thumbnail or subtitle or info):
+            # logger.debug("All files already downloaded")
+            return "", []
+
+        video_info, files = download_video_info_from_id(
+            youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
+        )
         if video_info["error"] or files is None:
             logger.error(f"{video_info['error_info']}")
             return None, None
@@ -349,22 +368,20 @@ class Video(BaseModel):
             return ""
 
     def refresh_video_info(self):
-        for file in self.files:
-            logger.debug(f"Processing file {file.file.filename} for video {self.title}")
+        # for file in self.files:
+        #     logger.debug(f"Processing file {file.file.filename} for video {self.title}")
 
-        info, files = self.download_video_info(self.youtube_id)
-        process_downloaded_files(self, files)
-        for file in files:
-            if "webp" in file.name:
-                files.pop(files.index(file))
-                continue
+        info, files = self.download_video_info(
+            self.youtube_id,
+        )
+        if info and files:
+            process_downloaded_files(self, files)
 
-            self.add_file(file)
-        self.title = info["title"]
-        self.upload_date = info["upload_date"]
-        self.duration = info["duration"]
-        self.description = info["description"]
-        self.save()
+            self.title = info["title"]
+            self.upload_date = info["upload_date"]
+            self.duration = info["duration"]
+            self.description = info["description"]
+            self.save()
 
     def download_video(self):
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
@@ -430,6 +447,10 @@ class Video(BaseModel):
     @property
     def has_subtitle(self):
         return self.files.where(VideoFile.file_type == "subtitle").count() > 0
+
+    @property
+    def has_info(self):
+        return self.files.where(VideoFile.file_type == "info").count() > 0
 
     @property
     def has_poster(self):

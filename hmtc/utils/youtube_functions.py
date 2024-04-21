@@ -6,6 +6,31 @@ from pathlib import Path
 from hmtc.utils.general import is_disk_full
 
 
+# ℹ️ See "progress_hooks" in help(yt_dlp.YoutubeDL)
+def my_hook(d):
+    if d["status"] == "finished":
+        print("Done downloading, now post-processing ...")
+
+
+class MyLogger:
+    def debug(self, msg):
+        # For compatibility with youtube-dl, both debug and info are passed into debug
+        # You can distinguish them by the prefix '[debug] '
+        if msg.startswith("[debug] "):
+            pass
+        else:
+            self.info(msg)
+
+    def info(self, msg):
+        pass
+
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        print(msg)
+
+
 # this seems to work for playlists and channels
 def fetch_video_ids_from(url, download_path="."):
     """
@@ -36,7 +61,7 @@ def fetch_video_ids_from(url, download_path="."):
         return ids
 
 
-def get_video_info(id, output_folder):
+def get_video_info(id, output_folder, thumbnail=True, subtitle=True, info=True):
     url = f"https://www.youtube.com/watch?v={id}"
     folder = Path(output_folder)
     if not folder.exists():
@@ -52,10 +77,12 @@ def get_video_info(id, output_folder):
     # using 3 _ to split the date from the id since the id
     # can have underscores in it
     ydl_opts = {
-        "writethumbnail": True,
+        "logger": logger,
+        "progress_hooks": [my_hook],
+        "writethumbnail": thumbnail,
         "skip_download": True,
-        "writeinfojson": True,
-        "writeautomaticsub": True,
+        "writeinfojson": info,
+        "writeautomaticsub": subtitle,
         "subtitlesformat": "vtt",
         "subtitleslangs": ["en"],
         "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
@@ -110,8 +137,10 @@ def download_media_files(id, output_folder):
         return ydl.sanitize_info(info), files
 
 
-def download_video_info(id, download_path):
-    video = get_video_info(id, download_path)
+def download_video_info_from_id(
+    id, download_path, thumbnail=True, subtitle=True, info=True
+):
+    video = get_video_info(id, download_path, thumbnail, subtitle, info)
     files = []
     for f in Path(download_path).glob(f"*{id}*"):
         files.append(f)

@@ -127,9 +127,7 @@ def VideoDetail(video, router):
             solara.Markdown(f"**Files**: {video.files.count()}")
 
             solara.Markdown(f"**Duration**: {video.duration}")
-            solara.Button(
-                "Refresh Video Info", on_click=lambda: video.refresh_video_info()
-            )
+            solara.Button("Refresh Video Info", on_click=video.refresh_video_info)
             solara.Button(
                 "Download Video File", on_click=lambda: video.download_video()
             )

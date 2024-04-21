@@ -1,37 +1,40 @@
 import solara
 import solara.lab
-
+from loguru import logger
 from hmtc.models import Video, Series, VideoFile, File
 from hmtc.components.progress_slider import SimpleProgressBar
 import time
 
 
+def videos_by_series(series):
+    return Video.select().where((Video.series == series) & (Video.enabled == True))
+
+
 @solara.component
 def SeriesCard(series):
     def download_missing_videos():
-        videos = Video.select().where(
-            (Video.enabled == True) & (Video.series == series)
-        )
+        videos = videos_by_series(series)
+
         for video in videos:
             if not video.has_video:
                 video.download_video()
                 time.sleep(10)
 
     def extract_audio():
-        videos = Video.select().where(
-            (Video.enabled == True) & (Video.series == series)
-        )
+        videos = videos_by_series(series)
+
         for video in videos:
             if video.has_video and not video.has_audio:
                 video.extract_audio()
                 time.sleep(1)
 
-    def refresh_info():
-        videos = Video.select().where(
-            (Video.enabled == True) & (Video.series == series)
-        )
+    def refresh_info(ser):
+        videos = videos_by_series(ser)
+
         for video in videos:
-            video.download_video_info(video.youtube_id)
+
+            video.refresh_video_info()
+        logger.success(f"Refreshed video info for series: {ser.name}")
 
     vids_with_video = (
         Video.select()
@@ -111,7 +114,7 @@ def SeriesCard(series):
         # )
         solara.Button(
             "Refresh Video Info",
-            on_click=refresh_info,
+            on_click=lambda: refresh_info(series),
         )
 
         solara.Button(

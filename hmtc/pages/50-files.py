@@ -65,8 +65,11 @@ def DBversusFileCards(db_files, folder_files):
         diff_file_counts = {}
         for file in diff:
             diff_file_counts[file.suffix] = diff_file_counts.get(file.suffix, 0) + 1
+        solara.Markdown(f"**{len(diff)}** files that DONT exist in (db AND folder)")
+        if len(diff) < 10:
+            for file in diff:
+                solara.Markdown(f"**{file}**")
 
-        solara.Markdown(f"**{len(diff)}** files that don't exist in both db and folder")
         for ext in diff_file_counts:
             solara.Markdown(f"**{diff_file_counts[ext]}** files: {ext}")
 

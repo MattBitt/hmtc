@@ -39,14 +39,15 @@ def csv_to_dict(filename):
 
 
 def move_file(source, target):
-    try:
-        s = Path(source)
-        t = Path(target)
-        return s.rename(t)
 
-    except Exception as e:
-        logger.error(f"Error moving file: {e}")
-        return False
+    s = Path(source)
+    t = Path(target)
+    result = s.rename(t)
+    return result
+
+    # except Exception as e:
+    #     logger.error(f"Error moving file: {e}")
+    #     return ""
 
 
 def rename_files():
@@ -82,9 +83,8 @@ def get_youtube_id(filename):
 def is_disk_full(path):
     disk = os.statvfs(path)
     free_space = disk.f_bavail * disk.f_frsize
-    # print(f"Free space: {free_space / 1024 / 1024 / 1024} GB")
-    # this is 10 GB
+    GIGABYTE = 1024 * 1024 * 1024
     MIN_FREE_SPACE = 20  # GB
-    if free_space < MIN_FREE_SPACE * 1024 * 1024 * 1024:
+    if free_space < MIN_FREE_SPACE * GIGABYTE:
         return True
     return False

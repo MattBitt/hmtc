@@ -7,7 +7,8 @@ def setup_logging(config):
     logger.remove()
     log_format = (
         "<white>{time: HH:mm:ss.SSS} | </white>"
-        "<lvl>{message: <100}</lvl>"
+        "<white>{module} | </white>"
+        "<lvl>{message: <80}</lvl>"
         # "<lvl>[{level: <8}] "
         # "</lvl><yellow>{name}  {function}:{line}</yellow>"
     )
