@@ -1,13 +1,16 @@
 from hmtc.config import init_config
 from hmtc.utils.my_logging import setup_logging
-from hmtc.db import setup_db, import_existing_tracks, import_existing_video_files_to_db
+from hmtc.db import (
+    create_tables,
+    import_existing_tracks,
+    import_existing_video_files_to_db,
+)
 
 import pandas as pd
 from hmtc.app import setup_app, setup_admin
 
 
 # from hmtc.section_manager import SectionManager
-
 
 
 df = pd.read_csv(
@@ -19,7 +22,7 @@ dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.mi
 def setup():
     config = init_config()
     setup_logging(config)
-    db = setup_db(config)
+    db = create_tables()
     return db, config
 
 

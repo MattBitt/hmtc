@@ -33,7 +33,8 @@ def SeriesCard(series):
 
         for video in videos:
 
-            video.refresh_video_info()
+            video.update_from_yt()
+
         logger.success(f"Refreshed video info for series: {ser.name}")
 
     vids_with_video = (

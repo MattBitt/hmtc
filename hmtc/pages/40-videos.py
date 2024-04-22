@@ -1,5 +1,5 @@
 import solara
-from hmtc.models import Series, Video
+from hmtc.models import Series, Video, Playlist, PlaylistVideo
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
 from pathlib import Path
@@ -12,6 +12,11 @@ languages = solara.reactive([all_languages[0]])
 
 all_series = [s.name for s in Series.select()]
 selected_series = solara.reactive(all_series)
+
+series_playlist = [
+    p.name for p in Playlist.select().where(Playlist.series.in_(selected_series.value))
+]
+selected_playlist = solara.reactive(series_playlist)
 
 title_query = solara.reactive("")
 per_page = solara.reactive(10)
@@ -27,6 +32,7 @@ current_page = solara.reactive(1)
 @solara.component
 def VideoCard(video):
     with solara.Card(video.title):
+        solara.Markdown(f"## Video ID {video.id}")
         with solara.Row():
             solara.Markdown(f"**Sections**: {video.sections.count()}")
             solara.Markdown(f"**Files**: {video.files.count()}")
@@ -86,6 +92,17 @@ def SeriesFilterCard():
 
 
 @solara.component
+def PlaylistFilterCard():
+    with solara.Card(title="Playlists"):
+        MultiSelect("Playlist", selected_playlist, series_playlist)
+        with solara.CardActions():
+            solara.Button("Clear", on_click=lambda: selected_playlist.set([]))
+            solara.Button(
+                "Select All", on_click=lambda: selected_playlist.set(series_playlist)
+            )
+
+
+@solara.component
 def ShowDisabledVideos():
     with solara.Card():
         solara.Checkbox(label="Show Disabled Videos", value=disabled_videos)
@@ -127,7 +144,7 @@ def VideoDetail(video, router):
             solara.Markdown(f"**Files**: {video.files.count()}")
 
             solara.Markdown(f"**Duration**: {video.duration}")
-            solara.Button("Refresh Video Info", on_click=video.refresh_video_info)
+            solara.Button("Refresh Video Info", on_click=lambda: video.update_from_yt())
             solara.Button(
                 "Download Video File", on_click=lambda: video.download_video()
             )
@@ -151,6 +168,7 @@ def Page():
         # this sql will return all videos that have more than 1 section
         # SELECT video.*, (SELECT COUNT(*) FROM section WHERE section.video_id = video.id) AS TOT FROM video where TOT > 1;
         SeriesFilterCard()
+        PlaylistFilterCard()
         ShowDisabledVideos()
         with solara.ColumnsResponsive(12, large=4):
 
@@ -158,13 +176,24 @@ def Page():
             SortToolBar()
 
         query = (
-            Video.select().join(Series).where(Series.name.in_(selected_series.value))
+            Video.select()
+            .join(PlaylistVideo)
+            .join(Playlist)
+            .join(Series)
+            .switch(Video)
+            .where(Series.name.in_(selected_series.value))
+            .where(
+                (Playlist.name.in_(selected_playlist.value))
+                & (Playlist.series == Series.id)
+            )
         )
+
         if not disabled_videos.value:
             query = query.where(Video.enabled == True)
 
         if title_query.value:
             query = query.where(Video.title.contains(title_query.value))
+
         solara.Markdown(f"## Total: {query.count()} videos found.")
 
         query = query.order_by(get_sort_method())

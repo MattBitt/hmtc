@@ -39,15 +39,7 @@ def create_video_sections():
             vid.create_initial_section()
 
 
-# try:
-#     User.create_table()
-#     UserInfo.create_table()
-#     Post.create_table()
-# except:
-#     pass
-
-
-def setup_db(config):
+def create_tables():
 
     db.create_tables(
         [
@@ -300,8 +292,9 @@ if __name__ == "__main__":
     # this creates a db from scratch
     # only to be used for fresh data instance
     config = init_config()
-    db = setup_db(config)
 
-    seed_empty_database(config)
-    print("updating playlist")
-    update_playlists(config)
+    create_tables()
+
+    # seed_empty_database(config)
+    # print("updating playlist")
+    # update_playlists(config)
