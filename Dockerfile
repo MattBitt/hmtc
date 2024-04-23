@@ -1,26 +1,28 @@
-FROM python:3.10
+# syntax = docker/dockerfile:1.0-experimental
 
-# Configure Poetry
-ENV POETRY_VERSION=1.8.0
-ENV POETRY_HOME=/opt/poetry
-ENV POETRY_VENV=/opt/poetry-venv
-ENV POETRY_CACHE_DIR=/opt/.cache
+# Base image
+FROM python:3.12 as build
 
-# Install poetry separated from system interpreter
-RUN python3 -m venv $POETRY_VENV \
-    && $POETRY_VENV/bin/pip install -U pip setuptools \
-    && $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
+RUN apt-get update && apt-get install -y build-essential curl
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
 
-# Add `poetry` to PATH
-ENV PATH="${PATH}:${POETRY_VENV}/bin"
+ADD https://astral.sh/uv/install.sh /install.sh
+RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
+COPY ./requirements.txt .
+RUN /root/.cargo/bin/uv venv /opt/venv && \
+    /root/.cargo/bin/uv pip install --no-cache -r requirements.txt
 
+# App image
+FROM python:3.12-slim-bookworm
+COPY --from=build /opt/venv /opt/venv
+
+# Activate the virtualenv in the container
+# See here for more information:
+# https://pythonspeed.com/articles/multi-stage-docker-python/
 WORKDIR /app
-
-# Install dependencies
-COPY poetry.lock pyproject.toml ./
-RUN poetry install
-RUN pip install solara
-# Run your app
 COPY . /app
-CMD ["solara", "run", "hmtc/pages", "--host=0.0.0.0", "--production"]
+ENV PATH="/opt/venv/bin:$PATH"
 
+
+CMD ["python", "/app/hello.py"]
