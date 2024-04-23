@@ -19,7 +19,8 @@ WORKDIR /app
 # Install dependencies
 COPY poetry.lock pyproject.toml ./
 RUN poetry install
-
+RUN pip install solara
 # Run your app
 COPY . /app
-CMD ["poetry", "run", "solara", "run", "hmtc/pages", "--host=0.0.0.0", "--production"]
+CMD ["solara", "run", "hmtc/pages", "--host=0.0.0.0", "--production"]
+
