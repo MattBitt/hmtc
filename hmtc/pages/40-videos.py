@@ -13,10 +13,9 @@ languages = solara.reactive([all_languages[0]])
 all_series = [s.name for s in Series.select()]
 selected_series = solara.reactive(all_series)
 
-series_playlist = [
-    p.name for p in Playlist.select().where(Playlist.series.in_(selected_series.value))
-]
-selected_playlist = solara.reactive(series_playlist)
+
+all_playlists = [p.name for p in Playlist.select()]
+selected_playlist = solara.reactive(all_playlists)
 
 title_query = solara.reactive("")
 per_page = solara.reactive(10)
@@ -94,11 +93,11 @@ def SeriesFilterCard():
 @solara.component
 def PlaylistFilterCard():
     with solara.Card(title="Playlists"):
-        MultiSelect("Playlist", selected_playlist, series_playlist)
+        MultiSelect("Playlist", selected_playlist, all_playlists)
         with solara.CardActions():
             solara.Button("Clear", on_click=lambda: selected_playlist.set([]))
             solara.Button(
-                "Select All", on_click=lambda: selected_playlist.set(series_playlist)
+                "Select All", on_click=lambda: selected_playlist.set(all_playlists)
             )
 
 

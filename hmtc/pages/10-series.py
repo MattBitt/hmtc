@@ -90,19 +90,23 @@ def SeriesCard(series):
         )
         SimpleProgressBar(
             label="Videos with an audio file",
-            value=vids_with_audio.count() / series.enabled_videos * 100,
+            current_value=vids_with_audio.count(),
+            total=series.enabled_videos,
         )
         SimpleProgressBar(
             label="Videos with images",
-            value=vids_with_image.count() / series.enabled_videos * 100,
+            current_value=vids_with_image.count(),
+            total=series.enabled_videos,
         )
         SimpleProgressBar(
             label="Videos with a video file",
-            value=vids_with_video.count() / series.enabled_videos * 100,
+            current_value=vids_with_video.count(),
+            total=series.enabled_videos,
         )
         SimpleProgressBar(
             label="Videos with a subtitle file",
-            value=vids_with_subtitle.count() / series.enabled_videos * 100,
+            current_value=vids_with_subtitle.count(),
+            total=series.enabled_videos,
         )
         # solara.Markdown(
         #     f"**{vids_with_audio.count() / series.enabled_videos:.2%}** videos have an 'audio' file"
