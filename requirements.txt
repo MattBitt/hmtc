@@ -1,3 +1,11 @@
 setuptools==69.2.0
 wheel==0.43.0
 flask==3.0.3
+solara
+loguru
+peewee
+yt-dlp
+psycopg2-binary
+pandas
+simple-websocket
+flask-socketio

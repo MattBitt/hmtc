@@ -15,8 +15,5 @@ def setup_logging(config):
     # logger.configure(extra={"classname": "None"})
     logger.add(sys.stderr, format=log_format, level=log_level, colorize=True)
     logger.info("Starting program version: {}".format(config.get("GENERAL", "VERSION")))
-    logger.debug(
-        "The current environment is {}".format(config.get("GENERAL", "ENVIRONMENT"))
-    )
     logger.debug("Log Level is currently {}".format(config.get("GENERAL", "LOG_LEVEL")))
     return logger

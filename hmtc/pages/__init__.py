@@ -1,6 +1,6 @@
 import solara
-from hmtc.main import setup
 from loguru import logger
+from hmtc.main import setup
 from pathlib import Path
 import shutil
 

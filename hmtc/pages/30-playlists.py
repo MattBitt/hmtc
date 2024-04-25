@@ -8,9 +8,14 @@ from solara.lab import task
 
 all_series = [s.name for s in Series.select()]
 all_channels = [c.name for c in Channel.select()]
+if all_series == []:
+    all_series = ["No Series"]
+if all_channels == []:
+    all_channels = ["No Channels"]
 
 name = solara.reactive("")
 url = solara.reactive("http://www.youtube.com")
+
 series = solara.reactive(all_series[0])
 enabled = solara.reactive(True)
 album_per_episode = solara.reactive(False)

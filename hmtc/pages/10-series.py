@@ -4,10 +4,33 @@ from loguru import logger
 from hmtc.models import Video, Series, VideoFile, File
 from hmtc.components.progress_slider import SimpleProgressBar
 import time
+import peewee
+
+name = solara.reactive("")
+start_date = solara.reactive("2001-01-01")
+end_date = solara.reactive("2024-12-31")
 
 
 def videos_by_series(series):
     return Video.select().where((Video.series == series) & (Video.enabled == True))
+
+
+def add_series():
+    logger.debug("About to add series")
+    try:
+        Series.create(name="New Series", start_date="2021-01-01", end_date="2024-12-31")
+    except peewee.IntegrityError:
+        logger.error("Series already exists")
+        return
+
+
+@solara.component
+def SeriesForm():
+    with solara.Card():
+        solara.InputText("Series Name", value=name)
+        solara.InputText("Series Start Date", value=start_date)
+        solara.InputText("Series End Date", value=end_date)
+        solara.Button("Submit", on_click=lambda: logger.info("Submit"))
 
 
 @solara.component
@@ -44,6 +67,13 @@ def SeriesCard(series):
         .switch(Video)
         .where((Video.series == series) & (VideoFile.file_type == "video"))
     )
+
+    if vids_with_video.count() == 0:
+        logger.warning(f"No videos with video files for series {series.name}")
+        logger.warning(f"Not checking further info for series {series.name}")
+        SeriesForm()
+        return
+
     vids_with_audio = (
         Video.select()
         .join(VideoFile)
@@ -75,7 +105,9 @@ def SeriesCard(series):
         )
         .distinct()
     )
+
     total_time = [v.duration for v in vids_with_video if v.duration is not None]
+
     with solara.Card():
 
         solara.Markdown(f"# {series.name}")
@@ -134,6 +166,7 @@ def SeriesCard(series):
 
 @solara.component
 def Page():
+    solara.Button("Add Series", on_click=add_series)
     with solara.ColumnsResponsive(12, large=4):
 
         series = Series.select()

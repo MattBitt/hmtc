@@ -4,8 +4,12 @@ from solara.lab import task
 from loguru import logger
 import time
 from hmtc.models import Video, VideoFile
+from hmtc.config import init_config
 
 updating = solara.reactive(False)
+
+
+config = init_config()
 
 
 def disabled_videos_with_files():
@@ -31,6 +35,7 @@ def some_task():
 @solara.component
 def Page():
     counter = solara.use_reactive(0)
+    env = config.get("GENERAL", "ENVIRONMENT")
 
     @task
     def update():
@@ -41,10 +46,11 @@ def Page():
             raise result.error
         updating.set(False)
 
+    vids_in_db = Video.select().count()
     with solara.Column():
-        solara.Markdown("## Stats")
-        solara.Markdown(f"{disabled_videos_with_files()}")
-
+        solara.Markdown(f"## Environment = {env}")
+        solara.Markdown(f"## Vids in DB: {vids_in_db}")
+        solara.Markdown(f"DB Name {config.get('DATABASE', 'NAME')}")
     with solara.Card():
 
         if updating.value is True:

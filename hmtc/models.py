@@ -473,9 +473,14 @@ class Video(BaseModel):
 
         return ""
 
+    def has_(self, file_type=""):
+        if file_type == "":
+            raise ValueError("file_type cannot be empty")
+        return self.files.where(VideoFile.file_type == file_type).count() > 0
+
     @property
     def has_video(self):
-        return self.files.where(VideoFile.file_type == "video").count() > 0
+        return self.has_("video")
 
     @property
     def has_audio(self):
