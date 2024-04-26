@@ -5,7 +5,7 @@ from hmtc.models import Playlist, Series, Channel
 from datetime import datetime
 from loguru import logger
 from solara.lab import task
-from utils.general import time_since_update
+from hmtc.utils.general import time_since_update
 
 all_series = [s.name for s in Series.select()]
 all_channels = [c.name for c in Channel.select()]

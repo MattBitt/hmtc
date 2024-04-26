@@ -5,6 +5,7 @@ from hmtc.models import File, Video, VideoFile
 from hmtc.config import init_config
 import time
 from loguru import logger
+from hmtc.db import import_existing_video_files_to_db
 
 config = init_config()
 
@@ -112,10 +113,14 @@ def Page():
     folder = Path(config.get("MEDIA", "VIDEO_PATH"))
     folder_files = [f for f in folder.rglob("*") if f.is_file()]
 
+    def add_existing_files():
+        import_existing_video_files_to_db(folder)
+
     with solara.ColumnsResponsive(12, large=4):
         DBversusFileCards(db_files, folder_files)
 
         with solara.Card():
+            solara.Button("Add existing files to database", on_click=add_existing_files)
             solara.Button(
                 "Download all missing videos", on_click=download_missing_videos
             )

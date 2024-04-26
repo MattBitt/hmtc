@@ -164,7 +164,7 @@ def import_existing_video_files_to_db(path):
     found = 0
     unfound = 0
     f = Path(path)
-    for file in f.glob("**/*mkv*"):
+    for file in f.glob("**/*.*"):
         if file.is_file():
             file_info = {}
             video_info = parse_video_file_name(file)
