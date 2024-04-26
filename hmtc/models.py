@@ -1,4 +1,5 @@
 import os
+import time
 from peewee import (
     PostgresqlDatabase,
     TextField,
@@ -156,12 +157,15 @@ class Channel(BaseModel):
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
         ids = fetch_video_ids_from(self.url)
-        for id in ids:
-            try:
-                ChannelVideo.create(youtube_id=id, channel=self)
-            except IntegrityError:
-                continue
-
+        for youtube_id in ids:
+            time.sleep(2)
+            if youtube_id == "":
+                logger.error("No youtube ID")
+            vid = Video.create_from_yt_id(
+                youtube_id=youtube_id,
+                channel=self,
+                enabled=False,  # don't enable videos from any channel by default
+            )
         # once finished updating the playlist, update the last_updated field
         self.last_update_completed = datetime.now()
         self.save()
@@ -169,7 +173,7 @@ class Channel(BaseModel):
 
     @property
     def num_videos(self):
-        return self.channel_vids.count()
+        return self.videos.count()
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -235,12 +239,12 @@ class Video(BaseModel):
     private = BooleanField(default=False)
     error = BooleanField(default=False)
     error_info = CharField(null=True)
-
+    channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
 
     @classmethod
     def create_from_yt_id(
-        cls, youtube_id=None, series=None, playlist=None, enabled=None
+        cls, youtube_id=None, channel=None, series=None, playlist=None, enabled=None
     ):
         if youtube_id is None or youtube_id == "":
             logger.error("No youtube ID")
@@ -259,6 +263,10 @@ class Video(BaseModel):
             return None
 
         vid = cls.create(**info, series=series)
+        if vid and channel:
+            vid.channel = channel
+        if enabled is not None:
+            vid.enabled = enabled
 
         process_downloaded_files(vid, files)
 
@@ -704,43 +712,39 @@ class Post(BaseModel):
         return self.title
 
 
-##  📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕📕
-# below was used to initizlize the database
-# shouldnt be needed going forward.
+def add_files_to_db():
 
-# def add_files_to_db():
+    # this will add existing media files to the database
+    media_path = Path("/mnt/c/DATA/hmtc_fqweriles/media")
+    for mp in media_path.rglob("*"):
+        if mp.is_file() and mp.stem[4] == "-":
+            # currently date is in YYYY-MM-DD format
+            # need to replace with YYYYMMDD
+            new_name = mp.name.replace("-", "")
+            mp = mp.rename(mp.parent / new_name)
 
-#     # this will add existing media files to the database
-#     media_path = Path("/mnt/c/DATA/hmtc_fqweriles/media")
-#     for mp in media_path.rglob("*"):
-#         if mp.is_file() and mp.stem[4] == "-":
-#             # currently date is in YYYY-MM-DD format
-#             # need to replace with YYYYMMDD
-#             new_name = mp.name.replace("-", "")
-#             mp = mp.rename(mp.parent / new_name)
-
-#         existing = File.select().where(
-#             (File.filename == mp.name)
-#             & (File.local_path == mp.parent)
-#             & (File.extension == mp.suffix)
-#         )
-#         if not existing:
-#             f = File.create(
-#                 local_path=mp.parent,
-#                 filename=mp.name,
-#                 extension=mp.suffix,
-#             )
+        existing = File.select().where(
+            (File.filename == mp.name)
+            & (File.local_path == mp.parent)
+            & (File.extension == mp.suffix)
+        )
+        if not existing:
+            f = File.create(
+                local_path=mp.parent,
+                filename=mp.name,
+                extension=mp.suffix,
+            )
 
 
-# def create_video_file_associations():
-#     videos = Video.select()
-#     for vid in videos:
-#         files = File.select().where(File.filename.contains(vid.youtube_id))
-#         for file in files:
-#             VideoFile.create(file=file, video=vid, file_type=get_file_type(file))
+def create_video_file_associations():
+    videos = Video.select()
+    for vid in videos:
+        files = File.select().where(File.filename.contains(vid.youtube_id))
+        for file in files:
+            VideoFile.create(file=file, video=vid, file_type=get_file_type(file))
 
 
-if __name__ == "__main__":
-    print("still works")
-#     # add_files_to_db()
-#     #create_video_file_associations()
+# if __name__ == "__main__":
+#     print("still works")
+# #     # add_files_to_db()
+# #     #create_video_file_associations()

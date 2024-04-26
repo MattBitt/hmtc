@@ -32,6 +32,7 @@ class env(Enum):
 
 
 class ConfigWrapper:
+    @classmethod
     def create_instance(self) -> configparser.ConfigParser:
         current_env = os.environ.get("ENVIRONMENT", env.DEVELOPMENT)
         # if current_env is None:
@@ -77,4 +78,4 @@ class ConfigWrapper:
 
 
 def init_config():
-    return ConfigWrapper().create_instance()
+    return ConfigWrapper.create_instance()

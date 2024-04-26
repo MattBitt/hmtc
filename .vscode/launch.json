@@ -18,7 +18,7 @@
             "justMyCode": true,
             "env": {
                 "BROWSER": "echo",
-                "ENVIRONMENT": "production",
+                "ENVIRONMENT": "development",
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
             }
         },

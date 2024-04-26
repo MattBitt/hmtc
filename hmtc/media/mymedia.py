@@ -7,6 +7,7 @@ LIVESHOWS = "Live Shows"
 AD_RAPS = "Ad-Raps"
 WRITTENS = "Writtens"
 INTERVIEWS = "Interviews/Podcasts"
+NOSERIES = "No Series"
 
 
 PLAYLISTS = [
@@ -124,6 +125,11 @@ SERIES = [
         "name": AD_RAPS,
         "start_date": date(2021, 1, 1),
         "end_date": date(2021, 12, 31),
+    },
+    {
+        "name": NOSERIES,
+        "start_date": date(2021, 1, 1),
+        "end_date": date(2030, 12, 31),
     },
 ]
 

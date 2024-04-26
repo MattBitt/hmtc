@@ -5,6 +5,7 @@ from hmtc.models import Playlist, Series, Channel
 from datetime import datetime
 from loguru import logger
 from solara.lab import task
+from utils.general import time_since_update
 
 all_series = [s.name for s in Series.select()]
 all_channels = [c.name for c in Channel.select()]
@@ -21,22 +22,6 @@ enabled = solara.reactive(True)
 album_per_episode = solara.reactive(False)
 channel = solara.reactive(all_channels[0])
 add_videos_enabled = solara.reactive(True)
-
-
-def time_since_update(playlist):
-    if not playlist.last_update_completed:
-        return "Never"
-
-    t = datetime.now() - playlist.last_update_completed
-
-    if t.seconds > (24 * 3600):
-        return str(f"{t.days} days ago")
-    elif t.seconds > 3600:
-        return str(f"{t.seconds // 3600} hours ago")
-    elif t.seconds < 3600 and t.seconds > 60:
-        return str(f"{(t.seconds // 60)} minutes ago")
-    else:
-        return str("Just now")
 
 
 def add_new_playlist():

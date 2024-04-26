@@ -3,6 +3,7 @@ import re
 from loguru import logger
 import csv
 from pathlib import Path
+from datetime import datetime
 
 
 def clear_screen():
@@ -90,3 +91,19 @@ def is_disk_full(path):
     if free_space < MIN_FREE_SPACE * GIGABYTE:
         return True
     return False
+
+
+def time_since_update(playlist):
+    if not playlist.last_update_completed:
+        return "Never"
+
+    t = datetime.now() - playlist.last_update_completed
+
+    if t.seconds > (24 * 3600):
+        return str(f"{t.days} days ago")
+    elif t.seconds > 3600:
+        return str(f"{t.seconds // 3600} hours ago")
+    elif t.seconds < 3600 and t.seconds > 60:
+        return str(f"{(t.seconds // 60)} minutes ago")
+    else:
+        return str("Just now")

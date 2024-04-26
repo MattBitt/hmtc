@@ -174,19 +174,19 @@ def Page():
             TitleTextFilter()
             SortToolBar()
 
-        query = (
-            Video.select()
-            .join(PlaylistVideo)
-            .join(Playlist)
-            .join(Series)
-            .switch(Video)
-            .where(Series.name.in_(selected_series.value))
-            .where(
-                (Playlist.name.in_(selected_playlist.value))
-                & (Playlist.series == Series.id)
-            )
-        )
-
+        # query = (
+        #     Video.select()
+        #     .join(PlaylistVideo)
+        #     .join(Playlist)
+        #     .join(Series)
+        #     .switch(Video)
+        #     .where(Series.name.in_(selected_series.value))
+        #     .where(
+        #         (Playlist.name.in_(selected_playlist.value))
+        #         & (Playlist.series == Series.id)
+        #     )
+        # )
+        query = Video.select()
         if not disabled_videos.value:
             query = query.where(Video.enabled == True)
 

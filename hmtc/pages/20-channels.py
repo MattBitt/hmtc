@@ -1,8 +1,26 @@
 import solara
 import solara.lab
-from hmtc.components.my_app_bar import MyAppBar
-from hmtc.models import Channel, Playlist, ChannelVideo, Video
+from hmtc.models import Channel, Channel, ChannelVideo, Video, Series
 from loguru import logger
+from solara.lab import task
+import solara
+import solara.lab
+import peewee
+from hmtc.models import Playlist, Series, Channel
+from datetime import datetime
+from loguru import logger
+from solara.lab import task
+from utils.general import time_since_update
+import time
+
+all_channels = [c.name for c in Channel.select()]
+if all_channels == []:
+    all_channels = ["No Channels"]
+
+name = solara.reactive("")
+url = solara.reactive("http://www.youtube.com")
+enabled = solara.reactive(True)
+last_update_completed = solara.reactive(None)
 
 
 def update_channels():
@@ -26,30 +44,129 @@ def output_missing_video_titles():
             f.write(f"{vid}\n")
 
 
+def update_all():
+    logger.debug("Updating")
+    for p in Channel.select().where(Channel.enabled == True):
+        p.check_for_new_videos()
+    logger.success("Updated all channels")
+
+
+def add_new_channel():
+    try:
+        channel = Channel.create(
+            name="New Channel",
+            url="http://www.youtube.com",
+        )
+        logger.debug(f"Created new channel: {channel.name}")
+    except peewee.IntegrityError:
+        logger.debug("Channel already exists")
+        return
+
+
+def save_channel(channel):
+    channel.name = name.value
+    channel.url = url.value
+    channel.enabled = True
+    channel.save()
+    logger.success(f"Added new channel {channel.name}")
+
+
+def ChannelDetail(channel_id):
+    channel = Channel.select().where(Channel.id == channel_id).get()
+    name.set(channel.name)
+    url.set(channel.url)
+    enabled.set(channel.enabled)
+    last_update_completed.set(channel.last_update_completed)
+
+    def update_channel():
+        save_channel(channel)
+        logger.success(f"Updated channel {channel.name}")
+
+    with solara.Card():
+        solara.InputText(label="Name", value=name, continuous_update=False)
+        solara.InputText(label="URL", value=url, continuous_update=False)
+        solara.Checkbox(label="Enabled", value=enabled)
+
+        with solara.CardActions():
+            solara.Button(label="Save", on_click=update_channel)
+
+
+@solara.component
+def ChannelCard(channel):
+    updating = solara.use_reactive(False)
+
+    @task
+    def update():
+
+        logger.debug(f"Updating channel {channel.name}")
+        updating.set(True)
+        channel.check_for_new_videos()
+        updating.set(False)
+        logger.success(f"Updated database from Channel {channel.name}")
+
+    with solara.Column():
+
+        with solara.Card():
+            if updating.value is False:
+                solara.Markdown(channel.name)
+
+                solara.Markdown(f"URL: {channel.url}")
+                solara.Markdown(f"Last Updated: {time_since_update(channel)}")
+                solara.Markdown(f"Enabled: {channel.enabled}")
+                with solara.CardActions():
+                    with solara.Link(f"/channels/{channel.id}"):
+                        solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
+                    solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
+                    solara.Button(label="Refresh", on_click=update)
+            else:
+                solara.SpinnerSolara()
+            solara.Markdown(f"### {channel.name}")
+            solara.Markdown(f"**{channel.videos.count()}** Videos on Channel")
+
+    # with solara.Card():
+    #     if updating.value is False:
+    #         solara.Markdown(channel.name)
+    #         solara.Markdown(f"Videos in DB: {channel.videos.count()}")
+
+    #         solara.Markdown(f"Channel: {channel.channel.name}")
+    #         solara.Markdown(f"Series: {channel.series.name}")
+    #         solara.Markdown(f"URL: {channel.url}")
+    #         solara.Markdown(f"Last Updated: {time_since_update(channel)}")
+    #         solara.Markdown(
+    #             f"New Video Status: {'Enabled' if channel.add_videos_enabled else 'Disabled'} "
+    #         )
+    #         with solara.CardActions():
+    #             with solara.Link(f"/channels/{channel.id}"):
+    #                 solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
+    #             solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
+    #             solara.Button(label="Update", on_click=update)
+    #     else:
+    #         solara.SpinnerSolara()
+
+
 @solara.component
 def Page():
 
-    MyAppBar()
-    with solara.Column():
+    router = solara.use_router()
+    level = solara.use_route_level()
+    # selected_series = solara.use_reactive(Series.select())
+
+    if router.parts[-1] == "channels":
         solara.Markdown("## Channels")
-        solara.Button("Update Channels", on_click=update_channels)
+        solara.Button("Update All Channels", on_click=update_all)
+
+        solara.Button("Add Channel", on_click=add_new_channel)
         solara.Button(
             "Output Missing Video Titles", on_click=output_missing_video_titles
         )
+        with solara.ColumnsResponsive(
+            12,
+            large=3,
+        ):
+            for channel in Channel.select().distinct():
+                ChannelCard(channel)
 
-    for channel in Channel.select().join(Playlist).distinct():
-        with solara.Card():
+    else:
 
-            solara.Markdown(f"### {channel.name}")
-            solara.Markdown(f"**{channel.num_videos}** Videos on Channel")
-
-            solara.Markdown("### My DB")
-            total = 0
-            for playlist in channel.playlists:
-                cnt = playlist.videos.count()
-                total += cnt
-                solara.Markdown(f"**{cnt}** Videos in {playlist.name}")
-            solara.Markdown(f"**{total}** Total Videos in DB")
-            solara.Markdown(
-                f"**{channel.num_videos - total} ({(channel.num_videos-total)/channel.num_videos*100:.0f}%) Videos Unanalyzed**"
-            )
+        channel_id = router.parts[level:][0]
+        ChannelDetail(channel_id)
