@@ -85,6 +85,9 @@ def PlaylistDetail(playlist_id):
 @solara.component
 def PlaylistCard(playlist):
     updating = solara.use_reactive(False)
+    if playlist is None:
+        logger.debug("Playlist not found")
+        return
 
     @task
     def update():
