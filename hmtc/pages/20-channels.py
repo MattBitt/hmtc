@@ -95,6 +95,13 @@ def ChannelDetail(channel_id):
 def ChannelCard(channel):
     updating = solara.use_reactive(False)
 
+    def update_playlists():
+        logger.debug(f"Updating channel {channel.name}")
+        updating.set(True)
+        channel.check_for_new_playlists()
+        updating.set(False)
+        logger.success(f"Updated database from Channel {channel.name}")
+
     @task
     def update():
 
@@ -117,7 +124,10 @@ def ChannelCard(channel):
                     with solara.Link(f"/channels/{channel.id}"):
                         solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
                     solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
-                    solara.Button(label="Refresh", on_click=update)
+                    solara.Button(label="Check for new Videos", on_click=update)
+                    solara.Button(
+                        label="Check for new Playlists", on_click=update_playlists
+                    )
             else:
                 solara.SpinnerSolara()
             solara.Markdown(f"### {channel.name}")

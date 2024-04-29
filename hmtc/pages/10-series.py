@@ -30,7 +30,7 @@ def SeriesForm():
         solara.InputText("Series Name", value=name)
         solara.InputText("Series Start Date", value=start_date)
         solara.InputText("Series End Date", value=end_date)
-        solara.Button("Submit", on_click=lambda: logger.info("Submit"))
+        solara.Button("Submit", on_click=add_series)
 
 
 @solara.component

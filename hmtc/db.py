@@ -25,11 +25,12 @@ from hmtc.models import (
     TrackFile,
     Channel,
     ChannelVideo,
+    PlaylistFile,
     db,
 )
 from hmtc.media.mymedia import PLAYLISTS, SERIES, CHANNELS
 from pathlib import Path
-from hmtc.utils.general import parse_video_file_name, csv_to_dict
+from hmtc.utils.general import get_youtube_id, csv_to_dict
 from datetime import timedelta, datetime
 
 
@@ -67,6 +68,7 @@ def create_tables():
             TrackFile,
             Channel,
             ChannelVideo,
+            PlaylistFile,
         ]
     )
     return db
@@ -167,9 +169,9 @@ def import_existing_video_files_to_db(path):
     for file in f.glob("**/*.*"):
         if file.is_file():
             file_info = {}
-            video_info = parse_video_file_name(file)
-            if video_info:
-                vid = Video.get_or_none(Video.youtube_id == video_info["youtube_id"])
+            youtube_id = get_youtube_id(file.stem)
+            if youtube_id:
+                vid = Video.get_or_none(Video.youtube_id == youtube_id)
                 if not vid:
                     # logger.debug(
                     #     f"Video not currently in db {video_info['youtube_id']}"
@@ -177,22 +179,19 @@ def import_existing_video_files_to_db(path):
                     unfound = unfound + 1
                     continue
 
-                if not vid.files:
-                    found = found + 1
-                    file_info["video"] = vid
-                    file_info["local_path"] = str(path)
-                    file_info["filename"] = file.stem
-                    file_info["extension"] = file.suffix
-                    file_info["downloaded"] = True
+                    # file_info["video"] = vid
+                    # file_info["local_path"] = str(path)
+                    # file_info["filename"] = file.stem
+                    # file_info["extension"] = file.suffix
+                    # file_info["downloaded"] = True
 
-                    file = File.create(**file_info)
+                    # file = File.create(**file_info)
                 else:
-                    # logger.debug(
-                    #     "This video already has files associated. Skipping import"
-                    # )
-                    continue
+                    logger.debug(
+                        f"Successfully found video{vid.youtube_id}. Adding file"
+                    )
             else:
-                unfound = unfound + 1
+                raise ValueError(f"Could not get youtube_id from {file.stem}")
 
     logger.success("Finished importing files to the database.")
     logger.debug(f"Found {found} new files.")

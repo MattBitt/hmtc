@@ -51,25 +51,25 @@ def my_move_file(source, target):
     #     return ""
 
 
-def rename_files():
+# def rename_files():
 
-    for file in Path(
-        "/mnt/c/DATA/hmtcasdf_files/previous/harry_mack/video/livestreams/"
-    ).glob("*.*"):
-        video_info = parse_video_file_name(file)
-        if video_info:
-            new_name = f"{video_info['upload_date']}___{video_info['youtube_id']}"
-            new_name = new_name + file.suffix
-            new_path = (
-                Path(
-                    f"/mnt/c/DATA/hmtcfdsa_files/media/{video_info['upload_date'][0:4]}"
-                )
-                / new_name
-            )
-            logger.debug(f"Renaming {file} to {new_path}")
-            my_move_file(file, new_path)
-        else:
-            logger.debug(f"Skipping {file}")
+#     for file in Path(
+#         "/mnt/c/DATA/hmtcasdf_files/previous/harry_mack/video/livestreams/"
+#     ).glob("*.*"):
+#         video_info = parse_video_file_name(file)
+#         if video_info:
+#             new_name = f"{video_info['upload_date']}___{video_info['youtube_id']}"
+#             new_name = new_name + file.suffix
+#             new_path = (
+#                 Path(
+#                     f"/mnt/c/DATA/hmtcfdsa_files/media/{video_info['upload_date'][0:4]}"
+#                 )
+#                 / new_name
+#             )
+#             logger.debug(f"Renaming {file} to {new_path}")
+#             my_move_file(file, new_path)
+#         else:
+#             logger.debug(f"Skipping {file}")
 
 
 def get_youtube_id(filename):

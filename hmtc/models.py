@@ -15,7 +15,7 @@ from peewee import (
 )
 from datetime import datetime
 from hmtc.utils.youtube_functions import (
-    fetch_video_ids_from,
+    fetch_ids_from,
     download_video_info_from_id,
     download_media_files,
 )
@@ -156,9 +156,9 @@ class Channel(BaseModel):
     def check_for_new_videos(self):
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
-        ids = fetch_video_ids_from(self.url)
+        ids = fetch_ids_from(self.url)
         for youtube_id in ids:
-            time.sleep(2)
+
             if youtube_id == "":
                 logger.error("No youtube ID")
             vid = Video.create_from_yt_id(
@@ -166,6 +166,18 @@ class Channel(BaseModel):
                 channel=self,
                 enabled=False,  # don't enable videos from any channel by default
             )
+        # once finished updating the playlist, update the last_updated field
+        self.last_update_completed = datetime.now()
+        self.save()
+        logger.debug(f"Finished updating channel {self.name}")
+
+    def check_for_new_playlists(self):
+        ids = fetch_ids_from(self.url + "/playlists")
+        for youtube_id in ids:
+            if youtube_id == "":
+                logger.error("No youtube ID found")
+            else:
+                Playlist.create_from_yt_id(youtube_id=youtube_id, channel=self)
         # once finished updating the playlist, update the last_updated field
         self.last_update_completed = datetime.now()
         self.save()
@@ -190,6 +202,7 @@ class ChannelVideo(BaseModel):
 class Playlist(BaseModel):
     name = CharField(unique=True)
     url = CharField(unique=True)
+    youtube_id = CharField(unique=True)
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
     album_per_episode = BooleanField(default=True)
@@ -197,12 +210,47 @@ class Playlist(BaseModel):
     channel = ForeignKeyField(Channel, backref="playlists", null=True)
     add_videos_enabled = BooleanField(default=True)
 
+    @classmethod
+    def create_from_yt_id(cls, youtube_id=None, channel=None):
+
+        if youtube_id is None or youtube_id == "":
+            logger.error("No youtube ID")
+            return None
+
+        info, files = cls.download_video_info(youtube_id)
+        if info is None:
+            logger.error(f"Error downloading video info for {youtube_id}")
+            return None
+
+        return cls.create(**info, channel=channel)
+
+    @classmethod
+    def download_playlist_info(
+        cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
+    ):
+        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
+        media_path = config.get("MEDIA", "PLAYLIST_PATH")
+
+        playlist_info, files = download_playlist_info_from_id(
+            youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
+        )
+        if playlist_info["error"] or files is None:
+            logger.error(f"{playlist_info['error_info']}")
+            return None, None
+        else:
+            new_path = Path(Path(media_path) / playlist_info["upload_date"][0:4])
+            if not new_path.exists():
+                new_path.mkdir(parents=True, exist_ok=True)
+
+            playlist_info["file_path"] = new_path
+            return playlist_info, files
+
     def check_for_new_videos(self):
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
 
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
-        ids = fetch_video_ids_from(self.url, download_path)
+        ids = fetch_ids_from(self.url, download_path)
         logger.debug(f"Found {len(ids)} videos in playlist {self.name}")
         for youtube_id in ids:
             if youtube_id == "":
@@ -220,6 +268,36 @@ class Playlist(BaseModel):
         self.last_update_completed = datetime.now()
         self.save()
         logger.success(f"Finished updating playlist {self.name}")
+
+    def add_file(self, file, file_type=None):
+        new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
+
+        new_file = my_move_file(file, new_path)
+        if new_file == "":
+            logger.error(f"Error moving file {file} to {new_path}")
+            return
+
+        existing = File.select().where(
+            (File.filename == new_file.name)
+            & (File.local_path == new_file.parent)
+            & (new_file.suffix == File.extension)
+        )
+        if existing:
+            return existing
+
+        if file_type is None:
+            file_type = get_file_type(new_file)
+
+        f = File.create(
+            local_path=new_file.parent,
+            filename=new_file.name,
+            extension=new_file.suffix,
+        )
+        PlaylistFile.create(file=f, playlist=self, file_type=file_type)
+
+    @property
+    def has_poster(self):
+        return self.files.where(PlaylistFile.file_type == "image").count() > 0
 
     def __repr__(self):
         return f"Playlist({self.name=})"
@@ -330,8 +408,8 @@ class Video(BaseModel):
 
     def add_file(self, file, file_type=None):
 
+        # new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
         new_path = Path(self.file_path) / (file.name)
-
         new_file = my_move_file(file, new_path)
         if new_file == "":
             logger.error(f"Error moving file {file} to {new_path}")
@@ -629,6 +707,13 @@ class VideoFile(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class PlaylistFile(BaseModel):
+    file = ForeignKeyField(File, backref="playlists")
+    playlist = ForeignKeyField(Playlist, backref="files")
+    file_type = CharField(null=True)  # should probably be an enum
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class SeriesFile(BaseModel):
     file = ForeignKeyField(File, backref="seriess")
     series = ForeignKeyField(Series, backref="files")
@@ -712,28 +797,28 @@ class Post(BaseModel):
         return self.title
 
 
-def add_files_to_db():
+# def add_files_to_db():
 
-    # this will add existing media files to the database
-    media_path = Path("/mnt/c/DATA/hmtc_fqweriles/media")
-    for mp in media_path.rglob("*"):
-        if mp.is_file() and mp.stem[4] == "-":
-            # currently date is in YYYY-MM-DD format
-            # need to replace with YYYYMMDD
-            new_name = mp.name.replace("-", "")
-            mp = mp.rename(mp.parent / new_name)
+#     # this will add existing media files to the database
+#     media_path = Path("/mnt/c/DATA/hmtc_fqweriles/media")
+#     for mp in media_path.rglob("*"):
+#         if mp.is_file() and mp.stem[4] == "-":
+#             # currently date is in YYYY-MM-DD format
+#             # need to replace with YYYYMMDD
+#             new_name = mp.name.replace("-", "")
+#             mp = mp.rename(mp.parent / new_name)
 
-        existing = File.select().where(
-            (File.filename == mp.name)
-            & (File.local_path == mp.parent)
-            & (File.extension == mp.suffix)
-        )
-        if not existing:
-            f = File.create(
-                local_path=mp.parent,
-                filename=mp.name,
-                extension=mp.suffix,
-            )
+#         existing = File.select().where(
+#             (File.filename == mp.name)
+#             & (File.local_path == mp.parent)
+#             & (File.extension == mp.suffix)
+#         )
+#         if not existing:
+#             f = File.create(
+#                 local_path=mp.parent,
+#                 filename=mp.name,
+#                 extension=mp.suffix,
+#             )
 
 
 def create_video_file_associations():

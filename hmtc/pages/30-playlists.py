@@ -58,7 +58,7 @@ def PlaylistDetail(playlist_id):
     playlist = Playlist.select().where(Playlist.id == playlist_id).get()
     name.set(playlist.name)
     url.set(playlist.url)
-    series.set(playlist.series.name)
+    # series.set(playlist.series.name)
     channel.set(playlist.channel.name)
 
     def update_playlist():
@@ -66,6 +66,8 @@ def PlaylistDetail(playlist_id):
 
     with solara.Card():
         solara.InputText(label="Name", value=name, continuous_update=False)
+        if playlist.has_poster:
+            solara.Markdown("Image goes here!")
         solara.InputText(label="URL", value=url, continuous_update=False)
         solara.Select(label="Series", value=series, values=all_series)
         solara.Select(label="Channel", value=channel, values=all_channels)
@@ -100,7 +102,7 @@ def PlaylistCard(playlist):
             solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
 
             solara.Markdown(f"Channel: {playlist.channel.name}")
-            solara.Markdown(f"Series: {playlist.series.name}")
+            # solara.Markdown(f"Series: {playlist.series.name}")
             solara.Markdown(f"URL: {playlist.url}")
             solara.Markdown(f"Last Updated: {time_since_update(playlist)}")
             solara.Markdown(

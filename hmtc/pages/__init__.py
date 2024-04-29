@@ -7,10 +7,11 @@ import shutil
 
 db, config = setup()
 
-download_folder = Path(config.get("GENERAL", "DOWNLOAD_PATH"))
-for f in download_folder.glob("*"):
-    logger.warning(f"Removing existing file in downloads: {f}")
-    f.unlink()
+if config.get("GENERAL", "CLEAN_DOWNLOADS") == True:
+    download_folder = Path(config.get("GENERAL", "DOWNLOAD_PATH"))
+    for f in download_folder.glob("*"):
+        logger.warning(f"Removing existing file in downloads: {f}")
+        f.unlink()
 
 app_state = solara.reactive(0)
 
