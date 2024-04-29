@@ -5,11 +5,18 @@ from loguru import logger
 import time
 from hmtc.models import Video, VideoFile
 from hmtc.config import init_config
+from hmtc.pages import config
+
+# This is where the version is set for now.
+# this ensures that whatever is running
+# is the same as the rest of the code
+# (instead of storing it in a separate file)
+VERSION = "0.0.1"
+
+env = config.get("GENERAL", "ENVIRONMENT")
+
 
 updating = solara.reactive(False)
-
-
-config = init_config()
 
 
 def disabled_videos_with_files():
@@ -35,8 +42,6 @@ def some_task():
 @solara.component
 def Page():
     counter = solara.use_reactive(0)
-    env = config.get("GENERAL", "ENVIRONMENT")
-    version = config.get("GENERAL", "VERSION")
 
     @task
     def update():
@@ -50,7 +55,7 @@ def Page():
     vids_in_db = Video.select().count()
     with solara.Column():
         solara.Markdown(f"## Environment = {env}")
-        solara.Markdown(f"## Version = {version}")
+        solara.Markdown(f"## Version = {VERSION}")
         solara.Markdown(f"## Vids in DB: {vids_in_db}")
         solara.Markdown(f"DB Name {config.get('DATABASE', 'NAME')}")
     with solara.Card():

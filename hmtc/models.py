@@ -138,6 +138,32 @@ class Series(BaseModel):
     def total_videos(self):
         return self.videos.count()
 
+    def add_file(self, file, file_type=None):
+        new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
+
+        new_file = my_move_file(file, new_path)
+        if new_file == "":
+            logger.error(f"Error moving file {file} to {new_path}")
+            return
+
+        existing = File.select().where(
+            (File.filename == new_file.name)
+            & (File.local_path == new_file.parent)
+            & (new_file.suffix == File.extension)
+        )
+        if existing:
+            return existing
+
+        if file_type is None:
+            file_type = get_file_type(new_file)
+
+        f = File.create(
+            local_path=new_file.parent,
+            filename=new_file.name,
+            extension=new_file.suffix,
+        )
+        SeriesFile.create(file=f, series=self, file_type=file_type)
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Album(BaseModel):
@@ -150,13 +176,27 @@ class Album(BaseModel):
 class Channel(BaseModel):
     name = CharField(unique=True)
     url = CharField(unique=True)
+    youtube_id = CharField(unique=True)
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
 
     def check_for_new_videos(self):
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
+
+        # ensure that all videos in the db point to the correct channel
+        videos = [
+            vid.youtube_id for vid in Video.select().where(Video.channel.is_null())
+        ]
+
         ids = fetch_ids_from(self.url)
+
+        for vid in videos:
+            if vid in ids:
+                ids.pop(ids.index(vid))
+                vid.channel = self
+                vid.save()
+
         for youtube_id in ids:
 
             if youtube_id == "":
@@ -183,19 +223,45 @@ class Channel(BaseModel):
         self.save()
         logger.debug(f"Finished updating channel {self.name}")
 
+    def add_file(self, file, file_type=None):
+        new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
+
+        new_file = my_move_file(file, new_path)
+        if new_file == "":
+            logger.error(f"Error moving file {file} to {new_path}")
+            return
+
+        existing = File.select().where(
+            (File.filename == new_file.name)
+            & (File.local_path == new_file.parent)
+            & (new_file.suffix == File.extension)
+        )
+        if existing:
+            return existing
+
+        if file_type is None:
+            file_type = get_file_type(new_file)
+
+        f = File.create(
+            local_path=new_file.parent,
+            filename=new_file.name,
+            extension=new_file.suffix,
+        )
+        ChannelFile.create(file=f, channel=self, file_type=file_type)
+
     @property
     def num_videos(self):
         return self.videos.count()
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class ChannelVideo(BaseModel):
-    # This shouldn't be confused with regular videos
-    # This is a list of videos that are on a channel
-    # I will use this to figure out what videos are missing
-    # they don't appear on a playlist
-    youtube_id = CharField(unique=True)
-    channel = ForeignKeyField(Channel, backref="channel_vids", null=True)
+# ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# class ChannelVideo(BaseModel):
+#     # This shouldn't be confused with regular videos
+#     # This is a list of videos that are on a channel
+#     # I will use this to figure out what videos are missing
+#     # they don't appear on a playlist
+#     youtube_id = CharField(unique=True)
+#     channel = ForeignKeyField(Channel, backref="channel_vids", null=True)
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -715,7 +781,7 @@ class PlaylistFile(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class SeriesFile(BaseModel):
-    file = ForeignKeyField(File, backref="seriess")
+    file = ForeignKeyField(File, backref="series")
     series = ForeignKeyField(Series, backref="files")
     file_type = CharField(null=True)  # should probably be an enum
 
@@ -763,6 +829,13 @@ class AlbumFile(BaseModel):
             # Create a unique composite index on beat and Artist
             (("file", "album"), True),
         )
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class ChannelFile(BaseModel):
+    file = ForeignKeyField(File, backref="channels")
+    channel = ForeignKeyField(Channel, backref="files")
+    file_type = CharField(null=True)  # should probably be an enum
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

@@ -5,7 +5,7 @@ from hmtc.components.single_select import SingleSelect
 from pathlib import Path
 from hmtc.config import init_config
 
-config = init_config()
+from hmtc.pages import config
 
 all_languages = "Python C++ Java JavaScript TypeScript BASIC".split()
 languages = solara.reactive([all_languages[0]])
@@ -187,8 +187,8 @@ def Page():
         #     )
         # )
         query = Video.select()
-        if not disabled_videos.value:
-            query = query.where(Video.enabled == True)
+        # if not disabled_videos.value:
+        #     query = query.where(Video.enabled == True)
 
         if title_query.value:
             query = query.where(Video.title.contains(title_query.value))

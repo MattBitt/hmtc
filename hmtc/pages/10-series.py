@@ -5,6 +5,7 @@ from hmtc.models import Video, Series, VideoFile, File
 from hmtc.components.progress_slider import SimpleProgressBar
 import time
 import peewee
+from hmtc.pages import config
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")
@@ -68,11 +69,11 @@ def SeriesCard(series):
         .where((Video.series == series) & (VideoFile.file_type == "video"))
     )
 
-    if vids_with_video.count() == 0:
-        logger.warning(f"No videos with video files for series {series.name}")
-        logger.warning(f"Not checking further info for series {series.name}")
-        SeriesForm()
-        return
+    # if vids_with_video.count() == 0:
+    #     logger.warning(f"No videos with video files for series {series.name}")
+    #     logger.warning(f"Not checking further info for series {series.name}")
+    #     SeriesForm()
+    #     return
 
     vids_with_audio = (
         Video.select()

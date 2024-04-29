@@ -45,8 +45,6 @@ class MyLogger:
 # this seems to work for playlists and channels
 # if you send a channel it will grab all of the playlists
 # if you send a playlist it will grab all of the videos
-
-
 def fetch_ids_from(url, download_path="."):
     # couldn't figure out how to get this list without saving it to disk first ...
     downloaded_file = Path(download_path) / "ids.txt"
@@ -65,7 +63,7 @@ def fetch_ids_from(url, download_path="."):
         logger.info(f"No playlists found for playlist: {url}")
         return []
     else:
-        logger.success("Playlist list captured")
+        logger.debug("List of IDS captured from url")
         return ids
 
 
@@ -101,6 +99,13 @@ def get_video_info(id, output_folder, thumbnail=True, subtitle=True, info=True):
         return ydl.sanitize_info(info)
 
 
+def get_channel_info(id, output_folder, thumbnail=True, subtitle=True, info=True):
+    # this command seemed to work. resulting file can be imported from downloads
+    # tab
+    # yt-dlp --write-info -o harry.txt https://www.youtube.com/@HarryMack
+    pass
+
+
 def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=True):
     # this function kinda works, but it keeps downloading
     # the videos. i manually downloaded the playlists 1 by 1
@@ -122,8 +127,8 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
     # using 3 _ to split the date from the id since the id
     # can have underscores in it
     ydl_opts = {
-        # "logger": logger,
-        # "progress_hooks": [my_hook],
+        "logger": logger,
+        "progress_hooks": [my_hook],
         "writethumbnail": thumbnail,
         "skip_download": True,
         "writeinfojson": info,
@@ -296,10 +301,15 @@ if __name__ == "__main__":
     # i ain't gotta worry
     id = "3oPCYzT1ek4"
     # result = fetch_ids_from(url)
-    for p in playlists2:
-        get_playlist_info(
-            p, "/mnt/c/DATA/repos/REPODATA/hmtc/downloads", True, True, True
-        )
+
+    get_playlist_info(
+        channel_url, "/mnt/c/DATA/repos/REPODATA/hmtc/downloads", True, True, True
+    )
+
+    # for p in playlists2:
+    #    get_playlist_info(
+    #        p, "/mnt/c/DATA/repos/REPODATA/hmtc/downloads", True, True, True
+    #    )
     # playlist = download_playlist_info(
     #     playlist_id=playlist_id,
     #     download_path="/mnt/c/DATA/repos/REPODATA/hmtc/downloads/",

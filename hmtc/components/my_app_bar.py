@@ -2,11 +2,21 @@ import solara
 
 
 @solara.component
-def MyAppBar():
+def MyAppBar(title="HMTC", env=None):
+    icon_name = "mdi-account-cog"
+    button_text = "Settings"
+    if env is None:
+        color = "black"
+    elif env == "development":
+        color = "blue"
+    elif env == "testing":
+        color = "green"
+    elif env == "production":
+        color = "red"
 
     with solara.AppBarTitle():
 
-        icon_name = "mdi-account-cog"
-        button_text = ""
-        solara.Button(button_text, icon_name=icon_name)
-        solara.Title("HMTC")
+        with solara.Row():
+            solara.Title("HMTC")
+            solara.Markdown("asdfqwerasdf")
+            solara.Button(button_text, icon_name=icon_name, style={"color": color})

@@ -3,6 +3,7 @@ from hmtc.config import init_config
 from hmtc.models import (
     Playlist,
     Video,
+    ChannelFile,
     Series,
     Album,
     Track,
@@ -24,7 +25,6 @@ from hmtc.models import (
     AlbumFile,
     TrackFile,
     Channel,
-    ChannelVideo,
     PlaylistFile,
     db,
 )
@@ -45,6 +45,7 @@ def create_tables():
     db.create_tables(
         [
             Playlist,
+            ChannelFile,
             Video,
             Series,
             Album,
@@ -67,7 +68,6 @@ def create_tables():
             AlbumFile,
             TrackFile,
             Channel,
-            ChannelVideo,
             PlaylistFile,
         ]
     )

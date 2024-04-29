@@ -7,7 +7,7 @@ import time
 from loguru import logger
 from hmtc.db import import_existing_video_files_to_db
 
-config = init_config()
+from hmtc.pages import config
 
 
 def count_types(files):
