@@ -4,7 +4,7 @@ from loguru import logger
 from pathlib import Path
 
 from hmtc.pages import config
-from hmtc.models import Playlist, Series, Channel
+from hmtc.models import Playlist, Series, Channel, Video
 from hmtc.components.my_app_bar import MyAppBar
 from hmtc.utils.general import read_json_file, determine_file_type
 downloads_path = config.get("GENERAL", "DOWNLOAD_PATH")
@@ -83,6 +83,35 @@ def ChannelFilesCard(file, data):
             )
             solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
 
+@solara.component
+def VideoFilesCard(file, data):
+    video_yt_id = data["id"]
+
+    def add_file_to_video():
+        logger.debug(f"Adding file {file} to video {video_yt_id}")
+        if file.suffix == ".json":
+            p = Path(downloads_path) / file
+            if not p.exists():
+                logger.error(f"File {file} does not exist")
+                return
+
+            data = read_json_file(Path(downloads_path) / file)
+            logger.debug(f"Data: {data["title"]}")
+        elif file.suffix in [".jpg", ".jpeg", ".png", ".vtt"]:
+            video = Video.get_or_none(Video.youtube_id == video_yt_id)
+            if video:
+                video.add_file(file)
+                logger.success(f"Finished adding file {file} to video")
+            # is_video_existing.set(True)
+
+    with solara.Card():
+        solara.Markdown(f"{file}")
+       
+        with solara.CardActions():
+            solara.Button(
+                "Add File to Video", on_click=add_file_to_video
+            )
+            solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
 
 
 
@@ -258,6 +287,7 @@ def Page():
     with solara.ColumnsResponsive(4):
         channel_files = []
         playlist_files = []
+        video_files = []
         
         for f in files.value:
             ftype, data = determine_file_type(f)
@@ -269,6 +299,8 @@ def Page():
                         playlist_files.append({"file":f,"data": data})
                     case "channel":
                         channel_files.append({"file":f,"data": data})
+                    case "video":
+                        video_files.append({"file":f,"data": data})
                     case "series":
                         SeriesFileCard(f)
                     case _:
@@ -279,7 +311,13 @@ def Page():
             with solara.Card():
                 solara.Markdown("Channel with Files to Import")
                 ChannelCard(channel['file'], channel['data'])
+        
         for playlist in playlist_files:
             with solara.Card():
                 solara.Markdown("Playlist with Files to Import")
                 PlaylistFilesCard(playlist['file'], playlist['data'])
+
+        for video in video_files:
+            with solara.Card():
+                solara.Markdown("Video with Files to Import")
+                VideoFilesCard(video['file'], video['data'])

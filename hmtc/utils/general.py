@@ -128,7 +128,19 @@ def determine_file_type(file):
         if file.stem[:2] == "PL" and len(file.stem) > 33:
             p_id = file.stem[:34]
             return "playlist", data
+
         if "uploader" in data and "channel" in data:
             return "channel", data
+
+        if "formats" in data:
+            return "video", data
     else:
-        return "who knows", {"theshadow": "knows"}
+        idstring = get_youtube_id(file)
+        if idstring:
+            if idstring not in file.stem:
+                logger.error(f"Youtube id not in filename {file} {idstring}")
+            return "video", {"id": idstring}
+
+        else:
+            logger.debug(f"Unknown file type {file}")
+            return "who knows", {"theshadow": "knows"}
