@@ -28,19 +28,18 @@ def FileTypesCard(db, folder):
     db_files_type_counts = count_types(db)
     folder_files_type_counts = count_types(folder)
 
-    with solara.Card(title="Files in db"):
+    with solara.Card(title="All Files"):
+        with solara.ColumnsResponsive(12, large=6):
+            with solara.Card(title="Files in Database"):
+                solara.Markdown(f"**{len(db)} files**")
+                for key, num in enumerate(sorted(db_files_type_counts)):
+                    if num:
+                        solara.Markdown(f"**{num}** files: {db_files_type_counts[num]}")
 
-        solara.Markdown(f"**{len(db)} files in db**")
-        for key, num in enumerate(sorted(folder_files_type_counts)):
-            solara.Markdown(f"**{num}** files: {folder_files_type_counts[num]}")
-
-    with solara.Card(title="Files in Folder"):
-
-        solara.Markdown(f"**{len(folder)}** files in folder and subfolders")
-
-        for key, num in enumerate(sorted(db_files_type_counts)):
-            if num:
-                solara.Markdown(f"**{num}** files: {db_files_type_counts[num]}")
+            with solara.Card(title="Files in Folder"):
+                solara.Markdown(f"**{len(folder)}** files in folder and subfolders")
+                for key, num in enumerate(sorted(folder_files_type_counts)):
+                    solara.Markdown(f"**{num}** files: {folder_files_type_counts[num]}")
 
 
 @solara.component
@@ -48,44 +47,51 @@ def DBversusFileCards(db_files, folder_files):
     db_files_list = {Path(file.local_path, file.filename) for file in db_files}
     folder_files_list = {file for file in folder_files}
 
-    diff = db_files_list.symmetric_difference(folder_files_list)
     video_files = Video.select().join(VideoFile).join(File).distinct()
 
-    def file_diffs():
-        logger.debug("Running File Tests")
+    def missing_files():
+        # i don't think order matters here
+        return db_files_list.symmetric_difference(folder_files_list)
 
-    solara.Button("Compare Files in Folder vs DB", on_click=file_diffs)
-    if len(diff) == 0:
-        solara.Markdown("No differences in files vs Database")
+    missing = missing_files()
+
+    if len(missing) == 0:
+        solara.Markdown("Horray! No differences found!")
         return
+    solara.Markdown("")
+    with solara.Card(title="File Issues"):
+
+        solara.Markdown(
+            f"**{len(missing)}** files that are not in BOTH db and folder (not sure which)"
+        )
 
     FileTypesCard(db_files_list, folder_files_list)
 
-    with solara.Card():
+    # with solara.Card():
 
-        diff_file_counts = {}
-        for file in diff:
-            diff_file_counts[file.suffix] = diff_file_counts.get(file.suffix, 0) + 1
-        solara.Markdown(f"**{len(diff)}** files that DONT exist in (db AND folder)")
-        if len(diff) < 10:
-            for file in diff:
-                solara.Markdown(f"**{file}**")
+    #     diff_file_counts = {}
+    #     for file in d1:
+    #         diff_file_counts[file.suffix] = diff_file_counts.get(file.suffix, 0) + 1
+    #     solara.Markdown(f"**{len(d1)}** files that DONT exist in (db AND folder)")
+    #     if len(d1) < 10:
+    #         for file in diff:
+    #             solara.Markdown(f"**{file}**")
 
-        for ext in diff_file_counts:
-            solara.Markdown(f"**{diff_file_counts[ext]}** files: {ext}")
+    #     for ext in diff_file_counts:
+    #         solara.Markdown(f"**{diff_file_counts[ext]}** files: {ext}")
 
-    with solara.Card(title="Files in Database (not in Folder)"):
+    # with solara.Card(title="Files in Database (not in Folder)"):
 
-        diff = db_files_list - folder_files_list
-        if len(diff) < 10:
-            for file in diff:
-                solara.Markdown(f"**{file}**")
-        else:
-            solara.Markdown(f"**{len(diff)}** files in db but not in folder")
+    #     diff = db_files_list - folder_files_list
+    #     if len(diff) < 10:
+    #         for file in diff:
+    #             solara.Markdown(f"**{file}**")
+    #     else:
+    #         solara.Markdown(f"**{len(diff)}** files in db but not in folder")
 
-    with solara.Card(title="Files in folder not in db"):
-        diff = folder_files_list - db_files_list
-        solara.Markdown(f"**{len(diff)}** files in folder but not in db")
+    # with solara.Card(title="Files in folder not in db"):
+    #     diff = folder_files_list - db_files_list
+    #     solara.Markdown(f"**{len(diff)}** files in folder but not in db")
 
 
 def download_missing_videos():
@@ -110,7 +116,7 @@ def extract_missing_audio():
 def Page():
     db_files = File.select()
 
-    folder = Path(config.get("MEDIA", "VIDEO_PATH"))
+    folder = Path(config.get("MEDIA", "VIDEO_PATH")) / "sources"
     folder_files = [f for f in folder.rglob("*") if f.is_file()]
 
     def add_existing_files():

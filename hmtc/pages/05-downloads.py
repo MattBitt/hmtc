@@ -2,35 +2,20 @@ import solara
 import solara.lab
 from loguru import logger
 from pathlib import Path
-import json
+
 from hmtc.pages import config
 from hmtc.models import Playlist, Series, Channel
-
+from hmtc.components.my_app_bar import MyAppBar
+from hmtc.utils.general import read_json_file, determine_file_type
 downloads_path = config.get("GENERAL", "DOWNLOAD_PATH")
+env = config.get("GENERAL", "ENVIRONMENT")
 files = solara.reactive([])
 
 
-def read_json_file(filename):
-    with open(Path(downloads_path) / filename, "r") as f:
-        data = json.load(f)
-    return data
 
 
-def determine_file_type(file):
-    file = Path(file)
-    if file.name == "series_info.txt":
-        return "series", None
-    elif file.stem[:2] == "PL" and len(file.stem) > 33:
-        p_id = file.stem[:34]
-        # already know about this file so let the function
-        # handle the data processing
-        return "playlist", None
-    elif file.suffix == ".json":
-            data = read_json_file(file)
-            if "uploader" in data and "channel" in data:
-                return "channel", data
-    else:
-        return None, None
+
+
 
 @solara.component
 def SeriesFileCard(file):
@@ -69,12 +54,17 @@ def SeriesFileCard(file):
 
 @solara.component
 def ChannelFilesCard(file, data):
-    channel_yt_id = data["id"]
+    channel_yt_id = data["channel_id"]
 
     def add_file_to_channel():
         logger.debug(f"Adding file {file} to channel {channel_yt_id}")
         if file.suffix == ".json":
-            data = read_json_file(file)
+            p = Path(downloads_path) / file
+            if not p.exists():
+                logger.error(f"File {file} does not exist")
+                return
+
+            data = read_json_file(Path(downloads_path) / file)
             logger.debug(f"Data: {data["title"]}")
 
         # channel_name = f"Channel {channel_id}"
@@ -122,7 +112,7 @@ def FileCard(file, playlist_id=None):
             solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
 
 @solara.component
-def UnknownFilesCard(file):
+def UnknownFilesCard(file, data):
 
     def delete_file():
         try:
@@ -130,25 +120,21 @@ def UnknownFilesCard(file):
             logger.success(f"Deleted file: {file}")
         except Exception as e:
             logger.error(f"Error deleting file: {file}, {e}")
-
+    file = file if isinstance(file, str) else file.name
+    if not data:
+        data = {}
 
     with solara.Card():
         solara.Markdown(f"Unknown File: {file}")
+        solara.Markdown(f"Unknown Data: {data}")
         with solara.CardActions():
             solara.Button("Delete", on_click=delete_file)
 
 
 @solara.component
-def PlaylistFilesCard(playlist_id):
+def PlaylistFilesCard(file, data):
     is_playlist_existing = solara.use_reactive((False))
-    playlist = Playlist.get_or_none(Playlist.youtube_id == playlist_id)
-    if playlist:
-        is_playlist_existing.set(True)
-    
-    if playlist is None:
-        logger.debug(f"Playlist {playlist_id} not found in DB")
-    
-    playlist_files = list(Path(downloads_path).glob(f"{playlist_id}*"))
+    playlist_id = data["id"]
 
     def add_playlist_to_db():
         logger.debug(f"Need to add playlist {playlist_id}")
@@ -156,8 +142,21 @@ def PlaylistFilesCard(playlist_id):
             if f.suffix == ".json":
                 data = read_json_file(f)
                 # logger.debug(f"Data: {data['title']}")
-                Playlist.create(youtube_id=playlist_id, name=data["title"], url=data['webpage_url'])
-                is_playlist_existing.set(True)
+                channel = Channel.get_or_none(Channel.youtube_id == data["channel_id"])
+                if channel:
+                    if data["channel_id"] == "UCcnAEyz9VnlBL1DiQqliJkQ":
+                        if playlist_id == "PLVuktCy_G9zLqq_g0D44cKCE0xEmenRUQ":
+                            data["title"] = "Behind the Bars Clips"
+                        
+                    Playlist.create(youtube_id=playlist_id, name=data["title"], url=data['webpage_url'], channel=channel)
+                    is_playlist_existing.set(True)
+
+    playlist = Playlist.get_or_none(Playlist.youtube_id == playlist_id)
+    if playlist:
+        is_playlist_existing.set(True)
+    
+    
+    playlist_files = list(Path(downloads_path).glob(f"{playlist_id}*"))
     
     color = "yellow"
     if not is_playlist_existing.value:
@@ -165,7 +164,7 @@ def PlaylistFilesCard(playlist_id):
     
     with solara.Card(style={"background":color}):
         solara.Markdown(f"{playlist_id}")
-        if is_playlist_existing.value:
+        if is_playlist_existing.value and playlist is not None:
             solara.Markdown(f"**{playlist.name}**")
         # solara.Markdown(f"Playlist already exists in DB?: {is_playlist_existing.value}")
         if is_playlist_existing.value:
@@ -185,7 +184,7 @@ def PlaylistFilesCard(playlist_id):
 def ChannelCard(f, data):
     is_channel_existing = solara.use_reactive((False))    
     
-    channel_yt_id = data["id"]
+    channel_yt_id = data["channel_id"]
     channel_name = data["title"]
     channel_url = data["webpage_url"]
     
@@ -217,9 +216,9 @@ def ChannelCard(f, data):
 
             with solara.Column():
                 for f in files.value:
-                    ftype, data = determine_file_type(f)
-                    if ftype == "channel" and data["id"] == channel_yt_id:
-                        ChannelFilesCard(f, data)
+                    ftype, new_data = determine_file_type(f)
+                    if ftype == "channel" and new_data["channel_id"] == channel_yt_id:
+                        ChannelFilesCard(f, new_data)
 
         # solara.Markdown(f"Channel already exists in DB?: {is_channel_existing.value}")
 
@@ -236,7 +235,6 @@ def Page():
         for f in files.value:
             logger.debug(f"Removing existing file in downloads: {f}")
             # f.unlink()
-
 
 
             # logger.debug(f"Processing file: {f}")
@@ -256,26 +254,32 @@ def Page():
         #     [f.stem[:34] for f in files.value if determine_file_type(f) == "playlist"]
         # )
         # solara.Markdown(f"{len(playlist_ids)} Playlists that have files in folder")
-    
+    MyAppBar(env)
     with solara.ColumnsResponsive(4):
         channel_files = []
         playlist_files = []
         
         for f in files.value:
             ftype, data = determine_file_type(f)
-            if not ftype:
-                UnknownFilesCard(f)
+            if not ftype or not data:
+                UnknownFilesCard(f, data)
             else:
                 match ftype:
                     case "playlist":
-                        PlaylistFilesCard(f)
+                        playlist_files.append({"file":f,"data": data})
                     case "channel":
                         channel_files.append({"file":f,"data": data})
                     case "series":
                         SeriesFileCard(f)
                     case _:
-                        raise "asdfasdf"
+                        logger.debug(f"Unknown file type: {f}")
+                        logger.debug(f"ftype: {ftype}")
+                        logger.debug(f"Data: {data}")
         for channel in channel_files:
             with solara.Card():
                 solara.Markdown("Channel with Files to Import")
                 ChannelCard(channel['file'], channel['data'])
+        for playlist in playlist_files:
+            with solara.Card():
+                solara.Markdown("Playlist with Files to Import")
+                PlaylistFilesCard(playlist['file'], playlist['data'])

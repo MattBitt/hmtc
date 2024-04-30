@@ -105,7 +105,7 @@ def PlaylistCard(playlist):
             solara.Markdown(playlist.name)
             solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
 
-            solara.Markdown(f"Channel: {playlist.channel.name}")
+            # solara.Markdown(f"Channel: {playlist.channel.name}")
             # solara.Markdown(f"Series: {playlist.series.name}")
             solara.Markdown(f"URL: {playlist.url}")
             solara.Markdown(f"Last Updated: {time_since_update(playlist)}")

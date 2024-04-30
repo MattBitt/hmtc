@@ -4,6 +4,7 @@ from loguru import logger
 import csv
 from pathlib import Path
 from datetime import datetime
+import json
 
 
 def clear_screen():
@@ -107,3 +108,27 @@ def time_since_update(playlist):
         return str(f"{(t.seconds // 60)} minutes ago")
     else:
         return str("Just now")
+
+
+def read_json_file(filename):
+    if filename.exists():
+        with open(filename, "r") as f:
+            data = json.load(f)
+        return data
+    else:
+        logger.error(f"File {filename} does not exist")
+
+
+def determine_file_type(file):
+    file = Path(file)
+    if file.name == "series_info.txt":
+        return "series", {"dummy": "data"}
+    elif file.suffix == ".json":
+        data = read_json_file(file)
+        if file.stem[:2] == "PL" and len(file.stem) > 33:
+            p_id = file.stem[:34]
+            return "playlist", data
+        if "uploader" in data and "channel" in data:
+            return "channel", data
+    else:
+        return "who knows", {"theshadow": "knows"}
