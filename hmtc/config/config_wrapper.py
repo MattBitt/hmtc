@@ -34,19 +34,13 @@ class env(Enum):
 class ConfigWrapper:
     @classmethod
     def create_instance(self) -> configparser.ConfigParser:
-        current_env = os.environ.get("ENVIRONMENT", env.DEVELOPMENT)
-        # if current_env is None:
-        #     print(
-        #         "The envrionment variable: 'ENVIRONMENT' was not set. Defaulting to 'dev'"
-        #     )
-        #     current_env = "development"
-        #     os.environ["ENVIRONMENT"] = current_env
+        current_env = os.environ.get("ENVIRONMENT", None)
 
         config_parser = configparser.ConfigParser(
             os.environ, interpolation=configparser.ExtendedInterpolation()
         )
         # need a better way to do this for launch .json
-        # works fine for docker/docker-compose
+        # works ok for docker/docker-compose
 
         config_dir = Path("/config/")
         if config_dir.exists():
@@ -56,6 +50,7 @@ class ConfigWrapper:
                 "The /config/ directory was not found. Checking the current directory"
             )
             dir_name = Path("./hmtc/config")
+
         base_ini_file = os.path.join(dir_name, "settings.base.ini")
         if not os.path.exists(base_ini_file):
             print(

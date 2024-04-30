@@ -191,7 +191,7 @@ def import_existing_video_files_to_db(path):
                         f"Successfully found video{vid.youtube_id}. Adding file"
                     )
             else:
-                raise ValueError(f"Could not get youtube_id from {file.stem}")
+                logger.debug(f"Could not find youtube_id in {file}")
 
     logger.success("Finished importing files to the database.")
     logger.debug(f"Found {found} new files.")

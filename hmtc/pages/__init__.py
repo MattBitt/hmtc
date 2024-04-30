@@ -18,6 +18,7 @@ def setup():
 
 logger.debug("very beginning")
 db, config = setup()
+logger.debug(f"Current Running Mode = {config.get('GENERAL', 'RUNNING_MODE')}")
 logger.debug("after setup")
 
 if config.get("GENERAL", "CLEAN_DOWNLOADS") == True:

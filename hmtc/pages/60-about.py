@@ -11,9 +11,9 @@ from hmtc.pages import config
 # this ensures that whatever is running
 # is the same as the rest of the code
 # (instead of storing it in a separate file)
-VERSION = "0.0.1"
+VERSION = "0.0.4"
 
-env = config.get("GENERAL", "ENVIRONMENT")
+env = config.get("GENERAL", "RUNNING_MODE")
 
 
 updating = solara.reactive(False)
@@ -54,7 +54,7 @@ def Page():
 
     vids_in_db = Video.select().count()
     with solara.Column():
-        solara.Markdown(f"## Environment = {env}")
+        solara.Markdown(f"## Running Mode = {env}")
         solara.Markdown(f"## Version = {VERSION}")
         solara.Markdown(f"## Vids in DB: {vids_in_db}")
         solara.Markdown(f"DB Name {config.get('DATABASE', 'NAME')}")

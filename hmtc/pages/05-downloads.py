@@ -6,9 +6,9 @@ from pathlib import Path
 from hmtc.pages import config
 from hmtc.models import Playlist, Series, Channel, Video
 from hmtc.components.my_app_bar import MyAppBar
-from hmtc.utils.general import read_json_file, determine_file_type
+from hmtc.utils.general import read_json_file, determine_file_object_association
 downloads_path = config.get("GENERAL", "DOWNLOAD_PATH")
-env = config.get("GENERAL", "ENVIRONMENT")
+env = config.get("GENERAL", "RUNNING_MODE")
 files = solara.reactive([])
 
 
@@ -86,30 +86,34 @@ def ChannelFilesCard(file, data):
 @solara.component
 def VideoFilesCard(file, data):
     video_yt_id = data["id"]
-
+    video = Video.get_or_none(Video.youtube_id == video_yt_id)
+    color = "orange"
+    if video is not None:
+        color = "purple"
+    
     def add_file_to_video():
         logger.debug(f"Adding file {file} to video {video_yt_id}")
-        if file.suffix == ".json":
-            p = Path(downloads_path) / file
-            if not p.exists():
-                logger.error(f"File {file} does not exist")
-                return
+        # if file.suffix == ".json":
+        #     p = Path(downloads_path) / file
+        #     if not p.exists():
+        #         logger.error(f"File {file} does not exist")
+        #         return
 
-            data = read_json_file(Path(downloads_path) / file)
-            logger.debug(f"Data: {data["title"]}")
-        elif file.suffix in [".jpg", ".jpeg", ".png", ".vtt"]:
-            video = Video.get_or_none(Video.youtube_id == video_yt_id)
-            if video:
-                video.add_file(file)
-                logger.success(f"Finished adding file {file} to video")
+        #     data = read_json_file(Path(downloads_path) / file)
+        #     logger.debug(f"Data: {data["title"]}")
+        # elif file.suffix in [".jpg", ".jpeg", ".png", ".vtt"]:
+        video = Video.get_or_none(Video.youtube_id == video_yt_id)
+        if video:
+            video.add_file(file)
+            logger.success(f"Finished adding file {file} to video")
             # is_video_existing.set(True)
 
-    with solara.Card():
+    with solara.Card(style={"background":color}):
         solara.Markdown(f"{file}")
        
         with solara.CardActions():
             solara.Button(
-                "Add File to Video", on_click=add_file_to_video
+                "Add File to Video", on_click=add_file_to_video, disabled=(color == "orange")
             )
             solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
 
@@ -240,12 +244,12 @@ def ChannelCard(f, data):
         if is_channel_existing.value:
             solara.Markdown(f"**{channel.name}**")
             solara.Markdown(f"Existing Files:")
-            for f in channel.files:
-                solara.Markdown(f"{f.filename}")
+            for cf in channel.files:
+                solara.Markdown(f"{cf.file.filename}")
 
             with solara.Column():
                 for f in files.value:
-                    ftype, new_data = determine_file_type(f)
+                    ftype, new_data = determine_file_object_association(f)
                     if ftype == "channel" and new_data["channel_id"] == channel_yt_id:
                         ChannelFilesCard(f, new_data)
 
@@ -267,8 +271,9 @@ def Page():
 
 
             # logger.debug(f"Processing file: {f}")
+    
 
-    files.set(list(Path(downloads_path).glob("*")))
+    files.set([file for file in Path(downloads_path).glob("**/*") if file.is_file()])
     with solara.Column():
         solara.Markdown("**Downloads** Page")
         solara.Markdown("Downloaded Files")
@@ -290,13 +295,16 @@ def Page():
         video_files = []
         
         for f in files.value:
-            ftype, data = determine_file_type(f)
+            ftype, data = determine_file_object_association(f)
             if not ftype or not data:
                 UnknownFilesCard(f, data)
             else:
                 match ftype:
                     case "playlist":
-                        playlist_files.append({"file":f,"data": data})
+                        if "dummy" in data:
+                            playlist_files.append({"file":f,"data": {"id": f.stem[:34]}})
+                        else:
+                            playlist_files.append({"file":f,"data": data})
                     case "channel":
                         channel_files.append({"file":f,"data": data})
                     case "video":

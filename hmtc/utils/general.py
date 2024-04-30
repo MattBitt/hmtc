@@ -119,7 +119,7 @@ def read_json_file(filename):
         logger.error(f"File {filename} does not exist")
 
 
-def determine_file_type(file):
+def determine_file_object_association(file):
     file = Path(file)
     if file.name == "series_info.txt":
         return "series", {"dummy": "data"}
@@ -129,18 +129,30 @@ def determine_file_type(file):
             p_id = file.stem[:34]
             return "playlist", data
 
+        if "formats" in data:
+            return "video", data
+
         if "uploader" in data and "channel" in data:
             return "channel", data
 
         if "formats" in data:
-            return "video", data
+            idstring = get_youtube_id(file)
+            if idstring:
+                if idstring not in file.stem:
+                    logger.error(f"Youtube id not in filename {file} {idstring}")
+            return "video", {"id": idstring}
+
     else:
+
+        if file.stem[:2] == "PL" and len(file.stem) > 33:
+            p_id = file.stem[:34]
+            return "playlist", {"id": p_id}
+
         idstring = get_youtube_id(file)
         if idstring:
             if idstring not in file.stem:
                 logger.error(f"Youtube id not in filename {file} {idstring}")
             return "video", {"id": idstring}
-
         else:
             logger.debug(f"Unknown file type {file}")
             return "who knows", {"theshadow": "knows"}

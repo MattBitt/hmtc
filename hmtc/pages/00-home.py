@@ -15,5 +15,5 @@ config = init_config()
 
 @solara.component
 def Page():
-    MyAppBar(env=config.get("GENERAL", "ENVIRONMENT"))
+    MyAppBar(env=config.get("GENERAL", "RUNNING_MODE"))
     solara.Markdown("Home!")
