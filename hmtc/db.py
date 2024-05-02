@@ -26,7 +26,6 @@ from hmtc.models import (
     TrackFile,
     Channel,
     PlaylistFile,
-    db,
 )
 from hmtc.media.mymedia import PLAYLISTS, SERIES, CHANNELS
 from pathlib import Path
@@ -40,8 +39,18 @@ def create_video_sections():
             vid.create_initial_section()
 
 
-def create_tables():
+def init_db(db, config):
+    db.init(
+        database=config.get("DATABASE", "NAME"),
+        user=config.get("DATABASE", "USER"),
+        password=config.get("DATABASE", "PASSWORD"),
+        host=config.get("DATABASE", "HOST"),
+        port=config.get("DATABASE", "PORT"),
+    )
+    return db
 
+
+def create_tables(db):
     db.create_tables(
         [
             Playlist,
@@ -71,7 +80,38 @@ def create_tables():
             PlaylistFile,
         ]
     )
-    return db
+
+
+def drop_tables(db):
+    db.drop_tables(
+        [
+            Playlist,
+            ChannelFile,
+            Video,
+            Series,
+            Album,
+            Track,
+            EpisodeNumberTemplate,
+            File,
+            Beat,
+            BeatArtist,
+            TrackBeat,
+            Artist,
+            Section,
+            User,
+            UserInfo,
+            Post,
+            PlaylistVideo,
+            PlaylistAlbum,
+            VideoFile,
+            ArtistFile,
+            SeriesFile,
+            AlbumFile,
+            TrackFile,
+            Channel,
+            PlaylistFile,
+        ]
+    )
 
 
 def get_playlist(playlist: dict):

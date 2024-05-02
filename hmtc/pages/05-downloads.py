@@ -289,43 +289,60 @@ def Page():
         # )
         # solara.Markdown(f"{len(playlist_ids)} Playlists that have files in folder")
     MyAppBar(env)
+
+    channel_files = []
+    playlist_files = []
+    video_files = []
+    bad_videos = [] # problem with youtube id in name
+    for f in files.value:
+        ftype, data = determine_file_object_association(f)
+        if not ftype or not data:
+            UnknownFilesCard(f, data)
+        else:
+            match ftype:
+                case "playlist":
+                    if "dummy" in data:
+                        playlist_files.append({"file":f,"data": {"id": f.stem[:34]}})
+                    else:
+                        playlist_files.append({"file":f,"data": data})
+                case "channel":
+                    channel_files.append({"file":f,"data": data})
+                case "video":
+                    video_files.append({"file":f,"data": data})
+                case "series":
+                    SeriesFileCard(f)
+                case "bad video":
+                    bad_videos.append({"file":f,"data": data})
+                case _:
+                    logger.debug(f"Unknown file type: {f}")
+                    logger.debug(f"ftype: {ftype}")
+
+                    logger.debug(f"Data: {data}")
+    with solara.Card():
+        solara.Markdown(f"Totals")
+        solara.Markdown(f"Channels: {len(channel_files)}")
+        solara.Markdown(f"Playlists: {len(playlist_files)}")
+        solara.Markdown(f"Videos: {len(video_files)}")
+        solara.Markdown(f"Bad Videos: {len(bad_videos)}")
+
     with solara.ColumnsResponsive(4):
-        channel_files = []
-        playlist_files = []
-        video_files = []
-        
-        for f in files.value:
-            ftype, data = determine_file_object_association(f)
-            if not ftype or not data:
-                UnknownFilesCard(f, data)
-            else:
-                match ftype:
-                    case "playlist":
-                        if "dummy" in data:
-                            playlist_files.append({"file":f,"data": {"id": f.stem[:34]}})
-                        else:
-                            playlist_files.append({"file":f,"data": data})
-                    case "channel":
-                        channel_files.append({"file":f,"data": data})
-                    case "video":
-                        video_files.append({"file":f,"data": data})
-                    case "series":
-                        SeriesFileCard(f)
-                    case _:
-                        logger.debug(f"Unknown file type: {f}")
-                        logger.debug(f"ftype: {ftype}")
-                        logger.debug(f"Data: {data}")
-        for channel in channel_files:
+        for bad_video in bad_videos[:10]:
+            with solara.Card():
+                solara.Markdown("Bad Video")
+                UnknownFilesCard(bad_video['file'], bad_video['data'])
+
+
+        for channel in channel_files[:10]:
             with solara.Card():
                 solara.Markdown("Channel with Files to Import")
                 ChannelCard(channel['file'], channel['data'])
         
-        for playlist in playlist_files:
+        for playlist in playlist_files[:10]:
             with solara.Card():
                 solara.Markdown("Playlist with Files to Import")
                 PlaylistFilesCard(playlist['file'], playlist['data'])
 
-        for video in video_files:
+        for video in video_files[:10]:
             with solara.Card():
                 solara.Markdown("Video with Files to Import")
                 VideoFilesCard(video['file'], video['data'])

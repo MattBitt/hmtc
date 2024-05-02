@@ -1,11 +1,4 @@
-setuptools==69.2.0
-wheel==0.43.0
-flask==3.0.3
-solara
-loguru
-peewee
-yt-dlp
-psycopg2-binary
-pandas
-simple-websocket
-flask-socketio
+iniconfig==2.0.0
+packaging==24.0
+pluggy==1.5.0
+pytest==8.2.0

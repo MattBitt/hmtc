@@ -4,16 +4,15 @@ from pathlib import Path
 import shutil
 from hmtc.config import init_config
 from hmtc.utils.my_logging import setup_logging
-from hmtc.db import (
-    create_tables,
-)
+from hmtc.db import init_db
+from hmtc.models import db_null
 
 
 def setup():
     config = init_config()
     setup_logging(config)
-    db = create_tables()
-    return db, config
+    db_instance = init_db(db_null, config)
+    return db_instance, config
 
 
 logger.debug("very beginning")

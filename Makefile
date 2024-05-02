@@ -9,3 +9,6 @@ docker_build:
 
 docker_push:
 	docker push mattsbitt/hmtc:latest
+
+docker_save:
+	docker image save -o hmtc-latest.tar mattsbitt/hmtc:latest

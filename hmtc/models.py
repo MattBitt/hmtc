@@ -19,29 +19,17 @@ from hmtc.utils.youtube_functions import (
     download_video_info_from_id,
     download_media_files,
 )
+from loguru import logger
+
 from hmtc.utils.general import my_move_file
 from hmtc.utils.image import convert_webp_to_png
-from loguru import logger
+
 from pathlib import Path
 import re
 
-from hmtc.config import init_config
 
-
-def connect_to_db(config):
-    db_name = config.get("DATABASE", "NAME")
-    user = config.get("DATABASE", "USER")
-    password = config.get("DATABASE", "PASSWORD")
-    host = config.get("DATABASE", "HOST")
-    port = config.get("DATABASE", "PORT")
-    return PostgresqlDatabase(
-        db_name, user=user, password=password, host=host, port=port
-    )
-
-
-config = init_config()
-db = connect_to_db(config)
-db.connect()
+db_null = PostgresqlDatabase(None)
+from hmtc.models import db_null
 
 
 def get_file_type(file):
@@ -95,7 +83,7 @@ class BaseModel(Model):
     id = AutoField(primary_key=True)
 
     class Meta:
-        database = db
+        database = db_null
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -139,6 +127,9 @@ class Series(BaseModel):
         return self.videos.count()
 
     def add_file(self, file, file_type=None):
+        from hmtc.config import init_config
+
+        config = init_config()
         new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
 
         new_file = my_move_file(file, new_path)
@@ -224,6 +215,9 @@ class Channel(BaseModel):
         logger.debug(f"Finished updating channel {self.name}")
 
     def add_file(self, file, file_type=None):
+        from hmtc.config import init_config
+
+        config = init_config()
         new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
 
         new_file = my_move_file(file, new_path)
@@ -294,6 +288,12 @@ class Playlist(BaseModel):
     def download_playlist_info(
         cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
     ):
+        from hmtc.config import init_config
+
+        def download_playlist_info_from_id(*args, **kwargs):
+            return None
+
+        config = init_config()
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
         media_path = config.get("MEDIA", "PLAYLIST_PATH")
 
@@ -312,6 +312,9 @@ class Playlist(BaseModel):
             return playlist_info, files
 
     def check_for_new_videos(self):
+        from hmtc.config import init_config
+
+        config = init_config()
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
 
         # download list of videos from youtube
@@ -336,6 +339,9 @@ class Playlist(BaseModel):
         logger.success(f"Finished updating playlist {self.name}")
 
     def add_file(self, file, file_type=None):
+        from hmtc.config import init_config
+
+        config = init_config()
         new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
 
         new_file = my_move_file(file, new_path)
@@ -429,6 +435,9 @@ class Video(BaseModel):
     def download_video_info(
         cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
     ):
+        from hmtc.config import init_config
+
+        config = init_config()
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
         media_path = config.get("MEDIA", "VIDEO_PATH")
 
@@ -474,7 +483,6 @@ class Video(BaseModel):
 
     def add_file(self, file, file_type=None):
 
-        # new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
         new_path = Path(self.file_path) / (file.name)
         new_file = my_move_file(file, new_path)
         if new_file == "":
@@ -501,6 +509,9 @@ class Video(BaseModel):
         return f
 
     def download_missing_files(self):
+        from hmtc.config import init_config
+
+        config = init_config()
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
         media_path = config.get("MEDIA", "VIDEO_PATH")
 
@@ -553,6 +564,9 @@ class Video(BaseModel):
         #     logger.debug(f"No need to update video {self.title}")
 
     def download_video(self):
+        from hmtc.config import init_config
+
+        config = init_config()
         download_path = config.get("GENERAL", "DOWNLOAD_PATH")
         if self.has_video:
             logger.debug(

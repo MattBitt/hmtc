@@ -74,14 +74,27 @@ def my_move_file(source, target):
 
 
 def get_youtube_id(filename):
-    pattern = r"^.*___([a-zA-Z0-9_.-]{11}).*"
+
     f = Path(filename)
+    pattern = r"^.*___([a-zA-Z0-9_.-]{11}).*"
+
     try:
         match = re.match(pattern, f.stem).group(1)
+        if match[-1] == ".":
+            return match[:-1]
+
         return match
+
     except AttributeError:
-        logger.error(f"Could not find youtube id in {f}")
-        return None
+        # logger.error(f"No valid youtube id found in {f}. Checking for bad video id")
+        pattern = r"^.*___([a-zA-Z0-9_.-]{10}).*"
+        try:
+            match = re.match(pattern, f.stem).group(1)
+            return match
+        except AttributeError:
+            logger.error(f"No invalid youtube id found in {f}")
+
+    return None
 
 
 def is_disk_full(path):
@@ -130,17 +143,16 @@ def determine_file_object_association(file):
             return "playlist", data
 
         if "formats" in data:
-            return "video", data
+            idstring = get_youtube_id(file)
+            if len(idstring) == 10:
+                return "bad video", {"id": idstring}
+
+            if idstring not in file.stem:
+                logger.error(f"Youtube id not in filename {file} {idstring}")
+            return "video", {"id": idstring}
 
         if "uploader" in data and "channel" in data:
             return "channel", data
-
-        if "formats" in data:
-            idstring = get_youtube_id(file)
-            if idstring:
-                if idstring not in file.stem:
-                    logger.error(f"Youtube id not in filename {file} {idstring}")
-            return "video", {"id": idstring}
 
     else:
 
@@ -149,10 +161,15 @@ def determine_file_object_association(file):
             return "playlist", {"id": p_id}
 
         idstring = get_youtube_id(file)
-        if idstring:
+        if not idstring:
+            return "unknown", {"dummy": "data"}
+        if len(idstring) == 11:
             if idstring not in file.stem:
                 logger.error(f"Youtube id not in filename {file} {idstring}")
             return "video", {"id": idstring}
+        elif len(idstring) == 10:
+            return "bad video", {"id": idstring}
+
         else:
             logger.debug(f"Unknown file type {file}")
             return "who knows", {"theshadow": "knows"}

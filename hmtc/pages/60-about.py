@@ -11,7 +11,7 @@ from hmtc.pages import config
 # this ensures that whatever is running
 # is the same as the rest of the code
 # (instead of storing it in a separate file)
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 
 env = config.get("GENERAL", "RUNNING_MODE")
 

@@ -34,7 +34,7 @@ class env(Enum):
 class ConfigWrapper:
     @classmethod
     def create_instance(self) -> configparser.ConfigParser:
-        current_env = os.environ.get("ENVIRONMENT", None)
+        current_env = os.environ.get("ENVIRONMENT", env.TESTING)
 
         config_parser = configparser.ConfigParser(
             os.environ, interpolation=configparser.ExtendedInterpolation()
