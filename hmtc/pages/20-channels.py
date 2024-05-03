@@ -1,6 +1,6 @@
 import solara
 import solara.lab
-from hmtc.models import Channel, Channel, Video, Series
+from hmtc.models import Channel, Channel, Video, Series, File, ChannelFile
 from loguru import logger
 from solara.lab import task
 import solara
@@ -13,6 +13,11 @@ from solara.lab import task
 from hmtc.utils.general import time_since_update
 import time
 from hmtc.pages import config
+from hmtc.components.file_drop_card import FileDropCard, FileInfo
+from typing import List, Optional, Callable, BinaryIO, TypedDict
+import textwrap
+from pathlib import Path
+
 
 all_channels = [c.name for c in Channel.select()]
 if all_channels == []:
@@ -22,6 +27,9 @@ name = solara.reactive("")
 url = solara.reactive("http://www.youtube.com")
 enabled = solara.reactive(True)
 last_update_completed = solara.reactive(None)
+
+
+UPLOAD_PATH = Path(config.get("GENERAL", "UPLOAD_PATH"))
 
 
 def update_channels():
@@ -57,7 +65,11 @@ def add_new_channel():
         channel = Channel.create(
             name="New Channel",
             url="http://www.youtube.com",
+            youtube_id="adsuoibgvpfrjdlk;af",
+            enabled=True,
+            last_update_completed=None,
         )
+
         logger.debug(f"Created new channel: {channel.name}")
     except peewee.IntegrityError:
         logger.debug("Channel already exists")
@@ -72,12 +84,33 @@ def save_channel(channel):
     logger.success(f"Added new channel {channel.name}")
 
 
-def ChannelDetail(channel_id):
+def write_to_disk(file: FileInfo):
+    target = Path(config.get("MEDIA", "VIDEO_PATH"))
+    with open(UPLOAD_PATH / file["name"], "wb") as src_file:
+        src_file.write(file["data"])
+    return target, file["name"]
+
+
+def ChannelDetail(channel_id, uploaded_new_file):
+    filename = solara.use_reactive("")
+    size, set_size = solara.use_state(0)
+
     channel = Channel.select().where(Channel.id == channel_id).get()
     name.set(channel.name)
     url.set(channel.url)
     enabled.set(channel.enabled)
     last_update_completed.set(channel.last_update_completed)
+
+    def import_file(file: FileInfo):
+        path, filename = write_to_disk(file)
+
+        try:
+            f = channel.add_file(path, filename)
+        except Exception as e:
+            logger.error(e)
+            return None
+
+        return f
 
     def update_channel():
         save_channel(channel)
@@ -86,6 +119,11 @@ def ChannelDetail(channel_id):
     with solara.Card():
         solara.InputText(label="Name", value=name, continuous_update=False)
         solara.InputText(label="URL", value=url, continuous_update=False)
+        if channel and channel.poster:
+            solara.Markdown(f"Poster: {channel.poster.filename}")
+            solara.Image(image=channel.poster.filename, width="200px")
+
+        FileDropCard(on_file=import_file)
         solara.Checkbox(label="Enabled", value=enabled)
 
         with solara.CardActions():
@@ -105,7 +143,6 @@ def ChannelCard(channel):
 
     @task
     def update():
-
         logger.debug(f"Updating channel {channel.name}")
         updating.set(True)
         channel.check_for_new_videos()
@@ -113,18 +150,16 @@ def ChannelCard(channel):
         logger.success(f"Updated database from Channel {channel.name}")
 
     with solara.Column():
-
         with solara.Card():
             if updating.value is False:
                 solara.Markdown(channel.name)
-
                 solara.Markdown(f"URL: {channel.url}")
                 solara.Markdown(f"Last Updated: {time_since_update(channel)}")
                 solara.Markdown(f"Enabled: {channel.enabled}")
                 with solara.CardActions():
                     with solara.Link(f"/channels/{channel.id}"):
                         solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
-                    solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
+                    solara.Button("Delete", on_click=lambda: channel.delete_instance())
                     solara.Button(label="Check for new Videos", on_click=update)
                     solara.Button(
                         label="Check for new Playlists", on_click=update_playlists
@@ -135,8 +170,8 @@ def ChannelCard(channel):
             solara.Markdown(f"**{channel.videos.count()}** Videos on Channel")
 
             with solara.Column():
-                for cf in channel.files:
-                    solara.Markdown(f"{cf.file.filename}")
+                for f in channel.files:
+                    solara.Markdown(f"{f.filename}")
 
     # with solara.Card():
     #     if updating.value is False:
@@ -165,6 +200,10 @@ def Page():
     router = solara.use_router()
     level = solara.use_route_level()
     # selected_series = solara.use_reactive(Series.select())
+    uploaded_new_file = solara.use_reactive(False)
+
+    if uploaded_new_file.value:
+        solara.Info("File uploaded successfully")
 
     if router.parts[-1] == "channels":
         solara.Markdown("## Channels")
@@ -178,10 +217,11 @@ def Page():
             12,
             large=6,
         ):
-            for channel in Channel.select().distinct():
+            for channel in Channel.active():
                 ChannelCard(channel)
 
     else:
 
         channel_id = router.parts[level:][0]
-        ChannelDetail(channel_id)
+        with solara.ColumnsResponsive(12, large=6):
+            ChannelDetail(channel_id, uploaded_new_file=uploaded_new_file)

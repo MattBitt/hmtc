@@ -114,6 +114,10 @@ def drop_tables(db):
     )
 
 
+def is_db_empty(db):
+    return len(db.get_tables()) == 0
+
+
 def get_playlist(playlist: dict):
     try:
         return Playlist.get(Playlist.name == playlist["name"])

@@ -1,5 +1,7 @@
 all: run
 
+db:
+	docker-compose up -d
 create_db:
 	python hmtc/db.py
 

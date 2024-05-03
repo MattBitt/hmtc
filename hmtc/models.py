@@ -23,26 +23,32 @@ from loguru import logger
 
 from hmtc.utils.general import my_move_file
 from hmtc.utils.image import convert_webp_to_png
-
+from hmtc.components.file_drop_card import FileInfo
 from pathlib import Path
 import re
 
+from hmtc.config import init_config
 
 db_null = PostgresqlDatabase(None)
 from hmtc.models import db_null
 
+config = init_config()
+
 
 def get_file_type(file):
     try:
-        f = Path(file.local_path) / file.filename
+        f = Path(file.path) / file.filename
+        ext = "." + ".".join(f.suffixes)
     except AttributeError:
         f = file
-    ext = f.suffix
+        # take all of the extensions off and recombine them into a string
+        ext = "." + ".".join(file.split(".")[1:])
+
     if ext in [".mkv", ".mp4", ".webm"]:
         filetype = "video"
     elif ext in [".mp3", ".wav"]:
         filetype = "audio"
-    elif ext in [".srt", ".vtt"]:
+    elif ext in [".srt", ".en.vtt"]:
         filetype = "subtitle"
     elif ext in [".nfo", ".info.json", ".json"]:
         filetype = "info"
@@ -51,7 +57,7 @@ def get_file_type(file):
     elif ext == ".webp":
         raise ValueError("Webp files should be converted to png")
     else:
-        raise ValueError(f"Unknown file type: {f}")
+        raise ValueError(f"Unknown file type: extension is {ext}")
     return filetype
 
 
@@ -82,34 +88,42 @@ class BaseModel(Model):
     deleted_at = DateTimeField(null=True)
     id = AutoField(primary_key=True)
 
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.now()
+        return super(BaseModel, self).save(*args, **kwargs)
+
+    def delete_instance(self, *args, **kwargs):
+        self.deleted_at = datetime.now()
+        self.save()
+        return None
+
+    @classmethod
+    def active(cls):
+        return cls.select().where(cls.deleted_at.is_null()).distinct()
+
     class Meta:
         database = db_null
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class File(BaseModel):
-    local_path = CharField()
+    path = CharField(null=True)
+
     filename = CharField(unique=True)
-    extension = CharField()
+    extension = CharField(null=True)
+    file_type = CharField(null=True)
+    WORKING_PATH = config.get("GENERAL", "UPLOAD_PATH")
 
-    def move_to(self, source, target):
-
+    def move_to(self, target):
+        source = Path(self.path) / self.filename
         new_path = Path(target) / self.filename
         source.rename(new_path)
-        self.local_path = new_path
+        self.path = new_path
         self.save()
         return self
 
-    @classmethod
-    def add_to_db(cls, file):
-        existing = cls.get_or_none(File.filename == file.name)
-        if not existing:
-            f = File.create(
-                local_path=file.parent, filename=file.name, extension=file.suffix
-            )
-            return f
-        else:
-            return existing
+    class Meta:
+        indexes = ((("path", "filename"), True),)
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -117,6 +131,14 @@ class Series(BaseModel):
     name = CharField(unique=True)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
+
+    # @classmethod
+    # def get_or_create(cls, name, start_date=None, end_date=None):
+    #     existing = cls.get_or_none(cls.name == name)
+    #     if existing:
+    #         return existing
+    #     else:
+    #         return cls.create(name=name, start_date=start_date, end_date=end_date)
 
     @property
     def enabled_videos(self):
@@ -139,7 +161,7 @@ class Series(BaseModel):
 
         existing = File.select().where(
             (File.filename == new_file.name)
-            & (File.local_path == new_file.parent)
+            & (File.path == new_file.parent)
             & (new_file.suffix == File.extension)
         )
         if existing:
@@ -149,7 +171,7 @@ class Series(BaseModel):
             file_type = get_file_type(new_file)
 
         f = File.create(
-            local_path=new_file.parent,
+            path=new_file.parent,
             filename=new_file.name,
             extension=new_file.suffix,
         )
@@ -165,6 +187,11 @@ class Album(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Channel(BaseModel):
+    from hmtc.config import init_config
+
+    config = init_config()
+    MEDIA_PATH = Path(config.get("MEDIA", "VIDEO_PATH"))
+
     name = CharField(unique=True)
     url = CharField(unique=True)
     youtube_id = CharField(unique=True)
@@ -202,6 +229,19 @@ class Channel(BaseModel):
         self.save()
         logger.debug(f"Finished updating channel {self.name}")
 
+    def add_file(self, path, filename):
+        new_name = path / filename
+        file_type = get_file_type(new_name)
+
+        f, created = ChannelFile.get_or_create(
+            path=path, filename=new_name, file_type=file_type, channel=self
+        )
+
+        if created:
+            logger.debug(f"Created new file: {f.filename}")
+        else:
+            logger.debug(f"File already exists: {f.filename}")
+
     def check_for_new_playlists(self):
         ids = fetch_ids_from(self.url + "/playlists")
         for youtube_id in ids:
@@ -214,38 +254,17 @@ class Channel(BaseModel):
         self.save()
         logger.debug(f"Finished updating channel {self.name}")
 
-    def add_file(self, file, file_type=None):
-        from hmtc.config import init_config
-
-        config = init_config()
-        new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
-
-        new_file = my_move_file(file, new_path)
-        if new_file == "":
-            logger.error(f"Error moving file {file} to {new_path}")
-            return
-
-        existing = File.select().where(
-            (File.filename == new_file.name)
-            & (File.local_path == new_file.parent)
-            & (new_file.suffix == File.extension)
-        )
-        if existing:
-            return existing
-
-        if file_type is None:
-            file_type = get_file_type(new_file)
-
-        f = File.create(
-            local_path=new_file.parent,
-            filename=new_file.name,
-            extension=new_file.suffix,
-        )
-        ChannelFile.create(file=f, channel=self, file_type=file_type)
-
     @property
     def num_videos(self):
         return self.videos.count()
+
+    @property
+    def poster(self):
+        logger.debug(f"Getting poster for channel {self.name}")
+        p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
+        if p:
+            return p
+        return []
 
 
 # ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -256,6 +275,10 @@ class Channel(BaseModel):
 #     # they don't appear on a playlist
 #     youtube_id = CharField(unique=True)
 #     channel = ForeignKeyField(Channel, backref="channel_vids", null=True)
+
+
+class ChannelFile(File):
+    channel = ForeignKeyField(Channel, backref="files")
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -361,7 +384,7 @@ class Playlist(BaseModel):
             file_type = get_file_type(new_file)
 
         f = File.create(
-            local_path=new_file.parent,
+            path=new_file.parent,
             filename=new_file.name,
             extension=new_file.suffix,
         )
@@ -387,8 +410,8 @@ class Video(BaseModel):
     file_path = CharField()  # should be a relative path
     enabled = BooleanField(default=True)
     private = BooleanField(default=False)
-    error = BooleanField(default=False)
-    error_info = CharField(null=True)
+    #    error = BooleanField(default=False)
+    #    error_info = CharField(null=True)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
 
@@ -412,7 +435,7 @@ class Video(BaseModel):
             logger.error(f"Error downloading video info for {youtube_id}")
             return None
 
-        vid = cls.create(**info, series=series)
+        vid = cls.create(**info, series=series, channel=channel, enabled=enabled)
         if vid and channel:
             vid.channel = channel
         if enabled is not None:
@@ -491,7 +514,7 @@ class Video(BaseModel):
 
         existing = File.select().where(
             (File.filename == new_file.name)
-            & (File.local_path == new_file.parent)
+            & (File.path == new_file.parent)
             & (new_file.suffix == File.extension)
         )
         if existing:
@@ -501,7 +524,7 @@ class Video(BaseModel):
             file_type = get_file_type(new_file)
 
         f = File.create(
-            local_path=new_file.parent,
+            path=new_file.parent,
             filename=new_file.name,
             extension=new_file.suffix,
         )
@@ -588,7 +611,7 @@ class Video(BaseModel):
             .join(File)
             .where((VideoFile.video_id == self.id) & (VideoFile.file_type == "video"))
         ).get()
-        path = Path(video_file.file.local_path)
+        path = Path(video_file.file.path)
         vf = path / video_file.file.filename
         af = path / f"{self.upload_date_str}___{self.youtube_id}.mp3"
 
@@ -845,11 +868,11 @@ class AlbumFile(BaseModel):
         )
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class ChannelFile(BaseModel):
-    file = ForeignKeyField(File, backref="channels")
-    channel = ForeignKeyField(Channel, backref="files")
-    file_type = CharField(null=True)  # should probably be an enum
+# ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# class ChannelFile(BaseModel):
+#     file = ForeignKeyField(File, backref="channels")
+#     channel = ForeignKeyField(Channel, backref="files")
+#     file_type = CharField(null=True)  # should probably be an enum
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

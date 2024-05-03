@@ -27,7 +27,7 @@ class env(Enum):
             raise ValueError()
 
     @staticmethod
-    def config_file_name(s):
+    def config_filename(s):
         return f"settings.{s}.ini"
 
 
