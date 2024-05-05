@@ -1,5 +1,5 @@
-from dash import Dash, dcc, html, Input, Output, State, callback
 import dash_player
+from dash import Dash, Input, Output, State, callback, dcc, html
 
 app = Dash(__name__)
 

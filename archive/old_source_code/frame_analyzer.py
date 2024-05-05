@@ -1,6 +1,5 @@
-from topic import Topic
-
 import cv2
+from topic import Topic
 
 
 class FrameAnalyzer:

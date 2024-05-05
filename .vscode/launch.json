@@ -18,17 +18,25 @@
             "justMyCode": true,
             "env": {
                 "BROWSER": "echo",
-                "ENVIRONMENT": "development",
+                "HMTC_ENV": "development",
+                "HMTC_CONFIG_PATH": "${workspaceFolder}/hmtc/config",
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
             }
         },
         {
-            "name": "Python Debugger: Current File with Arguments",
+            "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": "${command:pickArgs}"
+            "env": {
+                // "ENVIRONMENT": "development",
+                "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
+            },
+            "args": [
+                "--env",
+                "development"
+            ]
         }
     ]
 }

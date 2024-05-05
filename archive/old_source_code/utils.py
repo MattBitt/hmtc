@@ -1,8 +1,9 @@
 import shutil
 from pathlib import Path
-from my_logging import logger
-import yaml
+
 import cv2
+import yaml
+from my_logging import logger
 
 
 def move_file(original_file_path, new_file_path):

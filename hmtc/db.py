@@ -1,36 +1,40 @@
+import json
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
+
 from loguru import logger
-from hmtc.config import init_config
+
 from hmtc.models import (
-    Playlist,
-    Video,
-    ChannelFile,
-    Series,
     Album,
-    Track,
-    EpisodeNumberTemplate,
-    File,
+    AlbumFile,
     Artist,
+    ArtistFile,
     Beat,
     BeatArtist,
-    TrackBeat,
+    Channel,
+    ChannelFile,
+    EpisodeNumberTemplate,
+    File,
+    Playlist,
+    PlaylistAlbum,
+    PlaylistFile,
+    PlaylistVideo,
+    Post,
     Section,
+    Series,
+    SeriesFile,
+    Track,
+    TrackBeat,
+    TrackFile,
     User,
     UserInfo,
-    Post,
-    PlaylistVideo,
-    PlaylistAlbum,
+    Video,
     VideoFile,
-    ArtistFile,
-    SeriesFile,
-    AlbumFile,
-    TrackFile,
-    Channel,
-    PlaylistFile,
 )
-from hmtc.media.mymedia import PLAYLISTS, SERIES, CHANNELS
-from pathlib import Path
-from hmtc.utils.general import get_youtube_id, csv_to_dict
-from datetime import timedelta, datetime
+from hmtc.utils.general import csv_to_dict, get_youtube_id
+
+MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 
 
 def create_video_sections():
@@ -41,13 +45,44 @@ def create_video_sections():
 
 def init_db(db, config):
     db.init(
-        database=config.get("DATABASE", "NAME"),
-        user=config.get("DATABASE", "USER"),
-        password=config.get("DATABASE", "PASSWORD"),
-        host=config.get("DATABASE", "HOST"),
-        port=config.get("DATABASE", "PORT"),
+        database=config["database"]["name"],
+        user=config["database"]["user"],
+        password=config["database"]["password"],
+        host=config["database"]["host"],
+        port=config["database"]["port"],
     )
     return db
+
+
+def import_series():
+    with open(MEDIA_INFO / "series.txt", "r") as f:
+        series = f.readlines()
+        for s in series:
+            Series.create(name=s.strip())
+
+
+def import_playlists():
+    playlists = MEDIA_INFO / "playlists"
+    for p in playlists.glob("*info.json"):
+        with open(p, "r") as f:
+            playlist = json.load(f)
+            Playlist.create(
+                title=playlist["title"],
+                youtube_id=playlist["id"],
+                url=playlist["webpage_url"],
+            )
+
+
+def import_channels():
+    channels = MEDIA_INFO / "channels"
+    for c in channels.glob("*info.json"):
+        with open(c, "r") as f:
+            channel = json.load(f)
+            Channel.create(
+                name=channel["channel"],
+                youtube_id=channel["channel_id"],
+                url=channel["webpage_url"],
+            )
 
 
 def create_tables(db):
@@ -80,6 +115,15 @@ def create_tables(db):
             PlaylistFile,
         ]
     )
+    s = Series.get_or_none()
+    if not s:
+        import_series()
+    p = Playlist.get_or_none()
+    if not p:
+        import_playlists()
+    c = Channel.get_or_none()
+    if not c:
+        import_channels()
 
 
 def drop_tables(db):
@@ -120,7 +164,7 @@ def is_db_empty(db):
 
 def get_playlist(playlist: dict):
     try:
-        return Playlist.get(Playlist.name == playlist["name"])
+        return Playlist.get(Playlist.title == playlist["name"])
     except Playlist.DoesNotExist:
         logger.info(f"Playlist {playlist['name']} not found in db")
         return None
@@ -131,7 +175,7 @@ def get_playlist(playlist: dict):
 
 def get_list_yt_playlists():
     playlists = []
-    for p in Playlist.select().where(Playlist.enabled == True).order_by(Playlist.name):
+    for p in Playlist.select().where(Playlist.enabled == True).order_by(Playlist.title):
         playlists.append(p.name)
     return playlists
 
@@ -152,56 +196,6 @@ def get_series(series: str):
     except Exception as e:
         logger.error(f"Error getting series from db: {e}")
         return None
-
-
-def seed_database():
-    # imports all manually entered data to get a new database up an running
-    # be aware that this won't save any of the downloaded data
-    # return
-    for channel_info in CHANNELS:
-        channel = Channel().get_or_none(Channel.name == channel_info["name"])
-        if not channel:
-            Channel.create(**channel_info)
-
-    for series_info in SERIES:
-        series = Series().get_or_none(Series.name == series_info["name"])
-        if not series:
-            Series.create(**series_info)
-
-    for playlist_info in PLAYLISTS:
-        # in order to add a playlist to the db it should adhere to the following
-        # url not in db
-        # needs to be associated with:
-        # a series (always)
-        # an album (if album_per_episode is false)
-        series = Series.get_or_none(Series.name == playlist_info.pop("series_name"))
-
-        if not series:
-            logger.error(
-                f"Series ({playlist_info['series_name']} for playlist {playlist_info['name']}) not found. Skipping Playlist"
-            )
-            continue
-
-        channel = Channel.get_or_none(Channel.name == playlist_info.pop("channel_name"))
-        if not channel:
-            logger.error(
-                f"Channel ({playlist_info['channel_name']} for playlist {playlist_info['name']}) not found. Skipping Playlist"
-            )
-            continue
-
-        if not Playlist.get_or_none(Playlist.url == playlist_info["url"]):
-
-            # remove the template strings in order to save them in
-            # their own table in the db
-            templates = playlist_info.pop("episode_number_templates")
-
-            playlist = Playlist.create(**playlist_info)
-            playlist.series = series
-            playlist.channel = channel
-            playlist.save()
-
-            for template in templates:
-                EpisodeNumberTemplate.create(template=template, playlist=playlist)
 
 
 def import_existing_video_files_to_db(path):
@@ -311,33 +305,6 @@ def update_playlists(config):
     logger.debug("Updating playlists")
     playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
     download_path = config.get("GENERAL", "DOWNLOAD_PATH")
-    media_path = config.get("MEDIA", "VIDEO_PATH")
+    media_path = config.get("PATHS", "MEDIA")
     for p in playlists:
         update_playlist(p, download_path, media_path)
-
-
-def seed_empty_database(config):
-    logger.debug("Seeding Database")
-    seed_database()
-
-    # logger.debug("Creating initial sections in each video")
-    # create_video_sections()
-
-    # logger.debug("Creating sections from track data")
-    # track_csv = config.get("IMPORT", "TRACK_INFO")
-    # import_existing_tracks(track_csv)  # turns the 'track' info into sections
-
-    # video_path = config.get("MEDIA", "VIDEO_PATH")
-    # import_existing_video_files_to_db(video_path)
-
-
-if __name__ == "__main__":
-    # this creates a db from scratch
-    # only to be used for fresh data instance
-    config = init_config()
-
-    create_tables()
-
-    # seed_empty_database(config)
-    # print("updating playlist")
-    # update_playlists(config)

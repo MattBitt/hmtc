@@ -1,11 +1,10 @@
+from pathlib import Path
+
 import solara
-from hmtc.models import Series, Video, Playlist, PlaylistVideo
+
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
-from pathlib import Path
-from hmtc.config import init_config
-
-from hmtc.pages import config
+from hmtc.models import Playlist, Series, Video
 
 all_languages = "Python C++ Java JavaScript TypeScript BASIC".split()
 languages = solara.reactive([all_languages[0]])
@@ -14,7 +13,7 @@ all_series = [s.name for s in Series.select()]
 selected_series = solara.reactive(all_series)
 
 
-all_playlists = [p.name for p in Playlist.select()]
+all_playlists = [p.title for p in Playlist.select()]
 selected_playlist = solara.reactive(all_playlists)
 
 title_query = solara.reactive("")
@@ -134,7 +133,7 @@ def get_sort_method():
 def VideoDetail(video, router):
     with solara.Card(video.title):
         solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
-        path = config.get("MEDIA", "VIDEO_PATH")
+        path = config.get("PATHS", "MEDIA")
         if video.poster:
             solara.Image(f"{Path(path) / video.poster}", width="200px")
         with solara.Column():

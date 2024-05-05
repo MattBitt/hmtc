@@ -1,13 +1,13 @@
-import os
 import csv
+import os
 
-from configs import cnf
-from my_logging import logger
 import crud
 import models
 import schemas
-from db import db_session, Base, engine
+from configs import cnf
+from db import Base, db_session, engine
 from getkey import getkey, keys
+from my_logging import logger
 
 
 def import_tracks_from_csv():

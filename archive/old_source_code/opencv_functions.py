@@ -1,17 +1,18 @@
+import csv
 import time
+import timeit
+from difflib import SequenceMatcher
+from glob import glob
+from pathlib import Path
 from typing import Optional, Tuple
+
 import cv2
-import pytesseract
-from PIL import Image
 import imagehash
 import numpy as np
-from glob import glob
+import pytesseract
 from matplotlib import pyplot as plt
+from PIL import Image
 from sklearn import cluster
-from pathlib import Path
-from difflib import SequenceMatcher
-import csv
-import timeit
 
 
 def similar(a, b):

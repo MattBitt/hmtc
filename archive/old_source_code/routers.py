@@ -1,33 +1,34 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+
 import crud
 import models
 from db import get_session
+from fastapi import APIRouter, Depends, HTTPException
 from my_logging import logger
 from plex_functions import currently_playing
 from schemas import (
-    SourceSchema,
-    SourceWithRelationships,
-    TrackSchema,
-    TrackBaseSchema,
-    TrackWithRelationships,
-    AlbumSchema,
     AlbumBaseSchema,
+    AlbumSchema,
     AlbumWithRelationships,
-    WordSchema,
-    WordBaseSchema,
-    WordWithRelationships,
-    ProducerSchema,
-    ProducerBaseSchema,
-    TagSchema,
-    TagBaseSchema,
+    ArtistBaseSchema,
+    ArtistSchema,
     BeatBaseSchema,
     BeatSchema,
-    ArtistSchema,
-    ArtistBaseSchema,
+    ProducerBaseSchema,
+    ProducerSchema,
+    SourceSchema,
+    SourceWithRelationships,
+    TagBaseSchema,
+    TagSchema,
+    TrackBaseSchema,
+    TrackSchema,
+    TrackWithRelationships,
     WhatsPlayingSchema,
+    WordBaseSchema,
+    WordSchema,
+    WordWithRelationships,
 )
+from sqlalchemy.orm import Session
 
 source_router = APIRouter(prefix="/sources", tags=["Sources"])
 track_router = APIRouter(prefix="/tracks", tags=["Tracks"])

@@ -1,13 +1,15 @@
+import time
+from pathlib import Path
+
 import solara
 import solara.lab
-from pathlib import Path
-from hmtc.models import File, Video, VideoFile
-from hmtc.config import init_config
-import time
 from loguru import logger
-from hmtc.db import import_existing_video_files_to_db
 
-from hmtc.pages import config
+from hmtc.config import init_config
+from hmtc.db import import_existing_video_files_to_db
+from hmtc.models import File, Video, VideoFile
+
+config = init_config()
 
 
 def count_types(files):
@@ -116,7 +118,7 @@ def extract_missing_audio():
 def Page():
     db_files = File.select()
 
-    folder = Path(config.get("MEDIA", "VIDEO_PATH")) / "sources"
+    folder = Path(config.get("PATHS", "MEDIA")) / "sources"
     folder_files = [f for f in folder.rglob("*") if f.is_file()]
 
     def add_existing_files():

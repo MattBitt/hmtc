@@ -1,10 +1,10 @@
-import yt_dlp
-import subprocess
 import os
-from configs import cnf
-from my_logging import logger
+import subprocess
 import time
 
+import yt_dlp
+from configs import cnf
+from my_logging import logger
 
 # list of "all" yt-dlp options:
 # found at https://stackoverflow.com/questions/26495953/youtube-dl-python-library-documentation

@@ -1,0 +1,22 @@
+[app]
+name = "HMTC"
+description = "Harry Mack Track Creator"
+
+[running]
+log_level = "DEBUG"
+
+[general]
+environment="testing"
+items_per_page = 9
+clean_downloads = false
+
+[paths]
+storage = "/home/matt/dev_data/hmtc/testing/storage"
+working = "/home/matt/dev_data/hmtc/testing/working"
+
+[database]
+name = "HMTCtesting"
+host = "127.0.0.1"
+user = "postgres"
+password = "postgres"
+port = 5432

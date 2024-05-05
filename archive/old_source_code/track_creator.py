@@ -1,12 +1,12 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
-from db import Base, engine, db_session
 import crud
+import eyed3
 import models
 import schemas
+from db import Base, db_session, engine
 from my_logging import logger
-import eyed3
 from utils import convert_ms_to_hms
 
 

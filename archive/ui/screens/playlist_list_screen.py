@@ -1,10 +1,9 @@
 from textual.app import ComposeResult
-from textual.screen import Screen
-from textual.widgets import Footer, Label, Header
-from textual.widgets import Static
 from textual.containers import Container, Horizontal, VerticalScroll
+from textual.screen import Screen
+from textual.widgets import Footer, Header, Label, ListItem, ListView, Static
+
 from hmtc.db import get_list_videos
-from textual.widgets import ListItem, ListView
 
 TEXT = """\
 Docking a widget removes it from the layout and fixes its position, aligned to either the top, right, bottom, or left edges of a container.

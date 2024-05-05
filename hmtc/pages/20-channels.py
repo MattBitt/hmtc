@@ -1,23 +1,15 @@
-import solara
-import solara.lab
-from hmtc.models import Channel, Channel, Video, Series, File, ChannelFile
-from loguru import logger
-from solara.lab import task
-import solara
-import solara.lab
-import peewee
-from hmtc.models import Playlist, Series, Channel
-from datetime import datetime
-from loguru import logger
-from solara.lab import task
-from hmtc.utils.general import time_since_update
-import time
-from hmtc.pages import config
-from hmtc.components.file_drop_card import FileDropCard, FileInfo
-from typing import List, Optional, Callable, BinaryIO, TypedDict
-import textwrap
 from pathlib import Path
 
+import peewee
+import solara
+import solara.lab
+from loguru import logger
+from solara.lab import task
+
+from hmtc.components.file_drop_card import FileDropCard, FileInfo
+from hmtc.config import init_config
+from hmtc.models import Channel
+from hmtc.utils.general import time_since_update
 
 all_channels = [c.name for c in Channel.select()]
 if all_channels == []:
@@ -28,8 +20,9 @@ url = solara.reactive("http://www.youtube.com")
 enabled = solara.reactive(True)
 last_update_completed = solara.reactive(None)
 
+config = init_config()
 
-UPLOAD_PATH = Path(config.get("GENERAL", "UPLOAD_PATH"))
+UPLOAD_PATH = Path(config["paths"]["working"]) / "uploads"
 
 
 def update_channels():
@@ -85,10 +78,12 @@ def save_channel(channel):
 
 
 def write_to_disk(file: FileInfo):
-    target = Path(config.get("MEDIA", "VIDEO_PATH"))
+    logger.debug(f"Writing file to disk: {file['name']}")
+
     with open(UPLOAD_PATH / file["name"], "wb") as src_file:
         src_file.write(file["data"])
-    return target, file["name"]
+
+    return file["name"]
 
 
 def ChannelDetail(channel_id, uploaded_new_file):
@@ -102,13 +97,10 @@ def ChannelDetail(channel_id, uploaded_new_file):
     last_update_completed.set(channel.last_update_completed)
 
     def import_file(file: FileInfo):
-        path, filename = write_to_disk(file)
+        filename = write_to_disk(file)
+        logger.debug(f"Importing file {filename} to channel {channel.name}")
 
-        try:
-            f = channel.add_file(path, filename)
-        except Exception as e:
-            logger.error(e)
-            return None
+        f = channel.add_file(UPLOAD_PATH / filename)
 
         return f
 
@@ -121,7 +113,8 @@ def ChannelDetail(channel_id, uploaded_new_file):
         solara.InputText(label="URL", value=url, continuous_update=False)
         if channel and channel.poster:
             solara.Markdown(f"Poster: {channel.poster.filename}")
-            solara.Image(image=channel.poster.filename, width="200px")
+            img = Path(channel.poster.path) / channel.poster.filename
+            solara.Image(image=img, width="50%")
 
         FileDropCard(on_file=import_file)
         solara.Checkbox(label="Enabled", value=enabled)

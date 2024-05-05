@@ -1,6 +1,7 @@
 import dash
-from dash import html, dash_table
 import dash_bootstrap_components as dbc
+from dash import dash_table, html
+
 from hmtc.models import Video
 
 dash.register_page(__name__)

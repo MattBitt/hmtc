@@ -13,6 +13,8 @@ def MyAppBar(title="HMTC", env=None):
         color = "green"
     elif env == "production":
         color = "red"
+    else:
+        color = "purple"
 
     with solara.AppBarTitle():
 

@@ -1,13 +1,13 @@
-import os
 import csv
+import os
 
-from configs import cnf
-from my_logging import logger
-from utils import convert_hms_to_ms
 import crud
 import models
 import schemas
-from db import db_session, Base, engine
+from configs import cnf
+from db import Base, db_session, engine
+from my_logging import logger
+from utils import convert_hms_to_ms
 
 
 def is_track_in_db(track_title):

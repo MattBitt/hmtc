@@ -1,23 +1,22 @@
+import uvicorn
+from configs import cnf
+from db import Base, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from db import Base, engine
 from my_logging import setup_logging
-from configs import cnf
-from source_data import update_sources_in_db, download_sources, verify_files_exist
-from track_creator import create_all_tracks
 from routers import (
-    source_router,
-    track_router,
     album_router,
-    word_router,
-    producer_router,
-    tag_router,
-    beat_router,
     artist_router,
+    beat_router,
+    producer_router,
+    source_router,
+    tag_router,
+    track_router,
     whatsplaying_router,
+    word_router,
 )
-
+from source_data import download_sources, update_sources_in_db, verify_files_exist
+from track_creator import create_all_tracks
 
 app = FastAPI()
 

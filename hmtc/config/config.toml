@@ -1,0 +1,24 @@
+##### only edit this once on the server
+
+[app]
+name = "HMTC"
+description = "Harry Mack Track Creator"
+
+[running]
+log_level = "DEBUG"
+
+[general]
+environment="production"
+items_per_page = 9
+clean_downloads = false
+
+[paths]
+storage = "/home/matt/dev_data/hmtc/storage"
+working = "/home/matt/dev_data/hmtc/working"
+
+[database]
+name = "HMTCproduction"
+host = "192.168.0.202"
+user = "postgres"
+password = "postgres"
+port = 5432

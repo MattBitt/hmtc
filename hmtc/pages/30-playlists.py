@@ -1,11 +1,10 @@
+import peewee
 import solara
 import solara.lab
-import peewee
-from hmtc.models import Playlist, Series, Channel
-from datetime import datetime
 from loguru import logger
 from solara.lab import task
-from hmtc.pages import config
+
+from hmtc.models import Channel, Playlist, Series
 from hmtc.utils.general import time_since_update
 
 all_series = [s.name for s in Series.select()]
@@ -28,12 +27,12 @@ add_videos_enabled = solara.reactive(True)
 def add_new_playlist():
     try:
         playlist = Playlist.create(
-            name="New Playlist",
+            title="New Playlist",
             url="http://www.youtube.com",
             series=Series.get(),
             channel=Channel.get(),
         )
-        logger.debug(f"Created new playlist: {playlist.name}")
+        logger.debug(f"Created new playlist: {playlist.title}")
     except peewee.IntegrityError:
         logger.debug("Playlist already exists")
         return
@@ -44,7 +43,7 @@ def save_playlist(playlist):
         logger.error("Playlist not found")
         return
     if not name == "":
-        playlist.name = name.value
+        playlist.title = name.value
         playlist.url = url.value
         playlist.series = Series.get(Series.name == series.value)
         playlist.enabled = enabled.value
@@ -57,10 +56,11 @@ def save_playlist(playlist):
 
 def PlaylistDetail(playlist_id):
     playlist = Playlist.select().where(Playlist.id == playlist_id).get()
-    name.set(playlist.name)
+    name.set(playlist.title)
     url.set(playlist.url)
     # series.set(playlist.series.name)
-    channel.set(playlist.channel.name)
+    if playlist.channel is not None:
+        channel.set(playlist.channel.name)
 
     def update_playlist():
         save_playlist(playlist)
@@ -93,20 +93,26 @@ def PlaylistCard(playlist):
     @task
     def update():
 
-        logger.debug(f"Updating playlist {playlist.name}")
+        logger.debug(f"Updating playlist {playlist.title}")
         updating.set(True)
         # time.sleep(3)
         playlist.check_for_new_videos()
         updating.set(False)
-        logger.success(f"Updated database from Playlist {playlist.name}")
+        logger.success(f"Updated database from Playlist {playlist.title}")
+
+    @task
+    def load_info():
+        logger.debug(f"Loading info for {playlist.title}")
+        updating.set(True)
+        playlist.load_info()
+        updating.set(False)
+        logger.success(f"Loaded info for Playlist {playlist.title}")
 
     with solara.Card():
         if updating.value is False:
-            solara.Markdown(playlist.name)
+            solara.Markdown(playlist.title)
             solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
-
-            # solara.Markdown(f"Channel: {playlist.channel.name}")
-            # solara.Markdown(f"Series: {playlist.series.name}")
+            solara.Markdown(f"Playlist_Count: {str(playlist.playlist_count)}")
             solara.Markdown(f"URL: {playlist.url}")
             solara.Markdown(f"Last Updated: {time_since_update(playlist)}")
             solara.Markdown(
@@ -117,6 +123,7 @@ def PlaylistCard(playlist):
                     solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
                 solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
                 solara.Button(label="Update", on_click=update)
+                solara.Button(label="Load Info", on_click=load_info)
         else:
             solara.SpinnerSolara()
 

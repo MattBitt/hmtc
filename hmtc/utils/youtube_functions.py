@@ -1,9 +1,9 @@
-import yt_dlp
-import subprocess
 import os
-from loguru import logger
+import subprocess
 from pathlib import Path
 
+import yt_dlp
+from loguru import logger
 
 # this is here only to run this file from the command line
 

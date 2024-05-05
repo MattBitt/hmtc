@@ -1,5 +1,6 @@
-import vlc
 import time
+
+import vlc
 
 
 def video(source):

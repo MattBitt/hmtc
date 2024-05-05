@@ -1,17 +1,16 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    Boolean,
-    ForeignKey,
-)  # type ignore
-from sqlalchemy.sql import func
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship
-
 # from sqlalchemy.ext.associationproxy import association_proxy
 from db import Base
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,  # type ignore
+    Integer,
+    String,
+)
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 
 class CommonModel(object):

@@ -160,3 +160,6 @@ cython_debug/
 #.idea/
 
 *.mkv
+
+# Ignore dynaconf secret files
+.secrets.*

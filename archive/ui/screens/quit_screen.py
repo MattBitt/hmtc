@@ -1,8 +1,8 @@
-from textual.screen import ModalScreen
-from textual.app import ComposeResult
-from textual.widgets import Button, Label
-from textual.containers import Grid
 from loguru import logger
+from textual.app import ComposeResult
+from textual.containers import Grid
+from textual.screen import ModalScreen
+from textual.widgets import Button, Label
 
 
 class QuitScreen(ModalScreen):

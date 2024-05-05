@@ -1,48 +1,42 @@
+import json
 import os
-import time
+import re
+from datetime import datetime
+from pathlib import Path
+
+from loguru import logger
 from peewee import (
-    PostgresqlDatabase,
-    TextField,
-    CharField,
-    IntegerField,
-    DateTimeField,
-    Model,
-    ForeignKeyField,
-    DateField,
     AutoField,
     BooleanField,
-    IntegrityError,
+    CharField,
+    DateField,
+    DateTimeField,
+    ForeignKeyField,
+    IntegerField,
+    Model,
+    PostgresqlDatabase,
+    TextField,
 )
-from datetime import datetime
-from hmtc.utils.youtube_functions import (
-    fetch_ids_from,
-    download_video_info_from_id,
-    download_media_files,
-)
-from loguru import logger
-
-from hmtc.utils.general import my_move_file
-from hmtc.utils.image import convert_webp_to_png
-from hmtc.components.file_drop_card import FileInfo
-from pathlib import Path
-import re
 
 from hmtc.config import init_config
+from hmtc.utils.general import my_move_file
+from hmtc.utils.image import convert_webp_to_png
+from hmtc.utils.youtube_functions import (
+    download_media_files,
+    download_video_info_from_id,
+    fetch_ids_from,
+)
 
 db_null = PostgresqlDatabase(None)
-from hmtc.models import db_null
-
 config = init_config()
+MEDIA_INFO = Path(config.get("PATHS", "MEDIA_INFO"))
 
 
-def get_file_type(file):
-    try:
-        f = Path(file.path) / file.filename
-        ext = "." + ".".join(f.suffixes)
-    except AttributeError:
-        f = file
-        # take all of the extensions off and recombine them into a string
-        ext = "." + ".".join(file.split(".")[1:])
+def get_file_type(file: str):
+
+    f = Path(file)
+    ext = "".join(f.suffixes)
+    logger.debug(f"Getting file type for {file} ext = {ext}")
 
     if ext in [".mkv", ".mp4", ".webm"]:
         filetype = "video"
@@ -53,11 +47,12 @@ def get_file_type(file):
     elif ext in [".nfo", ".info.json", ".json"]:
         filetype = "info"
     elif ext in [".jpg", ".jpeg", ".png"]:
-        filetype = "image"
+        filetype = "poster"
     elif ext == ".webp":
+        # is this even true?
         raise ValueError("Webp files should be converted to png")
     else:
-        raise ValueError(f"Unknown file type: extension is {ext}")
+        logger.debug(f"Unknown file type: extension is {ext}")
     return filetype
 
 
@@ -112,15 +107,7 @@ class File(BaseModel):
     filename = CharField(unique=True)
     extension = CharField(null=True)
     file_type = CharField(null=True)
-    WORKING_PATH = config.get("GENERAL", "UPLOAD_PATH")
-
-    def move_to(self, target):
-        source = Path(self.path) / self.filename
-        new_path = Path(target) / self.filename
-        source.rename(new_path)
-        self.path = new_path
-        self.save()
-        return self
+    WORKING_PATH = config.get("PATHS", "UPLOAD")
 
     class Meta:
         indexes = ((("path", "filename"), True),)
@@ -149,10 +136,8 @@ class Series(BaseModel):
         return self.videos.count()
 
     def add_file(self, file, file_type=None):
-        from hmtc.config import init_config
 
-        config = init_config()
-        new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
+        new_path = Path(config.get("PATHS", "MEDIA")) / (file.name)
 
         new_file = my_move_file(file, new_path)
         if new_file == "":
@@ -187,14 +172,15 @@ class Album(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Channel(BaseModel):
+
     from hmtc.config import init_config
 
-    config = init_config()
-    MEDIA_PATH = Path(config.get("MEDIA", "VIDEO_PATH"))
+    MEDIA_PATH = Path(config.get("PATHS", "MEDIA")) / "channels"
 
     name = CharField(unique=True)
     url = CharField(unique=True)
     youtube_id = CharField(unique=True)
+
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
 
@@ -229,18 +215,42 @@ class Channel(BaseModel):
         self.save()
         logger.debug(f"Finished updating channel {self.name}")
 
-    def add_file(self, path, filename):
-        new_name = path / filename
-        file_type = get_file_type(new_name)
+    def add_file(self, filename):
+        logger.debug("In add_file for Channels")
+        logger.debug(f"Filename: {filename}")
+        logger.debug(f"file exists? {Path(filename).exists()}")
+        file_type = get_file_type(filename)
+        extension = "".join(Path(filename).suffixes)
+
+        final_name = self.MEDIA_PATH / (self.name + extension)
+        logger.debug(f"Final Name = {final_name}")
+        if file_type == "poster" and self.poster is not None:
+            self.delete_poster()
 
         f, created = ChannelFile.get_or_create(
-            path=path, filename=new_name, file_type=file_type, channel=self
+            path=final_name.parent,
+            filename=final_name.name,
+            file_type=file_type,
+            channel=self,
+            extension=extension,
         )
 
         if created:
+            my_move_file(filename, final_name)
             logger.debug(f"Created new file: {f.filename}")
         else:
-            logger.debug(f"File already exists: {f.filename}")
+            if not Path(f.filename).exists():
+                logger.debug(
+                    f"File already in DB but doesn't exist. Moving from {f.path} to {final_name}"
+                )
+                my_move_file(filename, final_name)
+
+    def delete_poster(self):
+        poster = self.poster
+        if poster:
+            poster.delete_instance()
+            logger.debug(f"Deleted poster for channel {self.name}")
+            logger.debug(f"Path({poster.filename}).unlink()")
 
     def check_for_new_playlists(self):
         ids = fetch_ids_from(self.url + "/playlists")
@@ -261,10 +271,16 @@ class Channel(BaseModel):
     @property
     def poster(self):
         logger.debug(f"Getting poster for channel {self.name}")
-        p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
+        p = (
+            ChannelFile.select()
+            .where(ChannelFile.file_type == "poster")
+            .where(ChannelFile.channel_id == self.id)
+            .get_or_none()
+        )
+        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
         if p:
             return p
-        return []
+        return None
 
 
 # ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -278,20 +294,45 @@ class Channel(BaseModel):
 
 
 class ChannelFile(File):
+
     channel = ForeignKeyField(Channel, backref="files")
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Playlist(BaseModel):
-    name = CharField(unique=True)
-    url = CharField(unique=True)
-    youtube_id = CharField(unique=True)
+    title = CharField(default="Untitled")
+    url = CharField(unique=True, null=True)
+    youtube_id = CharField(unique=True, null=True)
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
     album_per_episode = BooleanField(default=True)
     series = ForeignKeyField(Series, backref="playlists", null=True)
     channel = ForeignKeyField(Channel, backref="playlists", null=True)
     add_videos_enabled = BooleanField(default=True)
+    playlist_count = IntegerField(default=0)
+
+    def load_info(self):
+        playlist_files = (MEDIA_INFO / "playlists").glob(f"*{self.youtube_id}*")
+        for f in playlist_files:
+            file_type = get_file_type(f)
+            if file_type == "info":
+                with open(f, "r") as info_file:
+                    info = json.load(info_file)
+                    if info["id"] != self.youtube_id:
+                        logger.error(
+                            f"Info file {f} doesn't match playlist {self.title}"
+                        )
+                        raise ValueError("Info file doesn't match playlist")
+                    ch = Channel.get_or_none(Channel.youtube_id == info["channel_id"])
+                    if ch:
+                        self.channel = ch
+
+                    self.title = info["title"]
+                    self.playlist_count = int(info["playlist_count"])
+                    self.url = info["webpage_url"]
+                    self.save()
+            elif file_type == "poster":
+                logger.debug("Found the image file")
 
     @classmethod
     def create_from_yt_id(cls, youtube_id=None, channel=None):
@@ -311,15 +352,13 @@ class Playlist(BaseModel):
     def download_playlist_info(
         cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
     ):
-        from hmtc.config import init_config
 
         def download_playlist_info_from_id(*args, **kwargs):
+
             return None
 
-        config = init_config()
-        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
-        media_path = config.get("MEDIA", "PLAYLIST_PATH")
-
+        download_path = config.get("PATHS", "DOWNLOAD")
+        media_path = config.get("PATHS", "MEDIA")
         playlist_info, files = download_playlist_info_from_id(
             youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
         )
@@ -335,15 +374,13 @@ class Playlist(BaseModel):
             return playlist_info, files
 
     def check_for_new_videos(self):
-        from hmtc.config import init_config
 
-        config = init_config()
-        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
+        download_path = config.get("PATHS", "DOWNLOAD")
 
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
         ids = fetch_ids_from(self.url, download_path)
-        logger.debug(f"Found {len(ids)} videos in playlist {self.name}")
+        logger.debug(f"Found {len(ids)} videos in playlist {self.title}")
         for youtube_id in ids:
             if youtube_id == "":
                 logger.error("No youtube ID")
@@ -359,13 +396,11 @@ class Playlist(BaseModel):
         # once finished updating the playlist, update the last_updated field
         self.last_update_completed = datetime.now()
         self.save()
-        logger.success(f"Finished updating playlist {self.name}")
+        logger.success(f"Finished updating playlist {self.title}")
 
     def add_file(self, file, file_type=None):
-        from hmtc.config import init_config
 
-        config = init_config()
-        new_path = Path(config.get("MEDIA", "VIDEO_PATH")) / (file.name)
+        new_path = Path(config.get("PATHS", "MEDIA")) / (file.name)
 
         new_file = my_move_file(file, new_path)
         if new_file == "":
@@ -395,13 +430,14 @@ class Playlist(BaseModel):
         return self.files.where(PlaylistFile.file_type == "image").count() > 0
 
     def __repr__(self):
-        return f"Playlist({self.name=})"
+        return f"Playlist({self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
     youtube_id = CharField(unique=True)
-    title = CharField()
+    url = CharField(null=True)
+    title = CharField(null=True)
     episode = CharField(null=True)
     upload_date = DateField(null=True)
     duration = IntegerField(null=True)
@@ -458,11 +494,9 @@ class Video(BaseModel):
     def download_video_info(
         cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
     ):
-        from hmtc.config import init_config
 
-        config = init_config()
-        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
-        media_path = config.get("MEDIA", "VIDEO_PATH")
+        download_path = config.get("PATHS", "DOWNLOAD")
+        media_path = config.get("PATHS", "MEDIA")
 
         video_info, files = download_video_info_from_id(
             youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
@@ -532,11 +566,9 @@ class Video(BaseModel):
         return f
 
     def download_missing_files(self):
-        from hmtc.config import init_config
 
-        config = init_config()
-        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
-        media_path = config.get("MEDIA", "VIDEO_PATH")
+        download_path = config.get("PATHS", "DOWNLOAD")
+        media_path = config.get("PATHS", "MEDIA")
 
         thumbnail = not self.has_poster
         subtitle = not self.has_subtitle
@@ -587,10 +619,8 @@ class Video(BaseModel):
         #     logger.debug(f"No need to update video {self.title}")
 
     def download_video(self):
-        from hmtc.config import init_config
 
-        config = init_config()
-        download_path = config.get("GENERAL", "DOWNLOAD_PATH")
+        download_path = config.get("PATHS", "DOWNLOAD")
         if self.has_video:
             logger.debug(
                 "Video already downloaded. Delete it from the folder to redownload"

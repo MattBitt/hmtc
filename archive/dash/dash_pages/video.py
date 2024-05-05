@@ -1,8 +1,9 @@
 import dash
-from dash import html
 import dash_bootstrap_components as dbc
 import dash_player
-from hmtc.models import Video, Section, File
+from dash import html
+
+from hmtc.models import File, Section, Video
 
 dash.register_page(__name__, path_template="/video/<video_id>")
 

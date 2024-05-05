@@ -1,16 +1,17 @@
-import cv2
-from PIL import Image
-import imagehash
-import pytesseract
-import numpy as np
-from utils import crop_to_contour
-from sklearn.cluster import KMeans
+import re
+from collections import Counter
 from pathlib import Path
+
+import cv2
+import imagehash
+import matplotlib.pyplot as plt
+import numpy as np
+import pytesseract
 from matplotlib import cbook
 from matplotlib.colors import LightSource
-import matplotlib.pyplot as plt
-from collections import Counter
-import re
+from PIL import Image
+from sklearn.cluster import KMeans
+from utils import crop_to_contour
 
 
 class Topic:

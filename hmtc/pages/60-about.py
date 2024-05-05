@@ -1,19 +1,20 @@
+import time
+
 import solara
 import solara.lab
-from solara.lab import task
 from loguru import logger
-import time
-from hmtc.models import Video, VideoFile
+from solara.lab import task
+
 from hmtc.config import init_config
-from hmtc.pages import config
+from hmtc.models import Video, VideoFile
 
 # This is where the version is set for now.
 # this ensures that whatever is running
 # is the same as the rest of the code
 # (instead of storing it in a separate file)
-VERSION = "0.0.5"
-
-env = config.get("GENERAL", "RUNNING_MODE")
+VERSION = "0.0.6"
+config = init_config()
+env = config["general"]["environment"]
 
 
 updating = solara.reactive(False)

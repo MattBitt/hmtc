@@ -1,19 +1,18 @@
+import dash
+import dash_bootstrap_components as dbc
+import pandas as pd
+import solara.server.flask
+from dash import Dash, html
 from flask import Flask
 from flask_admin import Admin
-import solara.server.flask
 
 from hmtc.admin_views import (
-    UserAdmin,
-    PostAdmin,
     PlaylistAdmin,
+    PostAdmin,
     SeriesAdmin,
+    UserAdmin,
     VideoAdmin,
 )
-import dash
-from dash import Dash, html
-import pandas as pd
-
-import dash_bootstrap_components as dbc
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/plotly/datasets/master/gapminder_unfiltered.csv"

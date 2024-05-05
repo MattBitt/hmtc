@@ -1,10 +1,10 @@
-import crud
-import schemas
-import models
-from faker import Faker
-
 from random import randrange
-from db import Base, engine, db_session
+
+import crud
+import models
+import schemas
+from db import Base, db_session, engine
+from faker import Faker
 from main import logger
 
 faker = Faker()

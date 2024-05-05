@@ -1,39 +1,41 @@
+import os
+import shutil
+from pathlib import Path
+
 import solara
 from loguru import logger
-from pathlib import Path
-import shutil
+
 from hmtc.config import init_config
-from hmtc.utils.my_logging import setup_logging
-from hmtc.db import init_db, create_tables, is_db_empty
+from hmtc.db import create_tables, init_db, is_db_empty
 from hmtc.models import db_null
+
+# from hmtc.utils.general import check_folder_exist_and_writable
+from hmtc.utils.my_logging import setup_logging
+
+config = init_config()
+
+
+def setup_folders():
+    working_folder = Path(config["paths"]["working"])
+    storage_folder = Path(config["paths"]["storage"])
+
+    # check_folder_exist_and_writable(working_folder)
+    # check_folder_exist_and_writable(storage_folder)
 
 
 def setup():
     config = init_config()
+    setup_folders()
     setup_logging(config)
     db_instance = init_db(db_null, config)
     if is_db_empty(db_instance):
-        logger.warning("Database is empty, initializing tables")
+        # not an error, just emphasizing that the database is empty
+        logger.error("Database is empty, initializing tables")
         create_tables(db_instance)
-    return db_instance, config
+
+        logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
+        logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
+    return db_instance
 
 
-logger.debug("very beginning")
-db, config = setup()
-logger.debug(f"Current Running Mode = {config.get('GENERAL', 'RUNNING_MODE')}")
-logger.debug("after setup")
-
-if config.get("GENERAL", "CLEAN_DOWNLOADS") == True:
-    download_folder = Path(config.get("GENERAL", "DOWNLOAD_PATH"))
-    for f in download_folder.glob("*"):
-        logger.warning(f"Removing existing file in downloads: {f}")
-        f.unlink()
-
-# this was in the default scheme
-# not quite sure how to use it yet though
-app_state = solara.reactive(0)
-
-
-solara.Style(Path("hmtc/assets/style.css"))
-
-logger.debug("end of pages/__init__")
+db = setup()

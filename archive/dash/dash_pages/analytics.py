@@ -1,7 +1,8 @@
 import dash
-from dash import html
-from hmtc.models import Video
 import pandas as pd
+from dash import html
+
+from hmtc.models import Video
 
 dash.register_page(__name__)
 

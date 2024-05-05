@@ -1,23 +1,23 @@
-from sqlalchemy.orm import Session
 from models import (
-    Base,
-    Source,
-    Track,
     Album,
-    Artist,
-    Word,
-    Producer,
-    Tag,
-    TrackWord,
-    TrackTag,
-    TrackProducer,
-    TrackBeat,
-    TrackArtist,
-    Beat,
-    SourceFile,
     AlbumFile,
+    Artist,
+    Base,
+    Beat,
+    Producer,
+    Source,
+    SourceFile,
+    Tag,
+    Track,
+    TrackArtist,
+    TrackBeat,
     TrackFile,
+    TrackProducer,
+    TrackTag,
+    TrackWord,
+    Word,
 )
+from sqlalchemy.orm import Session
 
 
 class DBOperations:

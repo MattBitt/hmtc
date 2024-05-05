@@ -1,7 +1,7 @@
 import json
 
-from dash_extensions.enrich import DashProxy, html, Input, Output, State
 from dash_extensions import Keyboard
+from dash_extensions.enrich import DashProxy, Input, Output, State, html
 
 # Create small example app
 app = DashProxy()

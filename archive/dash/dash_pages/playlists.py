@@ -1,10 +1,10 @@
 import dash
-from dash import html, dash_table
 import dash_bootstrap_components as dbc
-from hmtc.models import Playlist, Series
-from playhouse.shortcuts import model_to_dict
 import pandas as pd
-from dash import Input, Output, callback
+from dash import Input, Output, callback, dash_table, html
+from playhouse.shortcuts import model_to_dict
+
+from hmtc.models import Playlist, Series
 
 dash.register_page(__name__)
 

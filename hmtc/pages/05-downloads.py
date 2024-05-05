@@ -1,20 +1,18 @@
+from pathlib import Path
+
 import solara
 import solara.lab
 from loguru import logger
-from pathlib import Path
 
-from hmtc.pages import config
-from hmtc.models import Playlist, Series, Channel, Video
 from hmtc.components.my_app_bar import MyAppBar
-from hmtc.utils.general import read_json_file, determine_file_object_association
-downloads_path = config.get("GENERAL", "DOWNLOAD_PATH")
-env = config.get("GENERAL", "RUNNING_MODE")
+from hmtc.config import init_config
+from hmtc.models import Channel, Playlist, Series, Video
+from hmtc.utils.general import determine_file_object_association, read_json_file
+
+config = init_config()
+downloads_path = Path(config["paths"]["working"]) / "downloads"
+env = config["general"]["environment"]
 files = solara.reactive([])
-
-
-
-
-
 
 
 @solara.component
@@ -45,7 +43,7 @@ def SeriesFileCard(file):
         for d in data:
             if d.strip() in existing_series:
                 solara.Markdown(f"**{d.strip()}**")
-            else: 
+            else:
                 solara.Markdown(d)
         with solara.CardActions():
             solara.Button("Add All Series to DB", on_click=add_all_series_to_db)
@@ -76,12 +74,13 @@ def ChannelFilesCard(file, data):
 
     with solara.Card():
         solara.Markdown(f"{file}")
-       
+
         with solara.CardActions():
+            solara.Button("Add File to Channel", on_click=add_file_to_channel)
             solara.Button(
-                "Add File to Channel", on_click=add_file_to_channel
+                "Delete", on_click=lambda: logger.debug(f"Deleting file: {file}")
             )
-            solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
+
 
 @solara.component
 def VideoFilesCard(file, data):
@@ -90,7 +89,7 @@ def VideoFilesCard(file, data):
     color = "orange"
     if video is not None:
         color = "purple"
-    
+
     def add_file_to_video():
         logger.debug(f"Adding file {file} to video {video_yt_id}")
         # if file.suffix == ".json":
@@ -108,15 +107,18 @@ def VideoFilesCard(file, data):
             logger.success(f"Finished adding file {file} to video")
             # is_video_existing.set(True)
 
-    with solara.Card(style={"background":color}):
+    with solara.Card(style={"background": color}):
         solara.Markdown(f"{file}")
-       
+
         with solara.CardActions():
             solara.Button(
-                "Add File to Video", on_click=add_file_to_video, disabled=(color == "orange")
+                "Add File to Video",
+                on_click=add_file_to_video,
+                disabled=(color == "orange"),
             )
-            solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
-
+            solara.Button(
+                "Delete", on_click=lambda: logger.debug(f"Deleting file: {file}")
+            )
 
 
 @solara.component
@@ -137,12 +139,13 @@ def FileCard(file, playlist_id=None):
 
     with solara.Card():
         solara.Markdown(f"{file}")
-       
+
         with solara.CardActions():
+            solara.Button("Add File to Playlist", on_click=add_file_to_playlist)
             solara.Button(
-                "Add File to Playlist", on_click=add_file_to_playlist
+                "Delete", on_click=lambda: logger.debug(f"Deleting file: {file}")
             )
-            solara.Button("Delete", on_click=lambda: logger.debug(f"Deleting file: {file}"))
+
 
 @solara.component
 def UnknownFilesCard(file, data):
@@ -153,6 +156,7 @@ def UnknownFilesCard(file, data):
             logger.success(f"Deleted file: {file}")
         except Exception as e:
             logger.error(f"Error deleting file: {file}, {e}")
+
     file = file if isinstance(file, str) else file.name
     if not data:
         data = {}
@@ -180,22 +184,26 @@ def PlaylistFilesCard(file, data):
                     if data["channel_id"] == "UCcnAEyz9VnlBL1DiQqliJkQ":
                         if playlist_id == "PLVuktCy_G9zLqq_g0D44cKCE0xEmenRUQ":
                             data["title"] = "Behind the Bars Clips"
-                        
-                    Playlist.create(youtube_id=playlist_id, name=data["title"], url=data['webpage_url'], channel=channel)
+
+                    Playlist.create(
+                        youtube_id=playlist_id,
+                        name=data["title"],
+                        url=data["webpage_url"],
+                        channel=channel,
+                    )
                     is_playlist_existing.set(True)
 
     playlist = Playlist.get_or_none(Playlist.youtube_id == playlist_id)
     if playlist:
         is_playlist_existing.set(True)
-    
-    
+
     playlist_files = list(Path(downloads_path).glob(f"{playlist_id}*"))
-    
+
     color = "yellow"
     if not is_playlist_existing.value:
         color = "red"
-    
-    with solara.Card(style={"background":color}):
+
+    with solara.Card(style={"background": color}):
         solara.Markdown(f"{playlist_id}")
         if is_playlist_existing.value and playlist is not None:
             solara.Markdown(f"**{playlist.name}**")
@@ -211,39 +219,41 @@ def PlaylistFilesCard(file, data):
             #     #     on_click=lambda: logger.debug(f"Deleting file: {playlist_id}"),
             #     # )
         else:
-            solara.Button("Create Playlist and add Files to DB", on_click=add_playlist_to_db)
+            solara.Button(
+                "Create Playlist and add Files to DB", on_click=add_playlist_to_db
+            )
+
 
 @solara.component
 def ChannelCard(f, data):
-    is_channel_existing = solara.use_reactive((False))    
-    
+    is_channel_existing = solara.use_reactive((False))
+
     channel_yt_id = data["channel_id"]
     channel_name = data["title"]
     channel_url = data["webpage_url"]
-    
+
     channel = Channel.get_or_none(Channel.youtube_id == channel_yt_id)
 
     if channel:
         is_channel_existing.set(True)
-    
+
     else:
         logger.debug(f"Channel {channel_yt_id} not found in DB")
-    
 
     def add_channel_to_db():
         logger.debug(f"Adding channel {channel_yt_id}")
         Channel.create(youtube_id=channel_yt_id, name=channel_name, url=channel_url)
         is_channel_existing.set(True)
-    
+
     color = "pink"
     if not is_channel_existing.value:
         color = "blue"
-    
-    with solara.Card(style={"background":color}):
+
+    with solara.Card(style={"background": color}):
         solara.Markdown(f"{channel_yt_id}")
         if is_channel_existing.value:
             solara.Markdown(f"**{channel.name}**")
-            solara.Markdown(f"Existing Files:")
+            solara.Markdown("Existing Files:")
             for cf in channel.files:
                 solara.Markdown(f"{cf.file.filename}")
 
@@ -255,11 +265,10 @@ def ChannelCard(f, data):
 
         # solara.Markdown(f"Channel already exists in DB?: {is_channel_existing.value}")
 
-
-            
-
         else:
-            solara.Button("Create Channel and add Files to DB", on_click=add_channel_to_db)
+            solara.Button(
+                "Create Channel and add Files to DB", on_click=add_channel_to_db
+            )
 
 
 @solara.component
@@ -269,9 +278,7 @@ def Page():
             logger.debug(f"Removing existing file in downloads: {f}")
             # f.unlink()
 
-
             # logger.debug(f"Processing file: {f}")
-    
 
     files.set([file for file in Path(downloads_path).glob("**/*") if file.is_file()])
     with solara.Column():
@@ -293,7 +300,7 @@ def Page():
     channel_files = []
     playlist_files = []
     video_files = []
-    bad_videos = [] # problem with youtube id in name
+    bad_videos = []  # problem with youtube id in name
     for f in files.value:
         ftype, data = determine_file_object_association(f)
         if not ftype or not data:
@@ -302,24 +309,24 @@ def Page():
             match ftype:
                 case "playlist":
                     if "dummy" in data:
-                        playlist_files.append({"file":f,"data": {"id": f.stem[:34]}})
+                        playlist_files.append({"file": f, "data": {"id": f.stem[:34]}})
                     else:
-                        playlist_files.append({"file":f,"data": data})
+                        playlist_files.append({"file": f, "data": data})
                 case "channel":
-                    channel_files.append({"file":f,"data": data})
+                    channel_files.append({"file": f, "data": data})
                 case "video":
-                    video_files.append({"file":f,"data": data})
+                    video_files.append({"file": f, "data": data})
                 case "series":
                     SeriesFileCard(f)
                 case "bad video":
-                    bad_videos.append({"file":f,"data": data})
+                    bad_videos.append({"file": f, "data": data})
                 case _:
                     logger.debug(f"Unknown file type: {f}")
                     logger.debug(f"ftype: {ftype}")
 
                     logger.debug(f"Data: {data}")
     with solara.Card():
-        solara.Markdown(f"Totals")
+        solara.Markdown("Totals")
         solara.Markdown(f"Channels: {len(channel_files)}")
         solara.Markdown(f"Playlists: {len(playlist_files)}")
         solara.Markdown(f"Videos: {len(video_files)}")
@@ -329,20 +336,19 @@ def Page():
         for bad_video in bad_videos[:10]:
             with solara.Card():
                 solara.Markdown("Bad Video")
-                UnknownFilesCard(bad_video['file'], bad_video['data'])
-
+                UnknownFilesCard(bad_video["file"], bad_video["data"])
 
         for channel in channel_files[:10]:
             with solara.Card():
                 solara.Markdown("Channel with Files to Import")
-                ChannelCard(channel['file'], channel['data'])
-        
+                ChannelCard(channel["file"], channel["data"])
+
         for playlist in playlist_files[:10]:
             with solara.Card():
                 solara.Markdown("Playlist with Files to Import")
-                PlaylistFilesCard(playlist['file'], playlist['data'])
+                PlaylistFilesCard(playlist["file"], playlist["data"])
 
         for video in video_files[:10]:
             with solara.Card():
                 solara.Markdown("Video with Files to Import")
-                VideoFilesCard(video['file'], video['data'])
+                VideoFilesCard(video["file"], video["data"])

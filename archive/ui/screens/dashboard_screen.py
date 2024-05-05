@@ -1,8 +1,9 @@
-from textual.screen import Screen
-from textual.app import ComposeResult
-from textual.widgets import Footer, Button, Header, RichLog
 from textual import events, on
-from hmtc.models import Playlist, EpisodeNumberTemplate
+from textual.app import ComposeResult
+from textual.screen import Screen
+from textual.widgets import Button, Footer, Header, RichLog
+
+from hmtc.models import EpisodeNumberTemplate, Playlist
 
 
 def get_ep_num_templates(playlist: Playlist):
@@ -30,7 +31,7 @@ class DashboardScreen(Screen):
         ep_templates = (
             EpisodeNumberTemplate.select()
             .join(Playlist)
-            .where(Playlist.name == "Guerilla Bars")
+            .where(Playlist.title == "Guerilla Bars")
         )
         for template in ep_templates:
             self.query_one(RichLog).write(template.template)

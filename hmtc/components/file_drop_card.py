@@ -1,25 +1,19 @@
+from typing import BinaryIO, TypedDict
+
 import solara
-from hmtc.config import init_config
+
 from hmtc.components.progress_slider import SimpleProgressBar
-
-from typing import List, Optional, Callable, BinaryIO, TypedDict
-import textwrap
-from pathlib import Path
-from loguru import logger
-
-clicks = solara.reactive(0)
-config = init_config()
 
 
 class FileInfo(TypedDict):
     name: str  # file name
     size: int  # file size in bytes
-    # file_obj: BinaryIO
+    file_obj: BinaryIO
     data: bytes  # only present if lazy=False
 
 
 @solara.component
-def FileDropCard(on_file):
+def FileDropCard(on_file, lazy=False):
 
     progress_complete = solara.use_reactive(0)
 
@@ -33,5 +27,5 @@ def FileDropCard(on_file):
             label="Drag and drop a file here.",
             on_file=on_file,
             on_total_progress=update_progress,
-            lazy=False,
+            lazy=lazy,
         )

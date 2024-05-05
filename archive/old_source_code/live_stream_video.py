@@ -1,10 +1,10 @@
-from frame_analyzer import FrameAnalyzer
-from clip import Clip
-from collections import deque
-import cv2
-from pathlib import Path
 import csv
-from collections import Counter
+from collections import Counter, deque
+from pathlib import Path
+
+import cv2
+from clip import Clip
+from frame_analyzer import FrameAnalyzer
 
 # from progress.bar import Bar
 from tqdm import tqdm

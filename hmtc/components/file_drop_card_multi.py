@@ -1,14 +1,10 @@
+from typing import Callable, List, TypedDict
+
 import solara
-from hmtc.config import init_config
+
 from hmtc.components.progress_slider import SimpleProgressBar
 
-from typing import List, Optional, Callable, BinaryIO, TypedDict
-import textwrap
-from pathlib import Path
-from loguru import logger
-
 clicks = solara.reactive(0)
-config = init_config()
 
 
 class FileInfo(TypedDict):

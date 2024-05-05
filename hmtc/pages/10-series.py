@@ -1,11 +1,12 @@
+import time
+
+import peewee
 import solara
 import solara.lab
 from loguru import logger
-from hmtc.models import Video, Series, VideoFile, File
+
 from hmtc.components.progress_slider import SimpleProgressBar
-import time
-import peewee
-from hmtc.pages import config
+from hmtc.models import File, Series, Video, VideoFile
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")

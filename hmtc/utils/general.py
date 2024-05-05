@@ -1,10 +1,12 @@
+import csv
+import json
 import os
 import re
-from loguru import logger
-import csv
-from pathlib import Path
+import shutil
 from datetime import datetime
-import json
+from pathlib import Path
+
+from loguru import logger
 
 
 def clear_screen():
@@ -41,11 +43,23 @@ def csv_to_dict(filename):
 
 
 def my_move_file(source, target):
-
-    s = Path(source)
-    t = Path(target)
+    logger.debug(f"Moving file {source} to {target}")
+    s = source
+    t = target
     result = s.rename(t)
     return result
+
+    # except Exception as e:
+    #     logger.error(f"Error moving file: {e}")
+    #     return ""
+
+
+def my_copy_file(source, target):
+
+    s = str(Path(source))
+    t = str(Path(target))
+
+    shutil.copy(s, t)
 
     # except Exception as e:
     #     logger.error(f"Error moving file: {e}")
@@ -158,3 +172,25 @@ def determine_file_object_association(file):
         else:
             logger.debug(f"Unknown file type {file}")
             return "who knows", {"theshadow": "knows"}
+
+
+def check_folder_exist_and_writable(folder: Path):
+    if not folder.exists() or not folder.is_dir():
+        raise FileNotFoundError(
+            f"Folder {folder} does not exist or is not a directory. Please create it and try again."
+        )
+
+    test_file = folder / "asdf.txt"
+    try:
+        with open(test_file, "w") as f:
+            f.write("asdf test asdf")
+        with open(test_file, "r") as f:
+            if f.read() != "asdf test asdf":
+                raise FileNotFoundError(
+                    f"Folder {folder} is not writable. Please fix and try again."
+                )
+    except FileNotFoundError as e:
+        logger.error(e)
+        raise
+    finally:
+        test_file.unlink()

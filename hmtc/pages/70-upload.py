@@ -1,14 +1,12 @@
-import solara
-from hmtc.config import init_config
-from hmtc.components.progress_slider import SimpleProgressBar
-
-from typing import List, Optional, Callable, BinaryIO, TypedDict
-import textwrap
 from pathlib import Path
+from typing import List, TypedDict
+
+import solara
 from loguru import logger
 
+from hmtc.components.progress_slider import SimpleProgressBar
+
 clicks = solara.reactive(0)
-config = init_config()
 
 
 class FileInfo(TypedDict):
@@ -30,7 +28,7 @@ def FileDropCard():
             set_filename(f["name"])
             set_size(f["size"])
             # set_content(f["file_obj"].read(100))
-            path = Path(config.get("GENERAL", "UPLOAD_PATH")) / f["name"]
+            path = Path(config.get("PATHS", "UPLOAD")) / f["name"]
             if f["data"] is not None:
                 with open(path, "wb") as out_file:
                     out_file.write(f["data"])
@@ -54,7 +52,6 @@ def FileDropCard():
             f"File uploaded: name:{file.name} suffix: {file.suffix} size: {size} bytes"
         )
         solara.Info(f"File {filename} has total length: {size}\n, first 100 bytes:")
-
 
 
 @solara.component

@@ -1,1 +1,1 @@
-from .config_wrapper import init_config, ConfigWrapper
+from .config_manager import ConfigManager, init_config

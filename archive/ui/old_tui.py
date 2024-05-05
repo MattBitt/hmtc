@@ -1,12 +1,11 @@
 from textual.app import App
 
-
 from hmtc.ui.screens import (
     DashboardScreen,
-    QuitScreen,
-    SettingsScreen,
     HelpScreen,
     PlaylistListScreen,
+    QuitScreen,
+    SettingsScreen,
 )
 
 

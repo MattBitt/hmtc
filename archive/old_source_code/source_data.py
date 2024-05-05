@@ -1,17 +1,18 @@
-from configs import cnf
-import yaml
-from my_logging import logger
-from yt_dlp_functions import get_collection_url_list, get_json_info, download_files
-from datetime import datetime, date
+import re
+import subprocess
+from datetime import date, datetime
+from glob import glob
+from pathlib import Path
+
 import crud
 import models
 import schemas
-from db import Base, engine, db_session
-import re
-from pathlib import Path
-from glob import glob
-import subprocess
+import yaml
+from configs import cnf
+from db import Base, db_session, engine
+from my_logging import logger
 from utils import move_file, write_dict_to_yaml
+from yt_dlp_functions import download_files, get_collection_url_list, get_json_info
 
 
 def parse_yaml(yaml_file):
