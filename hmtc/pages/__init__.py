@@ -5,6 +5,7 @@ from pathlib import Path
 import solara
 from loguru import logger
 
+
 from hmtc.config import init_config
 from hmtc.db import create_tables, init_db, is_db_empty
 from hmtc.models import db_null

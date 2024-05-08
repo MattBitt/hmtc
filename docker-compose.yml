@@ -2,15 +2,39 @@ version: '3'
 
 services:
   app:
-    # Using a Dockerfile is optional, but included for completeness.
+    container_name: hmtc-app
     build: 
       context: .
       dockerfile: Dockerfile
+    # flask requires SIGINT to stop gracefully
+    # (default stop signal from Compose is SIGTERM)
+    stop_signal: SIGINT 
     ports:
       - 8765:8765
     volumes:
       - .:/workspace:cached
-      - /home/matt/staging_data/storage:/workspace/storage
-      - /home/matt/staging_data/working:/workspace/working
+      - ~/apps/data_for_development/hmtc/staging/storage:/workspace/storage
+      - ~/apps/data_for_development/hmtc/staging/working:/workspace/working
     environment:
-      - ENVIRONMENT=${ENVIRONMENT}
+      - HMTC_ENV=staging
+      - HMTC_CONFIG_PATH=/app/hmtc/hmtc/config
+
+  worker:
+    image: hmtc-app
+    command: python /app/hmtc/hmtc/worker.py
+    volumes:
+      - /apps/data_for_development/redis:/usr/src/app
+
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:6.2-alpine
+    ports:
+      - 6379:6379
+
+
+networks:
+  default:
+    name: myinternalnetwork
+    external: true

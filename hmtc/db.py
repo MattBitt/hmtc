@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-
+from hmtc.config import init_config
 from loguru import logger
 
 from hmtc.models import (
@@ -34,6 +34,11 @@ from hmtc.models import (
 )
 from hmtc.utils.general import csv_to_dict, get_youtube_id
 
+
+config = init_config()
+WORKING = Path(config["paths"]["working"])
+STORAGE = Path(config["paths"]["storage"])
+
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 
 
@@ -55,22 +60,19 @@ def init_db(db, config):
 
 
 def import_series():
-    with open(MEDIA_INFO / "series.txt", "r") as f:
+
+    with open(MEDIA_INFO / "series" / "series.txt", "r") as f:
         series = f.readlines()
         for s in series:
-            Series.create(name=s.strip())
-
-
-def import_playlists():
-    playlists = MEDIA_INFO / "playlists"
-    for p in playlists.glob("*info.json"):
-        with open(p, "r") as f:
-            playlist = json.load(f)
-            Playlist.create(
-                title=playlist["title"],
-                youtube_id=playlist["id"],
-                url=playlist["webpage_url"],
-            )
+            Series.get_or_create(name=s.strip())
+    series = MEDIA_INFO / "series"
+    for c in series.glob("*.webp"):
+        series = Series.get_or_none(Series.name == c.stem)
+        if series:
+            series.add_file(c, move_file=False)
+            logger.success(f"Poster for Series {c.stem} added to db!")
+        else:
+            logger.error(f"Series {c.stem} not found in db")
 
 
 def import_channels():
@@ -78,10 +80,53 @@ def import_channels():
     for c in channels.glob("*info.json"):
         with open(c, "r") as f:
             channel = json.load(f)
-            Channel.create(
+            new_channel, created = Channel.get_or_create(
                 name=channel["channel"],
                 youtube_id=channel["channel_id"],
                 url=channel["webpage_url"],
+            )
+            if created:
+                logger.success(f"New Channel {channel['channel']} created")
+                new_channel.add_file(c, move_file=False)
+
+            elif new_channel is None:
+                logger.warning(
+                    f"New Channel {channel['channel']} not created nor found"
+                )
+                return None
+    for c in channels.glob("*.jpg"):
+        channel = Channel.get_or_none(Channel.name == c.stem)
+        if channel:
+            channel.add_file(c, move_file=False)
+        else:
+            logger.error(f"Channel {c.stem} not found in db")
+
+
+def import_playlists():
+    playlists = MEDIA_INFO / "playlists"
+    for p in playlists.glob("*info.json"):
+        with open(p, "r") as f:
+            playlist = json.load(f)
+            channel_id = playlist["channel_id"]
+            channel = Channel.get_or_none(Channel.youtube_id == channel_id)
+
+            new_playlist, created = Playlist.get_or_create(
+                title=playlist["title"],
+                youtube_id=playlist["id"],
+                url=playlist["webpage_url"],
+                channel=channel,
+            )
+            if created:
+                new_playlist.add_file(p, move_file=False)
+
+    for playlist_image in playlists.glob("*.jpg"):
+        playlist = Playlist.get_or_none(Playlist.youtube_id == playlist_image.stem)
+        if playlist:
+            logger.success(f"Found poster matching playlist {playlist_image.stem}")
+            playlist.add_file(playlist_image, move_file=False)
+        else:
+            logger.error(
+                f"Found poster {playlist_image.stem} but no matching playlist found"
             )
 
 
@@ -115,15 +160,10 @@ def create_tables(db):
             PlaylistFile,
         ]
     )
-    s = Series.get_or_none()
-    if not s:
-        import_series()
-    p = Playlist.get_or_none()
-    if not p:
-        import_playlists()
-    c = Channel.get_or_none()
-    if not c:
+    if config["general"]["environment"] != "production":
         import_channels()
+        import_series()
+        import_playlists()
 
 
 def drop_tables(db):
@@ -304,7 +344,8 @@ def update_playlist(playlist, download_path="./downloads", media_path="./media")
 def update_playlists(config):
     logger.debug("Updating playlists")
     playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
-    download_path = config.get("GENERAL", "DOWNLOAD_PATH")
-    media_path = config.get("PATHS", "MEDIA")
+    download_path = WORKING / "downloads"
+    media_path = STORAGE / "media"
+
     for p in playlists:
         update_playlist(p, download_path, media_path)

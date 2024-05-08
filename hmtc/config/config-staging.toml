@@ -1,0 +1,23 @@
+[app]
+name = "HMTC"
+description = "Harry Mack Track Creator"
+
+[running]
+log_level = "DEBUG"
+
+[general]
+environment="staging"
+items_per_page = 9
+clean_downloads = false
+
+[paths]
+storage = "/home/matt/apps/data_for_development/hmtc/staging/storage"
+working = "/home/matt/apps/data_for_development/hmtc/staging/working"
+logs = "/home/matt/apps/data_for_development/hmtc/staging/logs"
+
+[database]
+name = "HMTCstaging"
+host = "docker-postgres-1"
+user = "postgres"
+password = "postgres"
+port = 5432

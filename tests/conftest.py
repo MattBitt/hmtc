@@ -24,27 +24,42 @@ STORAGE = Path(config["paths"]["storage"])
 
 SOURCE_PATH = WORKING / "test_file_input"
 
-# need actual files to test with so folder has to be there
-assert SOURCE_PATH.exists()
-
 TARGET_PATH = WORKING / "test_file_output"
 TARGET_PATH.mkdir(exist_ok=True)
+
+
+def copy_initial_files():
+    if SOURCE_PATH.exists():
+        logger.debug(f"Removing files from SOURCE_PATH before copying new ones.")
+        for file in SOURCE_PATH.glob("*"):
+            file.unlink()
+
+    init_files = STORAGE / "data_for_tests"
+    assert init_files.exists()
+
+    for file in init_files.glob("*"):
+        my_copy_file(file, SOURCE_PATH)
+    # need actual files to test with so folder has to be there
 
 
 @pytest.fixture(scope="function", autouse=True)
 def db():
     db_instance = init_db(db_null, config)
-    create_tables(db_instance)
+    try:
+        create_tables(db_instance)
+    except Exception as e:
+        logger.error(e)
     yield (db_instance, config)
     drop_tables(db_instance)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def test_files():
+    copy_initial_files()
 
     logger.debug(f"source_path: {SOURCE_PATH}")
     assert SOURCE_PATH.exists()
-    return [file.name for file in SOURCE_PATH.glob("*")]
+    return [file for file in SOURCE_PATH.glob("*")]
 
 
 @pytest.fixture(scope="function")

@@ -11,6 +11,9 @@ from hmtc.models import File, Video, VideoFile
 
 config = init_config()
 
+STORAGE = Path(config.get("PATHS", "STORAGE"))
+WORKING = Path(config.get("PATHS", "WORKING"))
+
 
 def count_types(files):
     num_files = {}
@@ -118,7 +121,7 @@ def extract_missing_audio():
 def Page():
     db_files = File.select()
 
-    folder = Path(config.get("PATHS", "MEDIA")) / "sources"
+    folder = STORAGE / "videos"
     folder_files = [f for f in folder.rglob("*") if f.is_file()]
 
     def add_existing_files():

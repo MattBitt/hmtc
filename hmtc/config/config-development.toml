@@ -11,8 +11,9 @@ items_per_page = 9
 clean_downloads = false
 
 [paths]
-storage = "/home/matt/dev_data/hmtc/storage"
-working = "/home/matt/dev_data/hmtc/working"
+storage = "/home/matt/apps/data_for_development/hmtc/development/storage"
+working = "/home/matt/apps/data_for_development/hmtc/development/working"
+logs = "/home/matt/apps/data_for_development/hmtc/development/logs"
 
 [database]
 name = "HMTCdevelopment"

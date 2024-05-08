@@ -7,7 +7,7 @@ create_db:
 
 
 docker_build:
-	docker build -t mattsbitt/hmtc:latest .
+	docker build -t hmtc-app:latest .
 
 docker_push:
 	docker push mattsbitt/hmtc:latest

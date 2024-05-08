@@ -1,50 +1,10 @@
 import os
 import tomllib
 from pathlib import Path
-
 from loguru import logger
 
-# from dotenv import load_dotenv
-
-# load_dotenv()  # take environment variables from .env
-
-
-# env folders
-#
-# [PATHS]
-# DOWNLOAD=${WORKING}/downloads
-# UPLOAD=${WORKING}/uploads
-# TEMP=${WORKING}/temp
-
-# MEDIA=${STORAGE}/media
-
-
-# class env(Enum):
-#     DEVELOPMENT = "development"
-#     PRODUCTION = "production"
-#     TESTING = "testing"
-#     STAGING = "staging"
-
-#     def __str__(self):
-#         return self.value
-
-#     @staticmethod
-#     def from_string(s):
-#         try:
-#             return env[s]
-#         except KeyError:
-#             raise ValueError()
-
-#     @staticmethod
-#     def from_string_ignore_case(s):
-#         try:
-#             return env[s.upper()]
-#         except KeyError:
-#             raise ValueError()
-
-#     @staticmethod
-#     def config_filename(s):
-#         return f"settings.{s}.ini"
+CONFIG = os.environ.get("HMTC_CONFIG_PATH", "/workspace/working")
+assert CONFIG is not None, "HMTC_CONFIG_PATH not set"
 
 
 class ConfigManager:
@@ -52,7 +12,8 @@ class ConfigManager:
     def from_toml(cls, env: str, config_path: Path):
         with open(config_path, "rb") as f:
             data = tomllib.load(f)
-        return data
+            assert "app" in data, "app section missing from config"
+            return data
 
 
 def get_env():
@@ -63,8 +24,10 @@ def get_env():
 
 
 def get_config_file(file: str):
-    config = Path(os.environ.get("HMTC_CONFIG_PATH")) / file
+
+    config = Path(CONFIG) / file
     if not config.exists():
+
         raise FileNotFoundError(f"Config file {config} does not exist")
     return config
 

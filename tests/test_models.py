@@ -9,6 +9,12 @@ from hmtc.models import Channel, ChannelFile, Playlist, Series, Video, get_file_
 config = init_config()
 
 
+def test_init_database():
+    assert len(Playlist.select()) > 0
+    assert len(Channel.select()) > 0
+    assert len(Series.select()) > 0
+
+
 def test_series():
     s, created = Series.get_or_create(
         name="test", start_date="2020-01-01", end_date="2020-12-31"
@@ -69,7 +75,6 @@ def test_video():
         description="this is a test",
         enabled=True,
         private=False,
-        file_path="",
     )
     assert created is True
     assert v.title == "test"
@@ -136,6 +141,69 @@ def test_create_channel_file(test_files):
 
 def test_add_poster_to_channel(test_image_filename):
     c = Channel.create(name="test", url="www.yahoo.com", youtube_id="asbsdrjgkdlsa;")
-
+    logger.debug(f"Channel: {c.name}")
+    logger.debug(f"{test_image_filename}")
     c.add_file(test_image_filename)
-    assert c.files.count() == 1
+    assert c.files.count() >= 1
+    assert c.poster is not None
+
+
+def test_add_info_to_channel(test_files):
+
+    c = Channel.get_or_none(Channel.name == "Harry Mack")
+    assert c is not None, "Channel not found"
+
+    f = "harry_mack.info.json"
+    for tf in test_files:
+        if f in tf.name:
+            c.add_file(tf)
+            break
+    assert c.info is not None
+    assert "info.json" in c.info.filename
+    assert c.files.count() >= 1
+    assert c.name == "Harry Mack"
+    c.name = "Testing..."
+    c.save()
+    assert c.name != "Harry Mack"
+    c.load_from_info_file()
+    assert c.name == "Harry Mack"
+
+
+def test_add_info_from_file_to_playlist_in_db(test_files):
+    playlist_title = "Wordplay Wednesday"
+    playlist_id = "PLtbrIhAJmrPAGLnngi0ZOTvNmuNt5uHJk"
+    p = Playlist.get(Playlist.title == playlist_title)
+    assert p.youtube_id == playlist_id
+
+    for tf in test_files:
+        if (playlist_id + ".info.json") in tf.name:
+            p.add_file(tf)
+            break
+    assert p.info is not None
+    assert "info.json" in p.info.filename
+    assert p.files.count() >= 1
+    assert p.title == playlist_title
+    p.title = "Testing..."
+    p.save()
+    assert p.title != playlist_title
+    p.load_from_info_file()
+    assert p.playlist_count == 124
+    assert p.title == playlist_title
+
+
+def test_add_poster_to_playlist(test_image_filename):
+    p = Playlist.get()
+    logger.debug(f"Playlist: {p.title}")
+    logger.debug(f"{test_image_filename}")
+    p.add_file(test_image_filename)
+    assert p.files.count() >= 1
+    assert p.poster is not None
+
+
+def test_add_poster_to_video(test_image_filename):
+    v = Video.create(youtube_id="asdfasdfewr", title="test")
+    logger.debug(f"Video: {v.title}")
+    logger.debug(f"{test_image_filename}")
+    v.add_file(test_image_filename)
+    assert v.files.count() >= 1
+    assert v.poster is not None

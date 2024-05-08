@@ -37,6 +37,20 @@ def SeriesForm():
 
 @solara.component
 def SeriesCard(series):
+    with solara.Card():
+        solara.Markdown(f"# {series.name}")
+        if series.poster is not None:
+            solara.Image(series.poster, width="400px")
+        solara.Markdown(f"* {series.enabled_videos} (enabled) sources")
+        solara.Markdown(f"* {series.total_videos - series.enabled_videos} (disabled)")
+        solara.Markdown(f"* {series.start_date} to {series.end_date}")
+
+        solara.Button("Edit Series", on_click=lambda: SeriesForm())
+        solara.Button("Delete Series", on_click=lambda: series.delete_instance())
+
+
+@solara.component
+def old_SeriesCard(series):
     def download_missing_videos():
         videos = videos_by_series(series)
 

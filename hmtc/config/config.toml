@@ -13,8 +13,8 @@ items_per_page = 9
 clean_downloads = false
 
 [paths]
-storage = "/home/matt/dev_data/hmtc/storage"
-working = "/home/matt/dev_data/hmtc/working"
+storage = "/workspace/storage"
+working = "/workspace/working"
 
 [database]
 name = "HMTCproduction"

@@ -9,6 +9,10 @@ from pathlib import Path
 from loguru import logger
 
 
+def clean_filename(dirty):
+    return re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", dirty)
+
+
 def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
@@ -44,7 +48,11 @@ def csv_to_dict(filename):
 
 def my_move_file(source, target):
     logger.debug(f"Moving file {source} to {target}")
-    s = source
+    try:
+        s = Path(source)
+    except Exception as e:
+        s = source
+
     t = target
     result = s.rename(t)
     return result
@@ -55,6 +63,9 @@ def my_move_file(source, target):
 
 
 def my_copy_file(source, target):
+
+    if "Happy Hour" in target.name:
+        logger.debug(f"Copying file {source} to {target}")
 
     s = str(Path(source))
     t = str(Path(target))

@@ -5,6 +5,7 @@ import solara
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
 from hmtc.models import Playlist, Series, Video
+from hmtc.config import init_config
 
 all_languages = "Python C++ Java JavaScript TypeScript BASIC".split()
 languages = solara.reactive([all_languages[0]])
@@ -25,6 +26,10 @@ disabled_videos = solara.reactive(False)
 
 num_pages = solara.reactive(0)
 current_page = solara.reactive(1)
+
+config = init_config()
+WORKING = config["paths"]["working"]
+STORAGE = config["paths"]["storage"]
 
 
 @solara.component
@@ -133,9 +138,10 @@ def get_sort_method():
 def VideoDetail(video, router):
     with solara.Card(video.title):
         solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
-        path = config.get("PATHS", "MEDIA")
+
         if video.poster:
-            solara.Image(f"{Path(path) / video.poster}", width="200px")
+            img = Path(video.poster.path) / video.poster.filename
+            solara.Image(img, width="400px")
         with solara.Column():
 
             solara.Markdown(f"**Sections**: {video.sections.count()}")
@@ -151,7 +157,7 @@ def VideoDetail(video, router):
         solara.Markdown("## Files")
         for vf in video.files:
             with solara.Column():
-                solara.Markdown(f"**File**: {vf.file.filename}")
+                solara.Markdown(f"**File**: {vf.filename}")
         with solara.CardActions():
 
             solara.Button("Back to Videos", on_click=lambda: router.push("/videos"))

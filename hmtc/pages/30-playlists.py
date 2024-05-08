@@ -1,4 +1,5 @@
 import peewee
+from pathlib import Path
 import solara
 import solara.lab
 from loguru import logger
@@ -29,8 +30,8 @@ def add_new_playlist():
         playlist = Playlist.create(
             title="New Playlist",
             url="http://www.youtube.com",
-            series=Series.get(),
-            channel=Channel.get(),
+            series=Series.get_or_none(),
+            channel=Channel.get_or_none(),
         )
         logger.debug(f"Created new playlist: {playlist.title}")
     except peewee.IntegrityError:
@@ -67,8 +68,9 @@ def PlaylistDetail(playlist_id):
 
     with solara.Card():
         solara.InputText(label="Name", value=name, continuous_update=False)
-        if playlist.has_poster:
-            solara.Markdown("Image goes here!")
+        if playlist.poster is not None:
+            img = Path(playlist.poster.path) / playlist.poster.filename
+            solara.Image(img, width="400px")
         solara.InputText(label="URL", value=url, continuous_update=False)
         solara.Select(label="Series", value=series, values=all_series)
         solara.Select(label="Channel", value=channel, values=all_channels)
@@ -123,7 +125,7 @@ def PlaylistCard(playlist):
                     solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
                 solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
                 solara.Button(label="Update", on_click=update)
-                solara.Button(label="Load Info", on_click=load_info)
+                solara.Button(label="Load Info from local file", on_click=load_info)
         else:
             solara.SpinnerSolara()
 
