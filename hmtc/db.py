@@ -7,30 +7,23 @@ from loguru import logger
 
 from hmtc.models import (
     Album,
-    AlbumFile,
     Artist,
-    ArtistFile,
     Beat,
     BeatArtist,
     Channel,
-    ChannelFile,
     EpisodeNumberTemplate,
     File,
     Playlist,
     PlaylistAlbum,
-    PlaylistFile,
     PlaylistVideo,
     Post,
     Section,
     Series,
-    SeriesFile,
     Track,
     TrackBeat,
-    TrackFile,
     User,
     UserInfo,
     Video,
-    VideoFile,
 )
 from hmtc.utils.general import csv_to_dict, get_youtube_id
 
@@ -66,7 +59,7 @@ def import_series():
         for s in series:
             Series.get_or_create(name=s.strip())
     series = MEDIA_INFO / "series"
-    for c in series.glob("*.webp"):
+    for c in series.glob("*.png"):
         series = Series.get_or_none(Series.name == c.stem)
         if series:
             series.add_file(c, move_file=False)
@@ -134,7 +127,6 @@ def create_tables(db):
     db.create_tables(
         [
             Playlist,
-            ChannelFile,
             Video,
             Series,
             Album,
@@ -151,13 +143,7 @@ def create_tables(db):
             Post,
             PlaylistVideo,
             PlaylistAlbum,
-            VideoFile,
-            ArtistFile,
-            SeriesFile,
-            AlbumFile,
-            TrackFile,
             Channel,
-            PlaylistFile,
         ]
     )
     if config["general"]["environment"] != "production":
@@ -170,7 +156,6 @@ def drop_tables(db):
     db.drop_tables(
         [
             Playlist,
-            ChannelFile,
             Video,
             Series,
             Album,
@@ -187,13 +172,7 @@ def drop_tables(db):
             Post,
             PlaylistVideo,
             PlaylistAlbum,
-            VideoFile,
-            ArtistFile,
-            SeriesFile,
-            AlbumFile,
-            TrackFile,
             Channel,
-            PlaylistFile,
         ]
     )
 

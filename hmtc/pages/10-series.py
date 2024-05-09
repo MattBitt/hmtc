@@ -1,12 +1,12 @@
 import time
-
+from pathlib import Path
 import peewee
 import solara
 import solara.lab
 from loguru import logger
 
 from hmtc.components.progress_slider import SimpleProgressBar
-from hmtc.models import File, Series, Video, VideoFile
+from hmtc.models import File, Series, Video
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")
@@ -40,144 +40,16 @@ def SeriesCard(series):
     with solara.Card():
         solara.Markdown(f"# {series.name}")
         if series.poster is not None:
-            solara.Image(series.poster, width="400px")
+            img = Path(series.poster.path) / (
+                series.poster.filename + series.poster.extension
+            )
+            solara.Image(img, width="400px")
         solara.Markdown(f"* {series.enabled_videos} (enabled) sources")
         solara.Markdown(f"* {series.total_videos - series.enabled_videos} (disabled)")
         solara.Markdown(f"* {series.start_date} to {series.end_date}")
 
         solara.Button("Edit Series", on_click=lambda: SeriesForm())
         solara.Button("Delete Series", on_click=lambda: series.delete_instance())
-
-
-@solara.component
-def old_SeriesCard(series):
-    def download_missing_videos():
-        videos = videos_by_series(series)
-
-        for video in videos:
-            if not video.has_video:
-                video.download_video()
-                time.sleep(10)
-
-    def extract_audio():
-        videos = videos_by_series(series)
-
-        for video in videos:
-            if video.has_video and not video.has_audio:
-                video.extract_audio()
-                time.sleep(1)
-
-    def refresh_info(ser):
-        videos = videos_by_series(ser)
-
-        for video in videos:
-
-            video.update_from_yt()
-
-        logger.success(f"Refreshed video info for series: {ser.name}")
-
-    vids_with_video = (
-        Video.select()
-        .join(VideoFile)
-        .join(File)
-        .switch(Video)
-        .where((Video.series == series) & (VideoFile.file_type == "video"))
-    )
-
-    # if vids_with_video.count() == 0:
-    #     logger.warning(f"No videos with video files for series {series.name}")
-    #     logger.warning(f"Not checking further info for series {series.name}")
-    #     SeriesForm()
-    #     return
-
-    vids_with_audio = (
-        Video.select()
-        .join(VideoFile)
-        .join(File)
-        .switch(Video)
-        .where((Video.series == series) & (VideoFile.file_type == "audio"))
-    )
-    vids_with_image = (
-        Video.select()
-        .join(VideoFile)
-        .join(File)
-        .switch(Video)
-        .where(
-            (Video.enabled == True)
-            & (Video.series == series)
-            & (VideoFile.file_type == "image")
-        )
-        .distinct()
-    )
-    vids_with_subtitle = (
-        Video.select()
-        .join(VideoFile)
-        .join(File)
-        .switch(Video)
-        .where(
-            (Video.enabled == True)
-            & (Video.series == series)
-            & (VideoFile.file_type == "subtitle")
-        )
-        .distinct()
-    )
-
-    total_time = [v.duration for v in vids_with_video if v.duration is not None]
-
-    with solara.Card():
-
-        solara.Markdown(f"# {series.name}")
-        solara.Markdown(f"* **{series.enabled_videos}** (enabled) sources")
-        solara.Markdown(
-            f"* **{series.total_videos - series.enabled_videos }** (disabled)"
-        )
-        solara.Markdown("##Files for this Series")
-
-        solara.Markdown(
-            f"Total playing time of videos: {(sum(total_time)/ 3600):.0f} hours"
-        )
-        SimpleProgressBar(
-            label="Videos with an audio file",
-            current_value=vids_with_audio.count(),
-            total=series.enabled_videos,
-        )
-        SimpleProgressBar(
-            label="Videos with images",
-            current_value=vids_with_image.count(),
-            total=series.enabled_videos,
-        )
-        SimpleProgressBar(
-            label="Videos with a video file",
-            current_value=vids_with_video.count(),
-            total=series.enabled_videos,
-        )
-        SimpleProgressBar(
-            label="Videos with a subtitle file",
-            current_value=vids_with_subtitle.count(),
-            total=series.enabled_videos,
-        )
-        # solara.Markdown(
-        #     f"**{vids_with_audio.count() / series.enabled_videos:.2%}** videos have an 'audio' file"
-        # )
-        # solara.Markdown(
-        #     f"**{vids_with_image.count() / series.enabled_videos:.2%}** videos have an 'image' file"
-        # )
-        # solara.Markdown(
-        #     f"**{vids_with_video.count() / series.enabled_videos:.2%}** videos have an 'audio' file"
-        # )
-        solara.Button(
-            "Refresh Video Info",
-            on_click=lambda: refresh_info(series),
-        )
-
-        solara.Button(
-            "Download Missing Videos",
-            on_click=download_missing_videos,
-        ),
-        solara.Button(
-            "Extract Audio Files",
-            on_click=extract_audio,
-        )
 
 
 @solara.component

@@ -102,43 +102,12 @@ class BaseModel(Model):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class File(BaseModel):
-    path = CharField(null=True)
-
-    filename = CharField(unique=True)
-    extension = CharField(null=True)
-    file_type = CharField(null=True)
-    WORKING_PATH = config.get("PATHS", "UPLOAD")
-
-    def delete_poster(self):
-        poster = self.poster
-        if poster:
-            poster.delete_instance()
-            logger.debug(f"Deleted poster for channel {self.name}")
-            logger.debug(f"Path({poster.filename}).unlink()")
-
-    def delete_info(self):
-        info = self.info
-        if info:
-            info.delete_instance()
-            logger.debug(f"Deleted info for channel {self.name}")
-            logger.debug(f"Path({info.filename}).unlink()")
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Series(BaseModel):
     name = CharField(unique=True)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
 
     MEDIA_PATH = STORAGE / "series"
-    # @classmethod
-    # def get_or_create(cls, name, start_date=None, end_date=None):
-    #     existing = cls.get_or_none(cls.name == name)
-    #     if existing:
-    #         return existing
-    #     else:
-    #         return cls.create(name=name, start_date=start_date, end_date=end_date)
 
     @property
     def enabled_videos(self):
@@ -149,31 +118,13 @@ class Series(BaseModel):
         return self.videos.count()
 
     def add_file(self, filename, move_file=True):
-        logger.debug("In add_file for Series")
-        logger.debug(f"Filename: {filename}")
-        logger.debug(f"file exists? {Path(filename).exists()}")
-        file_type = get_file_type(filename)
         extension = "".join(Path(filename).suffixes)
-
-        final_name = self.MEDIA_PATH / (clean_filename(self.name) + extension)
-        logger.debug(f"Final Name = {final_name}")
-        if file_type == "poster" and self.poster is not None:
-            self.delete_poster()
-
-        f, created = SeriesFile.get_or_create(
-            path=final_name.parent,
-            filename=final_name.name,
-            file_type=file_type,
-            series=self,
-            extension=extension,
+        final_name = Path(self.MEDIA_PATH) / (
+            clean_filename(self.name.lower()) + extension
         )
-
-        if created:
-            if move_file:
-                my_move_file(filename, final_name)
-            else:
-                my_copy_file(filename, final_name)
-            logger.debug(f"Created new file: {f.filename}")
+        File.add_new_file(
+            source=filename, target=final_name, move_file=move_file, series=self
+        )
 
     def delete_poster(self):
         poster = self.poster
@@ -186,9 +137,9 @@ class Series(BaseModel):
     def poster(self):
         logger.debug(f"Getting poster for series {self.name}")
         p = (
-            SeriesFile.select()
-            .where(SeriesFile.file_type == "poster")
-            .where(SeriesFile.series_id == self.id)
+            File.select()
+            .where(File.file_type == "poster")
+            .where(File.series_id == self.id)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -234,32 +185,13 @@ class Channel(BaseModel):
         logger.debug(f"Finished updating channel {self.name}")
 
     def add_file(self, filename, move_file=True):
-        logger.debug("In add_file for Channels")
-        logger.debug(f"Filename: {filename}")
-        logger.debug(f"file exists? {Path(filename).exists()}")
-        file_type = get_file_type(filename)
         extension = "".join(Path(filename).suffixes)
-
-        final_name = self.MEDIA_PATH / (clean_filename(self.name) + extension)
-
-        logger.debug(f"Final Name = {final_name}")
-        if file_type == "poster" and self.poster is not None:
-            self.delete_poster()
-
-        f, created = ChannelFile.get_or_create(
-            path=final_name.parent,
-            filename=final_name.name,
-            file_type=file_type,
-            channel=self,
-            extension=extension,
+        final_name = Path(self.MEDIA_PATH) / (
+            clean_filename(self.name.lower()) + extension
         )
-
-        if created:
-            if move_file:
-                my_move_file(filename, final_name)
-            else:
-                my_copy_file(filename, final_name)
-            logger.debug(f"Created new file: {f.filename}")
+        File.add_new_file(
+            source=filename, target=final_name, move_file=move_file, channel=self
+        )
 
     def delete_poster(self):
         poster = self.poster
@@ -284,8 +216,7 @@ class Channel(BaseModel):
         if self.info is None:
             logger.error(f"No info file found for channel {self.name}")
             return
-        fn = Path(self.info.path) / self.info.filename
-        with open(fn, "r") as info_file:
+        with open(self.info.filename, "r") as info_file:
             info = json.load(info_file)
             self.name = info["channel"]
             self.url = info["webpage_url"]
@@ -300,9 +231,9 @@ class Channel(BaseModel):
     def poster(self):
         logger.debug(f"Getting poster for channel {self.name}")
         p = (
-            ChannelFile.select()
-            .where(ChannelFile.file_type == "poster")
-            .where(ChannelFile.channel_id == self.id)
+            File.select()
+            .where(File.file_type == "poster")
+            .where(File.channel_id == self.id)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -314,9 +245,9 @@ class Channel(BaseModel):
     def info(self):
         logger.debug(f"Getting info for channel {self.name}")
         i = (
-            ChannelFile.select()
-            .where(ChannelFile.file_type == "info")
-            .where(ChannelFile.channel_id == self.id)
+            File.select()
+            .where(File.file_type == "info")
+            .where(File.channel_id == self.id)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -325,23 +256,10 @@ class Channel(BaseModel):
         return None
 
 
-# ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-# class ChannelVideo(BaseModel):
-#     # This shouldn't be confused with regular videos
-#     # This is a list of videos that are on a channel
-#     # I will use this to figure out what videos are missing
-#     # they don't appear on a playlist
-#     youtube_id = CharField(unique=True)
-#     channel = ForeignKeyField(Channel, backref="channel_vids", null=True)
-
-
-class ChannelFile(File):
-
-    channel = ForeignKeyField(Channel, backref="files")
-
-
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Playlist(BaseModel):
+    MEDIA_PATH = STORAGE / "playlists"
+
     title = CharField(default="Untitled")
     url = CharField(unique=True, null=True)
     youtube_id = CharField(unique=True, null=True)
@@ -454,59 +372,14 @@ class Playlist(BaseModel):
 
             self.save()
 
-    def old_add_file(self, file, file_type=None):
-
-        new_path = STORAGE / "playlists" / (file.name)
-
-        new_file = my_move_file(file, new_path)
-        if new_file == "":
-            logger.error(f"Error moving file {file} to {new_path}")
-            return
-
-        existing = File.select().where(
-            (File.filename == new_file.name)
-            & (File.local_path == new_file.parent)
-            & (new_file.suffix == File.extension)
-        )
-        if existing:
-            return existing
-
-        if file_type is None:
-            file_type = get_file_type(new_file)
-
-        f = File.create(
-            path=new_file.parent,
-            filename=new_file.name,
-            extension=new_file.suffix,
-        )
-        PlaylistFile.create(file=f, playlist=self, file_type=file_type)
-
     def add_file(self, filename, move_file=True):
-        logger.debug("In add_file for Channels")
-        logger.debug(f"Filename: {filename}")
-        logger.debug(f"file exists? {Path(filename).exists()}")
-        file_type = get_file_type(filename)
         extension = "".join(Path(filename).suffixes)
-
-        final_name = STORAGE / "playlists" / (clean_filename(self.title) + extension)
-        logger.debug(f"Final Name = {final_name}")
-        if file_type == "poster" and self.poster is not None:
-            self.delete_poster()
-
-        f, created = PlaylistFile.get_or_create(
-            path=final_name.parent,
-            filename=final_name.name,
-            file_type=file_type,
-            playlist=self,
-            extension=extension,
+        final_name = Path(self.MEDIA_PATH) / (
+            clean_filename(self.title.lower()) + extension
         )
-
-        if created:
-            if move_file:
-                my_move_file(filename, final_name)
-            else:
-                my_copy_file(filename, final_name)
-            logger.debug(f"Created new file: {f.filename}")
+        File.add_new_file(
+            source=filename, target=final_name, move_file=move_file, playlist=self
+        )
 
     def delete_poster(self):
         poster = self.poster
@@ -523,9 +396,9 @@ class Playlist(BaseModel):
             s = self.title
         logger.debug(f"Getting poster for object {s}")
         p = (
-            PlaylistFile.select()
-            .where(PlaylistFile.file_type == "poster")
-            .where(PlaylistFile.playlist_id == self.id)
+            File.select()
+            .where(File.file_type == "poster")
+            .where(File.playlist_id == self.id)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -538,9 +411,9 @@ class Playlist(BaseModel):
     def info(self):
         logger.debug(f"Getting info file for playlist {self.title}")
         i = (
-            PlaylistFile.select()
-            .where(PlaylistFile.file_type == "info")
-            .where(PlaylistFile.playlist_id == self.id)
+            File.select()
+            .where(File.file_type == "info")
+            .where(File.playlist_id == self.id)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -550,7 +423,7 @@ class Playlist(BaseModel):
 
     @property
     def has_poster(self):
-        return self.files.where(PlaylistFile.file_type == "image").count() > 0
+        pass
 
     def __repr__(self):
         return f"Playlist({self.title=})"
@@ -574,6 +447,8 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
+
+    MEDIA_PATH = STORAGE / "videos"
 
     @classmethod
     def create_from_yt_id(
@@ -665,31 +540,13 @@ class Video(BaseModel):
         return None
 
     def add_file(self, filename, move_file=True):
-        logger.debug("In add_file for Channels")
-        logger.debug(f"Filename: {filename}")
-        logger.debug(f"file exists? {Path(filename).exists()}")
-        file_type = get_file_type(filename)
         extension = "".join(Path(filename).suffixes)
-
-        final_name = STORAGE / "videos" / (clean_filename(self.youtube_id) + extension)
-        logger.debug(f"Final Name = {final_name}")
-        if file_type == "poster" and self.poster is not None:
-            self.delete_poster()
-
-        f, created = VideoFile.get_or_create(
-            path=final_name.parent,
-            filename=final_name.name,
-            file_type=file_type,
-            video=self,
-            extension=extension,
+        final_name = Path(self.MEDIA_PATH) / (
+            clean_filename(self.file_stem) + extension
         )
-
-        if created:
-            if move_file:
-                my_move_file(filename, final_name)
-            else:
-                my_copy_file(filename, final_name)
-            logger.debug(f"Created new file: {f.filename}")
+        File.add_new_file(
+            source=filename, target=final_name, move_file=move_file, video=self
+        )
 
     def delete_poster(self):
         poster = self.poster
@@ -706,9 +563,9 @@ class Video(BaseModel):
             s = self.title
         logger.debug(f"Getting poster for object {s}")
         p = (
-            VideoFile.select()
-            .where(VideoFile.file_type == "poster")
-            .where(VideoFile.video_id == self.id)
+            File.select()
+            .where(File.file_type == "poster")
+            .where(File.video_id == self.id)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -721,9 +578,9 @@ class Video(BaseModel):
     def info(self):
         logger.debug(f"Getting info file for playlist {self.title}")
         i = (
-            VideoFile.select()
-            .where(VideoFile.file_type == "info")
-            .where(VideoFile.playlist_id == self.id)
+            File.select()
+            .where(File.file_type == "info")
+            .where(File.video == self)
             .get_or_none()
         )
         # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
@@ -733,12 +590,12 @@ class Video(BaseModel):
 
     def download_missing_files(self):
 
-        download_path = config.get("PATHS", "DOWNLOAD")
-        media_path = config.get("PATHS", "MEDIA")
+        download_path = WORKING / "downloads"
+        media_path = STORAGE / "videos"
 
         thumbnail = self.poster is None
-        subtitle = not self.has_subtitle
-        info = not self.has_info
+        subtitle = True
+        info = True
 
         if not (thumbnail or subtitle or info):
             # logger.debug("All files already downloaded")
@@ -801,12 +658,13 @@ class Video(BaseModel):
         if not self.has_video:
             logger.error(f"No video file found for {self.title}")
             return
-
-        video_file = (
-            VideoFile.select(File)
-            .join(File)
-            .where((VideoFile.video_id == self.id) & (VideoFile.file_type == "video"))
-        ).get()
+        logger.error(f"Need to redo query before this function will work again.")
+        return
+        # video_file = (
+        #     VideoFile.select(File)
+        #     .join(File)
+        #     .where((VideoFile.video_id == self.id) & (VideoFile.file_type == "video"))
+        # ).get()
         path = Path(video_file.file.path)
         vf = path / video_file.file.filename
         af = path / f"{self.upload_date_str}___{self.youtube_id}.mp3"
@@ -847,7 +705,7 @@ class Video(BaseModel):
     def has_(self, file_type=""):
         if file_type == "":
             raise ValueError("file_type cannot be empty")
-        return self.files.where(VideoFile.file_type == file_type).count() > 0
+        return self.files.where(File.file_type == file_type).count() > 0
 
     @property
     def file_path(self):
@@ -859,19 +717,23 @@ class Video(BaseModel):
 
     @property
     def has_audio(self):
-        return self.files.where(VideoFile.file_type == "audio").count() > 0
+        return self.files.where(File.file_type == "audio").count() > 0
 
     @property
     def has_subtitle(self):
-        return self.files.where(VideoFile.file_type == "subtitle").count() > 0
+        return self.files.where(File.file_type == "subtitle").count() > 0
 
     @property
     def has_info(self):
-        return self.files.where(VideoFile.file_type == "info").count() > 0
+        return self.files.where(File.file_type == "info").count() > 0
 
     @property
     def upload_date_str(self):
         return self.upload_date.strftime("%Y%m%d")
+
+    @property
+    def file_stem(self):
+        return f"{self.youtube_id}".lower()
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -985,52 +847,6 @@ class PlaylistAlbum(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class TrackFile(BaseModel):
-    file = ForeignKeyField(File, backref="tracks")
-    track = ForeignKeyField(Track, backref="files")
-    file_type = CharField(null=True)  # should probably be an enum
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("file", "track"), True),
-        )
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class ArtistFile(BaseModel):
-    file = ForeignKeyField(File, backref="artists")
-    artist = ForeignKeyField(Artist, backref="files")
-    file_type = CharField(null=True)  # should probably be an enum
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("file", "artist"), True),
-        )
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class AlbumFile(BaseModel):
-    file = ForeignKeyField(File, backref="albums")
-    album = ForeignKeyField(Artist, backref="files")
-    file_type = CharField(null=True)  # should probably be an enum
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("file", "album"), True),
-        )
-
-
-# ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-# class ChannelFile(BaseModel):
-#     file = ForeignKeyField(File, backref="channels")
-#     channel = ForeignKeyField(Channel, backref="files")
-#     file_type = CharField(null=True)  # should probably be an enum
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class User(BaseModel):
     username = CharField(max_length=80)
     email = CharField(max_length=120)
@@ -1086,30 +902,85 @@ class Post(BaseModel):
 #             )
 
 
-def create_video_file_associations():
-    videos = Video.select()
-    for vid in videos:
-        files = File.select().where(File.filename.contains(vid.youtube_id))
-        for file in files:
-            VideoFile.create(file=file, video=vid, file_type=get_file_type(file))
+# def create_video_file_associations():
+#     videos = Video.select()
+#     for vid in videos:
+#         files = File.select().where(File.filename.contains(vid.youtube_id))
+#         for file in files:
+#             VideoFile.create(file=file, video=vid, file_type=get_file_type(file))
 
 
-# if __name__ == "__main__":
-#     print("still works")
-# #     # add_files_to_db()
-# #     #create_video_file_associations()
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class File(BaseModel):
+    path = CharField(null=True)
 
+    filename = CharField()
+    extension = CharField(null=True)
+    file_type = CharField(null=True)
+    WORKING_PATH = WORKING / "uploads"
+    channel = ForeignKeyField(Channel, backref="files", null=True)
+    series = ForeignKeyField(Series, backref="files", null=True)
+    playlist = ForeignKeyField(Playlist, backref="files", null=True)
+    video = ForeignKeyField(Video, backref="files", null=True)
 
-class PlaylistFile(File):
+    @classmethod
+    def add_new_file(cls, source, target, move_file=True, **kwargs):
 
-    playlist = ForeignKeyField(Playlist, backref="files")
+        file_type = get_file_type(source)
+        extension = "".join(Path(source).suffixes)
+        fname = target.stem
+        if fname.endswith(".info"):
+            fname = fname.replace(".info", "")
+        elif fname.endswith(".en"):
+            fname = fname.replace(".en", "")
 
+        logger.debug(f"Final Name = {fname}")
+        # if file_type == "poster" and cls.poster is not None:
+        #     cls.delete_poster()
 
-class VideoFile(File):
+        f, created = cls.get_or_create(
+            path=target.parent,
+            filename=fname,
+            file_type=file_type,
+            extension=extension,
+        )
 
-    video = ForeignKeyField(Video, backref="files")
+        if "series" in kwargs:
+            f.series = kwargs["series"]
 
+        if "channel" in kwargs:
+            f.channel = kwargs["channel"]
 
-class SeriesFile(File):
+        if "playlist" in kwargs:
+            f.playlist = kwargs["playlist"]
 
-    series = ForeignKeyField(Series, backref="files")
+        if "video" in kwargs:
+            f.video = kwargs["video"]
+
+        f.save()
+
+        if created:
+            if move_file:
+                my_move_file(source, target)
+            else:
+                my_copy_file(source, target)
+            logger.debug(f"Created new file: {f.filename}")
+
+    @classmethod
+    def get_file_model(cls):
+        logger.debug(f"Getting file model for {cls.__name__}")
+        return cls.__name__
+
+    def delete_poster(self):
+        poster = self.poster
+        if poster:
+            poster.delete_instance()
+            logger.debug(f"Deleted poster for channel {self.name}")
+            logger.debug(f"Path({poster.filename}).unlink()")
+
+    def delete_info(self):
+        info = self.info
+        if info:
+            info.delete_instance()
+            logger.debug(f"Deleted info for channel {self.name}")
+            logger.debug(f"Path({info.filename}).unlink()")

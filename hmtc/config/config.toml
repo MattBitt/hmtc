@@ -18,7 +18,7 @@ working = "/workspace/working"
 
 [database]
 name = "HMTCproduction"
-host = "192.168.0.202"
+host = "192.168.0.202vcx"
 user = "postgres"
 password = "postgres"
 port = 5432

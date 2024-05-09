@@ -6,15 +6,15 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    # flask requires SIGINT to stop gracefully
-    # (default stop signal from Compose is SIGTERM)
+      target: app-stage
     stop_signal: SIGINT 
     ports:
       - 8765:8765
     volumes:
       - .:/workspace:cached
-      - ~/apps/data_for_development/hmtc/staging/storage:/workspace/storage
-      - ~/apps/data_for_development/hmtc/staging/working:/workspace/working
+      - ~/apps/data_for_development/hmtc/staging/storage:/app/storage
+      - ~/apps/data_for_development/hmtc/staging/working:/app/working
+      - ~/apps/data_for_development/hmtc/staging/logs:/app/logs
     environment:
       - HMTC_ENV=staging
       - HMTC_CONFIG_PATH=/app/hmtc/hmtc/config

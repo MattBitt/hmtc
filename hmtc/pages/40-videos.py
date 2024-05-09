@@ -140,7 +140,9 @@ def VideoDetail(video, router):
         solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
 
         if video.poster:
-            img = Path(video.poster.path) / video.poster.filename
+            img = Path(video.poster.path) / (
+                video.poster.filename + video.poster.extension
+            )
             solara.Image(img, width="400px")
         with solara.Column():
 

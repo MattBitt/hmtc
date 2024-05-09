@@ -44,6 +44,7 @@ def copy_initial_files():
 
 @pytest.fixture(scope="function", autouse=True)
 def db():
+    logger.debug("DB Fixture init")
     db_instance = init_db(db_null, config)
     try:
         create_tables(db_instance)
@@ -51,6 +52,7 @@ def db():
         logger.error(e)
     yield (db_instance, config)
     drop_tables(db_instance)
+    logger.debug("DB Fixture Finish 🎈🎈🎈")
 
 
 @pytest.fixture(scope="session")
@@ -72,3 +74,14 @@ def test_image_filename():
 
     my_copy_file(img, TARGET_PATH)
     return TARGET_PATH / img.name
+
+
+@pytest.fixture(scope="function")
+def test_video_filename(test_files):
+    vid_file = [x for x in test_files if x.suffix in [".mp4", ".mkv"]][0]
+
+    if not TARGET_PATH.exists():
+        TARGET_PATH.mkdir()
+
+    my_copy_file(vid_file, TARGET_PATH)
+    return TARGET_PATH / vid_file.name

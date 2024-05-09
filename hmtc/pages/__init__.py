@@ -10,7 +10,7 @@ from hmtc.config import init_config
 from hmtc.db import create_tables, init_db, is_db_empty
 from hmtc.models import db_null
 
-# from hmtc.utils.general import check_folder_exist_and_writable
+from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
@@ -19,9 +19,16 @@ config = init_config()
 def setup_folders():
     working_folder = Path(config["paths"]["working"])
     storage_folder = Path(config["paths"]["storage"])
-
-    # check_folder_exist_and_writable(working_folder)
-    # check_folder_exist_and_writable(storage_folder)
+    wfs = ["uploads", "downloads", "temp"]
+    sfs = ["channels", "playlists", "series", "videos"]
+    for folder in wfs:
+        path = Path(working_folder) / folder
+        path.mkdir(exist_ok=True)
+        check_folder_exist_and_writable(path)
+    for folder in sfs:
+        path = Path(storage_folder) / folder
+        path.mkdir(exist_ok=True)
+        check_folder_exist_and_writable(path)
 
 
 def setup():

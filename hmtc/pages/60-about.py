@@ -6,7 +6,7 @@ from loguru import logger
 from solara.lab import task
 
 from hmtc.config import init_config
-from hmtc.models import Video, VideoFile
+from hmtc.models import Video
 
 # This is where the version is set for now.
 # this ensures that whatever is running
@@ -21,6 +21,8 @@ updating = solara.reactive(False)
 
 
 def disabled_videos_with_files():
+    logger.error("This function is disabled")
+    return
     query = (
         Video.select()
         .join(VideoFile)

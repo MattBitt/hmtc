@@ -14,9 +14,8 @@ RUN /root/.cargo/bin/uv venv /opt/venv && \
     /root/.cargo/bin/uv pip install --no-cache -r requirements.txt && \
     /root/.cargo/bin/uv pip install --no-cache psycopg2
 # App image
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim-bookworm as app-stage
 COPY --from=build /opt/venv /opt/venv
-
 
 WORKDIR /app/hmtc
 COPY . .

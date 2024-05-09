@@ -146,6 +146,11 @@ def ChannelCard(channel):
         with solara.Card():
             if updating.value is False:
                 solara.Markdown(channel.name)
+                if channel.poster is not None:
+                    img = Path(channel.poster.path) / (
+                        channel.poster.filename + channel.poster.extension
+                    )
+                    solara.Image(img, width="300px")
                 solara.Markdown(f"URL: {channel.url}")
                 solara.Markdown(f"Last Updated: {time_since_update(channel)}")
                 solara.Markdown(f"Enabled: {channel.enabled}")

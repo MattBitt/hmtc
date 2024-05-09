@@ -7,7 +7,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import import_existing_video_files_to_db
-from hmtc.models import File, Video, VideoFile
+from hmtc.models import File, Video
 
 config = init_config()
 
@@ -51,8 +51,8 @@ def FileTypesCard(db, folder):
 def DBversusFileCards(db_files, folder_files):
     db_files_list = {Path(file.local_path, file.filename) for file in db_files}
     folder_files_list = {file for file in folder_files}
-
-    video_files = Video.select().join(VideoFile).join(File).distinct()
+    logger.error("This function is disabled")
+    # video_files = Video.select().join(VideoFile).join(File).distinct()
 
     def missing_files():
         # i don't think order matters here
