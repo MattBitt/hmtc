@@ -12,7 +12,7 @@ clean_downloads = false
 
 [paths]
 storage="/workspace/storageasdf"
-working="/workspace/workingfdsa"
+working="/workspace/working"
 logs="/workspace/logsqwer"
 
 [database]

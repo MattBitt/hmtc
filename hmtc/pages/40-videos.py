@@ -7,8 +7,6 @@ from hmtc.components.single_select import SingleSelect
 from hmtc.models import Playlist, Series, Video
 from hmtc.config import init_config
 
-all_languages = "Python C++ Java JavaScript TypeScript BASIC".split()
-languages = solara.reactive([all_languages[0]])
 
 all_series = [s.name for s in Series.select()]
 selected_series = solara.reactive(all_series)
@@ -41,7 +39,7 @@ def VideoCard(video):
             solara.Markdown(f"**Files**: {video.files.count()}")
             solara.Markdown(f"**Duration**: {video.duration}")
         with solara.CardActions():
-            with solara.Link(f"/videos/{video.id}"):
+            with solara.Link(f"/video-detail/{video.id}"):
                 solara.Button("Edit")
             solara.Button("Delete")
 
@@ -135,92 +133,32 @@ def get_sort_method():
 
 
 @solara.component
-def VideoDetail(video, router):
-    with solara.Card(video.title):
-        solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
-
-        if video.poster:
-            img = Path(video.poster.path) / (
-                video.poster.filename + video.poster.extension
-            )
-            solara.Image(img, width="400px")
-        with solara.Column():
-
-            solara.Markdown(f"**Sections**: {video.sections.count()}")
-            solara.Markdown(f"**Files**: {video.files.count()}")
-
-            solara.Markdown(f"**Duration**: {video.duration}")
-            solara.Button("Refresh Video Info", on_click=lambda: video.update_from_yt())
-            solara.Button(
-                "Download Video File", on_click=lambda: video.download_video()
-            )
-            solara.Button("Extract Audio", on_click=lambda: video.extract_audio())
-
-        solara.Markdown("## Files")
-        for vf in video.files:
-            with solara.Column():
-                solara.Markdown(f"**File**: {vf.filename}")
-        with solara.CardActions():
-
-            solara.Button("Back to Videos", on_click=lambda: router.push("/videos"))
-
-
-@solara.component
 def Page():
-    router = solara.use_router()
-    level = solara.use_route_level()
 
-    if router.parts[-1] == "videos":
-        # this sql will return all videos that have more than 1 section
-        # SELECT video.*, (SELECT COUNT(*) FROM section WHERE section.video_id = video.id) AS TOT FROM video where TOT > 1;
-        SeriesFilterCard()
-        PlaylistFilterCard()
-        ShowDisabledVideos()
-        with solara.ColumnsResponsive(12, large=4):
+    # this sql will return all videos that have more than 1 section
+    # SELECT video.*, (SELECT COUNT(*) FROM section WHERE section.video_id = video.id) AS TOT FROM video where TOT > 1;
+    SeriesFilterCard()
+    PlaylistFilterCard()
+    ShowDisabledVideos()
+    with solara.ColumnsResponsive(12, large=4):
 
-            TitleTextFilter()
-            SortToolBar()
+        TitleTextFilter()
+        SortToolBar()
 
-        # query = (
-        #     Video.select()
-        #     .join(PlaylistVideo)
-        #     .join(Playlist)
-        #     .join(Series)
-        #     .switch(Video)
-        #     .where(Series.name.in_(selected_series.value))
-        #     .where(
-        #         (Playlist.name.in_(selected_playlist.value))
-        #         & (Playlist.series == Series.id)
-        #     )
-        # )
-        query = Video.select()
-        # if not disabled_videos.value:
-        #     query = query.where(Video.enabled == True)
+    query = Video.select()
 
-        if title_query.value:
-            query = query.where(Video.title.contains(title_query.value))
+    if title_query.value:
+        query = query.where(Video.title.contains(title_query.value))
 
-        solara.Markdown(f"## Total: {query.count()} videos found.")
+    solara.Markdown(f"## Total: {query.count()} videos found.")
 
-        query = query.order_by(get_sort_method())
+    query = query.order_by(get_sort_method())
 
-        num_pages.set(query.count() // per_page.value + 1)
-        if current_page.value > num_pages.value:
-            current_page.set(1)
-        with solara.ColumnsResponsive(12, large=4):
-            for video in query.paginate(current_page.value, per_page.value):
-                VideoCard(video)
+    num_pages.set(query.count() // per_page.value + 1)
+    if current_page.value > num_pages.value:
+        current_page.set(1)
+    with solara.ColumnsResponsive(12, large=4):
+        for video in query.paginate(current_page.value, per_page.value):
+            VideoCard(video)
 
-        PaginationControls()
-
-    else:
-
-        video_id = router.parts[level:][0]
-        if video_id.isdigit():
-            vid = Video.get(id=video_id)
-            if vid is None:
-                solara.Markdown(f"Video with id {video_id} not found")
-            else:
-                VideoDetail(vid, router)
-        else:
-            solara.Markdown(f"Video Id not understood {video_id}")
+    PaginationControls()

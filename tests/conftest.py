@@ -69,9 +69,6 @@ def test_image_filename():
 
     img = [x for x in SOURCE_PATH.glob("*.png")][0]
 
-    if not TARGET_PATH.exists():
-        TARGET_PATH.mkdir()
-
     my_copy_file(img, TARGET_PATH)
     return TARGET_PATH / img.name
 
@@ -79,9 +76,6 @@ def test_image_filename():
 @pytest.fixture(scope="function")
 def test_video_filename(test_files):
     vid_file = [x for x in test_files if x.suffix in [".mp4", ".mkv"]][0]
-
-    if not TARGET_PATH.exists():
-        TARGET_PATH.mkdir()
 
     my_copy_file(vid_file, TARGET_PATH)
     return TARGET_PATH / vid_file.name

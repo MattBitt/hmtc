@@ -8,14 +8,14 @@ import time
 from utils.tasks import long_task2
 
 app = Flask(__name__)
-# app.register_blueprint(solara.server.flask.blueprint, url_prefix="/solara/")
+app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")
 redis = Redis(host="127.0.0.1", port=6379)
 q = Queue(connection=conn)
 
 url = "asdf"
 
 
-@app.route("/")
+@app.route("/hellow")
 def hello_world():
 
     return "Hi Earth"

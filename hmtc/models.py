@@ -317,6 +317,8 @@ class Playlist(BaseModel):
 
             return None
 
+        logger.error("This function can't work anymore.... need to fix")
+        return
         download_path = config.get("PATHS", "DOWNLOAD")
         media_path = config.get("PATHS", "MEDIA")
         playlist_info, files = download_playlist_info_from_id(
@@ -497,21 +499,16 @@ class Video(BaseModel):
     ):
 
         download_path = WORKING / "downloads"
-        media_path = STORAGE / "videos"
 
         video_info, files = download_video_info_from_id(
             youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
         )
+
         if video_info["error"] or files is None:
             logger.error(f"{video_info['error_info']}")
             return None, None
-        else:
-            new_path = Path(Path(media_path) / video_info["upload_date"][0:4])
-            if not new_path.exists():
-                new_path.mkdir(parents=True, exist_ok=True)
 
-            # video_info["file_path"] = new_path
-            return video_info, files
+        return video_info, files
 
     def create_initial_section(self):
         if not self.sections:
@@ -709,7 +706,7 @@ class Video(BaseModel):
 
     @property
     def file_path(self):
-        return STORAGE / "videos" / self.upload_date_str[:4]
+        return STORAGE / "videos"
 
     @property
     def has_video(self):
