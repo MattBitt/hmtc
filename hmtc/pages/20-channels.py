@@ -113,8 +113,7 @@ def ChannelDetail(channel_id, uploaded_new_file):
         solara.InputText(label="URL", value=url, continuous_update=False)
         if channel and channel.poster:
             solara.Markdown(f"Poster: {channel.poster.filename}")
-            img = Path(channel.poster.path) / channel.poster.filename
-            solara.Image(image=img, width="50%")
+            solara.Image(image=channel.poster, width="50%")
 
         FileDropCard(on_file=import_file)
         solara.Checkbox(label="Enabled", value=enabled)
@@ -147,10 +146,7 @@ def ChannelCard(channel):
             if updating.value is False:
                 solara.Markdown(channel.name)
                 if channel.poster is not None:
-                    img = Path(channel.poster.path) / (
-                        channel.poster.filename + channel.poster.extension
-                    )
-                    solara.Image(img, width="300px")
+                    solara.Image(channel.poster, width="300px")
                 solara.Markdown(f"URL: {channel.url}")
                 solara.Markdown(f"Last Updated: {time_since_update(channel)}")
                 solara.Markdown(f"Enabled: {channel.enabled}")

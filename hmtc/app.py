@@ -1,11 +1,10 @@
-from flask import Flask
 import solara.server.flask
+from flask import Flask
 from redis import Redis
 from rq import Queue
 from rq.job import Job
-from worker import conn
-import time
 from utils.tasks import long_task2
+from worker import conn
 
 app = Flask(__name__)
 app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")

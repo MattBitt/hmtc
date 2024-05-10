@@ -2,10 +2,8 @@ from pathlib import Path
 
 import solara
 
-from hmtc.components.multi_select import MultiSelect
-from hmtc.components.single_select import SingleSelect
-from hmtc.models import Playlist, Series, Video
 from hmtc.config import init_config
+from hmtc.models import Playlist, Series, Video
 
 all_series = [s.name for s in Series.select()]
 selected_series = solara.reactive(all_series)
@@ -35,10 +33,7 @@ def VideoDetail(video, router):
         solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
 
         if video.poster:
-            img = Path(video.poster.path) / (
-                video.poster.filename + video.poster.extension
-            )
-            solara.Image(img, width="400px")
+            solara.Image(video.poster, width="400px")
         with solara.Column():
 
             solara.Markdown(f"**Sections**: {video.sections.count()}")

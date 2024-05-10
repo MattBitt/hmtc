@@ -1,12 +1,11 @@
-import time
 from pathlib import Path
+
 import peewee
 import solara
 import solara.lab
 from loguru import logger
 
-from hmtc.components.progress_slider import SimpleProgressBar
-from hmtc.models import File, Series, Video
+from hmtc.models import Series, Video
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")
@@ -40,10 +39,7 @@ def SeriesCard(series):
     with solara.Card():
         solara.Markdown(f"# {series.name}")
         if series.poster is not None:
-            img = Path(series.poster.path) / (
-                series.poster.filename + series.poster.extension
-            )
-            solara.Image(img, width="400px")
+            solara.Image(series.poster, width="400px")
         solara.Markdown(f"* {series.enabled_videos} (enabled) sources")
         solara.Markdown(f"* {series.total_videos - series.enabled_videos} (disabled)")
         solara.Markdown(f"* {series.start_date} to {series.end_date}")

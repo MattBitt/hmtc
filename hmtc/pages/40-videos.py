@@ -1,12 +1,9 @@
-from pathlib import Path
-
 import solara
 
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
-from hmtc.models import Playlist, Series, Video
 from hmtc.config import init_config
-
+from hmtc.models import Playlist, Series, Video
 
 all_series = [s.name for s in Series.select()]
 selected_series = solara.reactive(all_series)

@@ -1,13 +1,7 @@
 # from sqlalchemy.ext.associationproxy import association_proxy
 from db import Base
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,  # type ignore
-    Integer,
-    String,
-)
+from sqlalchemy import ForeignKey  # type ignore
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

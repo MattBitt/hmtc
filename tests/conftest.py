@@ -7,13 +7,11 @@ from pathlib import Path
 import pytest
 from loguru import logger
 
-
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import db_null
 from hmtc.utils.general import my_copy_file
 from hmtc.utils.my_logging import setup_logging
-
 
 config = init_config()
 
@@ -30,7 +28,7 @@ TARGET_PATH.mkdir(exist_ok=True)
 
 def copy_initial_files():
     if SOURCE_PATH.exists():
-        logger.debug(f"Removing files from SOURCE_PATH before copying new ones.")
+        logger.debug("Removing files from SOURCE_PATH before copying new ones.")
         for file in SOURCE_PATH.glob("*"):
             file.unlink()
 

@@ -1,6 +1,7 @@
 import os
 import tomllib
 from pathlib import Path
+
 from loguru import logger
 
 CONFIG = os.environ.get("HMTC_CONFIG_PATH", "/workspace/working")

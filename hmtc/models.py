@@ -19,7 +19,7 @@ from peewee import (
 )
 
 from hmtc.config import init_config
-from hmtc.utils.general import my_move_file, my_copy_file, clean_filename
+from hmtc.utils.general import clean_filename, my_copy_file, my_move_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.youtube_functions import (
     download_media_files,
@@ -93,6 +93,37 @@ class BaseModel(Model):
         self.save()
         return None
 
+    def _poster(self, id):
+        match type(self).__name__:
+            case "Channel":
+                return (
+                    File.select()
+                    .where(File.file_type == "poster")
+                    .where(File.channel_id == id)
+                    .get_or_none()
+                )
+            case "Playlist":
+                return (
+                    File.select()
+                    .where(File.file_type == "poster")
+                    .where(File.playlist_id == id)
+                    .get_or_none()
+                )
+            case "Video":
+                return (
+                    File.select()
+                    .where(File.file_type == "poster")
+                    .where(File.video_id == id)
+                    .get_or_none()
+                )
+            case "Series":
+                return (
+                    File.select()
+                    .where(File.file_type == "poster")
+                    .where(File.series_id == id)
+                    .get_or_none()
+                )
+
     @classmethod
     def active(cls):
         return cls.select().where(cls.deleted_at.is_null()).distinct()
@@ -103,19 +134,11 @@ class BaseModel(Model):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Series(BaseModel):
+    MEDIA_PATH = STORAGE / "series"
+
     name = CharField(unique=True)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
-
-    MEDIA_PATH = STORAGE / "series"
-
-    @property
-    def enabled_videos(self):
-        return self.videos.where(Video.enabled == True).count()
-
-    @property
-    def total_videos(self):
-        return self.videos.count()
 
     def add_file(self, filename, move_file=True):
         extension = "".join(Path(filename).suffixes)
@@ -126,30 +149,27 @@ class Series(BaseModel):
             source=filename, target=final_name, move_file=move_file, series=self
         )
 
-    def delete_poster(self):
-        poster = self.poster
-        if poster:
-            poster.delete_instance()
-            logger.debug(f"Deleted poster for channel {self.name}")
-            logger.debug(f"Path({poster.filename}).unlink()")
-
     @property
     def poster(self):
         logger.debug(f"Getting poster for series {self.name}")
-        p = (
-            File.select()
-            .where(File.file_type == "poster")
-            .where(File.series_id == self.id)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
+        p = self._poster(self.id)
         if p:
-            return p
+            return p.file_string
         return None
+
+    @property
+    def enabled_videos(self):
+        return self.videos.where(Video.enabled == True).count()
+
+    @property
+    def total_videos(self):
+        return self.videos.count()
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Album(BaseModel):
+    MEDIA_PATH = STORAGE / "albums"
+
     name = CharField(unique=True)
     release_date = DateField(null=True)
     series = ForeignKeyField(Series, backref="albums", null=True)
@@ -157,14 +177,11 @@ class Album(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Channel(BaseModel):
-
-    from hmtc.config import init_config
-
     MEDIA_PATH = STORAGE / "channels"
+
     name = CharField(unique=True)
     url = CharField(unique=True)
     youtube_id = CharField(unique=True)
-
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
 
@@ -230,15 +247,9 @@ class Channel(BaseModel):
     @property
     def poster(self):
         logger.debug(f"Getting poster for channel {self.name}")
-        p = (
-            File.select()
-            .where(File.file_type == "poster")
-            .where(File.channel_id == self.id)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
+        p = self._poster(self.id)
         if p:
-            return p
+            return p.file_string
         return None
 
     @property
@@ -392,21 +403,10 @@ class Playlist(BaseModel):
 
     @property
     def poster(self):
-        try:
-            s = self.name
-        except AttributeError:
-            s = self.title
-        logger.debug(f"Getting poster for object {s}")
-        p = (
-            File.select()
-            .where(File.file_type == "poster")
-            .where(File.playlist_id == self.id)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
+        logger.debug(f"Getting poster for playlist {self.title}")
+        p = self._poster(self.id)
         if p:
-            return p
-        logger.debug(f"No poster found for {s}")
+            return p.file_string
         return None
 
     @property
@@ -428,11 +428,13 @@ class Playlist(BaseModel):
         pass
 
     def __repr__(self):
-        return f"Playlist({self.title=})"
+        return f"Playlist({self.title})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
+    MEDIA_PATH = STORAGE / "videos"
+
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
     title = CharField(null=True)
@@ -440,17 +442,11 @@ class Video(BaseModel):
     upload_date = DateField(null=True)
     duration = IntegerField(null=True)
     description = TextField(null=True)
-
-    # file_path = CharField()  # should be a relative path
     enabled = BooleanField(default=True)
     private = BooleanField(default=False)
-    #    error = BooleanField(default=False)
-    #    error_info = CharField(null=True)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
-
-    MEDIA_PATH = STORAGE / "videos"
 
     @classmethod
     def create_from_yt_id(
@@ -554,21 +550,10 @@ class Video(BaseModel):
 
     @property
     def poster(self):
-        try:
-            s = self.name
-        except AttributeError:
-            s = self.title
-        logger.debug(f"Getting poster for object {s}")
-        p = (
-            File.select()
-            .where(File.file_type == "poster")
-            .where(File.video_id == self.id)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
+        logger.debug(f"Getting poster for video {self.title}")
+        p = self._poster(self.id)
         if p:
-            return p
-        logger.debug(f"No poster found for {s}")
+            return p.file_string
         return None
 
     @property
@@ -655,7 +640,7 @@ class Video(BaseModel):
         if not self.has_video:
             logger.error(f"No video file found for {self.title}")
             return
-        logger.error(f"Need to redo query before this function will work again.")
+        logger.error("Need to redo query before this function will work again.")
         return
         # video_file = (
         #     VideoFile.select(File)
@@ -981,3 +966,8 @@ class File(BaseModel):
             info.delete_instance()
             logger.debug(f"Deleted info for channel {self.name}")
             logger.debug(f"Path({info.filename}).unlink()")
+
+    @property
+    def file_string(self):
+        p = Path(self.path) / (self.filename + self.extension)
+        return str(p)

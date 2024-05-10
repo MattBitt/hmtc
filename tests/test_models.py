@@ -1,10 +1,11 @@
-import os
 from pathlib import Path
-import pytest
+
 import peewee
+import pytest
 from loguru import logger
+
 from hmtc.config import init_config
-from hmtc.models import Channel, Playlist, Series, Video, get_file_type, File
+from hmtc.models import Channel, File, Playlist, Series, Video, get_file_type
 
 config = init_config()
 
@@ -176,7 +177,7 @@ def test_add_info_to_channel_from_file(test_files):
 
 @pytest.mark.xfail
 def test_add_info_from_file_to_playlist_in_db(test_files):
-    logger.debug(f"Test Add Info From File to Playlist 🐣🐣🐣 init")
+    logger.debug("Test Add Info From File to Playlist 🐣🐣🐣 init")
     playlist_title = "Wordplay Wednesday"
     playlist_id = "PLtbrIhAJmrPAGLnngi0ZOTvNmuNt5uHJk"
     p, created = Playlist.get_or_create(title=playlist_title)
@@ -198,7 +199,7 @@ def test_add_info_from_file_to_playlist_in_db(test_files):
     p.load_from_info_file()
     assert p.playlist_count == 124
     assert p.title == playlist_title
-    logger.debug(f"Test Add Info From File to Playlist 🐣🐣🐣 finished")
+    logger.debug("Test Add Info From File to Playlist 🐣🐣🐣 finished")
 
 
 def test_add_poster_to_playlist(test_image_filename):

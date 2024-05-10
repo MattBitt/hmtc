@@ -46,26 +46,7 @@ def csv_to_dict(filename):
     return info
 
 
-def my_move_file(source, target):
-    logger.debug(f"Moving file {source} to {target}")
-    try:
-        s = Path(source)
-    except Exception as e:
-        s = source
-
-    t = target
-    result = s.rename(t)
-    return result
-
-    # except Exception as e:
-    #     logger.error(f"Error moving file: {e}")
-    #     return ""
-
-
 def my_copy_file(source, target):
-
-    if "Happy Hour" in target.name:
-        logger.debug(f"Copying file {source} to {target}")
 
     s = str(Path(source))
     t = str(Path(target))
@@ -75,6 +56,20 @@ def my_copy_file(source, target):
     # except Exception as e:
     #     logger.error(f"Error moving file: {e}")
     #     return ""
+
+
+def my_move_file(source, target):
+    logger.debug(f"Moving file {source} to {target}")
+    try:
+        s = Path(source)
+    except Exception:
+        s = source
+
+    t = target
+    my_copy_file(s, t)
+    s.unlink()
+
+    return t
 
 
 def save_file_to_disk(source, target):

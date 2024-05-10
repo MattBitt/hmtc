@@ -1,5 +1,6 @@
-import peewee
 from pathlib import Path
+
+import peewee
 import solara
 import solara.lab
 from loguru import logger
@@ -69,8 +70,7 @@ def PlaylistDetail(playlist_id):
     with solara.Card():
         solara.InputText(label="Name", value=name, continuous_update=False)
         if playlist.poster is not None:
-            img = Path(playlist.poster.path) / playlist.poster.filename
-            solara.Image(img, width="400px")
+            solara.Image(image=playlist.poster, width="400px")
         solara.InputText(label="URL", value=url, continuous_update=False)
         solara.Select(label="Series", value=series, values=all_series)
         solara.Select(label="Channel", value=channel, values=all_channels)
@@ -113,6 +113,8 @@ def PlaylistCard(playlist):
     with solara.Card():
         if updating.value is False:
             solara.Markdown(playlist.title)
+            if playlist.poster is not None:
+                solara.Image(playlist.poster, width="200px")
             solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
             solara.Markdown(f"Playlist_Count: {str(playlist.playlist_count)}")
             solara.Markdown(f"URL: {playlist.url}")

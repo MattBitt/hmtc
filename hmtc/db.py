@@ -2,9 +2,10 @@ import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from hmtc.config import init_config
+
 from loguru import logger
 
+from hmtc.config import init_config
 from hmtc.models import (
     Album,
     Artist,
@@ -26,7 +27,6 @@ from hmtc.models import (
     Video,
 )
 from hmtc.utils.general import csv_to_dict, get_youtube_id
-
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

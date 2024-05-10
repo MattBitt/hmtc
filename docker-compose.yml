@@ -9,15 +9,15 @@ services:
       target: app-stage
     stop_signal: SIGINT 
     ports:
-      - 8765:8765
+      - 8765:5000
     volumes:
       - .:/workspace:cached
-      - ~/apps/data_for_development/hmtc/staging/storage:/app/storage
-      - ~/apps/data_for_development/hmtc/staging/working:/app/working
-      - ~/apps/data_for_development/hmtc/staging/logs:/app/logs
+      - ~/apps/data_for_development/hmtc/staging/storage:/app/hmtc/storage
+      - ~/apps/data_for_development/hmtc/staging/working:/app/hmtc/working
+      - ~/apps/data_for_development/hmtc/staging/logs:/app/hmtc/logs
     environment:
       - HMTC_ENV=staging
-      - HMTC_CONFIG_PATH=/app/hmtc/hmtc/config
+      - HMTC_CONFIG_PATH=/app/hmtc/storage/config
 
   worker:
     image: hmtc-app
