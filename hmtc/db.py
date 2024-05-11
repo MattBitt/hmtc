@@ -16,7 +16,6 @@ from hmtc.models import (
     File,
     Playlist,
     PlaylistAlbum,
-    PlaylistVideo,
     Post,
     Section,
     Series,
@@ -42,6 +41,7 @@ def create_video_sections():
 
 
 def init_db(db, config):
+
     db.init(
         database=config["database"]["name"],
         user=config["database"]["user"],
@@ -123,6 +123,40 @@ def import_playlists():
             )
 
 
+def import_playlist_info():
+    with open(MEDIA_INFO / "playlists" / "playlists.json", "r") as f:
+        playlists_info = json.load(f)
+        for p in playlists_info:
+            plist = Playlist.get_or_none(title=p["title"])
+            series = Series.get_or_none(name=p["series_name"])
+
+            if plist:
+                if series:
+                    plist.series = series
+                plist.enabled = p["enabled"]
+                plist.album_per_episode = p["album_per_episode"]
+                plist.enable_video_downloads = p["enable_video_downloads"]
+                plist.contains_unique_content = p["contains_unique_content"]
+                plist.episode_number_template = p.get("episode_number_templates", "")
+                plist.save()
+            else:
+                logger.error(f"Playlist {p['title']} not found in db")
+
+
+def download_channel_videos():
+    logger.warning("Download List of Videos for channel. Please wait...")
+    channels = Channel.select().where(Channel.enabled == True)
+    for channel in channels:
+        channel.check_for_new_videos()
+
+
+def download_playlist_videos():
+    logger.warning("Download List of Videos for playlist. Please wait...")
+    playlists = Playlist.select().where(Playlist.enabled == True)
+    for playlist in playlists:
+        playlist.update_videos_with_playlist_info()
+
+
 def create_tables(db):
     db.create_tables(
         [
@@ -141,15 +175,15 @@ def create_tables(db):
             User,
             UserInfo,
             Post,
-            PlaylistVideo,
             PlaylistAlbum,
             Channel,
         ]
     )
-    if config["general"]["environment"] != "production":
-        import_channels()
-        import_series()
-        import_playlists()
+
+    import_channels()
+    import_series()
+    import_playlists()
+    import_playlist_info()
 
 
 def drop_tables(db):
@@ -170,7 +204,6 @@ def drop_tables(db):
             User,
             UserInfo,
             Post,
-            PlaylistVideo,
             PlaylistAlbum,
             Channel,
         ]

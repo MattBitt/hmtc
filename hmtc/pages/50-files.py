@@ -7,12 +7,12 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import import_existing_video_files_to_db
-from hmtc.models import File, Video
+from hmtc.models import File, Video, Series, Playlist, Channel
 
 config = init_config()
 
-STORAGE = Path(config.get("PATHS", "STORAGE"))
-WORKING = Path(config.get("PATHS", "WORKING"))
+STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["paths"]["working"])
 
 
 def count_types(files):
@@ -117,26 +117,83 @@ def extract_missing_audio():
             time.sleep(1)
 
 
+def get_folder_files(folder):
+    files = [x for x in list(folder.rglob("*")) if x.is_file()]
+    return files
+
+
+def get_series_files():
+    db_files = Series.select().join(File).where(File.series_id.is_null(False))
+    folder_files = get_folder_files(STORAGE / "series")
+    return db_files, folder_files
+
+
+def get_playlist_files():
+    db_files = Playlist.select().join(File).where(File.playlist_id.is_null(False))
+    folder_files = get_folder_files(STORAGE / "playlists")
+    return db_files, folder_files
+
+
+def get_channel_files():
+    db_files = Channel.select().join(File).where(File.channel_id.is_null(False))
+    folder_files = get_folder_files(STORAGE / "channels")
+    return db_files, folder_files
+
+
+def get_video_files():
+    db_files = Video.select().join(File).where(File.video_id.is_null(False))
+    folder_files = get_folder_files(STORAGE / "videos")
+    return db_files, folder_files
+
+
+def FileTypeInfoCard(ftype):
+    if ftype == "Series":
+        db_files, folder_files = get_series_files()
+    elif ftype == "Playlists":
+        db_files, folder_files = get_playlist_files()
+    elif ftype == "Channels":
+        db_files, folder_files = get_channel_files()
+    elif ftype == "Videos":
+        db_files, folder_files = get_video_files()
+    else:
+        db_files, folder_files = [], []
+
+    with solara.Card(title=ftype):
+        solara.Markdown(f"**{len(db_files)}** files in Database")
+        solara.Markdown(f"**{len(folder_files)}** files in Storage Folder")
+        solara.Markdown(f"End of Card")
+
+
+@solara.component
+def FileTypeCards():
+
+    ftypes = ["Series", "Playlists", "Channels", "Videos"]
+    for f in ftypes:
+        FileTypeInfoCard(f)
+
+
 @solara.component
 def Page():
-    db_files = File.select()
-
-    folder = STORAGE / "videos"
-    folder_files = [f for f in folder.rglob("*") if f.is_file()]
 
     def add_existing_files():
         import_existing_video_files_to_db(folder)
 
     with solara.ColumnsResponsive(12, large=4):
-        DBversusFileCards(db_files, folder_files)
+        FileTypeCards()
 
-        with solara.Card():
-            solara.Button("Add existing files to database", on_click=add_existing_files)
-            solara.Button(
-                "Download all missing videos", on_click=download_missing_videos
-            )
-        with solara.Card():
-            solara.Button(
-                "Extract all missing audio from downloaded videos",
-                on_click=extract_missing_audio,
-            )
+    with solara.Card():
+        solara.Button(
+            "Add existing files to database",
+            on_click=add_existing_files,
+            disabled=True,
+        )
+        solara.Button(
+            "Download all missing videos",
+            on_click=download_missing_videos,
+            disabled=True,
+        )
+        solara.Button(
+            "Extract all missing audio from downloaded videos",
+            on_click=extract_missing_audio,
+            disabled=True,
+        )

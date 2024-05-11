@@ -4,10 +4,11 @@ description = "Harry Mack Track Creator"
 
 [running]
 log_level = "DEBUG"
+download_on_init = true
 
 [general]
 environment="development"
-items_per_page = 9
+items_per_page = 6
 clean_downloads = false
 
 [paths]

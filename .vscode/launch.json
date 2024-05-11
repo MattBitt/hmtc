@@ -51,7 +51,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
-                "HMTC_ENV": "staging",
+                "HMTC_ENV": "development",
                 "HMTC_CONFIG_PATH": "${workspaceFolder}/hmtc/config",
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
             },

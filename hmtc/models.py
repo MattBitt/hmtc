@@ -210,13 +210,6 @@ class Channel(BaseModel):
             source=filename, target=final_name, move_file=move_file, channel=self
         )
 
-    def delete_poster(self):
-        poster = self.poster
-        if poster:
-            poster.delete_instance()
-            logger.debug(f"Deleted poster for channel {self.name}")
-            logger.debug(f"Path({poster.filename}).unlink()")
-
     def check_for_new_playlists(self):
         ids = fetch_ids_from(self.url + "/playlists")
         for youtube_id in ids:
@@ -279,10 +272,16 @@ class Playlist(BaseModel):
     album_per_episode = BooleanField(default=True)
     series = ForeignKeyField(Series, backref="playlists", null=True)
     channel = ForeignKeyField(Channel, backref="playlists", null=True)
-    add_videos_enabled = BooleanField(default=True)
-    playlist_count = IntegerField(default=0)
+    enable_video_downloads = BooleanField(default=True)
+    contains_unique_content = BooleanField(default=False)
+    # if it doesn't contain unique content, it should probably
+    # point to the original
+    # eg Omegle Bars Clip 91.4 should point to the original Omegle Bars Clip 91
+    # Omegle Bars Clip media would not be downloaded
 
     def load_info(self):
+        logger.error("Deprecated: Playlist.load_info")
+        return
         playlist_files = (MEDIA_INFO / "playlists").glob(f"*{self.youtube_id}*")
         for f in playlist_files:
             file_type = get_file_type(f)
@@ -299,7 +298,6 @@ class Playlist(BaseModel):
                         self.channel = ch
 
                     self.title = info["title"]
-                    self.playlist_count = int(info["playlist_count"])
                     self.url = info["webpage_url"]
                     self.save()
             elif file_type == "poster":
@@ -325,7 +323,7 @@ class Playlist(BaseModel):
     ):
 
         def download_playlist_info_from_id(*args, **kwargs):
-
+            logger.error("Deprecated download_playlist_info ... from_id")
             return None
 
         logger.error("This function can't work anymore.... need to fix")
@@ -346,25 +344,34 @@ class Playlist(BaseModel):
             playlist_info["file_path"] = new_path
             return playlist_info, files
 
-    def check_for_new_videos(self):
-
+    def get_video_list_from_yt(self):
         download_path = WORKING / "downloads"
+        ids = fetch_ids_from(self.url, download_path)
+        return ids
 
+    def update_videos_with_playlist_info(self):
         # download list of videos from youtube
         # as a list of youtube ids as strings "example abCdgeseg12"
-        ids = fetch_ids_from(self.url, download_path)
+        # also create any videos that don't exist
+        # what about videos from other channels?
+        # not going to track that yet. maybe one day.
+        ids = self.get_video_list_from_yt()
+
         logger.debug(f"Found {len(ids)} videos in playlist {self.title}")
+
         for youtube_id in ids:
             if youtube_id == "":
                 logger.error("No youtube ID")
-            vid = Video.create_from_yt_id(
-                youtube_id=youtube_id,
-                series=self.series,
-                playlist=self,
-                enabled=self.add_videos_enabled,
-            )
-            if vid:
-                vid.update_episode_number(vid.title, self.episode_number_templates)
+            else:
+                vid, created = Video.get_or_create(
+                    youtube_id=youtube_id,
+                )
+                if vid:
+                    vid.playlist = self
+                    if vid.playlist.series:
+                        vid.series = vid.playlist.series
+                    vid.enabled = self.enable_video_downloads
+                    vid.save()
 
         # once finished updating the playlist, update the last_updated field
         self.last_update_completed = datetime.now()
@@ -372,6 +379,8 @@ class Playlist(BaseModel):
         logger.success(f"Finished updating playlist {self.title}")
 
     def load_from_info_file(self):
+        logger.error("I think this function is disabled too")
+        return
         if self.info is None:
             logger.error(f"No info file found for channel {self.name}")
             return
@@ -381,8 +390,6 @@ class Playlist(BaseModel):
             self.title = info["title"]
             self.url = info["webpage_url"]
             self.youtube_id = info["id"]
-            self.playlist_count = info["playlist_count"]
-
             self.save()
 
     def add_file(self, filename, move_file=True):
@@ -393,13 +400,6 @@ class Playlist(BaseModel):
         File.add_new_file(
             source=filename, target=final_name, move_file=move_file, playlist=self
         )
-
-    def delete_poster(self):
-        poster = self.poster
-        if poster:
-            poster.delete_instance()
-            logger.debug(f"Deleted poster for playlist {self.title}")
-            logger.debug(f"Path({poster.filename}).unlink()")
 
     @property
     def poster(self):
@@ -425,7 +425,8 @@ class Playlist(BaseModel):
 
     @property
     def has_poster(self):
-        pass
+        logger.error("I think this function is disabled too")
+        return
 
     def __repr__(self):
         return f"Playlist({self.title})"
@@ -450,7 +451,7 @@ class Video(BaseModel):
 
     @classmethod
     def create_from_yt_id(
-        cls, youtube_id=None, channel=None, series=None, playlist=None, enabled=None
+        cls, youtube_id=None, channel=None, series=None, playlist=None, enabled=False
     ):
         if youtube_id is None or youtube_id == "":
             logger.error("No youtube ID")
@@ -483,9 +484,6 @@ class Video(BaseModel):
         vid.create_initial_section()
 
         vid.save()
-
-        if playlist:
-            PlaylistVideo.create(video=vid, playlist=playlist)
 
         return vid
 
@@ -540,13 +538,6 @@ class Video(BaseModel):
         File.add_new_file(
             source=filename, target=final_name, move_file=move_file, video=self
         )
-
-    def delete_poster(self):
-        poster = self.poster
-        if poster:
-            poster.delete_instance()
-            logger.debug(f"Deleted poster for playlist {self.title}")
-            logger.debug(f"Path({poster.filename}).unlink()")
 
     @property
     def poster(self):
@@ -619,6 +610,7 @@ class Video(BaseModel):
             self.upload_date = info["upload_date"]
             self.duration = info["duration"]
             self.description = info["description"]
+
             self.save()
         # else:
         #     logger.debug(f"No need to update video {self.title}")
@@ -805,18 +797,6 @@ class BeatArtist(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class PlaylistVideo(BaseModel):
-    video = ForeignKeyField(Video, backref="playlists")
-    playlist = ForeignKeyField(Playlist, backref="videos")
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("video", "playlist"), True),
-        )
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class PlaylistAlbum(BaseModel):
     album = ForeignKeyField(Album, backref="playlists")
     playlist = ForeignKeyField(Playlist, backref="albums")
@@ -860,46 +840,14 @@ class Post(BaseModel):
         return self.title
 
 
-# def add_files_to_db():
-
-#     # this will add existing media files to the database
-#     media_path = Path("/mnt/c/DATA/hmtc_fqweriles/media")
-#     for mp in media_path.rglob("*"):
-#         if mp.is_file() and mp.stem[4] == "-":
-#             # currently date is in YYYY-MM-DD format
-#             # need to replace with YYYYMMDD
-#             new_name = mp.name.replace("-", "")
-#             mp = mp.rename(mp.parent / new_name)
-
-#         existing = File.select().where(
-#             (File.filename == mp.name)
-#             & (File.local_path == mp.parent)
-#             & (File.extension == mp.suffix)
-#         )
-#         if not existing:
-#             f = File.create(
-#                 local_path=mp.parent,
-#                 filename=mp.name,
-#                 extension=mp.suffix,
-#             )
-
-
-# def create_video_file_associations():
-#     videos = Video.select()
-#     for vid in videos:
-#         files = File.select().where(File.filename.contains(vid.youtube_id))
-#         for file in files:
-#             VideoFile.create(file=file, video=vid, file_type=get_file_type(file))
-
-
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class File(BaseModel):
-    path = CharField(null=True)
+    WORKING_PATH = WORKING / "uploads"
 
+    path = CharField(null=True)
     filename = CharField()
     extension = CharField(null=True)
     file_type = CharField(null=True)
-    WORKING_PATH = WORKING / "uploads"
     channel = ForeignKeyField(Channel, backref="files", null=True)
     series = ForeignKeyField(Series, backref="files", null=True)
     playlist = ForeignKeyField(Playlist, backref="files", null=True)

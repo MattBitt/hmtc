@@ -212,6 +212,7 @@ def download_video_info_from_id(
             "upload_date": video["upload_date"],
             "duration": video["duration"],
             "description": video["description"],
+            "url": video["webpage_url"],
             "private": False,
             "error": False,
             "error_info": "",

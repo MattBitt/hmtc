@@ -12,7 +12,8 @@ from hmtc.models import Video
 # this ensures that whatever is running
 # is the same as the rest of the code
 # (instead of storing it in a separate file)
-VERSION = "0.0.6"
+
+VERSION = "0.1.0"
 config = init_config()
 env = config["general"]["environment"]
 

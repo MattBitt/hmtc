@@ -134,26 +134,27 @@ def Page():
 
     # this sql will return all videos that have more than 1 section
     # SELECT video.*, (SELECT COUNT(*) FROM section WHERE section.video_id = video.id) AS TOT FROM video where TOT > 1;
-    SeriesFilterCard()
-    PlaylistFilterCard()
-    ShowDisabledVideos()
-    with solara.ColumnsResponsive(12, large=4):
+    query = Video.select()
+    with solara.Sidebar():
+        SeriesFilterCard()
+        PlaylistFilterCard()
+        ShowDisabledVideos()
 
-        TitleTextFilter()
         SortToolBar()
 
-    query = Video.select()
+        if title_query.value:
+            query = query.where(Video.title.contains(title_query.value))
 
-    if title_query.value:
-        query = query.where(Video.title.contains(title_query.value))
-
-    solara.Markdown(f"## Total: {query.count()} videos found.")
+        solara.Markdown(f"## Total: {query.count()} videos found.")
 
     query = query.order_by(get_sort_method())
 
     num_pages.set(query.count() // per_page.value + 1)
     if current_page.value > num_pages.value:
         current_page.set(1)
+    with solara.Column(align="stretch"):
+        TitleTextFilter()
+        solara.Button("Search")
     with solara.ColumnsResponsive(12, large=4):
         for video in query.paginate(current_page.value, per_page.value):
             VideoCard(video)

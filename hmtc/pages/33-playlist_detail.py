@@ -6,7 +6,7 @@ import solara.lab
 from loguru import logger
 from solara.lab import task
 
-from hmtc.models import Channel, Playlist, Series
+from hmtc.models import Channel, Playlist, Series, Video
 from hmtc.utils.general import time_since_update
 
 all_series = [s.name for s in Series.select()]
@@ -56,66 +56,63 @@ def save_playlist(playlist):
         logger.debug("Updated playlist name")
 
 
-@solara.component
-def PlaylistCard(playlist):
+def PlaylistDetail(playlist_id):
     updating = solara.use_reactive(False)
-    if playlist is None:
-        logger.debug("Playlist not found")
-        return
 
     @task
     def update():
-
         logger.debug(f"Updating playlist {playlist.title}")
         updating.set(True)
-        # time.sleep(3)
         playlist.check_for_new_videos()
         updating.set(False)
         logger.success(f"Updated database from Playlist {playlist.title}")
 
-    @task
-    def load_info():
-        logger.debug(f"Loading info for {playlist.title}")
-        updating.set(True)
-        playlist.load_info()
-        updating.set(False)
-        logger.success(f"Loaded info for Playlist {playlist.title}")
+    if playlist_id is None:
+        logger.debug("Playlist not found")
+        return
 
-    with solara.Card():
-        if updating.value is False:
-            solara.Markdown(playlist.title)
-            if playlist.poster is not None:
-                solara.Image(playlist.poster, width="200px")
-            solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
+    playlist = Playlist.select().where(Playlist.id == playlist_id).get()
+    name.set(playlist.title)
+    url.set(playlist.url)
+    # series.set(playlist.series.name)
+    if playlist.channel is not None:
+        channel.set(playlist.channel.name)
 
-            solara.Markdown(f"URL: {playlist.url}")
-            solara.Markdown(f"Last Updated: {time_since_update(playlist)}")
-            solara.Markdown(
-                f"New Video Status: {'Enabled' if playlist.enable_video_downloads else 'Disabled'} "
+    def update_playlist():
+        save_playlist(playlist)
+
+    def update_my_videos():
+        playlist.update_videos_with_playlist_info()
+
+    with solara.Column():
+        solara.InputText(label="Name", value=name, continuous_update=False)
+        if playlist.poster is not None:
+            solara.Image(image=playlist.poster, width="400px")
+        solara.InputText(label="URL", value=url, continuous_update=False)
+        solara.Markdown(f"Number of of Videos: {playlist.videos.count()}")
+        solara.Select(label="Series", value=series, values=all_series)
+        solara.Select(label="Channel", value=channel, values=all_channels)
+        solara.Checkbox(label="Enabled", value=enabled)
+        solara.Checkbox(label="Add Videos Enabled", value=add_videos_enabled)
+
+        with solara.Card():
+            solara.Button(label="Save", on_click=update_playlist)
+            solara.Button(label="Refresh videos info from Youtube", on_click=update)
+            solara.Button(
+                label="Apply Playlist properties to its videos",
+                on_click=update_my_videos,
             )
-            with solara.CardActions():
-                with solara.Link(f"/playlist-detail/{playlist.id}"):
-                    solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
-                solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
-
-        else:
-            solara.SpinnerSolara()
 
 
 @solara.component
 def Page():
-    def update_my_videos():
-        for playlist in Playlist.select():
-            playlist.update_videos_with_playlist_info()
+    router = solara.use_router()
+    level = solara.use_route_level()
+    # selected_series = solara.use_reactive(Series.select())
 
-    with solara.ColumnsResponsive(
-        12,
-        large=3,
-    ):
-        for playlist in Playlist.select().order_by(Playlist.updated_at.desc()):
-            PlaylistCard(playlist)
-    solara.Button("Add New Playlist", on_click=add_new_playlist)
-    solara.Button(
-        "Update all Videos with properties of their respective playlists",
-        on_click=update_my_videos,
-    )
+    if len(router.parts) == 1:
+        solara.Markdown("No Playlist Selected")
+        return
+    playlist_id = router.parts[level:][0]
+    if playlist_id.isdigit():
+        PlaylistDetail(playlist_id)
