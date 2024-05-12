@@ -11,10 +11,6 @@ from hmtc.utils.general import time_since_update
 
 all_series = [s.name for s in Series.select()]
 all_channels = [c.name for c in Channel.select()]
-if all_series == []:
-    all_series = ["No Series"]
-if all_channels == []:
-    all_channels = ["No Channels"]
 
 name = solara.reactive("")
 url = solara.reactive("http://www.youtube.com")
@@ -97,7 +93,10 @@ def PlaylistDetail(playlist_id):
 
         with solara.Card():
             solara.Button(label="Save", on_click=update_playlist)
-            solara.Button(label="Refresh videos info from Youtube", on_click=update)
+            solara.Button(
+                label="Refresh this Playlists' videos info from Youtube",
+                on_click=update,
+            )
             solara.Button(
                 label="Apply Playlist properties to its videos",
                 on_click=update_my_videos,
@@ -108,7 +107,6 @@ def PlaylistDetail(playlist_id):
 def Page():
     router = solara.use_router()
     level = solara.use_route_level()
-    # selected_series = solara.use_reactive(Series.select())
 
     if len(router.parts) == 1:
         solara.Markdown("No Playlist Selected")

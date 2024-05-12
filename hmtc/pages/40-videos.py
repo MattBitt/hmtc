@@ -1,5 +1,5 @@
 import solara
-
+from loguru import logger
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
 from hmtc.config import init_config
@@ -13,11 +13,13 @@ all_playlists = [p.title for p in Playlist.select()]
 selected_playlist = solara.reactive(all_playlists)
 
 title_query = solara.reactive("")
-per_page = solara.reactive(10)
+per_page = solara.reactive(4)
 sort_by = solara.reactive("upload_date")
 sort_order = solara.reactive("desc")
 
 disabled_videos = solara.reactive(False)
+no_info_videos = solara.reactive(False)
+
 
 num_pages = solara.reactive(0)
 current_page = solara.reactive(1)
@@ -29,16 +31,27 @@ STORAGE = config["paths"]["storage"]
 
 @solara.component
 def VideoCard(video):
-    with solara.Card(video.title):
-        solara.Markdown(f"## Video ID {video.id}")
-        with solara.Row():
-            solara.Markdown(f"**Sections**: {video.sections.count()}")
-            solara.Markdown(f"**Files**: {video.files.count()}")
-            solara.Markdown(f"**Duration**: {video.duration}")
-        with solara.CardActions():
-            with solara.Link(f"/video-detail/{video.id}"):
-                solara.Button("Edit")
-            solara.Button("Delete")
+    if video.title is None:
+        with solara.Card(f"ID: {video.youtube_id}"):
+            with solara.CardActions():
+                solara.Button("Download Info", on_click=lambda: video.update_from_yt())
+
+    else:
+        with solara.Card():
+
+            with solara.Column():
+                if video.poster:
+                    solara.Image(video.poster, width="300px")
+                solara.Markdown(f"**Title**: {video.title}")
+                with solara.Row():
+                    solara.Markdown(f"**Sections**: {video.sections.count()}")
+                    solara.Markdown(f"**Files**: {video.files.count()}")
+                    solara.Markdown(f"**Duration**: {video.duration}")
+            with solara.CardActions():
+                with solara.Column(align="center"):
+                    with solara.Link(f"/video-detail/{video.id}"):
+                        solara.Button("Edit")
+                solara.Button("Delete", on_click=lambda: video.delete_instance())
 
 
 @solara.component
@@ -107,6 +120,14 @@ def ShowDisabledVideos():
 
 
 @solara.component
+def ShowVidsWithNoInfo():
+    with solara.Card():
+        solara.Checkbox(
+            label="Show Videos with no Info downloaded", value=no_info_videos
+        )
+
+
+@solara.component
 def TitleTextFilter():
     with solara.Card():
         solara.InputText(
@@ -134,18 +155,21 @@ def Page():
 
     # this sql will return all videos that have more than 1 section
     # SELECT video.*, (SELECT COUNT(*) FROM section WHERE section.video_id = video.id) AS TOT FROM video where TOT > 1;
-    query = Video.select()
+    if no_info_videos.value:
+        query = Video.select().where(Video.title.is_null(True))
+    else:
+        query = Video.select().where(Video.title.is_null(False))
     with solara.Sidebar():
+
+        solara.Markdown(f"## {query.count()} video(s)")
+        SortToolBar()
+        ShowDisabledVideos()
+        ShowVidsWithNoInfo()
         SeriesFilterCard()
         PlaylistFilterCard()
-        ShowDisabledVideos()
-
-        SortToolBar()
 
         if title_query.value:
             query = query.where(Video.title.contains(title_query.value))
-
-        solara.Markdown(f"## Total: {query.count()} videos found.")
 
     query = query.order_by(get_sort_method())
 
@@ -155,7 +179,7 @@ def Page():
     with solara.Column(align="stretch"):
         TitleTextFilter()
         solara.Button("Search")
-    with solara.ColumnsResponsive(12, large=4):
+    with solara.ColumnsResponsive(12, large=6):
         for video in query.paginate(current_page.value, per_page.value):
             VideoCard(video)
 

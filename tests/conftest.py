@@ -26,6 +26,12 @@ TARGET_PATH = WORKING / "test_file_output"
 TARGET_PATH.mkdir(exist_ok=True)
 
 
+import logging
+import pytest
+from _pytest.logging import caplog as _caplog
+from loguru import logger
+
+
 def copy_initial_files():
     if SOURCE_PATH.exists():
         logger.debug("Removing files from SOURCE_PATH before copying new ones.")
@@ -77,3 +83,14 @@ def test_video_filename(test_files):
 
     my_copy_file(vid_file, TARGET_PATH)
     return TARGET_PATH / vid_file.name
+
+
+@pytest.fixture
+def caplog(_caplog):
+    class PropogateHandler(logging.Handler):
+        def emit(self, record):
+            logging.getLogger(record.name).handle(record)
+
+    handler_id = logger.add(PropogateHandler(), format="{message} {extra}")
+    yield _caplog
+    logger.remove(handler_id)

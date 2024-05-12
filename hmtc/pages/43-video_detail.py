@@ -1,71 +1,207 @@
 from pathlib import Path
 
+import peewee
 import solara
+import solara.lab
+from loguru import logger
+from solara.lab import task
 
+from hmtc.components.file_drop_card import FileDropCard, FileInfo
 from hmtc.config import init_config
-from hmtc.models import Playlist, Series, Video
+from hmtc.models import Video
+from hmtc.utils.general import time_since_update
 
-all_series = [s.name for s in Series.select()]
-selected_series = solara.reactive(all_series)
+all_videos = [c.title for c in Video.select()]
+if all_videos == []:
+    all_videos = ["No Videos"]
 
-
-all_playlists = [p.title for p in Playlist.select()]
-selected_playlist = solara.reactive(all_playlists)
-
-title_query = solara.reactive("")
-per_page = solara.reactive(10)
-sort_by = solara.reactive("upload_date")
-sort_order = solara.reactive("desc")
-
-disabled_videos = solara.reactive(False)
-
-num_pages = solara.reactive(0)
-current_page = solara.reactive(1)
-
+title = solara.reactive("")
+url = solara.reactive("http://www.youtube.com")
+enabled = solara.reactive(True)
+last_update_completed = solara.reactive(None)
+contains_unique_content = solara.reactive(False)
+youtube_id = solara.reactive(False)
 config = init_config()
-WORKING = config["paths"]["working"]
-STORAGE = config["paths"]["storage"]
+
+UPLOAD_PATH = Path(config["paths"]["working"]) / "uploads"
 
 
-@solara.component
-def VideoDetail(video, router):
-    with solara.Card(video.title):
-        solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
+def update_videos():
+    videos = Video.select()
+    for video in videos:
+        logger.debug("Checking for new videos in video: {}", video.title)
+        video.check_for_new_videos()
 
-        if video.poster:
-            solara.Image(video.poster, width="400px")
-        with solara.Column():
 
-            solara.Markdown(f"**Sections**: {video.sections.count()}")
-            solara.Markdown(f"**Files**: {video.files.count()}")
+def update_all():
+    logger.debug("Updating")
+    for p in Video.select().where(Video.enabled == True):
+        p.check_for_new_videos()
+    logger.success("Updated all videos")
 
-            solara.Markdown(f"**Duration**: {video.duration}")
-            solara.Button("Refresh Video Info", on_click=lambda: video.update_from_yt())
+
+def add_new_video():
+    try:
+        video = Video.create(
+            title="New Video",
+            url="http://www.youtube.com",
+            youtube_id="adsuoibgvpfrjdlk;af",
+            enabled=True,
+            last_update_completed=None,
+        )
+
+        logger.debug(f"Created new video: {video.title}")
+    except peewee.IntegrityError:
+        logger.debug("Video already exists")
+        return
+
+
+def save_video(video):
+    video.title = title.value
+    video.url = url.value
+    video.enabled = True
+    video.save()
+    logger.success(f"Added new video {video.title}")
+
+
+def write_to_disk(file: FileInfo):
+    logger.debug(f"Writing file to disk: {file['name']}")
+
+    with open(UPLOAD_PATH / file["name"], "wb") as src_file:
+        src_file.write(file["data"])
+
+    return file["name"]
+
+
+def VideoDetail(video_id):
+
+    video = Video.select().where(Video.id == video_id).get()
+    title.set(video.title)
+    url.set(video.url)
+    enabled.set(video.enabled)
+    contains_unique_content.set(video.contains_unique_content)
+    youtube_id.set(video.youtube_id)
+
+    def import_file(file: FileInfo):
+        filename = write_to_disk(file)
+        logger.debug(f"Importing file {filename} to video {video.title}")
+
+        f = video.add_file(UPLOAD_PATH / filename)
+
+        return f
+
+    def update_video():
+        save_video(video)
+        logger.success(f"Updated video {video.title}")
+
+    if video.title is None:
+        with solara.Card():
+            solara.InputText(label="Title", value=youtube_id, continuous_update=False)
             solara.Button(
-                "Download Video File", on_click=lambda: video.download_video()
+                label="Refresh from Youtube", on_click=lambda: video.update_from_yt()
             )
-            solara.Button("Extract Audio", on_click=lambda: video.extract_audio())
+    else:
+        with solara.Card():
+            solara.InputText(label="Name", value=title, continuous_update=False)
+            solara.InputText(label="URL", value=url, continuous_update=False)
 
-        solara.Markdown("## Files")
-        for vf in video.files:
-            with solara.Column():
-                solara.Markdown(f"**File**: {vf.filename + vf.extension}")
-        with solara.CardActions():
+            solara.Markdown(video.title)
+            if video.poster is not None:
+                solara.Image(video.poster, width="300px")
+            solara.Markdown(f"URL: {video.url}")
+            solara.Markdown(f"Youtube ID: {video.youtube_id}")
+            if video.episode is not None:
+                solara.Markdown(f"Episode: {video.episode}")
+            solara.Markdown(f"Duration: {video.duration}")
+            solara.Checkbox(label="Enabled", value=enabled)
+            solara.Checkbox(label="Unique", value=contains_unique_content)
 
-            solara.Button("Back to Videos", on_click=lambda: router.push("/videos"))
+            with solara.CardActions():
+                solara.Button(label="Save", on_click=update_video)
 
 
 @solara.component
 def Page():
     router = solara.use_router()
     level = solara.use_route_level()
+
     if len(router.parts) == 1:
         solara.Markdown("No Video Selected")
         return
     video_id = router.parts[level:][0]
     if video_id.isdigit():
-        vid = Video.get(id=video_id)
-        if vid is None:
-            solara.Markdown(f"Video with id {video_id} not found")
-        else:
-            VideoDetail(vid, router)
+        VideoDetail(video_id)
+
+
+# @solara.component
+# def VideoDetail(video):
+#     solara.Markdown(f"***This is the Detail Section for {video.title}!!!!***")
+#     solara.Markdown(f"**Youtube_ID: {video.youtube_id}")
+
+#     if video.poster:
+#         solara.Image(video.poster, width="400px")
+#     with solara.Column():
+
+#         solara.Markdown(f"**Sections**: {video.sections.count()}")
+#         solara.Markdown(f"**Files**: {video.files.count()}")
+
+#         solara.Markdown(f"**Duration**: {video.duration}")
+#         solara.Button(
+#             "Refresh video Info",
+#             on_click=lambda: video.update_from_yt(),
+#         )
+#         solara.Button(
+#             "Download video File",
+#             on_click=lambda: video.download_video(),
+#         )
+#         solara.Button("Extract Audio", on_click=lambda: video.value.extract_audio())
+
+#     solara.Markdown("## Files")
+#     for vf in video.files:
+#         with solara.Column():
+#             solara.Markdown(f"**File**: {vf.filename + vf.extension}")
+
+
+# def get_url_id_argument(router, level):
+#     try:
+#         return router.parts[level:][0]
+#     except Exception as e:
+#         raise e
+
+
+# @solara.component
+# def VideoDetailPage(video_id):
+
+#     @task
+#     def grab_video(video_id):
+
+#         this_video = Video.get(id=video_id)
+#         time.sleep(10)
+#         video.set(this_video)
+
+#     if loading.value is True:
+#         grab_video(video_id)
+#         solara.SpinnerSolara(size="100px")
+#     else:
+
+#         with solara.Card():
+#             solara.Markdown(f"Current Loading State {loading.value}")
+#             if video.value.title is None:
+#                 solara.Markdown("No Infomation Found for this video")
+#                 solara.Button(
+#                     "Refresh Video Info", on_click=lambda: video.value.update_from_yt()
+#                 )
+#             else:
+#                 VideoDetail(video.value)
+
+
+# @solara.component
+# def Page():
+
+#     router = solara.use_router()
+#     level = solara.use_route_level()
+#     video_id = get_url_id_argument(router, level)
+#     if video_id is None:
+#         return solara.Markdown("No Video ID Found")
+#     logger.debug("Video ID from URL: ", video_id)
+#     VideoDetailPage(video_id)

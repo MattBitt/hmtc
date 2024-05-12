@@ -40,8 +40,9 @@ def SeriesCard(series):
         solara.Markdown(f"# {series.name}")
         if series.poster is not None:
             solara.Image(series.poster, width="400px")
-        solara.Markdown(f"* {series.enabled_videos} (enabled) sources")
-        solara.Markdown(f"* {series.total_videos - series.enabled_videos} (disabled)")
+        solara.Markdown(f"* {series.unique_videos} unique source videos")
+        solara.Markdown(f"* {series.total_videos} total videos")
+
         solara.Markdown(f"* {series.start_date} to {series.end_date}")
 
         solara.Button("Edit Series", on_click=lambda: SeriesForm())

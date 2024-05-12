@@ -86,9 +86,7 @@ def write_to_disk(file: FileInfo):
     return file["name"]
 
 
-def ChannelDetail(channel_id, uploaded_new_file):
-    filename = solara.use_reactive("")
-    size, set_size = solara.use_state(0)
+def ChannelDetail(channel_id):
 
     channel = Channel.select().where(Channel.id == channel_id).get()
     name.set(channel.name)
@@ -112,8 +110,8 @@ def ChannelDetail(channel_id, uploaded_new_file):
         solara.InputText(label="Name", value=name, continuous_update=False)
         solara.InputText(label="URL", value=url, continuous_update=False)
         if channel and channel.poster:
-            solara.Markdown(f"Poster: {channel.poster.filename}")
-            solara.Image(image=channel.poster, width="50%")
+            solara.Markdown(f"Poster: {channel.poster}")
+            solara.Image(image=channel.poster, width="300px")
 
         FileDropCard(on_file=import_file)
         solara.Checkbox(label="Enabled", value=enabled)
@@ -151,7 +149,7 @@ def ChannelCard(channel):
                 solara.Markdown(f"Last Updated: {time_since_update(channel)}")
                 solara.Markdown(f"Enabled: {channel.enabled}")
                 with solara.CardActions():
-                    with solara.Link(f"/channel-detail/{channel.id}"):
+                    with solara.Link(f"/channels/{channel.id}"):
                         solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
                     solara.Button("Delete", on_click=lambda: channel.delete_instance())
                     solara.Button(label="Check for new Videos", on_click=update)
@@ -176,7 +174,7 @@ def Page():
 
     with solara.ColumnsResponsive(
         12,
-        large=6,
+        large=3,
     ):
         for channel in Channel.select().order_by(Channel.updated_at.desc()):
             ChannelCard(channel)
@@ -185,3 +183,16 @@ def Page():
         "Update all Videos with properties of their respective channels",
         on_click=update_my_videos,
     )
+
+
+@solara.component
+def Page():
+    router = solara.use_router()
+    level = solara.use_route_level()
+
+    if len(router.parts) == 1:
+        solara.Markdown("No Channel Selected")
+        return
+    channel_id = router.parts[level:][0]
+    if channel_id.isdigit():
+        ChannelDetail(channel_id)

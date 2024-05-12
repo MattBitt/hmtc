@@ -94,35 +94,17 @@ class BaseModel(Model):
         return None
 
     def _poster(self, id):
+        query = File.select().where(File.file_type == "poster")
+
         match type(self).__name__:
             case "Channel":
-                return (
-                    File.select()
-                    .where(File.file_type == "poster")
-                    .where(File.channel_id == id)
-                    .get_or_none()
-                )
+                return query.where(File.channel_id == id).get_or_none()
             case "Playlist":
-                return (
-                    File.select()
-                    .where(File.file_type == "poster")
-                    .where(File.playlist_id == id)
-                    .get_or_none()
-                )
+                return query.where(File.playlist_id == id).get_or_none()
             case "Video":
-                return (
-                    File.select()
-                    .where(File.file_type == "poster")
-                    .where(File.video_id == id)
-                    .get_or_none()
-                )
+                return query.where(File.video_id == id).get_or_none()
             case "Series":
-                return (
-                    File.select()
-                    .where(File.file_type == "poster")
-                    .where(File.series_id == id)
-                    .get_or_none()
-                )
+                return query.where(File.series_id == id).get_or_none()
 
     @classmethod
     def active(cls):
@@ -151,7 +133,7 @@ class Series(BaseModel):
 
     @property
     def poster(self):
-        logger.debug(f"Getting poster for series {self.name}")
+
         p = self._poster(self.id)
         if p:
             return p.file_string
@@ -164,6 +146,10 @@ class Series(BaseModel):
     @property
     def total_videos(self):
         return self.videos.count()
+
+    @property
+    def unique_videos(self):
+        return self.videos.select().where(Video.contains_unique_content == True).count()
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -239,7 +225,6 @@ class Channel(BaseModel):
 
     @property
     def poster(self):
-        logger.debug(f"Getting poster for channel {self.name}")
         p = self._poster(self.id)
         if p:
             return p.file_string
@@ -371,6 +356,7 @@ class Playlist(BaseModel):
                     if vid.playlist.series:
                         vid.series = vid.playlist.series
                     vid.enabled = self.enable_video_downloads
+                    vid.contains_unique_content = self.contains_unique_content
                     vid.save()
 
         # once finished updating the playlist, update the last_updated field
@@ -403,7 +389,6 @@ class Playlist(BaseModel):
 
     @property
     def poster(self):
-        logger.debug(f"Getting poster for playlist {self.title}")
         p = self._poster(self.id)
         if p:
             return p.file_string
@@ -445,6 +430,7 @@ class Video(BaseModel):
     description = TextField(null=True)
     enabled = BooleanField(default=True)
     private = BooleanField(default=False)
+    contains_unique_content = BooleanField(default=False)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
@@ -541,7 +527,6 @@ class Video(BaseModel):
 
     @property
     def poster(self):
-        logger.debug(f"Getting poster for video {self.title}")
         p = self._poster(self.id)
         if p:
             return p.file_string

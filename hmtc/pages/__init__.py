@@ -1,7 +1,4 @@
-import os
-import shutil
 from pathlib import Path
-
 import solara
 from loguru import logger
 
@@ -19,6 +16,12 @@ from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
+
+
+@logger.catch
+def setup_to_fail():
+    logger.error("This is a test error message")
+    1 / 0
 
 
 def setup_folders():
@@ -43,7 +46,7 @@ def setup():
 
     db_instance = init_db(db_null, config)
     if is_db_empty(db_instance):
-        # not an error, just emphasizing that the database is empty
+
         logger.error("Database is empty, initializing tables")
         create_tables(db_instance)
         if config["running"]["download_on_init"]:
@@ -55,3 +58,11 @@ def setup():
 
 
 db = setup()
+
+
+@solara.component
+def Layout(children=[]):
+    logger.debug("Creating App Layout")
+    return solara.AppLayout(
+        children=children, color="teal", sidebar_open=False, navigation=True
+    )
