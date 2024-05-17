@@ -3,19 +3,19 @@ name = "HMTC"
 description = "Harry Mack Track Creator"
 
 [running]
-log_level = "DEBUG"
+log_level = "ERROR"
 download_on_init = true
 
 [general]
 environment="testing"
 items_per_page = 9
 clean_downloads = false
+minimum_section_size = 10
 
 [paths]
 storage = "/home/matt/apps/data_for_development/hmtc/testing/storage"
 working = "/home/matt/apps/data_for_development/hmtc/testing/working"
 logs = "/home/matt/apps/data_for_development/hmtc/testing/logs"
-
 
 [database]
 name = "HMTCtesting"

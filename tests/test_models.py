@@ -5,7 +5,8 @@ import pytest
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import Channel, File, Playlist, Series, Video, get_file_type
+from hmtc.models import Channel, File, Playlist, Series, Video, get_file_type, Section
+
 
 config = init_config()
 
@@ -66,8 +67,7 @@ def test_playlist():
 
 
 def test_video():
-    Video.create_table()
-    v, created = Video.get_or_create(
+    v = Video.create(
         youtube_id="asbsdrjgkdlsa;",
         title="test",
         episode="",
@@ -77,8 +77,8 @@ def test_video():
         enabled=True,
         private=False,
     )
-    assert created is True
     assert v.title == "test"
+    assert v.breakpoints.count() == 2
     try:
         Video.create(title="test")
 
@@ -90,17 +90,15 @@ def test_video():
     assert v3.title == "test"
     assert created3 is False
     assert len(Video.select()) == 1
-    v.delete_instance()
+    v.my_delete_instance()
 
 
 def test_delete_series():
     s = Series.create(name="test")
     assert s is not None
-    s.delete_instance()
+    s.my_delete_instance()
     s2 = Series.get_or_none(Series.name == "test")
-    assert s2 is not None
-    assert s2.name == "test"
-    assert s2.deleted_at is not None
+    assert s2 is None
 
 
 def test_create_channel_file(test_files):
@@ -137,7 +135,7 @@ def test_create_channel_file(test_files):
     # assert c.files.count() == len(test_files) + 1
     for f in c.files:
         logger.debug(f"{f.filename}")
-    c.delete_instance()
+    c.my_delete_instance()
 
 
 def test_add_poster_to_channel(test_image_filename):
@@ -233,3 +231,74 @@ def test_add_file_to_series(test_image_filename):
     s.add_file(test_image_filename)
     assert s.files.count() == 1
     assert s.poster is not None
+
+
+# def test_video_section_split_and_merge():
+#     v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
+#     sm = SectionManager(video=v)
+
+#     sm.split_section_at(timestamp=100)
+#     sects = sm.section_list
+
+#     assert len(sects) == 2
+#     # orignal section
+#     assert sects[0].is_first is True
+#     assert sects[0].is_last is False
+#     assert sects[0].end == 100
+#     assert sects[0].ordinal == 1
+#     # new section
+#     assert sects[1].is_first is False
+#     assert sects[1].is_last is True
+#     assert sects[1].start == 100
+#     assert sects[1].ordinal == 2
+
+#     sm.split_section_at(timestamp=500)
+#     sects = sm.section_list
+#     assert len(sects) == 3
+#     assert sects[0].end == 100
+#     assert sects[0].ordinal == 1
+#     assert sects[1].start == 100
+#     assert sects[1].ordinal == 2
+#     assert sects[2].start == 500
+#     assert sects[2].ordinal == 3
+#     assert sects[2].is_first is False
+#     assert sects[2].is_last is True
+
+#     sm.merge_section_with_next(ordinal=1)
+#     sects = sm.section_list
+#     assert len(sects) == 2
+#     assert sects[0].end == 500
+#     assert sects[0].ordinal == 1
+#     assert sects[1].start == 500
+
+#     sm.merge_section_with_next(ordinal=1)
+#     sects = sm.section_list
+#     assert len(sects) == 1
+#     assert sects[0].end == 1000
+#     assert sects[0].ordinal == 1
+#     assert sects[0].start == 0
+
+
+# def test_video_section_split_and_merge2():
+#     v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
+#     sm = SectionManager(video=v)
+
+#     sm.split_section_at(timestamp=800)
+#     sm.split_section_at(timestamp=500)
+
+#     sects = sm.section_list
+#     assert len(sects) == 3
+#     assert sects[0].end == 500
+#     assert sects[0].ordinal == 1
+#     assert sects[1].start == 500
+
+
+def test_video_breakpoints():
+    v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
+    assert v.breakpoints.count() == 2
+    v.add_breakpoint(100)
+    assert v.breakpoints.count() == 3
+    v.add_breakpoint(500)
+    assert v.breakpoints.count() == 4
+    v.delete_breakpoint(100)
+    assert v.breakpoints.count() == 3

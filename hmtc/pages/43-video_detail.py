@@ -8,12 +8,14 @@ from solara.lab import task
 
 from hmtc.components.file_drop_card import FileDropCard, FileInfo
 from hmtc.config import init_config
-from hmtc.models import Video
+from hmtc.models import Video, Section
 from hmtc.utils.general import time_since_update
+from hmtc.utils.section_manager import SectionManager
 
 all_videos = [c.title for c in Video.select()]
 if all_videos == []:
     all_videos = ["No Videos"]
+time_cursor = solara.reactive(0)
 
 title = solara.reactive("")
 url = solara.reactive("http://www.youtube.com")
@@ -21,6 +23,10 @@ enabled = solara.reactive(True)
 last_update_completed = solara.reactive(None)
 contains_unique_content = solara.reactive(False)
 youtube_id = solara.reactive(False)
+
+section_list = solara.reactive(None)
+
+
 config = init_config()
 
 UPLOAD_PATH = Path(config["paths"]["working"]) / "uploads"
@@ -75,20 +81,27 @@ def write_to_disk(file: FileInfo):
 
 def VideoDetail(video_id):
 
-    video = Video.select().where(Video.id == video_id).get()
+    video = Video.select().join(Section).where(Video.id == video_id).get_or_none()
+    if video is None:
+        return solara.Markdown("No Video Found")
+    sm = SectionManager(video)
+    section_list.set(video.sections)
     title.set(video.title)
     url.set(video.url)
     enabled.set(video.enabled)
     contains_unique_content.set(video.contains_unique_content)
     youtube_id.set(video.youtube_id)
 
-    def import_file(file: FileInfo):
-        filename = write_to_disk(file)
-        logger.debug(f"Importing file {filename} to video {video.title}")
+    @task
+    def download_video():
+        logger.debug(f"Downloading video asyncly? {video.title}")
+        video.download_video()
 
-        f = video.add_file(UPLOAD_PATH / filename)
-
-        return f
+    def add_section():
+        logger.debug(f"Adding section {time_cursor.value} to video {video.title}")
+        sm.split_section_at(time_cursor.value)
+        logger.debug(f"Updating: {video.title}")
+        logger.debug(f"Finished adding section")
 
     def update_video():
         save_video(video)
@@ -101,23 +114,46 @@ def VideoDetail(video_id):
                 label="Refresh from Youtube", on_click=lambda: video.update_from_yt()
             )
     else:
-        with solara.Card():
-            solara.InputText(label="Name", value=title, continuous_update=False)
-            solara.InputText(label="URL", value=url, continuous_update=False)
+        with solara.ColumnsResponsive(12, large=6):
+            with solara.Column():
+                if video.poster is not None:
+                    solara.Image(video.poster, width="300px")
+                solara.InputText(label="Name", value=title, continuous_update=False)
+                solara.Markdown(f"Youtube ID: {video.youtube_id}")
+                if video.episode is not None:
+                    solara.Markdown(f"Episode: {video.episode}")
+                solara.Markdown(f"Sections: {video.sections.count()}")
+                solara.Markdown(f"Duration: {video.duration}")
+                solara.Checkbox(label="Enabled", value=enabled)
+                solara.Checkbox(label="Unique", value=contains_unique_content)
+                solara.Markdown(f"## Files")
+                for vf in video.files:
+                    with solara.Row():
+                        solara.Markdown(f"**File**: {vf.filename + vf.extension}")
+                        solara.Button(
+                            label="Delete",
+                            on_click=lambda: vf.delete_instance(),
+                        )
+                with solara.Row():
+                    solara.Button(label="Save", on_click=update_video)
+                    solara.Button(label="Download Video", on_click=download_video)
+                    solara.Button(
+                        label="Extract Audio", on_click=lambda: video.extract_audio()
+                    )
 
-            solara.Markdown(video.title)
-            if video.poster is not None:
-                solara.Image(video.poster, width="300px")
-            solara.Markdown(f"URL: {video.url}")
-            solara.Markdown(f"Youtube ID: {video.youtube_id}")
-            if video.episode is not None:
-                solara.Markdown(f"Episode: {video.episode}")
-            solara.Markdown(f"Duration: {video.duration}")
-            solara.Checkbox(label="Enabled", value=enabled)
-            solara.Checkbox(label="Unique", value=contains_unique_content)
+            with solara.Column():
+                solara.Markdown(f"## Sections")
+                solara.InputText("Timestamp", value=time_cursor)
+                solara.Button(
+                    "Add section at timestamp",
+                    on_click=add_section,
+                )
 
-            with solara.CardActions():
-                solara.Button(label="Save", on_click=update_video)
+                for sect in section_list.value:
+                    with solara.Card(f"ID: {sect.id}"):
+                        solara.Markdown(f"Start:{sect.start} End:{sect.end}")
+                        solara.Markdown(f"Previous section: {sect.previous_section}")
+                        solara.Markdown(f"Next section: {sect.next_section}")
 
 
 @solara.component

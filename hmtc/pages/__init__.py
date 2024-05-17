@@ -46,7 +46,6 @@ def setup():
 
     db_instance = init_db(db_null, config)
     if is_db_empty(db_instance):
-
         logger.error("Database is empty, initializing tables")
         create_tables(db_instance)
         if config["running"]["download_on_init"]:
@@ -62,7 +61,22 @@ db = setup()
 
 @solara.component
 def Layout(children=[]):
+    VERSION = "0.1.0"
     logger.debug("Creating App Layout")
+    env = config["general"]["environment"]
+    match env:
+        case "development":
+            color = "black"
+        case "staging":
+            color = "purple"
+        case "testing":
+            color = "red"
+        case "production":
+            color = "green"
+        case _:
+            color = "yellow"
+    title = f"{config["app"]["name"]} - {VERSION} - {env}"
+    solara.Style(Path('assets/style.css'))
     return solara.AppLayout(
-        children=children, color="teal", sidebar_open=False, navigation=True
+        children=children, color=color, sidebar_open=False, navigation=True, title=title,
     )

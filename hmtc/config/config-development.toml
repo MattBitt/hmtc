@@ -8,8 +8,9 @@ download_on_init = true
 
 [general]
 environment="development"
-items_per_page = 6
+items_per_page = 12
 clean_downloads = false
+minimum_section_size = 10
 
 [paths]
 storage = "/home/matt/apps/data_for_development/hmtc/development/storage"

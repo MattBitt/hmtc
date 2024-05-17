@@ -1,5 +1,6 @@
 import json
 import os
+
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from hmtc.models import (
     PlaylistAlbum,
     Post,
     Section,
+    Breakpoint,
     Series,
     Track,
     TrackBeat,
@@ -32,12 +34,6 @@ WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
-
-
-def create_video_sections():
-    for vid in Video.select():
-        if vid.sections == []:
-            vid.create_initial_section()
 
 
 def init_db(db, config):
@@ -145,6 +141,9 @@ def import_playlist_info():
 
 def download_channel_videos():
     logger.warning("Download List of Videos for channel. Please wait...")
+    logger.warning(
+        "To disable these checks, set the 'download_on_init' config to False"
+    )
     channels = Channel.select().where(Channel.enabled == True)
     for channel in channels:
         channel.check_for_new_videos()
@@ -152,6 +151,9 @@ def download_channel_videos():
 
 def download_playlist_videos():
     logger.warning("Download List of Videos for playlist. Please wait...")
+    logger.warning(
+        "To disable these checks, set the 'download_on_init' config to False"
+    )
     playlists = Playlist.select().where(Playlist.enabled == True)
     for playlist in playlists:
         playlist.update_videos_with_playlist_info()
@@ -170,6 +172,7 @@ def create_tables(db):
             Beat,
             BeatArtist,
             TrackBeat,
+            Breakpoint,
             Artist,
             Section,
             User,
@@ -200,6 +203,7 @@ def drop_tables(db):
             BeatArtist,
             TrackBeat,
             Artist,
+            Breakpoint,
             Section,
             User,
             UserInfo,
@@ -295,7 +299,8 @@ def import_existing_video_files_to_db(path):
 
 def import_existing_tracks(filename):
     # these aren't really tracks.
-
+    logger.error("This function is not implemented anymore...")
+    return
     if not Path(filename).exists():
         logger.error(f"Track CSV not found {filename}")
     tracks = csv_to_dict(filename)
@@ -318,9 +323,9 @@ def import_existing_tracks(filename):
         # and at the end timestamps. mark the previous section
         # as talking, and the new section as music
         start_ts = int(track["start"])
-        video.add_section_break(timestamp=start_ts)
+        video.add_breakpoint(timestamp=start_ts)
         end_ts = int(track["end"])
-        video.add_section_break(timestamp=end_ts)
+        video.add_breakpoint(timestamp=end_ts)
 
         # using the ts +/- 5 below to not worry about edge cases
         # when the section is or isn't on the section break

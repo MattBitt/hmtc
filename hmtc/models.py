@@ -3,6 +3,7 @@ import os
 import re
 from datetime import datetime
 from pathlib import Path
+from functools import total_ordering
 
 from loguru import logger
 from peewee import (
@@ -34,6 +35,93 @@ WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
+
+
+class old_SectionManager:
+    def __init__(self, video):
+        self.breakpoints = set([])
+        self.video = video
+        self.duration = video.duration
+
+        for sect in video.sections:
+            self.breakpoints.add(sect.start)
+            self.breakpoints.add(sect.end)
+
+    @classmethod
+    def initialize(cls, video):
+        return
+
+    def create_initial_section(self):
+        Section.create(
+            start=0, end=self.duration, section_type="INITIAL", video=self.video
+        )
+        self.breakpoints = {0, self.duration}
+
+    def add_breakpoint(self, timestamp):
+        if timestamp in self.breakpoints:
+            # logger.debug("Section Break already exists. Nothing to do")
+            return
+        old_section = self.find_section(timestamp=timestamp)
+        Section.create(
+            start=timestamp,
+            end=old_section.end,
+            section_type=old_section.section_type,
+            video=self.video,
+        )
+        old_section.end = timestamp
+        old_section.save()
+        self.breakpoints.add(timestamp)
+
+    def find_section(self, timestamp):
+        for sect in self.all_sections:
+            if (timestamp + 1) > sect.start and (timestamp - 1) < sect.end:
+                return sect
+        return None
+
+    def find_both_sections(self, timestamp):
+        for sect in self.all_sections:
+            if sect.start == timestamp:
+                after = sect
+            if sect.end == timestamp:
+                before = sect
+
+        return before, after
+
+    def delete_breakpoint(self, timestamp):
+        if len(self.breakpoints) == 2:
+            logger.error("No breakpoints to delete")
+            return
+
+        if timestamp not in self.breakpoints:
+            logger.debug(f"Breakpoints: {self.breakpoints}")
+            logger.error("Breakpoint doesn't exist")
+            return
+
+        before, after = self.find_both_sections(timestamp=timestamp)
+
+        if before is None or after is None:
+            logger.error("Couldn't find both sections")
+            return
+
+        before.end = after.end
+        before.save()
+        after.delete_instance()
+
+    @property
+    def all_sections(self):
+        return sorted(self.video.sections, key=lambda x: x.start)
+
+    @property
+    def num_sections(self):
+        return len(self.all_sections)
+
+    @property
+    def oldbreakpoints(self):
+        breaks = set([])
+        for sect in self.sections:
+            breaks.add(sect.start)
+            breaks.add(sect.end)
+        return breaks
 
 
 def get_file_type(file: str):
@@ -88,9 +176,11 @@ class BaseModel(Model):
         self.updated_at = datetime.now()
         return super(BaseModel, self).save(*args, **kwargs)
 
-    def delete_instance(self, *args, **kwargs):
-        self.deleted_at = datetime.now()
-        self.save()
+    def my_delete_instance(self, *args, **kwargs):
+        # ignore this for now
+        # self.deleted_at = datetime.now()
+        # self.save()
+        super(BaseModel, self).delete_instance(*args, **kwargs, recursive=True)
         return None
 
     def _poster(self, id):
@@ -172,10 +262,6 @@ class Channel(BaseModel):
     last_update_completed = DateTimeField(null=True)
 
     def check_for_new_videos(self):
-        # download list of videos from youtube
-        # as a list of youtube ids as strings "example abCdgeseg12"
-
-        # ensure that all videos in the db point to the correct channel
         ids = fetch_ids_from(self.url)
         for youtube_id in ids:
             vid, created = Video.get_or_create(youtube_id=youtube_id, channel=self)
@@ -420,6 +506,7 @@ class Playlist(BaseModel):
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
     MEDIA_PATH = STORAGE / "videos"
+    sm = None  # section manager
 
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
@@ -434,6 +521,15 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
+
+    def save(self, *args, **kwargs):
+        result = super(Video, self).save(*args, **kwargs)
+        # if self.num_sections == 0 and self.duration is not None:
+        #     Section.create_initial_section(video=self)
+        if self.duration is not None:
+            Breakpoint.create(video=self, timestamp=0)
+            Breakpoint.create(video=self, timestamp=self.duration)
+        return result
 
     @classmethod
     def create_from_yt_id(
@@ -457,21 +553,50 @@ class Video(BaseModel):
             logger.error(f"Error downloading video info for {youtube_id}")
             return None
 
-        vid = cls.create(**info, series=series, channel=channel, enabled=enabled)
-        if vid and channel:
-            vid.channel = channel
-        if enabled is not None:
-            vid.enabled = enabled
+        vid = cls.create(
+            **info, series=series, channel=channel, enabled=enabled, playlist=playlist
+        )
 
         process_downloaded_files(vid, files)
 
         vid.update_from_yt()
 
-        vid.create_initial_section()
-
         vid.save()
 
         return vid
+
+    @property
+    def breakpoint_list(self):
+        return sorted([x.timestamp for x in self.breakpoints])
+
+    def add_breakpoint(self, timestamp):
+        if timestamp in self.breakpoint_list:
+            logger.debug("Section Break already exists. Nothing to do")
+            return
+        if timestamp > self.duration:
+            logger.error("Breakpoint can't be greater than duration")
+            return
+        Breakpoint.create(video=self, timestamp=timestamp)
+        logger.debug(f"Adding breakpoint to video {self.title}")
+
+    def delete_breakpoint(self, timestamp):
+        if timestamp == 0 or timestamp == self.duration:
+            logger.error("Can't delete start or end breakpoints")
+            return
+
+        if timestamp not in self.breakpoint_list:
+            logger.debug(f"Breakpoints: {self.breakpoint_list}")
+            logger.error("Breakpoint doesn't exist")
+            return
+
+        bp = Breakpoint.get_or_none(
+            (Breakpoint.video == self) & (Breakpoint.timestamp == timestamp)
+        )
+        if bp is None:
+            logger.error("Couldn't find breakpoint")
+            return
+        bp.my_delete_instance()
+        self.breakpoints = Breakpoint.select().where(Breakpoint.video == self)
 
     @classmethod
     def download_video_info(
@@ -489,32 +614,6 @@ class Video(BaseModel):
             return None, None
 
         return video_info, files
-
-    def create_initial_section(self):
-        if not self.sections:
-            Section.create(
-                start=0, end=self.duration, section_type="INITIAL", video=self
-            )
-
-    def add_section_break(self, timestamp):
-        if timestamp in self.section_breaks:
-            # logger.debug("Section Break already exists. Nothing to do")
-            return
-        old_section = self.get_section_with_timestamp(timestamp=timestamp)
-        new_section = Section.create(
-            start=timestamp,
-            end=old_section.end,
-            section_type=old_section.section_type,
-            video=self,
-        )
-        old_section.end = timestamp
-        old_section.save()
-
-    def get_section_with_timestamp(self, timestamp):
-        for sect in self.all_sections:
-            if sect.is_timestamp_in_this_section(timestamp):
-                return sect
-        return None
 
     def add_file(self, filename, move_file=True):
         extension = "".join(Path(filename).suffixes)
@@ -602,7 +701,7 @@ class Video(BaseModel):
 
     def download_video(self):
 
-        download_path = config.get("PATHS", "DOWNLOAD")
+        download_path = WORKING / "downloads"
         if self.has_video:
             logger.debug(
                 "Video already downloaded. Delete it from the folder to redownload"
@@ -633,26 +732,6 @@ class Video(BaseModel):
         os.system(command)
 
         self.add_file(af, file_type="audio")
-
-    @property
-    def section_breaks(self):
-        breaks = set([])
-        for sect in self.sections:
-            breaks.add(sect.start)
-            breaks.add(sect.end)
-        return breaks
-
-    def refresh_sections(self):
-        self.sections = Section.select().join(Video).where(Section.video.id == self.id)
-
-    @property
-    def all_sections(self):
-        self.refresh_sections()
-        return sorted(self.sections, key=lambda x: x.start)
-
-    @property
-    def num_sections(self):
-        return len(self.all_sections)
 
     def __repr__(self):
         return f"Video({self.title=})"
@@ -694,6 +773,14 @@ class Video(BaseModel):
     def file_stem(self):
         return f"{self.youtube_id}".lower()
 
+    @property
+    def all_sections(self):
+        return sorted(self.sections, key=lambda x: x.start)
+
+    @property
+    def num_sections(self):
+        return len(self.all_sections)
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class EpisodeNumberTemplate(BaseModel):
@@ -714,36 +801,85 @@ class Track(BaseModel):
     notes = CharField(null=True)
 
 
-def get_section_with_timestamp(video, timestamp):
-    for sect in video.sections:
-        if sect.is_timestamp_in_this_section(timestamp):
-            return sect
-    return None
-
-
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Section(BaseModel):
     start = IntegerField(null=True)
     end = IntegerField(null=True)
-    video = ForeignKeyField(Video, backref="sections", null=True)
     section_type = CharField(null=True)
+    is_first = BooleanField(default=False)
+    is_last = BooleanField(default=False)
+    next_section = ForeignKeyField("self", backref="previous_section", null=True)
+
+    video = ForeignKeyField(Video, backref="sections", null=True)
+    ordinal = IntegerField(null=True)
+
+    @classmethod
+    def create_initial_section(cls, video):
+        return Section.create(
+            start=0,
+            end=video.duration,
+            section_type="INITIAL",
+            video=video,
+            ordinal=1,
+            is_first=True,
+            is_last=True,
+        )
+
+    @classmethod
+    def create_from_item(cls, item):
+        return cls.create(
+            start=item.start,
+            end=item.end,
+            section_type=item.section_type,
+            video=item.video,
+            ordinal=item.ordinal,
+        )
 
     def is_timestamp_in_this_section(self, timestamp):
         return timestamp > self.start and timestamp < self.end
 
     def __repr__(self):
         return (
-            f"Section({self.start=}, {self.end=}, {self.video=}, {self.section_type})"
+            f"Section({self.ordinal} - {self.start}:{self.end} - {self.section_type})"
         )
 
     def __str__(self):
-        return f"Section({self.id=}, {self.start=}, {self.end=}, {self.video=}, {self.section_type})"
+        return f"Section(id={self.ordinal}, start={self.start}, end={self.end},type={self.section_type})"
 
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and track
-            (("video", "start", "end"), True),
-        )
+    def find_both_sections(self, timestamp):
+        before, after = None, None
+        for sect in self.all_sections:
+            if sect.start == timestamp:
+                after = sect
+            if sect.end == timestamp:
+                before = sect
+
+        return before, after
+
+    @property
+    def all_sections(self):
+        return sorted(self.video.sections, key=lambda x: x.start)
+
+    @property
+    def num_sections(self):
+        return len(self.all_sections)
+
+    @property
+    def oldbreakpoints(self):
+        breaks = set([])
+        for sect in self.sections:
+            breaks.add(sect.start)
+            breaks.add(sect.end)
+        return breaks
+
+
+@total_ordering
+class Breakpoint(BaseModel):
+    video = ForeignKeyField(Video, backref="breakpoints")
+    timestamp = IntegerField()
+
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

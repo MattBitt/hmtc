@@ -13,7 +13,7 @@ from hmtc.models import Video
 # is the same as the rest of the code
 # (instead of storing it in a separate file)
 
-VERSION = "0.1.0"
+
 config = init_config()
 env = config["general"]["environment"]
 
@@ -59,7 +59,6 @@ def Page():
     vids_in_db = Video.select().count()
     with solara.Column():
         solara.Markdown(f"## Running Mode = {env}")
-        solara.Markdown(f"## Version = {VERSION}")
         solara.Markdown(f"## Vids in DB: {vids_in_db}")
         solara.Markdown(f"DB Name {config.get('DATABASE', 'NAME')}")
     with solara.Card():

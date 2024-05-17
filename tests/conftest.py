@@ -12,10 +12,15 @@ from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import db_null
 from hmtc.utils.general import my_copy_file
 from hmtc.utils.my_logging import setup_logging
+from hmtc.utils.database_utils import delete_and_create_database
+import logging
+import pytest
+from _pytest.logging import caplog as _caplog
+from loguru import logger
 
 config = init_config()
-
 setup_logging(config)
+
 
 WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
@@ -24,12 +29,6 @@ SOURCE_PATH = WORKING / "test_file_input"
 
 TARGET_PATH = WORKING / "test_file_output"
 TARGET_PATH.mkdir(exist_ok=True)
-
-
-import logging
-import pytest
-from _pytest.logging import caplog as _caplog
-from loguru import logger
 
 
 def copy_initial_files():
