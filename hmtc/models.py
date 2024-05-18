@@ -204,6 +204,14 @@ class BaseModel(Model):
         database = db_null
 
 
+class TodoTable(BaseModel):
+    text: str = CharField()
+    done: bool = BooleanField(default=False)
+
+    def __str__(self):
+        return f"TodoTable {self.text} - {self.done}"
+
+
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Series(BaseModel):
     MEDIA_PATH = STORAGE / "series"
@@ -255,9 +263,9 @@ class Album(BaseModel):
 class Channel(BaseModel):
     MEDIA_PATH = STORAGE / "channels"
 
-    name = CharField(unique=True)
-    url = CharField(unique=True)
-    youtube_id = CharField(unique=True)
+    name = CharField(null=True)
+    url = CharField(null=True)
+    youtube_id = CharField()
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
 
@@ -526,7 +534,8 @@ class Video(BaseModel):
         result = super(Video, self).save(*args, **kwargs)
         # if self.num_sections == 0 and self.duration is not None:
         #     Section.create_initial_section(video=self)
-        if self.duration is not None:
+        if self.duration is not None and self.breakpoints.count() == 0:
+            logger.error(f"Duration is {self.duration}")
             Breakpoint.create(video=self, timestamp=0)
             Breakpoint.create(video=self, timestamp=self.duration)
         return result
@@ -567,7 +576,7 @@ class Video(BaseModel):
 
     @property
     def breakpoint_list(self):
-        return sorted([x.timestamp for x in self.breakpoints])
+        return sorted([x.timestamp for x in self.breakpoints.select().distinct()])
 
     def add_breakpoint(self, timestamp):
         if timestamp in self.breakpoint_list:
@@ -880,6 +889,9 @@ class Breakpoint(BaseModel):
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp
+
+    class Meta:
+        indexes = ((("video", "timestamp"), True),)
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

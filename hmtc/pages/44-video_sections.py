@@ -15,7 +15,7 @@ from solara.lab import task
 
 from hmtc.components.file_drop_card import FileDropCard, FileInfo
 from hmtc.config import init_config
-from hmtc.models import Video, Section
+from hmtc.models import Video, Section, Breakpoint
 from hmtc.utils.general import time_since_update
 from hmtc.utils.section_manager import SectionManager
 
@@ -32,51 +32,38 @@ config = init_config()
 UPLOAD_PATH = Path(config["paths"]["working"]) / "uploads"
 
 
-# our model for a todo item, immutable/frozen avoids common bugs
 @dataclasses.dataclass(frozen=True)
-class SectionItem:
+class BreakpointItem:
     id: int
-    start: int
-    end: int
-    section_type: str
-    is_first: bool
-    is_last: bool
-    ordinal: int
-    previous_section: Section
-    next_section: Section
+    timestamp: int
+    video: Video
 
     @classmethod
     def from_model(cls, model):
-        return cls(
-            id=model.id,
-            start=model.start,
-            end=model.end,
-            section_type=model.section_type,
-            is_first=model.is_first,
-            is_last=model.is_last,
-            ordinal=model.ordinal,
-            previous_section=model.previous_section,
-            next_section=model.next_section,
-        )
+        return cls(id=model.id, timestamp=model.timestamp, video=model.video)
+
+    def save_to_db(self):
+        breakpoint = Breakpoint.get_or_none(Breakpoint.id == self.id)
+        breakpoint.timestamp = self.timestamp
+        breakpoint.save()
 
 
 @solara.component
-def SectionEdit(
-    section_item: solara.Reactive[SectionItem],
+def BreakpointEdit(
+    breakpoint_item: solara.Reactive[BreakpointItem],
     on_delete: Callable[[], None],
     on_close: Callable[[], None],
 ):
-    """Takes a reactive section item and allows editing it. Will not modify the original item until 'save' is clicked."""
-    copy = solara.use_reactive(section_item.value)
+    """Takes a reactive breakpoint item and allows editing it. Will not modify the original item until 'save' is clicked."""
+    copy = solara.use_reactive(breakpoint_item.value)
 
     def save():
-        section_item.value = copy.value
+        breakpoint_item.value = copy.value
         on_close()
 
     with solara.Card("Edit", margin=0):
-        solara.InputText(label="Ordinal", value=Ref(copy.fields.ordinal))
-        solara.InputText(label="Start", value=Ref(copy.fields.start))
-        solara.InputText(label="End", value=Ref(copy.fields.end))
+        solara.InputText(label="Timestamp", value=Ref(copy.fields.timestamp))
+
         with solara.CardActions():
             v.Spacer()
             solara.Button(
@@ -103,7 +90,7 @@ def SectionEdit(
 
 
 @solara.component
-def SectionListItem(section_item, on_delete):
+def BreakpointListItem(breakpoint_item, on_delete):
     """Displays a single section item, modifications are done 'in place'.
 
     For demonstration purposes, we allow editing the item in a dialog as well.
@@ -115,56 +102,29 @@ def SectionListItem(section_item, on_delete):
             solara.Button(
                 icon_name="mdi-delete",
                 icon=True,
-                on_click=lambda: on_delete(section_item.value),
+                on_click=lambda: on_delete(breakpoint_item.value),
             )
-            solara.Checkbox(
-                value=Ref(section_item.fields.is_first)
-            )  # , color="success")
-            solara.Checkbox(
-                value=Ref(section_item.fields.is_last)
-            )  # , color="success")
-            solara.InputText(label="Ordinal", value=Ref(section_item.fields.ordinal))
-            solara.InputText(label="Start Time", value=Ref(section_item.fields.start))
-            solara.InputText(label="End Time", value=Ref(section_item.fields.end))
+            solara.InputText(
+                label="Timestamp", value=Ref(breakpoint_item.fields.timestamp)
+            )
+            solara.Markdown(f"Section: {breakpoint_item.fields.section}")
             solara.Button(
                 icon_name="mdi-pencil", icon=True, on_click=lambda: set_edit(True)
             )
         with v.Dialog(
             v_model=edit, persistent=True, max_width="500px", on_v_model=set_edit
         ):
-            if edit:  # 'reset' the component state on open/close
+            if edit:
 
                 def on_delete_in_edit():
-                    on_delete(section_item.value)
+                    on_delete(breakpoint_item.value)
                     set_edit(False)
 
-                SectionEdit(
-                    section_item,
+                BreakpointEdit(
+                    breakpoint_item,
                     on_delete=on_delete_in_edit,
                     on_close=lambda: set_edit(False),
                 )
-
-
-@solara.component
-def SectionNew(video, on_new):
-    """Component that managed entering new section items"""
-
-    def add_initial_section():
-        logger.debug(f"Adding initial section to video {video.title}")
-        Section.create(
-            video=video,
-            start=0,
-            end=video.duration,
-            section_type="INITIAL",
-            is_first=True,
-            is_last=True,
-            ordinal=1,
-        )
-        logger.debug(f"Updating: {video.title}")
-        logger.debug(f"Finished adding section")
-        on_new()
-
-    solara.Button("Create a New section", on_click=add_initial_section)
 
 
 @solara.component
@@ -174,100 +134,64 @@ def VideoHeader(video):
         solara.Markdown(f"Youtube ID: {video.youtube_id}")
         solara.Markdown(f"Duration: {video.duration}")
 
-
-@solara.component
-def VideoSections(video, sm, on_new, on_delete):
-
-    def add_section():
-        sm.split_section_at(time_cursor_slider.value)
-        on_new()
-
-    def on_delete_local(section_id):
-        sect = Section.get_or_none(Section.id == section_id)
-        if sect is not None:
-            on_delete(sect)
-        on_new()
-
-    title.set(video.title)
-    sm = SectionManager(video)
-    with solara.ColumnsResponsive(12):
-        with solara.Column():
-            if video.poster is not None:
-                solara.Image(video.poster, width="300px")
-            solara.InputText(label="Name", value=title, continuous_update=False)
-
-            if video.sections.count() > 0:
-                solara.Markdown(f"Sections: {video.sections.count()}")
-                solara.Markdown(f"Duration: {video.duration}")
-                solara.Markdown(f"Current Timestamp: {time_cursor_slider.value}")
-                solara.SliderInt(
-                    label="Timestamp",
-                    value=time_cursor_slider,
-                    max=video.duration,
-                )
-                solara.Button(
-                    "Add section at timestamp",
-                    on_click=add_section,
-                )
-
-                with solara.ColumnsResponsive(6, large=4):
-                    for sect in sm.section_list:
-                        with solara.Card(f"Order: {sect.ordinal}"):
-                            solara.Markdown(f"Start:{sect.start} End:{sect.end}")
-                            solara.Markdown(f"Type: {sect.section_type}")
-                            solara.Markdown(f"First: {sect.is_first}")
-                            solara.Markdown(f"Last: {sect.is_last}")
-                            if sect.previous_section is not None:
-                                if sect.previous_section.get_or_none() is not None:
-                                    solara.Markdown(
-                                        f"Previous: {sect.previous_section.get().ordinal}"
-                                    )
-                            if sect.next_section is not None:
-                                if sect.next_section.get_or_none() is not None:
-                                    solara.Markdown(
-                                        f"Next: {sect.next_section.get().ordinal}"
-                                    )
-
-                            solara.Button(
-                                f"Merge with Next Section",
-                                on_click=lambda: sm.merge_sections(
-                                    sect, sect.next_section
-                                ),
-                                disabled=sect.is_last,
-                            )
-                            solara.Button(
-                                f"Delete Section",
-                                on_click=lambda: on_delete_local(sect.id),
-                            )
+        if video.poster:
+            solara.Image(video.poster, width="300px")
 
 
 class State:
+    breakpoints = solara.reactive([])
 
     def __init__(self, video_id):
-        self.video_id = video_id
-        self.section_query = Section.select().join(Video).where(Video.id == video_id)
-        self.sections = solara.reactive(self.section_query)
+        self.video = self.load_video(video_id)
+        if self.video is None:
+            logger.error("No video selected")
+            raise ValueError("No video selected")
+        State.breakpoints.value = self.video.breakpoints
 
-    def on_new(self):
-        self.sections.value = (
-            Section.select().join(Video).where(Video.id == self.video_id)
+    def load_video(self, video_id):
+        return (
+            Video.select()
+            .join(Breakpoint, join_type=JOIN.LEFT_OUTER)
+            .where(Video.id == video_id)
+            .get_or_none()
         )
 
-    def on_delete(self, item):
+    @staticmethod
+    def reset_breakpoints():
+        for bp in State.breakpoints.value:
+            bp.my_delete_instance()
+        State.breakpoints.value = []
+        State.create_initial_breakpoints()
 
-        sect = Section.get_or_none(Section.id == item.id)
-        if sect is not None:
-            sect.my_delete_instance()
-            logger.success(f"Deleted section {item.id}")
+    def create_initial_breakpoints(self):
+        Breakpoint.create(video=self.video, timestamp=0)
+        Breakpoint.create(video=self.video, timestamp=self.video.duration)
+
+        self.breakpoints.value = Breakpoint.select().where(
+            Breakpoint.video_id == self.video.id
+        )
+
+    def on_add_breakpoint(self, timestamp):
+
+        Breakpoint.create(video=self.video, timestamp=timestamp)
+
+        self.breakpoints.value = Breakpoint.select().where(
+            Breakpoint.video_id == self.video.id
+        )
+
+    def on_delete_breakpoint(self, item):
+        bp = Breakpoint.get_or_none(Breakpoint.id == item.id)
+        if bp is not None:
+            bp.my_delete_instance()
+            logger.success(f"Deleted breakpoint {item.id}")
         else:
-            logger.error(f"Could not delete section {item.id}")
-        self.sections.value = (
-            Section.select().join(Video).where(Video.id == self.video_id)
+            logger.error(f"Could not delete breakpoint {item.id}")
+        self.breakpoints.value = Breakpoint.select().where(
+            Breakpoint.video_id == self.video.id
         )
 
 
-@solara.component
-def Page():
+def get_id_from_url():
     router = solara.use_router()
     level = solara.use_route_level()
 
@@ -275,28 +199,40 @@ def Page():
         solara.Markdown("No Video Selected")
         return
 
-    video_id = router.parts[level:][0]
+    id = router.parts[level:][0]
+    if id.isdigit():
+        return int(id)
 
-    if video_id.isdigit():
+
+@solara.component
+def Page():
+
+    video_id = get_id_from_url()
+    try:
         state = State(video_id)
+    except ValueError:
+        solara.Markdown("No Video Selected")
 
-        video = (
-            Video.select()
-            .join(Section, join_type=JOIN.LEFT_OUTER)
-            .where(Video.id == video_id)
-            .get_or_none()
-        )
-        if video is None:
-            return solara.Markdown("No Video Found")
+    with solara.Card(state.video.title):
+        VideoHeader(state.video)
 
-        VideoHeader(video)
-
-        # VideoSections(video, on_new=state.on_new, on_delete=state.on_delete)
-
-        SectionNew(video, on_new=state.on_new)
-        if state.sections.value:
-            for item in state.sections.value:
-                SectionListItem(
-                    solara.Reactive(SectionItem.from_model(item)),
-                    on_delete=state.on_delete,
+        if state.breakpoints.value:
+            with solara.Row():
+                solara.Button(label="New Breakpoint", on_click=state.on_add_breakpoint)
+                solara.Button(
+                    label="Reset Breakpoints",
+                    on_click=state.reset_breakpoints,
                 )
+            for item in state.breakpoints.value:
+                bp = BreakpointItem.from_model(item)
+
+                BreakpointListItem(
+                    solara.Reactive(bp),
+                    on_delete=state.on_delete_breakpoint,
+                )
+        else:
+            solara.Markdown("No Breakpoints")
+            solara.Button(
+                "Create Default Breakpoints",
+                on_click=state.create_initial_breakpoints,
+            )

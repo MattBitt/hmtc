@@ -15,10 +15,12 @@ all_channels = [c.name for c in Channel.select()]
 name = solara.reactive("")
 url = solara.reactive("http://www.youtube.com")
 
-series = solara.reactive(all_series[0])
+# series = solara.reactive(all_series[0])
+series = solara.reactive([])
 enabled = solara.reactive(True)
 album_per_episode = solara.reactive(False)
-channel = solara.reactive(all_channels[0])
+# channel = solara.reactive(all_channels[0])
+channel = solara.reactive([])
 add_videos_enabled = solara.reactive(True)
 
 

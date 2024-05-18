@@ -5,13 +5,32 @@ import pytest
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import Channel, File, Playlist, Series, Video, get_file_type, Section
-
+from hmtc.models import (
+    Channel,
+    File,
+    Playlist,
+    Series,
+    Video,
+    get_file_type,
+    Section,
+    TodoTable,
+)
+from hmtc.db import seed_database
 
 config = init_config()
 
 
-def test_init_database():
+def test_empty_db():
+    assert len(Playlist.select()) == 0
+    assert len(Channel.select()) == 0
+    assert len(Series.select()) == 0
+    assert len(Video.select()) == 0
+    assert len(File.select()) == 0
+    assert len(Section.select()) == 0
+
+
+def test_seed_database():
+    seed_database()
     assert len(Playlist.select()) > 0
     assert len(Channel.select()) > 0
     assert len(Series.select()) > 0
@@ -25,7 +44,7 @@ def test_series():
     assert s.name == "test"
 
     all_series = Series.select()
-    assert all_series.count() > 1
+    assert all_series.count() == 1
     logger.debug(f"all_series.count() = {all_series.count()}")
     s.delete_instance()
 
@@ -201,7 +220,7 @@ def test_add_info_from_file_to_playlist_in_db(test_files):
 
 
 def test_add_poster_to_playlist(test_image_filename):
-    p = Playlist.get()
+    p = Playlist.create(title="test")
     logger.debug(f"Playlist: {p.title}")
     logger.debug(f"{test_image_filename}")
     p.add_file(test_image_filename)
@@ -233,72 +252,33 @@ def test_add_file_to_series(test_image_filename):
     assert s.poster is not None
 
 
-# def test_video_section_split_and_merge():
-#     v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
-#     sm = SectionManager(video=v)
-
-#     sm.split_section_at(timestamp=100)
-#     sects = sm.section_list
-
-#     assert len(sects) == 2
-#     # orignal section
-#     assert sects[0].is_first is True
-#     assert sects[0].is_last is False
-#     assert sects[0].end == 100
-#     assert sects[0].ordinal == 1
-#     # new section
-#     assert sects[1].is_first is False
-#     assert sects[1].is_last is True
-#     assert sects[1].start == 100
-#     assert sects[1].ordinal == 2
-
-#     sm.split_section_at(timestamp=500)
-#     sects = sm.section_list
-#     assert len(sects) == 3
-#     assert sects[0].end == 100
-#     assert sects[0].ordinal == 1
-#     assert sects[1].start == 100
-#     assert sects[1].ordinal == 2
-#     assert sects[2].start == 500
-#     assert sects[2].ordinal == 3
-#     assert sects[2].is_first is False
-#     assert sects[2].is_last is True
-
-#     sm.merge_section_with_next(ordinal=1)
-#     sects = sm.section_list
-#     assert len(sects) == 2
-#     assert sects[0].end == 500
-#     assert sects[0].ordinal == 1
-#     assert sects[1].start == 500
-
-#     sm.merge_section_with_next(ordinal=1)
-#     sects = sm.section_list
-#     assert len(sects) == 1
-#     assert sects[0].end == 1000
-#     assert sects[0].ordinal == 1
-#     assert sects[0].start == 0
-
-
-# def test_video_section_split_and_merge2():
-#     v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
-#     sm = SectionManager(video=v)
-
-#     sm.split_section_at(timestamp=800)
-#     sm.split_section_at(timestamp=500)
-
-#     sects = sm.section_list
-#     assert len(sects) == 3
-#     assert sects[0].end == 500
-#     assert sects[0].ordinal == 1
-#     assert sects[1].start == 500
-
-
 def test_video_breakpoints():
     v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
     assert v.breakpoints.count() == 2
+    v.add_breakpoint(100)
+    assert v.breakpoints.count() == 3
+    v.add_breakpoint(0)
+    assert v.breakpoints.count() == 3
     v.add_breakpoint(100)
     assert v.breakpoints.count() == 3
     v.add_breakpoint(500)
     assert v.breakpoints.count() == 4
     v.delete_breakpoint(100)
     assert v.breakpoints.count() == 3
+    v.delete_breakpoint(500)
+    assert v.breakpoints.count() == 2
+    v.delete_breakpoint(0)
+    assert v.breakpoints.count() == 2
+    v.delete_breakpoint(1000)
+    assert v.breakpoints.count() == 2
+
+
+def test_todo_table():
+    t1 = TodoTable.create(text="Learn Solara", done=True)
+    t2 = TodoTable.create(text="Write cool apps", done=False)
+    t3 = TodoTable.create(text="Relax", done=False)
+    assert TodoTable.select().count() == 3
+    t1.my_delete_instance()
+    t2.my_delete_instance()
+    t3.my_delete_instance()
+    assert TodoTable.select().count() == 0

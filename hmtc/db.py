@@ -23,6 +23,7 @@ from hmtc.models import (
     Series,
     Track,
     TrackBeat,
+    TodoTable,
     User,
     UserInfo,
     Video,
@@ -159,7 +160,7 @@ def download_playlist_videos():
         playlist.update_videos_with_playlist_info()
 
 
-def create_tables(db):
+def create_tables(db, download_info=False):
     db.create_tables(
         [
             Playlist,
@@ -180,9 +181,14 @@ def create_tables(db):
             Post,
             PlaylistAlbum,
             Channel,
+            TodoTable,
         ]
     )
+    if download_info:
+        seed_database()
 
+
+def seed_database():
     import_channels()
     import_series()
     import_playlists()
@@ -210,12 +216,15 @@ def drop_tables(db):
             Post,
             PlaylistAlbum,
             Channel,
+            TodoTable,
         ]
     )
 
 
-def is_db_empty(db):
-    return len(db.get_tables()) == 0
+def is_db_empty():
+    vids = Video.select().count()
+    logger.debug(f"DB currently has: {vids} Videos")
+    return vids < 10
 
 
 def get_playlist(playlist: dict):

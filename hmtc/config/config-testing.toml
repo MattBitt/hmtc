@@ -3,8 +3,8 @@ name = "HMTC"
 description = "Harry Mack Track Creator"
 
 [running]
-log_level = "ERROR"
-download_on_init = true
+log_level = "DEBUG"
+download_on_init = false
 
 [general]
 environment="testing"

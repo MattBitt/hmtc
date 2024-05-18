@@ -4,6 +4,7 @@ from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
 from hmtc.config import init_config
 from hmtc.models import Playlist, Series, Video
+from solara.lab import task
 
 config = init_config()
 WORKING = config["paths"]["working"]
@@ -33,10 +34,16 @@ per_page = solara.reactive(config["general"]["items_per_page"])
 
 @solara.component
 def VideoCard(video):
+
+    @task
+    def update():
+        video.update_from_yt()
+        video.save()
+
     if video.title is None:
         with solara.Card(f"ID: {video.youtube_id}"):
             with solara.CardActions():
-                solara.Button("Download Info", on_click=lambda: video.update_from_yt())
+                solara.Button("Download Info", on_click=update)
 
     else:
         with solara.Card():
