@@ -2,8 +2,8 @@ import json
 import os
 import re
 from datetime import datetime
-from pathlib import Path
 from functools import total_ordering
+from pathlib import Path
 
 from loguru import logger
 from peewee import (

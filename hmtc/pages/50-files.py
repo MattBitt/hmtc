@@ -7,7 +7,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import import_existing_video_files_to_db
-from hmtc.models import File, Video, Series, Playlist, Channel
+from hmtc.models import Channel, File, Playlist, Series, Video
 
 config = init_config()
 
@@ -161,7 +161,7 @@ def FileTypeInfoCard(ftype):
     with solara.Card(title=ftype):
         solara.Markdown(f"**{len(db_files)}** files in Database")
         solara.Markdown(f"**{len(folder_files)}** files in Storage Folder")
-        solara.Markdown(f"End of Card")
+        solara.Markdown("End of Card")
 
 
 @solara.component

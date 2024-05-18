@@ -5,17 +5,17 @@ import pytest
 from loguru import logger
 
 from hmtc.config import init_config
+from hmtc.db import seed_database
 from hmtc.models import (
     Channel,
     File,
     Playlist,
+    Section,
     Series,
+    TodoTable,
     Video,
     get_file_type,
-    Section,
-    TodoTable,
 )
-from hmtc.db import seed_database
 
 config = init_config()
 

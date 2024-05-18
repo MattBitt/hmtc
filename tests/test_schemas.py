@@ -1,4 +1,5 @@
 from hmtc.schemas.channel import ChannelItem
+from hmtc.schemas.playlist import PlaylistItem
 from hmtc.schemas.todo import TodoItem
 
 
@@ -30,3 +31,7 @@ def test_todo_schema():
 
 def test_channel_schema():
     c = ChannelItem(name="asdf")
+
+
+def test_playlist_schema():
+    p = PlaylistItem(title="fdsaqwer", youtube_id="asdzzxcvdsff")

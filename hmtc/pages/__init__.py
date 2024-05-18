@@ -1,16 +1,17 @@
 from pathlib import Path
+
 import solara
 from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,
-    init_db,
-    is_db_empty,
     download_channel_videos,
     download_playlist_videos,
     import_playlist_info,
-    seed_database
+    init_db,
+    is_db_empty,
+    seed_database,
 )
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
@@ -50,6 +51,7 @@ def setup():
     create_tables(db_instance)
     if download and is_db_empty():
         logger.error("Database is empty, initializing tables")
+        seed_database()
         download_channel_videos()
         download_playlist_videos()
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
@@ -77,7 +79,11 @@ def Layout(children=[]):
         case _:
             color = "yellow"
     title = f"{config["app"]["name"]} - {VERSION} - {env}"
-    solara.Style(Path('assets/style.css'))
+    solara.Style(Path("assets/style.css"))
     return solara.AppLayout(
-        children=children, color=color, sidebar_open=False, navigation=True, title=title,
+        children=children,
+        color=color,
+        sidebar_open=False,
+        navigation=True,
+        title=title,
     )

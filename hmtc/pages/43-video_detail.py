@@ -6,10 +6,9 @@ import solara.lab
 from loguru import logger
 from solara.lab import task
 
-from hmtc.components.file_drop_card import FileDropCard, FileInfo
+from hmtc.components.file_drop_card import FileInfo
 from hmtc.config import init_config
-from hmtc.models import Video, Section
-from hmtc.utils.general import time_since_update
+from hmtc.models import Section, Video
 from hmtc.utils.section_manager import SectionManager
 
 all_videos = [c.title for c in Video.select()]
@@ -101,7 +100,7 @@ def VideoDetail(video_id):
         logger.debug(f"Adding section {time_cursor.value} to video {video.title}")
         sm.split_section_at(time_cursor.value)
         logger.debug(f"Updating: {video.title}")
-        logger.debug(f"Finished adding section")
+        logger.debug("Finished adding section")
 
     def update_video():
         save_video(video)
@@ -126,7 +125,7 @@ def VideoDetail(video_id):
                 solara.Markdown(f"Duration: {video.duration}")
                 solara.Checkbox(label="Enabled", value=enabled)
                 solara.Checkbox(label="Unique", value=contains_unique_content)
-                solara.Markdown(f"## Files")
+                solara.Markdown("## Files")
                 for vf in video.files:
                     with solara.Row():
                         solara.Markdown(f"**File**: {vf.filename + vf.extension}")
@@ -142,7 +141,7 @@ def VideoDetail(video_id):
                     )
 
             with solara.Column():
-                solara.Markdown(f"## Sections")
+                solara.Markdown("## Sections")
                 solara.InputText("Timestamp", value=time_cursor)
                 solara.Button(
                     "Add section at timestamp",

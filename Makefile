@@ -1,7 +1,11 @@
 all: run
 
-db:
-	docker-compose up -d
+venv:
+	source ./.venv/bin/activate
+
+dev_db:
+	docker-compose -f ~/programming/docker/docker-compose.yaml up -d
+
 create_db:
 	python hmtc/db.py
 

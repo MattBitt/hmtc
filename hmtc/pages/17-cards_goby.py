@@ -1,11 +1,10 @@
-import dataclasses
 from typing import Callable
-from loguru import logger
 
 import reacton.ipyvuetify as v
-
 import solara
+from loguru import logger
 from solara.lab.toestand import Ref
+
 from hmtc.schemas.todo import TodoItem
 
 
@@ -23,7 +22,7 @@ def TodoEdit(
         todo_item.value = copy.value
         on_save()
 
-    logger.debug(f"Start of TodoEdit")
+    logger.debug("Start of TodoEdit")
     with solara.Card("Edit"):
         solara.InputText(label="TodoText", value=Ref(copy.fields.text))
         solara.Checkbox(label="Completed", value=Ref(copy.fields.done))
@@ -50,7 +49,7 @@ def TodoEdit(
                 outlined=True,
                 text=True,
             )
-    logger.debug(f"End of TodoEdit")
+    logger.debug("End of TodoEdit")
 
 
 @solara.component

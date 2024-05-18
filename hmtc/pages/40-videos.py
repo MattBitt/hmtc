@@ -1,10 +1,10 @@
 import solara
-from loguru import logger
+from solara.lab import task
+
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
 from hmtc.config import init_config
 from hmtc.models import Playlist, Series, Video
-from solara.lab import task
 
 config = init_config()
 WORKING = config["paths"]["working"]
@@ -166,7 +166,6 @@ def get_sort_method():
     return sort_mapping.get((sort_by.value, sort_order.value))
 
 
-@logger.catch
 def paginated(query):
     num_pages.set(query.count() // per_page.value + 1)
     if current_page.value > num_pages.value:

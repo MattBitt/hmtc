@@ -1,7 +1,8 @@
 # didn't really get this to work, but maybe something helpful below.
 
-import vlc_controller
 import asyncio
+
+import vlc_controller
 
 
 async def main():
@@ -17,7 +18,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 
 
-from subprocess import Popen
 import asyncio
 import os
 import signal

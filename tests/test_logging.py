@@ -1,5 +1,4 @@
 from loguru import logger
-from hmtc.config import init_config
 
 
 def greet(name):

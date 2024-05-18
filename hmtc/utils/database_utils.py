@@ -1,5 +1,6 @@
 import psycopg2
 from loguru import logger
+
 from hmtc.config import init_config
 
 config = init_config()

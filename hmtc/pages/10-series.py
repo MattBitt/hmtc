@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import peewee
 import solara
 import solara.lab

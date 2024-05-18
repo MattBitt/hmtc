@@ -1,6 +1,8 @@
-from hmtc.models import TodoTable, Channel
 import dataclasses
+
 from loguru import logger
+
+from hmtc.models import TodoTable
 
 
 # our model for a todo item, immutable/frozen avoids common bugs

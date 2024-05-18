@@ -1,24 +1,16 @@
-from pathlib import Path
 import dataclasses
+from pathlib import Path
 from typing import Callable
 
 import reacton.ipyvuetify as v
-
-import solara
-from solara.lab.toestand import Ref
-import peewee
-from peewee import JOIN
 import solara
 import solara.lab
 from loguru import logger
-from solara.lab import task
+from peewee import JOIN
+from solara.lab.toestand import Ref
 
-from hmtc.components.file_drop_card import FileDropCard, FileInfo
 from hmtc.config import init_config
-from hmtc.models import Video, Section, Breakpoint
-from hmtc.utils.general import time_since_update
-from hmtc.utils.section_manager import SectionManager
-
+from hmtc.models import Breakpoint, Video
 
 time_cursor_slider = solara.reactive(0)
 title = solara.reactive("")

@@ -1,121 +1,90 @@
-from pathlib import Path
-
-import peewee
 import solara
-import solara.lab
 from loguru import logger
-from solara.lab import task
+from solara.lab.toestand import Ref
 
-from hmtc.models import Channel, Playlist, Series
-from hmtc.utils.general import time_since_update
-
-all_series = [s.name for s in Series.select()]
-all_channels = [c.name for c in Channel.select()]
-if all_series == []:
-    all_series = ["No Series"]
-if all_channels == []:
-    all_channels = ["No Channels"]
-
-name = solara.reactive("")
-url = solara.reactive("http://www.youtube.com")
-
-series = solara.reactive(all_series[0])
-enabled = solara.reactive(True)
-album_per_episode = solara.reactive(False)
-channel = solara.reactive(all_channels[0])
-add_videos_enabled = solara.reactive(True)
+from hmtc.components.pagination_controls import PaginationControls
+from hmtc.components.playlist.playlist_list_item import PlaylistListItem
+from hmtc.components.playlist.playlist_new_button import PlaylistNewButton
+from hmtc.components.playlist.playlist_new_text_box import PlaylistNewTextBox
+from hmtc.components.playlist.stats_display import StatsDisplay
+from hmtc.config import init_config
+from hmtc.schemas.playlist import PlaylistItem
 
 
-def add_new_playlist():
-    try:
-        playlist = Playlist.create(
-            title="New Playlist",
-            url="http://www.youtube.com",
-            series=Series.get_or_none(),
-            channel=Channel.get_or_none(),
+class State:
+    logger.debug("Initializing State object page = (Playlists)")
+    config = init_config()
+    title_query = solara.reactive("")
+
+    current_page = solara.reactive(1)
+    per_page = solara.reactive(config["general"]["items_per_page"])
+
+    initial_items = PlaylistItem.grab_page_from_db(
+        current_page=current_page.value, per_page=per_page.value
+    )
+    playlists = solara.reactive(initial_items)
+    np = PlaylistItem.count_enabled() / per_page.value
+    num_pages = solara.reactive(int(np) + 1 if np > int(np) else int(np))
+
+    @staticmethod
+    def total_playlist_count():
+        return PlaylistItem.count_enabled()
+
+    @staticmethod
+    def on_new(item: PlaylistItem):
+        logger.debug(f"on_new: {item}, {item.__class__}")
+        logger.info(f"Adding new item: {item}")
+        item.save_to_db()
+        State.playlists.value = PlaylistItem.grab_page_from_db(
+            current_page=State.current_page.value, per_page=State.per_page.value
         )
-        logger.debug(f"Created new playlist: {playlist.title}")
-    except peewee.IntegrityError:
-        logger.debug("Playlist already exists")
-        return
 
+    @staticmethod
+    def on_delete(item: PlaylistItem):
+        logger.debug(f"on_delete: {item}, {item.__class__}")
+        logger.info(f"Deleting item: {item}")
+        db_item = item.grab_id_from_db(id=item.id)
+        db_item.my_delete_instance()
+        State.playlists.value = PlaylistItem.grab_page_from_db(
+            current_page=State.current_page.value, per_page=State.per_page.value
+        )
 
-def save_playlist(playlist):
-    if playlist is None:
-        logger.error("Playlist not found")
-        return
-    if not name == "":
-        playlist.title = name.value
-        playlist.url = url.value
-        playlist.series = Series.get(Series.name == series.value)
-        playlist.enabled = enabled.value
-        playlist.album_per_episode = album_per_episode.value
-        playlist.channel = Channel.get(Channel.name == channel.value)
-        playlist.enable_video_downloads = add_videos_enabled.value
-        playlist.save()
-        logger.debug("Updated playlist name")
+    @staticmethod
+    def on_update(item: PlaylistItem):
+        logger.debug(f"on_update: {item}, {item.__class__}")
+        logger.info(f"Updating existing item: {item}")
+        item.save_to_db()
+        State.playlists.value = PlaylistItem.grab_page_from_db(
+            current_page=State.current_page.value, per_page=State.per_page.value
+        )
 
-
-@solara.component
-def PlaylistCard(playlist):
-    updating = solara.use_reactive(False)
-    if playlist is None:
-        logger.debug("Playlist not found")
-        return
-
-    @task
-    def update():
-
-        logger.debug(f"Updating playlist {playlist.title}")
-        updating.set(True)
-        # time.sleep(3)
-        playlist.check_for_new_videos()
-        updating.set(False)
-        logger.success(f"Updated database from Playlist {playlist.title}")
-
-    @task
-    def load_info():
-        logger.debug(f"Loading info for {playlist.title}")
-        updating.set(True)
-        playlist.load_info()
-        updating.set(False)
-        logger.success(f"Loaded info for Playlist {playlist.title}")
-
-    with solara.Card():
-        if updating.value is False:
-            solara.Markdown(playlist.title)
-            if playlist.poster is not None:
-                solara.Image(playlist.poster, width="200px")
-            solara.Markdown(f"Videos in DB: {playlist.videos.count()}")
-
-            solara.Markdown(f"URL: {playlist.url}")
-            solara.Markdown(f"Last Updated: {time_since_update(playlist)}")
-            solara.Markdown(
-                f"New Video Status: {'Enabled' if playlist.enable_video_downloads else 'Disabled'} "
-            )
-            with solara.CardActions():
-                with solara.Link(f"/playlist-detail/{playlist.id}"):
-                    solara.Button("Edit", on_click=lambda: logger.debug("Edit"))
-                solara.Button("Delete", on_click=lambda: logger.debug("Delete"))
-
-        else:
-            solara.SpinnerSolara()
+    @staticmethod
+    def on_page_change(page: int):
+        logger.debug(f"on_page_change: {page}")
+        State.current_page.value = page
+        State.playlists.value = PlaylistItem.grab_page_from_db(
+            current_page=State.current_page.value, per_page=State.per_page.value
+        )
 
 
 @solara.component
 def Page():
-    def update_my_videos():
-        for playlist in Playlist.select():
-            playlist.update_videos_with_playlist_info()
-
-    with solara.ColumnsResponsive(
-        12,
-        large=3,
-    ):
-        for playlist in Playlist.select().order_by(Playlist.updated_at.desc()):
-            PlaylistCard(playlist)
-    solara.Button("Add New Playlist", on_click=add_new_playlist)
-    solara.Button(
-        "Update all Videos with properties of their respective playlists",
-        on_click=update_my_videos,
-    )
+    with solara.Card("Playlist list"):
+        PlaylistNewTextBox(on_new=State.on_new)
+        if State.playlists.value:
+            StatsDisplay(State.playlists, State.total_playlist_count())
+            with solara.ColumnsResponsive(4):
+                for index, item in enumerate(State.playlists.value):
+                    PlaylistListItem(
+                        Ref(State.playlists.fields[index]),
+                        on_update=State.on_update,
+                        on_delete=State.on_delete,
+                    )
+        else:
+            solara.Info("No playlist items, enter some text above, and hit enter")
+        PlaylistNewButton(on_new=State.on_new)
+        PaginationControls(
+            current_page=State.current_page,
+            num_pages=State.num_pages,
+            on_page_change=State.on_page_change,
+        )

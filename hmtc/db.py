@@ -1,6 +1,5 @@
 import json
 import os
-
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from hmtc.models import (
     Artist,
     Beat,
     BeatArtist,
+    Breakpoint,
     Channel,
     EpisodeNumberTemplate,
     File,
@@ -19,11 +19,10 @@ from hmtc.models import (
     PlaylistAlbum,
     Post,
     Section,
-    Breakpoint,
     Series,
+    TodoTable,
     Track,
     TrackBeat,
-    TodoTable,
     User,
     UserInfo,
     Video,

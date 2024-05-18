@@ -1,8 +1,8 @@
+import logging
 import sys
 from pathlib import Path
-import logging
-from loguru import logger
 
+from loguru import logger
 
 log_stderr_format = (
     "<white>{time: HH:mm:ss.SSS} | </white>"

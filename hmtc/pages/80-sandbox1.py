@@ -1,5 +1,5 @@
-import solara
 import ipywidgets
+import solara
 
 url = "https://user-images.githubusercontent.com/1765949/240697327-25b296bd-72c6-4412-948b-2d37e8196260.mp4"
 

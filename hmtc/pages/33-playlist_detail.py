@@ -1,13 +1,10 @@
-from pathlib import Path
-
 import peewee
 import solara
 import solara.lab
 from loguru import logger
 from solara.lab import task
 
-from hmtc.models import Channel, Playlist, Series, Video
-from hmtc.utils.general import time_since_update
+from hmtc.models import Channel, Playlist, Series
 
 all_series = [s.name for s in Series.select()]
 all_channels = [c.name for c in Channel.select()]
