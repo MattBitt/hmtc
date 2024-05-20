@@ -19,7 +19,7 @@ def PaginationControls(
             page = num_pages.value
         on_page_change(page)
 
-    with solara.Card():
+    with solara.Row():
         solara.Button(
             "First",
             on_click=lambda: set_page(1),

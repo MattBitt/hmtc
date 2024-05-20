@@ -27,7 +27,6 @@ from hmtc.utils.youtube_functions import (
     download_video_info_from_id,
     fetch_ids_from,
 )
-from loguru import logger
 
 db_null = PostgresqlDatabase(None)
 

@@ -2,7 +2,6 @@ import os
 
 os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
-import logging
 from pathlib import Path
 
 import pytest
