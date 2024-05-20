@@ -25,6 +25,9 @@ def PlaylistEditModal(
         playlist_item.value = copy.value
         on_save()
 
+    def is_dirty():
+        return playlist_item.value != copy.value
+
     def update_playlists():
         logger.debug(f"Updating playlist {playlist_item.value.name}")
         updating.set(True)
@@ -62,6 +65,7 @@ def PlaylistEditModal(
                 on_click=save,
                 outlined=True,
                 text=True,
+                disabled=not is_dirty(),
             )
             solara.Button(
                 "Close",

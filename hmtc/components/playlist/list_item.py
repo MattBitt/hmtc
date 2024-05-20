@@ -5,7 +5,7 @@ import solara
 from loguru import logger
 from solara.lab.toestand import Ref
 
-from hmtc.components.playlist.playlist_edit_modal import PlaylistEditModal
+from hmtc.components.playlist.edit_modal import PlaylistEditModal
 from hmtc.schemas.playlist import PlaylistItem
 
 
@@ -22,10 +22,10 @@ def PlaylistListItem(
     """
     edit, set_edit = solara.use_state(False)
     with solara.Card():
-        with v.ListItem():
-            solara.InputText(
-                label="", value=Ref(playlist_item.fields.title), disabled=True
-            )
+        # with v.ListItem():
+        with solara.Column():
+            solara.Markdown(f"### {playlist_item.value.title}")
+            solara.Markdown(f"Num of Videos: {playlist_item.value.count_videos()}")
             solara.InputText(f"ID: {playlist_item.value.id}", disabled=True)
 
             solara.Button(

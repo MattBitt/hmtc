@@ -27,6 +27,7 @@ from hmtc.utils.youtube_functions import (
     download_video_info_from_id,
     fetch_ids_from,
 )
+from loguru import logger
 
 db_null = PostgresqlDatabase(None)
 
@@ -349,14 +350,17 @@ class Playlist(BaseModel):
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
     album_per_episode = BooleanField(default=True)
-    series = ForeignKeyField(Series, backref="playlists", null=True)
-    channel = ForeignKeyField(Channel, backref="playlists", null=True)
     enable_video_downloads = BooleanField(default=True)
-    contains_unique_content = BooleanField(default=False)
+    has_chapters = BooleanField(default=False)
+
     # if it doesn't contain unique content, it should probably
     # point to the original
     # eg Omegle Bars Clip 91.4 should point to the original Omegle Bars Clip 91
     # Omegle Bars Clip media would not be downloaded
+    contains_unique_content = BooleanField(default=False)
+
+    series = ForeignKeyField(Series, backref="playlists", null=True)
+    channel = ForeignKeyField(Channel, backref="playlists", null=True)
 
     def load_info(self):
         logger.error("Deprecated: Playlist.load_info")
@@ -383,13 +387,12 @@ class Playlist(BaseModel):
                 logger.debug("Found the image file")
 
     @classmethod
-    def create_from_yt_id(cls, youtube_id=None, channel=None):
-
+    def create_from_youtube_id(cls, youtube_id=None, channel=None):
         if youtube_id is None or youtube_id == "":
             logger.error("No youtube ID")
             return None
 
-        info, files = cls.download_video_info(youtube_id)
+        info, files = cls.download_playlist_info(youtube_id)
         if info is None:
             logger.error(f"Error downloading video info for {youtube_id}")
             return None
@@ -526,12 +529,20 @@ class Video(BaseModel):
     enabled = BooleanField(default=True)
     private = BooleanField(default=False)
     contains_unique_content = BooleanField(default=False)
+    has_chapters = BooleanField(default=False)
+    manually_edited = BooleanField(default=False)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
 
     def save(self, *args, **kwargs):
+        if "manual" in kwargs:
+            self.manually_edited = kwargs["manual"]
+        else:
+            self.manually_edited = False
+        kwargs.pop("manual", None)
         result = super(Video, self).save(*args, **kwargs)
+
         # if self.num_sections == 0 and self.duration is not None:
         #     Section.create_initial_section(video=self)
         if self.duration is not None and self.breakpoints.count() == 0:

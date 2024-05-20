@@ -80,12 +80,12 @@ def test_video_filename(test_files):
     return TARGET_PATH / vid_file.name
 
 
-@pytest.fixture
-def caplog(_caplog):
-    class PropogateHandler(logging.Handler):
-        def emit(self, record):
-            logging.getLogger(record.name).handle(record)
+# @pytest.fixture
+# def caplog(_caplog):
+#     class PropogateHandler(logging.Handler):
+#         def emit(self, record):
+#             logging.getLogger(record.name).handle(record)
 
-    handler_id = logger.add(PropogateHandler(), format="{message} {extra}")
-    yield _caplog
-    logger.remove(handler_id)
+#     handler_id = logger.add(PropogateHandler(), format="{message} {extra}")
+#     yield _caplog
+#     logger.remove(handler_id)

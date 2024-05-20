@@ -2,14 +2,13 @@ import solara
 
 
 @solara.component
-def StatsDisplay(playlists, total_playlist_count):
-
-    items = playlists.value
-
-    count_uniques = len([item for item in items if item.contains_unique_content])
+def StatsDisplay(stats):
 
     with solara.Row():
-        solara.Text(f"Unique Content: ({count_uniques})")
+        solara.Text(f"Unique Content: ({stats['unique']})")
 
     with solara.Row():
-        solara.Text(f"Playlists: ({total_playlist_count})")
+        solara.Text(f"Playlists: ({stats['total']})")
+
+    with solara.Row():
+        solara.Text(f"Enabled: ({stats['enabled']})")

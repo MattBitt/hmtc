@@ -282,3 +282,14 @@ def test_todo_table():
     t2.my_delete_instance()
     t3.my_delete_instance()
     assert TodoTable.select().count() == 0
+
+
+def test_manual_edits():
+    v = Video.create(youtube_id="asdfasdf", title="test")
+    assert v.title == "test"
+    assert v.manually_edited is False
+    v.title = "new title"
+    v.save(manual=True)
+
+    assert v.title == "new title"
+    assert v.manually_edited is True
