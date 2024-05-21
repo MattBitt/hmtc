@@ -19,6 +19,7 @@ filelock==3.13.4
 Flask==3.0.3
 flask-sock==0.7.0
 Flask-SocketIO==5.3.6
+greenlet==3.0.3
 h11==0.14.0
 humanize==4.9.0
 idna==3.7
@@ -54,6 +55,7 @@ peewee==3.17.3
 pexpect==4.9.0
 pillow==10.3.0
 platformdirs==4.2.1
+playwright==1.44.0
 pluggy==1.5.0
 prompt-toolkit==3.0.43
 psutil==5.9.8
@@ -65,6 +67,7 @@ pycryptodomex==3.20.0
 pydantic==2.7.1
 pydantic-settings==2.2.1
 pydantic_core==2.18.2
+pyee==11.1.0
 Pygments==2.17.2
 pymdown-extensions==10.8
 pytest==8.2.0
@@ -72,6 +75,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-engineio==4.9.0
 python-socketio==5.11.2
+python-vlc==3.0.20123
 pytz==2024.1
 PyYAML==6.0.1
 pyzmq==26.0.2
@@ -99,6 +103,7 @@ typing_extensions==4.11.0
 tzdata==2024.1
 urllib3==2.2.1
 uvicorn==0.29.0
+vlc-controller==0.0.6
 watchdog==4.0.0
 watchfiles==0.21.0
 wcwidth==0.2.13

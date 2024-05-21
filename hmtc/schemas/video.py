@@ -1,39 +1,26 @@
-import dataclasses
-
+from dataclasses import dataclass
+from datetime import datetime
 from loguru import logger
 
-from hmtc.models import Playlist, Video
+from hmtc.models import Video
+from hmtc.schemas.base import BaseItem
 
 
-def get_sort_field(cls, sort_column, sort_order):
-    if sort_column not in cls.db_model._meta.fields:
-        logger.error(f"unknown sort column: {sort_column}")
-        raise Exception("unknown sort column")
-
-    field = getattr(Video, sort_column)
-
-    if sort_order != "asc":
-        field = field.desc()
-    return field
-
-
-# our model for a todo item, immutable/frozen avoids common bugs
-@dataclasses.dataclass(frozen=True)
-class VideoItem:
-    id: int = None
+@dataclass(frozen=True, kw_only=True)
+class VideoItem(BaseItem):
     title: str = None
-    url: str = None
-    youtube_id: str = None
-    enabled: bool = True
-    last_update_completed = None
-    # album_per_episode: bool = False
-    # enable_video_downloads: bool = False
-    # contains_unique_content: bool = False
-    db_model = Video
 
-    @classmethod
-    def count_enabled(cls, enabled: bool = True):
-        return cls.db_model.select().where(cls.enabled == enabled).count()
+    youtube_id: str = None
+    url: str = None
+    last_update_completed = None
+    episode: str = None
+    upload_date: datetime = None
+    duration: int = 0
+    description: str = None
+    contains_unique_content: bool = False
+    has_chapters: bool = False
+    manually_edited: bool = False
+    db_model = Video
 
     @classmethod
     def count_videos(cls, enabled: bool = True):
@@ -43,24 +30,25 @@ class VideoItem:
     def grab_page_from_db(
         cls, current_page, per_page, text_search=None, sort_column=None, sort_order=None
     ):
+        # sort column is the column 'string' to sort by
         query = cls.db_model.select()
 
         if text_search:
             query = query.where(
-                (Video.title.contains(text_search))
-                | (Video.url.contains(text_search))
-                | (Video.youtube_id.contains(text_search))
+                (cls.db_model.title.contains(text_search))
+                | (cls.db_model.url.contains(text_search))
+                | (cls.db_model.youtube_id.contains(text_search))
             )
 
         sort_field = None
 
         if sort_column is not None:
-            sort_field = get_sort_field(cls, sort_column, sort_order)
+            sort_field = cls.get_sort_field(sort_column, sort_order)
 
         if sort_field is not None:
             items = query.order_by(sort_field)
         else:
-            items = query.order_by(cls.title.asc())
+            items = query.order_by(cls.id.asc())
 
         if not items:
             logger.error("no items found")
@@ -69,63 +57,82 @@ class VideoItem:
         total_items = items.count()
         query = items.paginate(current_page, per_page)
         page_of_items = [
-            VideoItem(
+            cls(
                 title=item.title,
                 url=item.url,
                 id=item.id,
                 youtube_id=item.youtube_id,
                 enabled=item.enabled,
-                # album_per_episode=item.album_per_episode,
-                # enable_video_downloads=item.enable_video_downloads,
-                # contains_unique_content=item.contains_unique_content,
+                manually_edited=True,
+                upload_date=item.upload_date,
+                duration=item.duration,
+                description=item.description,
+                contains_unique_content=item.contains_unique_content,
+                has_chapters=item.has_chapters,
             )
             for item in query
         ]
         return page_of_items, total_items
 
-    @classmethod
-    def grab_id_from_db(cls, id: int):
-        item = Playlist.get_or_none(Playlist.id == id)
-        return item
-
-    @classmethod
-    def grab_by_youtube_id(cls, youtube_id: str):
-        item = cls.db_model.get_or_none(cls.db_model.youtube_id == youtube_id)
-        return item
-
     def db_object(self):
-        return Video.get_or_none(Video.id == self.id)
+        return self.db_model.get_or_none(self.db_model.id == self.id)
 
     def save_to_db(self):
         logger.debug(f"Saving to db: {self}")
+        url = "https://www.youtube.com/watch?v=" + self.youtube_id
         if self.id is None:
-            existing = Video.get_or_none(Video.youtube_id == self.youtube_id)
+            existing = self.db_model.get_or_none(
+                self.db_model.youtube_id == self.youtube_id
+            )
             if not existing:
-                Video.create(
+
+                self.db_model.create(
                     title=self.title,
+                    url=url,
                     youtube_id=self.youtube_id,
                     enabled=self.enabled,
-                    manual=True,
+                    manually_edited=True,
+                    upload_date=self.upload_date,
+                    duration=self.duration,
+                    description=self.description,
+                    contains_unique_content=self.contains_unique_content,
+                    has_chapters=self.has_chapters,
                 )
             else:
                 logger.info(f"Video with youtube_id {self.youtube_id} already exists")
         else:
-            Video.update(
-                title=self.title, youtube_id=self.youtube_id, enabled=self.enabled
-            ).where(Video.id == self.id).execute()
-
-    def get_poster(self):
-        video = Video.select().where(Video.id == self.id).get()
-        return video.poster
-
-    @staticmethod
-    def create_from_youtube_id(youtube_id):
-        # for now can't actually do this
-        # some problem with the ffmpeg function
-        # i had to download and create the info file manually
-        raise DeprecationWarning("Can't create playlist from youtube_id automatically")
+            logger.debug(f"Updating video with id {self.id}")
+            logger.debug(f"Self = {self}")
+            self.db_model.update(
+                title=self.title,
+                youtube_id=self.youtube_id,
+                enabled=self.enabled,
+                manually_edited=True,
+                upload_date=self.upload_date,
+                duration=self.duration,
+                description=self.description,
+                contains_unique_content=self.contains_unique_content,
+                has_chapters=self.has_chapters,
+                url=url,
+            ).where(self.db_model.id == self.id).execute()
 
     def update_from_youtube(self):
-        video = Video.select().where(Video.id == self.id).get()
+        video = self.db_model.select().where(self.db_model.id == self.id).get()
         video.update_from_yt()
         return video
+
+    @classmethod
+    def create_item_from_db_object(cls, db_object):
+        return cls(
+            title=db_object.title,
+            url=db_object.url,
+            id=db_object.id,
+            youtube_id=db_object.youtube_id,
+            enabled=db_object.enabled,
+            manually_edited=True,
+            upload_date=db_object.upload_date,
+            duration=db_object.duration,
+            description=db_object.description,
+            contains_unique_content=db_object.contains_unique_content,
+            has_chapters=db_object.has_chapters,
+        )

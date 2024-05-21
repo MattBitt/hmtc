@@ -516,7 +516,6 @@ class Playlist(BaseModel):
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
     MEDIA_PATH = STORAGE / "videos"
-    sm = None  # section manager
 
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
@@ -533,136 +532,6 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
-
-    def save(self, *args, **kwargs):
-        if "manual" in kwargs:
-            self.manually_edited = kwargs["manual"]
-        else:
-            self.manually_edited = False
-        kwargs.pop("manual", None)
-        result = super(Video, self).save(*args, **kwargs)
-
-        # if self.num_sections == 0 and self.duration is not None:
-        #     Section.create_initial_section(video=self)
-        if self.duration is not None and self.breakpoints.count() == 0:
-            logger.error(f"Duration is {self.duration}")
-            Breakpoint.create(video=self, timestamp=0)
-            Breakpoint.create(video=self, timestamp=self.duration)
-        return result
-
-    @classmethod
-    def create_from_yt_id(
-        cls, youtube_id=None, channel=None, series=None, playlist=None, enabled=False
-    ):
-        if youtube_id is None or youtube_id == "":
-            logger.error("No youtube ID")
-            return None
-
-        existing = cls.get_or_none(cls.youtube_id == youtube_id)
-        if existing:
-            if playlist is not None:
-                logger.error(f"Replacing playlist {existing.playlist} with {playlist}")
-                existing.playlist = playlist
-                existing.save()
-
-            return None
-
-        info, files = cls.download_video_info(youtube_id)
-        if info is None:
-            logger.error(f"Error downloading video info for {youtube_id}")
-            return None
-
-        vid = cls.create(
-            **info, series=series, channel=channel, enabled=enabled, playlist=playlist
-        )
-
-        process_downloaded_files(vid, files)
-
-        vid.update_from_yt()
-
-        vid.save()
-
-        return vid
-
-    @property
-    def breakpoint_list(self):
-        return sorted([x.timestamp for x in self.breakpoints.select().distinct()])
-
-    def add_breakpoint(self, timestamp):
-        if timestamp in self.breakpoint_list:
-            logger.debug("Section Break already exists. Nothing to do")
-            return
-        if timestamp > self.duration:
-            logger.error("Breakpoint can't be greater than duration")
-            return
-        Breakpoint.create(video=self, timestamp=timestamp)
-        logger.debug(f"Adding breakpoint to video {self.title}")
-
-    def delete_breakpoint(self, timestamp):
-        if timestamp == 0 or timestamp == self.duration:
-            logger.error("Can't delete start or end breakpoints")
-            return
-
-        if timestamp not in self.breakpoint_list:
-            logger.debug(f"Breakpoints: {self.breakpoint_list}")
-            logger.error("Breakpoint doesn't exist")
-            return
-
-        bp = Breakpoint.get_or_none(
-            (Breakpoint.video == self) & (Breakpoint.timestamp == timestamp)
-        )
-        if bp is None:
-            logger.error("Couldn't find breakpoint")
-            return
-        bp.my_delete_instance()
-        self.breakpoints = Breakpoint.select().where(Breakpoint.video == self)
-
-    @classmethod
-    def download_video_info(
-        cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
-    ):
-
-        download_path = WORKING / "downloads"
-
-        video_info, files = download_video_info_from_id(
-            youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
-        )
-
-        if video_info["error"] or files is None:
-            logger.error(f"{video_info['error_info']}")
-            return None, None
-
-        return video_info, files
-
-    def add_file(self, filename, move_file=True):
-        extension = "".join(Path(filename).suffixes)
-        final_name = Path(self.MEDIA_PATH) / (
-            clean_filename(self.file_stem) + extension
-        )
-        File.add_new_file(
-            source=filename, target=final_name, move_file=move_file, video=self
-        )
-
-    @property
-    def poster(self):
-        p = self._poster(self.id)
-        if p:
-            return p.file_string
-        return None
-
-    @property
-    def info(self):
-        logger.debug(f"Getting info file for playlist {self.title}")
-        i = (
-            File.select()
-            .where(File.file_type == "info")
-            .where(File.video == self)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
-        if i:
-            return i
-        return None
 
     def download_missing_files(self):
 
@@ -695,13 +564,43 @@ class Video(BaseModel):
             # video_info["file_path"] = new_path
             return video_info, files
 
-    def update_episode_number(self, title, templates):
-        for template in templates:
-            match = re.search(template.template, title)
-            if match:
-                return match.group(1)
+    @classmethod
+    def download_video_info(
+        cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
+    ):
 
-            return ""
+        download_path = WORKING / "downloads"
+
+        video_info, files = download_video_info_from_id(
+            youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
+        )
+
+        if video_info["error"] or files is None:
+            logger.error(f"{video_info['error_info']}")
+            return None, None
+
+        return video_info, files
+
+    def add_file(self, filename, move_file=True):
+        extension = "".join(Path(filename).suffixes)
+        final_name = Path(self.MEDIA_PATH) / (
+            clean_filename(self.file_stem) + extension
+        )
+        File.add_new_file(
+            source=filename, target=final_name, move_file=move_file, video=self
+        )
+
+    @property
+    def poster(self):
+        logger.error("In Video(BaseModel) poster property")
+        p = self._poster(self.id)
+        if p:
+            return p.file_string
+        return None
+
+    @property
+    def file_stem(self):
+        return f"{self.youtube_id}".lower()
 
     def update_from_yt(self):
 
@@ -713,92 +612,12 @@ class Video(BaseModel):
             self.upload_date = info["upload_date"]
             self.duration = info["duration"]
             self.description = info["description"]
-
+            self.url = info["url"]
+            self.youtube_id = info["youtube_id"]
             self.save()
-        # else:
-        #     logger.debug(f"No need to update video {self.title}")
-
-    def download_video(self):
-
-        download_path = WORKING / "downloads"
-        if self.has_video:
-            logger.debug(
-                "Video already downloaded. Delete it from the folder to redownload"
-            )
-            return
-        result, files = download_media_files(self.youtube_id, download_path)
-        if result:
-            for file in files:
-                self.add_file(file)
-
-    def extract_audio(self):
-        if not self.has_video:
-            logger.error(f"No video file found for {self.title}")
-            return
-        logger.error("Need to redo query before this function will work again.")
-        return
-        # video_file = (
-        #     VideoFile.select(File)
-        #     .join(File)
-        #     .where((VideoFile.video_id == self.id) & (VideoFile.file_type == "video"))
-        # ).get()
-        path = Path(video_file.file.path)
-        vf = path / video_file.file.filename
-        af = path / f"{self.upload_date_str}___{self.youtube_id}.mp3"
-
-        command = f"ffmpeg -i {vf} -vn -acodec libmp3lame -y {af}"
-        logger.debug(f"Running command: {command}")
-        os.system(command)
-
-        self.add_file(af, file_type="audio")
 
     def __repr__(self):
         return f"Video({self.title=})"
-
-    @property
-    def num_files(self):
-        return len(self.existing_files)
-
-    def has_(self, file_type=""):
-        if file_type == "":
-            raise ValueError("file_type cannot be empty")
-        return self.files.where(File.file_type == file_type).count() > 0
-
-    @property
-    def file_path(self):
-        return STORAGE / "videos"
-
-    @property
-    def has_video(self):
-        return self.has_("video")
-
-    @property
-    def has_audio(self):
-        return self.files.where(File.file_type == "audio").count() > 0
-
-    @property
-    def has_subtitle(self):
-        return self.files.where(File.file_type == "subtitle").count() > 0
-
-    @property
-    def has_info(self):
-        return self.files.where(File.file_type == "info").count() > 0
-
-    @property
-    def upload_date_str(self):
-        return self.upload_date.strftime("%Y%m%d")
-
-    @property
-    def file_stem(self):
-        return f"{self.youtube_id}".lower()
-
-    @property
-    def all_sections(self):
-        return sorted(self.sections, key=lambda x: x.start)
-
-    @property
-    def num_sections(self):
-        return len(self.all_sections)
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

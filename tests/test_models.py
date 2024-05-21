@@ -97,7 +97,6 @@ def test_video():
         private=False,
     )
     assert v.title == "test"
-    assert v.breakpoints.count() == 2
     try:
         Video.create(title="test")
 
@@ -252,25 +251,25 @@ def test_add_file_to_series(test_image_filename):
     assert s.poster is not None
 
 
-def test_video_breakpoints():
-    v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
-    assert v.breakpoints.count() == 2
-    v.add_breakpoint(100)
-    assert v.breakpoints.count() == 3
-    v.add_breakpoint(0)
-    assert v.breakpoints.count() == 3
-    v.add_breakpoint(100)
-    assert v.breakpoints.count() == 3
-    v.add_breakpoint(500)
-    assert v.breakpoints.count() == 4
-    v.delete_breakpoint(100)
-    assert v.breakpoints.count() == 3
-    v.delete_breakpoint(500)
-    assert v.breakpoints.count() == 2
-    v.delete_breakpoint(0)
-    assert v.breakpoints.count() == 2
-    v.delete_breakpoint(1000)
-    assert v.breakpoints.count() == 2
+# def test_video_breakpoints():
+#     v = Video.create(youtube_id="asdfasdf", duration=1000, title="test")
+#     assert v.breakpoints.count() == 2
+#     v.add_breakpoint(100)
+#     assert v.breakpoints.count() == 3
+#     v.add_breakpoint(0)
+#     assert v.breakpoints.count() == 3
+#     v.add_breakpoint(100)
+#     assert v.breakpoints.count() == 3
+#     v.add_breakpoint(500)
+#     assert v.breakpoints.count() == 4
+#     v.delete_breakpoint(100)
+#     assert v.breakpoints.count() == 3
+#     v.delete_breakpoint(500)
+#     assert v.breakpoints.count() == 2
+#     v.delete_breakpoint(0)
+#     assert v.breakpoints.count() == 2
+#     v.delete_breakpoint(1000)
+#     assert v.breakpoints.count() == 2
 
 
 def test_todo_table():
@@ -282,14 +281,3 @@ def test_todo_table():
     t2.my_delete_instance()
     t3.my_delete_instance()
     assert TodoTable.select().count() == 0
-
-
-def test_manual_edits():
-    v = Video.create(youtube_id="asdfasdf", title="test")
-    assert v.title == "test"
-    assert v.manually_edited is False
-    v.title = "new title"
-    v.save(manual=True)
-
-    assert v.title == "new title"
-    assert v.manually_edited is True

@@ -22,7 +22,9 @@ class State:
     def on_update(cls, item):
         logger.debug(f"on_update: {item}, {item.__class__}")
         logger.info(f"Updating existing item: {item}")
-        item.save_to_db()
+        assert item.title is not None
+        # item.save_to_db()
+        item.save()
         cls.refresh_query()
 
     @classmethod
@@ -36,3 +38,8 @@ class State:
         logger.debug(f"on_page_change: {page}")
         cls.current_page.value = page
         cls.refresh_query()
+
+    @classmethod
+    def on_save(cls, item):
+        logger.debug(f"on_save: {item}")
+        cls.on_new(item)

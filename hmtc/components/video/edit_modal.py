@@ -13,52 +13,73 @@ from hmtc.schemas.video import VideoItem
 def VideoEditModal(
     video_item: solara.Reactive[VideoItem],
     on_save: Callable[[], None],
+    on_update: Callable[[], None],
     on_delete: Callable[[], None],
     on_close: Callable[[], None],
 ):
     updating = solara.use_reactive(False)
+    assert isinstance(video_item.value, VideoItem)
 
-    """Takes a reactive video item and allows editing it. Will not modify the original item until 'save' is clicked."""
     copy = solara.use_reactive(video_item.value)
 
     def save():
         video_item.value = copy.value
         on_save()
 
+    def update_from_youtube():
+        on_update(video_item.value)
+
+    def download_video():
+        logger.info(f"Downloading video: {video_item.value.title}")
+
+    def extract_audio():
+        logger.info(f"Extracting Audio: {video_item.value.title}")
+
     def is_dirty():
         return video_item.value != copy.value
 
-    def update_videos():
-        logger.debug(f"Updating video {video_item.value.name}")
-        updating.set(True)
-        video_item.value.db_object().check_for_new_videos()
-        updating.set(False)
-        logger.success(f"Updated database from Video {video_item.value.name}")
-
-    @task
-    def update():
-        logger.debug(f"Updating video {video_item.value.name}")
-        updating.set(True)
-        video_item.value.db_object().check_for_new_videos()
-        updating.set(False)
-        logger.success(f"Updated database from Video {video_item.value.name}")
-
-    logger.debug("Start of VideoEdit")
     with solara.Card("Edit"):
-        poster = video_item.value.db_object().poster
+        poster = video_item.value.get_poster()
+
         if poster:
             solara.Image(poster, width="300px")
+
         solara.InputText(label="ID", value=Ref(copy.fields.id), disabled=True)
         solara.InputText(label="Video Title", value=Ref(copy.fields.title))
         solara.InputText(label="URL", value=Ref(copy.fields.url))
         solara.InputText(label="YouTube ID", value=Ref(copy.fields.youtube_id))
+        solara.InputText(label="Duration", value=Ref(copy.fields.duration))
+        # solara.InputText(label="Upload Date", value=Ref(copy.fields.upload_date))
         solara.Checkbox(label="Enabled", value=Ref(copy.fields.enabled))
-
-        solara.Button(label="Check for new Videos", on_click=update)
-        solara.Button(label="Check for new Videos", on_click=update_videos)
+        solara.Checkbox(
+            label="Contains Unique Content",
+            value=Ref(copy.fields.contains_unique_content),
+        )
+        solara.Checkbox(label="Has Chapters", value=Ref(copy.fields.has_chapters))
+        solara.Checkbox(label="Manually Edited", value=Ref(copy.fields.manually_edited))
+        solara.InputText(label="Description", value=Ref(copy.fields.description))
 
         with solara.CardActions():
             v.Spacer()
+            solara.Button(
+                icon_name="mdi-refresh",
+                icon=True,
+                on_click=update_from_youtube,
+            ),
+            # mdi-video-box-off would be good if video is missing
+            solara.Button(
+                icon_name="mdi-movie-open",
+                icon=True,
+                on_click=download_video,
+            )
+
+            # mdi-speaker-off would be good if audio is missing
+            solara.Button(
+                icon_name="mdi-speaker",
+                icon=True,
+                on_click=extract_audio,
+            )
+
             solara.Button(
                 "Save",
                 icon_name="mdi-content-save",

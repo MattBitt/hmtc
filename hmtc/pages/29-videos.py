@@ -4,7 +4,7 @@ from solara.lab.toestand import Ref
 
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.video.cards_list import VideoCards
-from hmtc.components.video.new_text_box import VideoNewTextBox
+from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.shared.stats_display import StatsDisplay
 from hmtc.states.videos_state import VideosState as State
@@ -26,13 +26,14 @@ def Page():
             )
 
         # searchable text box
-        VideoNewTextBox(on_change=State.on_change_text_search, on_new=State.on_new)
+        VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
 
         if State.videos.value:
             StatsDisplay(State.video_stats())
             VideoCards(
                 Ref(State.videos),
-                on_update=State.on_update,
+                on_save=State.on_save,
+                on_update_from_youtube=State.on_update_from_youtube,
                 on_delete=State.on_delete,
             )
         else:

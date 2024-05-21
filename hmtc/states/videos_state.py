@@ -29,7 +29,7 @@ class VideosState(State):
         sort_column=sort_column.value,
         sort_order=sort_order.value,
     )
-
+    logger.error(f"Initial items type = {type(initial_items)}")
     videos = solara.reactive(initial_items)
     num_pages = solara.reactive(compute_number_of_pages(total_items, per_page.value))
 
@@ -55,3 +55,9 @@ class VideosState(State):
         )
         np = total_items / cls.per_page.value
         cls.num_pages.value = int(np) + 1 if np > int(np) else int(np)
+
+    @classmethod
+    def on_update_from_youtube(cls, item):
+        logger.debug(f"on_update_from_youtube: {item}")
+        item.update_from_youtube()
+        cls.refresh_query()

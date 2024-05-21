@@ -3,37 +3,22 @@ import dataclasses
 from loguru import logger
 
 from hmtc.models import Playlist, Video
-
-
-def get_sort_field(cls, sort_column, sort_order):
-    if sort_column not in cls.db_model._meta.fields:
-        logger.error(f"unknown sort column: {sort_column}")
-        raise Exception("unknown sort column")
-
-    field = getattr(Playlist, sort_column)
-
-    if sort_order != "asc":
-        field = field.desc()
-    return field
+from hmtc.schemas.base import BaseItem
 
 
 # our model for a todo item, immutable/frozen avoids common bugs
 @dataclasses.dataclass(frozen=True)
-class PlaylistItem:
-    id: int = None
+class PlaylistItem(BaseItem):
+
     title: str = None
     url: str = None
     youtube_id: str = None
-    enabled: bool = True
+
     last_update_completed = None
     album_per_episode: bool = False
     enable_video_downloads: bool = False
     contains_unique_content: bool = False
     db_model = Playlist
-
-    @classmethod
-    def count_enabled(cls, enabled: bool = True):
-        return Playlist.select().where(Playlist.enabled == enabled).count()
 
     @classmethod
     def count_unique(cls, unique: bool = True):
@@ -57,7 +42,7 @@ class PlaylistItem:
         sort_field = None
 
         if sort_column is not None:
-            sort_field = get_sort_field(cls, sort_column, sort_order)
+            sort_field = cls.get_sort_field(sort_column, sort_order)
 
         if sort_field is not None:
             items = query.order_by(sort_field)
@@ -84,16 +69,6 @@ class PlaylistItem:
             for item in query
         ]
         return page_of_items, total_items
-
-    @classmethod
-    def grab_id_from_db(cls, id: int):
-        item = Playlist.get_or_none(Playlist.id == id)
-        return item
-
-    @classmethod
-    def grab_by_youtube_id(cls, youtube_id: str):
-        item = cls.db_model.get_or_none(cls.db_model.youtube_id == youtube_id)
-        return item
 
     def db_object(self):
         return Playlist.get_or_none(Playlist.id == self.id)
@@ -122,10 +97,6 @@ class PlaylistItem:
 
         videos = Video.select().join(Playlist).where(Video.playlist_id == self.id)
         return len(videos)
-
-    def get_poster(self):
-        playlist = Playlist.select().where(Playlist.id == self.id).get()
-        return playlist.poster
 
     @staticmethod
     def create_from_youtube_id(youtube_id):
