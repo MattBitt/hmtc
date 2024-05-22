@@ -122,7 +122,7 @@ class VideoItem(BaseItem):
         return video
 
     @classmethod
-    def create_item_from_db_object(cls, db_object):
+    def from_orm(cls, db_object):
         return cls(
             title=db_object.title,
             url=db_object.url,

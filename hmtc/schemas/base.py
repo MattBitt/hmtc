@@ -13,7 +13,7 @@ class BaseItem:
 
     @classmethod
     def grab_id_from_db(cls, id: int):
-        item = cls.db_model.get_or_none(cls.id == id)
+        item = cls.db_model.get_or_none(cls.db_model.id == id)
         return item
 
     @classmethod

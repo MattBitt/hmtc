@@ -73,6 +73,8 @@ def VideoListItem(
                 solara.Markdown(f"### {video_item.value.title}")
                 solara.InputText(f"ID: {video_item.value.id}", disabled=True)
 
+                with solara.Link(f"/video-sections/{video_item.value.id}"):
+                    solara.Button("Edit Sections")
             with solara.Row():
                 solara.Button(
                     icon_name="mdi-pencil", icon=True, on_click=lambda: set_edit(True)
@@ -87,9 +89,7 @@ def VideoListItem(
             if edit:
                 logger.debug(f"Opening edit modal for {video_item.value.title}")
                 if isinstance(video_item.value, Video):
-                    video_item.value = VideoItem.create_item_from_db_object(
-                        video_item.value
-                    )
+                    video_item.value = VideoItem.from_orm(video_item.value)
                 assert isinstance(video_item.value, VideoItem)
                 open_modal(
                     item=video_item,
