@@ -1,6 +1,6 @@
 import solara
 from loguru import logger
-
+from hmtc.exceptions import NoVideoFoundError
 from hmtc.config import init_config
 from hmtc.schemas.video import VideoItem
 from hmtc.states.base import State
@@ -14,10 +14,15 @@ class VideoSectionsState(State):
     def grab_video(cls, router, level):
         logger.debug(f"grab_video: {router.parts}")
         if len(router.parts) == 1:
-            solara.Markdown("No Video Selected")
-            return
+            raise Exception("No Video Selected")
         video_id = router.parts[level:][0]
-        return VideoItem.grab_id_from_db(id=video_id)
+        try:
+            vid = VideoItem.grab_id_from_db(id=video_id)
+            if vid is None:
+                raise NoVideoFoundError("Video not found")
+        except Exception as e:
+            logger.error(f"grab_video exception: {e}")
+            raise e
 
     @classmethod
     def video_stats(cls):

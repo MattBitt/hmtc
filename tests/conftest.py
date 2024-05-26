@@ -9,7 +9,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
-from hmtc.models import db_null
+from hmtc.models import db_null, Video
 from hmtc.utils.general import my_copy_file
 from hmtc.utils.my_logging import setup_logging
 
@@ -77,6 +77,20 @@ def test_video_filename(test_files):
 
     my_copy_file(vid_file, TARGET_PATH)
     return TARGET_PATH / vid_file.name
+
+
+@pytest.fixture(scope="function")
+def video():
+    return Video.create(
+        youtube_id="asbsdrjgkdlsa;",
+        title="test",
+        episode="",
+        upload_date="2020-01-01",
+        duration=8531,
+        description="this is a test",
+        enabled=True,
+        private=False,
+    )
 
 
 # @pytest.fixture
