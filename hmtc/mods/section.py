@@ -29,7 +29,7 @@ class Section:
     def __post_init__(self) -> None:
         try:
             self.check_times()
-            logger.error(f"End of Section {self} __post_init__")
+            logger.debug(f"End of Section {self} __post_init__")
         except ValueError as e:
             logger.error(e)
             raise
@@ -50,7 +50,6 @@ class SectionManager:
         if self.duration <= 0:
             logger.error("Duration must be greater than 0")
             raise ValueError("Duration must be greater than 0")
-        logger.error(f"End of __post_init__ sections = {self._sections}")
 
     @staticmethod
     def from_video(video) -> "SectionManager":
@@ -62,7 +61,7 @@ class SectionManager:
 
     @staticmethod
     def load_sections2(video_id: int) -> List[Section]:
-        logger.error("In load_sections of SectionManager")
+        logger.debug("In load_sections of SectionManager")
         return list(SectionTable.select().where(SectionTable.video_id == video_id))
 
     @property
@@ -81,13 +80,29 @@ class SectionManager:
     def delete_from_db(section) -> None:
         SectionTable.delete().where(SectionTable.id == section.id).execute()
 
+    @staticmethod
+    def get_new_id() -> int:
+        return uuid4().int
+
+    @staticmethod
+    def get_sections_with_spaces(video):
+        sm = SectionManager.from_video(video)
+        sections = sm.sections
+        timespan = []
+        for sect in sections:
+            timespan.append([sect.start, sect.end])
+
+        logger.debug(f"Timespan: {timespan}")
+        return timespan
+
     def create_section(self, start: int, end: int, section_type: str) -> None:
+        logger.debug("Using instance of SectionManager (self) - create_section")
         if end > self.duration:
             raise ValueError("End time must be less than duration")
 
         if section_type not in self.section_types:
             raise ValueError("Invalid section type")
-        logger.error(f"Creating section from args {start} {end} {section_type}")
+        logger.debug(f"Creating section from args {start} {end} {section_type}")
         section = Section(
             id=self.get_new_id(),
             section_type=section_type,
@@ -98,17 +113,16 @@ class SectionManager:
         self.save_to_db(section)
         self._sections.append(section)
 
-    @staticmethod
-    def get_new_id() -> int:
-        return uuid4().int
-
     def add_section(self, section: Section) -> None:
+        logger.error("Using instance of SectionManager (self) - add_section")
         self._sections.append(section)
 
     def remove_section(self, section: Section) -> None:
+        logger.error("Using instance of SectionManager (self) - remove_section")
         self._sections.remove(section)
 
     def split_section_at(self, timestamp: int) -> None:
+        logger.error("Using instance of SectionManager (self) - split_section_at")
         for section in self._sections:
             if section.start < timestamp < section.end:
                 s1 = self.create_section(

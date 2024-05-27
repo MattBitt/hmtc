@@ -28,13 +28,10 @@ def test_section_comparison():
     assert s3 > s2
 
 
-@pytest.mark.xfail
-def test_section_manager():
-    sm = SectionManager(duration=300)
-    sections = sm.create_section(start=0, end=300, section_type="acapella")
-    assert sections[0].start == 0
-    assert sections[0].end == 300
-    assert sections[0].section_type == "acapella"
+def test_section_manager(video):
+    sm = SectionManager.from_video(video).create_section(
+        start=0, end=300, section_type="acapella"
+    )
 
 
 def test_section_manager_from_db(video):
