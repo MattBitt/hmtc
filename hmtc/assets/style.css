@@ -3,7 +3,7 @@
 
 html, body {
     overflow-x: hidden;
-    width: 100%;
+    width: 95%;
 }
 .logo {
     width: 150px;
@@ -31,4 +31,10 @@ html, body {
 /* remove solara watermark */
 .v-application--wrap > :nth-child(2) > :nth-child(2) {
     visibility: hidden;
+}
+
+.mizzle
+{
+    font-family: 'Muli', sans-serif;
+    font-size: 2em;
 }

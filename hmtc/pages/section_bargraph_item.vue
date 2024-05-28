@@ -16,7 +16,7 @@
     <v-divider></v-divider>
 
     <v-card-actions class="justify-center">
-      <v-btn block text @click="goto_report"> Go to Report </v-btn>
+      <v-btn @click="test_logger"> Go to Report </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -46,6 +46,32 @@ export default {
 };
 </script>
 
-data() { return { colors: [ "indigo", "warning", "pink darken-2", "red
-lighten-1", "deep-purple accent-4", ], slides: ["First", "Second", "Third",
-"Fourth", "Fifth"], }; }, };
+<script type="text/javascript">
+(function ($) {
+  window.fnames = new Array();
+  window.ftypes = new Array();
+  fnames[0] = "EMAIL";
+  ftypes[0] = "email";
+  fnames[1] = "FNAME";
+  ftypes[1] = "text";
+  fnames[2] = "LNAME";
+  ftypes[2] = "text";
+  fnames[7] = "COMPANY";
+  ftypes[7] = "text";
+  fnames[10] = "WHYCLOUD";
+  ftypes[10] = "text";
+  fnames[3] = "ADDRESS";
+  ftypes[3] = "address";
+  fnames[4] = "PHONE";
+  ftypes[4] = "phone";
+  fnames[5] = "BIRTHDAY";
+  ftypes[5] = "birthday";
+  fnames[6] = "USECASE";
+  ftypes[6] = "text";
+  fnames[8] = "POSITION";
+  ftypes[8] = "text";
+  fnames[9] = "MMERGE9";
+  ftypes[9] = "text";
+})(jQuery);
+var $mcj = jQuery.noConflict(true);
+</script>

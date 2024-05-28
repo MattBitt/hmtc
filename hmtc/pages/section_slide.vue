@@ -10,27 +10,53 @@
         >Next slide</v-btn
       >
     </template>
+
     <v-carousel-item v-for="(slide, i) in slides" :key="i">
-      <v-sheet :color="colors[i]" height="100%">
-        <div class="d-flex fill-height justify-center align-center">
-          <div class="text-h2">{{ slide.id }} Slide</div>
-        </div>
-        <div>
-          <div class="text-h3">{{ slide.start }}</div>
-        </div>
+      <v-sheet height="100%">
+        <v-card class="text-center" dark>
+          <v-chip>{{ slide.id }}</v-chip>
+          <div class="mizzle">{{ slide.start_str }} - {{ slide.end_str }}</div>
+          <text-subtitle-1 class="font-weight-light">
+            {{ slide.section_type }}
+          </text-subtitle-1>
+
+          <v-divider></v-divider>
+          <v-card-actions class="justify-center">
+            <v-btn @click="clicked()"> Extend 5s > </v-btn>
+          </v-card-actions>
+        </v-card>
       </v-sheet>
     </v-carousel-item>
   </v-carousel>
 </template>
-
 <script>
 export default {
-  data() {
-    return {
-      avalue: "default",
-      colors: [],
-      slides: [],
-    };
+  data: () => ({
+    avalue: "bizzle",
+    slides: [],
+    colors: [],
+    model: 0,
+  }),
+  methods: {
+    clicked: function () {
+      console.log("Button was clicked");
+    },
+  },
+  mounted: () => {
+    console.log("📕📕📕mounted");
+  },
+  destroyed: () => {
+    console.log("destroyed");
+  },
+  watch: {
+    value: function (val) {
+      console.log("value changed to", val);
+    },
+  },
+  computed: {
+    columns() {
+      return;
+    },
   },
 };
 </script>
