@@ -19,24 +19,9 @@ import pandas as pd
 import solara
 import plotly.graph_objects as go
 from ipywidgets import Output, VBox
-
-x = np.linspace(0, 2, 100)
+from hmtc.components.section.section_graph import SectionGraphComponent
 
 title = "HMTC Section Editor"
-freq = solara.reactive(2.0)
-phase = solara.reactive(0.1)
-
-import numpy as np
-
-seed = solara.reactive(42)
-
-out = Output()
-
-
-@out.capture(clear_output=True)
-def handle_click(trace, points, state):
-    logger.error("are you there? AHHHHHHHHH 😱😱😱")
-    print(points.point_inds)
 
 
 def parse_url_args():
@@ -48,6 +33,13 @@ def parse_url_args():
         raise ValueError("No video selected")
 
     return router.parts[level:][0]
+
+
+def format_string(x):
+    if x == 0:
+        return "00:00:00"
+    h, m, s = x // 3600, (x % 3600) // 60, x % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
 
 
 @solara.component
@@ -90,24 +82,106 @@ def SectionEdit(
             )
 
 
-@solara.component_vue("section_bargraph_item.vue")
-def SectionBarGraphItem(
-    event_goto_report: Callable[[dict], None],
-    value=[1, 10, 30, 20, 3],
-    caption="My Card",
-    color="red",
+@solara.component_vue("mycard2.vue")
+def MyCard2(
+    event_button_click: Callable[[dict], None],
+    event_set_start_time: Callable[[str], None],
+    event_set_end_time: Callable[[str], None],
+    event_set_section_type: Callable[[str], None],
+    section=dict(id=15, start="00:00:00", end="23:59:59"),
 ):
     pass
 
 
-@solara.component_vue("section_slide.vue", vuetify=True)
-def SectionSlide(
-    section_speak: Callable[[dict], None],
-    avalue="mizzle",
+@solara.component_vue("section_carousel.vue", vuetify=True)
+def SectionCarouselVue(
+    event_first_event,
     slides=[],
 ):
 
     pass
+
+
+@solara.component_vue("section_slide_group.vue", vuetify=True)
+def SectionSlideGroupVue():
+
+    pass
+
+
+@solara.component
+def SectionCarousel(
+    slides,
+    selected_section: solara.Reactive[Section],
+    event_first_event: Callable[[dict], None],
+):
+    start_time = solara.use_reactive(selected_section.value.start)
+    end_time = solara.use_reactive(selected_section.value.end)
+    section_type = solara.use_reactive(selected_section.value.section_type)
+
+    def first_event(*args):
+        logger.debug(f"First event called with args: {args}")
+        event_first_event(args[0])
+
+    # if selected_section.value is None:
+    #     State.select_section(slides[0])
+
+    def complicated_function(*args):
+        logger.error(f"Args = {args}")
+        return args[0]
+
+    def set_section_type(*args):
+        logger.error(f"Args = {args}")
+        return args[0]
+
+    with solara.Column(style={"min-width": "600px"}):
+        # solara.Markdown(f"Current Selection: {selected_section.value}")
+        MyCard2(
+            section=dict(
+                id=selected_section.value.id,
+                start=start_time.value,
+                end=end_time.value,
+                is_first=True,
+                is_last=True,
+                section_type=section_type.value,
+                start_string=format_string(start_time.value),
+                end_string=format_string(end_time.value),
+            ),
+            event_set_start_time=lambda data: start_time.set(
+                complicated_function(data)
+            ),
+            event_set_end_time=lambda data: end_time.set(complicated_function(data)),
+            event_set_section_type=lambda data: section_type.set(
+                set_section_type(data)
+            ),
+        )
+
+    # for slide in slides:
+    #     if selected_section.value is not None:
+    #         if slide["id"] == selected_section.value.id:
+    #             solara.Success(f"Selected: {slide['id']}")
+    #             slide["selected"] = True
+    # SectionCarouselVue(slides=slides, event_first_event=first_event)
+
+
+current_selection = solara.reactive(None)
+
+
+@solara.component
+def VideoInfo(video: solara.Reactive[Section]):
+    h, m, s = video.duration // 3600, (video.duration % 3600) // 60, video.duration % 60
+    duration_string = f"{h:02d}:{m:02d}:{s:02d}"
+    with solara.Column():
+        solara.Markdown(f"## {video.title}")
+        with solara.Row(justify="space-between"):
+            solara.Markdown(f"#### Duration: **{duration_string}**")
+            with solara.Column():
+                solara.Markdown("Section ID")
+
+        solara.Button(
+            icon_name="mdi-youtube",
+            icon=True,
+            href=video.url,
+        )
 
 
 @solara.component
@@ -212,8 +286,8 @@ def SectionControlPanel(
 
     def split():
 
-        logger.error(f"Splitting {video.title} into {num_sections.value} sections")
-        logger.error(
+        logger.debug(f"Splitting {video.title} into {num_sections.value} sections")
+        logger.debug(
             f"Each section will be { video.duration / num_sections.value} seconds long"
         )
         delete_sections()
@@ -266,30 +340,40 @@ def SectionControlPanel(
 
 class State:
     loading = solara.reactive(False)
+    selected_section = solara.reactive(None)
 
     @staticmethod
     def load_sections(video_id: int):
-        logger.warning(f"Loading sections (from page 31) for video: {video_id}")
+
         video = Video.get_by_id(video_id)
         sm = SectionManager.from_video(video)
+        if State.selected_section.value is None:
+            sect = (
+                SectionTable.select().where(SectionTable.id == video_id).get_or_none()
+            )
+            if sect:
+                State.selected_section.value = sect
+            else:
+                logger.debug("No section found🧬🧬🧬")
+                State.selected_section.value = None
         State.sections = solara.use_reactive(sm.sections)
-        if State.sections.value:
-            initial = State.sections.value[0]
-        else:
-            initial = None
-        State.selected_section = solara.reactive(initial)
+
+        if State.selected_section.value is None and len(State.sections.value) > 0:
+            State.select_section(State.sections.value[0])
+
+            logger.warning(f"Video Section State Init for Video: {video_id}")
 
     @staticmethod
     def on_new(video, start: int, end: int, section_type: str):
 
-        logger.debug(f"Adding new item: {start}, {end}, {section_type}")
+        # logger.debug(f"Adding new item: {start}, {end}, {section_type}")
         sm = SectionManager.from_video(video)
         sm.create_section(start=start, end=end, section_type=section_type)
         State.sections.value = sm.sections
 
-        logger.debug(
-            f"after adding: ({len(State.sections.value)}){State.sections.value}"
-        )
+        # logger.debug(
+        #     f"after adding: ({len(State.sections.value)}){State.sections.value}"
+        # )
 
     @staticmethod
     def on_delete(item: Section):
@@ -313,59 +397,11 @@ class State:
         State.sections.value = new_items
         State.loading.value = False
 
-
-@solara.component
-def SectionStatus():
-    """Status of our section list"""
-    items = State.sections.value
-
-    count = len(items)
-    # solara.Info(f"{count} item{'s' if count != 1 else ''} total")
-    # solara.Error(f"Sections: {[x.id for x in items]}")
-
-
-@solara.component
-def VideoInfo(video):
-    h, m, s = video.duration // 3600, (video.duration % 3600) // 60, video.duration % 60
-    duration_string = f"{h:02d}:{m:02d}:{s:02d}"
-    with solara.Column():
-        solara.Markdown(f"## {video.title}")
-
-        solara.Markdown(f"#### Duration: **{duration_string}**")
-        solara.Button(
-            icon_name="mdi-youtube",
-            icon=True,
-            href=video.url,
-        )
-
-
-@solara.component
-def VueComponent():
-    gen = np.random.RandomState(seed=seed.value)
-    n = np.random.RandomState(seed=seed.value)
-    sales_data = np.floor(np.cumsum(gen.random(7) - 0.5) * 100 + 100)
-    show_report = solara.use_reactive(False)
-
-    def goto_report():
-        show_report.set(True)
-
-    with solara.Column():
-        if show_report.value:
-            with solara.Card("Report"):
-                solara.Markdown("Lorum ipsum dolor sit amet")
-                solara.Button("Go back", on_click=lambda data: show_report.set(False))
-        else:
-
-            def new_seed():
-                seed.value = np.random.randint(0, 100)
-
-            solara.Button("Generate new data", on_click=new_seed)
-            SectionBarGraphItem(
-                value=sales_data.tolist(),
-                color="blue",
-                caption="Sales Last 7 Days",
-                event_goto_report=goto_report,
-            )
+    @staticmethod
+    def select_section(item: Section):
+        State.loading.value = True
+        State.selected_section.value = item
+        State.loading.value = False
 
 
 @solara.component
@@ -376,7 +412,7 @@ def GraphComponent(video, selected_section: solara.Reactive[Section]):
         logger.error(f"Click occured at index: {args[0]['points']['point_indexes']}")
         logger.debug(f"args: {args}")
         logger.debug(f"kwargs: {kwargs}")
-        start = pd.Timestamp(args[0]["points"]["xs"][0])
+        start = ["points"]["xs"][0]
         sect = (
             SectionTable.select()
             .where(
@@ -387,48 +423,134 @@ def GraphComponent(video, selected_section: solara.Reactive[Section]):
         )
         logger.error(f"SectionTable query result: {sect}")
         if sect:
-            State.selected_section.value = sect
+            State.select_section(sect)
         else:
             logger.error("No section found🧬🧬🧬")
 
     def handle_hover(*args, **kwargs):
-        logger.error(f"Hover occured at index: {args[0]['points']['point_indexes']}")
-        logger.debug(f"args: {args}")
-        logger.debug(f"kwargs: {kwargs}")
+        # logger.error(f"Hover occured at index: {args[0]['points']['point_indexes']}")
+        # logger.debug(f"args: {args}")
+        # logger.debug(f"kwargs: {kwargs}")
+        pass
 
-    section_list = []
-    for sect in video.sections:
+    def seconds_to_hms_val(seconds):
+        if seconds == 0:
+            return 0, 0, 0
 
-        h, m, s = sect.start // 3600, (sect.start % 3600) // 60, sect.start % 60
-        start_str = f"{h:02d}:{m:02d}:{s:02d}"
-        h, m, s = sect.end // 3600, (sect.end % 3600) // 60, sect.end % 60
-        end_str = f"{h:02d}:{m:02d}:{s:02d}"
+        h, m, s = seconds // 3600, (seconds % 3600) // 60, seconds % 60
+        return h, m, s
 
-        section_list.append(
-            dict(
+    def seconds_to_hms_str(seconds):
+        logger.error(f"Checking seconds in seconds_to_hms_str: {seconds}")
+        if seconds == 0:
+            return "00:00:00"
+        h, m, s = seconds // 3600, (seconds % 3600) // 60, seconds % 60
+        return f"{h:02d}:{m:02d}:{s:02d}"
+
+    def get_hour_from_seconds(seconds):
+        return seconds // 3600
+
+    def prep_sections_for_graph(video):
+        section_list = []
+        for sect in video.sections:
+            start_str = seconds_to_hms_str(sect.start)
+            end_str = seconds_to_hms_str(sect.end)
+
+            base_section = dict(
                 id=sect.id,
-                start=pd.to_datetime(sect.start, utc=True, unit="s"),
-                end=pd.to_datetime(sect.end, utc=True, unit="s"),
                 section_type=sect.section_type,
                 start_str=start_str,
                 end_str=end_str,
-                row=1,
-            ),
-        )
+                selected=False,
+            )
 
-    df = pd.DataFrame(section_list)
-    x_rmin = pd.to_datetime(0, utc=True, unit="s")
-    x_rmax = pd.to_datetime(video.duration, utc=True, unit="s")
-    timeline = px.timeline(
-        df, x_start="start", x_end="end", y="row", hover_data=["section_type"]
+            sh, sm, ss = seconds_to_hms_val(sect.start)
+            eh, em, es = seconds_to_hms_val(sect.end)
+
+            if sh == eh:
+                # only one section on the graph needed
+                if sh > 0:
+                    s = sect.start - (sh * 3600)
+                    e = sect.end - (sh * 3600)
+                else:
+                    s = sect.start
+                    e = sect.end
+                new_section = dict(
+                    **base_section,
+                    start=s,
+                    end=e,
+                    duration=e - s,
+                    row=100,
+                )
+                section_list.append(new_section)
+            else:
+                # around the horn
+                if eh - sh > 1:
+                    solara.Info("Section spans more than 1 hour. Not supported.")
+                    return
+                start = sect.start
+                end = sh * 3600
+                new_section1 = dict(
+                    **base_section,
+                    start=start,
+                    end=end,
+                    duration=end - start,
+                    row=100,
+                )
+
+                start = 0
+                end = sect.end * 3600
+                new_section2 = dict(
+                    **base_section,
+                    start=start,
+                    end=end,
+                    duration=end - start,
+                    row=100,
+                )
+                section_list.append(new_section1)
+                section_list.append(new_section2)
+
+        return section_list
+
+    graph_sections = prep_sections_for_graph(video)
+
+    df = pd.DataFrame(graph_sections)
+    x_rmin = 0
+    if video.duration > 3600:
+        x_rmax = 3800
+    elif video.duration > 1800:
+        x_rmax = 1900
+    elif video.duration > 1500:
+        x_rmax = 1600
+    elif video.duration > 300:
+        x_rmax = video.duration + 100
+    else:
+        x_rmax = video.duration
+
+    x_range = [x_rmin, x_rmax]
+
+    bar_graph = px.bar(
+        df,
+        x="start",
+        y="row",
+        hover_data=["id", "start", "end", "duration"],
+        height=300,
+        orientation="h",
     )
+    x_vals = df["start"].tolist()
+    x_vals.append(df["end"].max())
+    y_vals = df["row"].tolist()
+    logger.error(f"X Vals: {x_vals}")
+    logger.error(f"Y Vals: {y_vals}")
 
-    fig = make_subplots()
+    fig = go.Figure(go.Bar(x=x_vals, y=y_vals, orientation="h"))
 
-    layout = timeline["layout"]
+    # fig = make_subplots()
+
+    layout = bar_graph["layout"]
     fig.layout = layout
 
-    data = timeline["data"][0]
+    data = bar_graph["data"][0]
 
     data["marker"]["color"] = df["section_type"].map(
         {
@@ -441,16 +563,12 @@ def GraphComponent(video, selected_section: solara.Reactive[Section]):
 
     fig.add_trace(data)
 
-    logger.error(f"x_rmin: {x_rmin}")
-    logger.error(f"x_rmax: {x_rmax}")
-    logger.error(f"Section Duration: {datetime.timedelta(seconds=video.duration)}")
-    x_range = [x_rmin, x_rmax]
+    logger.debug(f"x_rmin: {x_rmin}")
+    logger.debug(f"x_rmax: {x_rmax}")
+    logger.debug(f"Section Duration: {datetime.timedelta(seconds=video.duration)}")
 
     fig.update_layout(
         template="plotly_dark",
-        barmode="overlay",
-        height=150,
-        margin=dict(l=0, r=0, t=0, b=0),
         title_text="Section Timeline",
         xaxis=dict(
             position=0,
@@ -459,11 +577,11 @@ def GraphComponent(video, selected_section: solara.Reactive[Section]):
             tickfont=dict(size=12),
             tickformat="%H:%M:%S",
         ),
-        yaxis=dict(
-            title_text="",
-            tickvals=[],
-            tickmode="array",
-        ),
+        # yaxis=dict(
+        #     title_text="",
+        #     tickvals=[],
+        #     tickmode="array",
+        # ),
     )
     solara.FigurePlotly(fig, on_click=handle_click, on_hover=handle_hover)
 
@@ -471,16 +589,27 @@ def GraphComponent(video, selected_section: solara.Reactive[Section]):
 @solara.component
 def Page():
 
-    def t_logger():
-        logger.error("💡💡💡 Testing the Logger 💡💡💡")
-
     video_id = parse_url_args()
     State.load_sections(video_id)
+
     video = Video.get_by_id(video_id)
     if video.duration == 0:
         solara.Error("Video has no duration. Please Refresh from youtube.")
-
         return
+
+    # package the section info for the section carousel
+    carousel_sections = [
+        dict(
+            id=x.id,
+            start=x.start,
+            end=x.end,
+            section_type=x.section_type,
+            start_str=format_string(x.start),
+            end_str=format_string(x.end),
+        )
+        for x in State.sections.value
+    ]
+
     with solara.Columns(6, 6):
         VideoInfo(video)
         SectionControlPanel(
@@ -490,55 +619,61 @@ def Page():
             on_delete=State.on_delete,
         )
 
-    if State.loading.value:
-        solara.SpinnerSolara()
-    else:
-        if video.sections.count() == 0:
-            solara.Markdown("## No Sections Found. Please add some.")
-            return
+    def afunc(*args):
+        logger.debug(f"afunc called with data: {args}")
+        id = args[0]
+        logger.debug(f"ID: {id}")
+        sect = SectionTable.select().where(SectionTable.id == id).get()
+        if sect:
+            State.select_section(sect)
+        else:
+            logger.debug("No section found🧬🧬🧬")
 
-        with solara.Column():
-            SectionStatus()
-            with solara.Column():
-                # VueComponent()
-                GraphComponent(video, selected_section=Ref(State.selected_section))
+    def on_click(*args):
+        logger.debug(f"on_click called with data: {args}")
+        id = args[0]["id"]
+        logger.debug(f"ID: {id}")
+        sect = SectionTable.select().where(SectionTable.id == id).get()
+        if sect:
+            State.select_section(sect)
+        else:
+            logger.debug("No section found🧬🧬🧬")
 
-        # h, m, s = sect.start // 3600, (sect.start % 3600) // 60, sect.start % 60
-        # start_str = f"{h:02d}:{m:02d}:{s:02d}"
-        # h, m, s = sect.end // 3600, (sect.end % 3600) // 60, sect.end % 60
-        # end_str = f"{h:02d}:{m:02d}:{s:02d}"
-
-        def format_string(x):
-            h, m, s = x // 3600, (x % 3600) // 60, x % 60
-            return f"{h:02d}:{m:02d}:{s:02d}"
-
-        sects = [
-            dict(
-                id=x.id,
-                start=x.start,
-                end=x.end,
-                section_type=x.section_type,
-                start_str=format_string(x.start),
-                end_str=format_string(x.end),
-                row=1,
-                description=video.description,
+    with solara.Column():
+        if State.loading.value:
+            solara.SpinnerSolara(size="100px")
+        else:
+            if video.sections.count() == 0:
+                solara.Markdown("## No Sections Found. Please add some.")
+                return
+            if video.duration < 1800:
+                section_width = video.duration
+            elif video.duration < 3600:
+                section_width = video.duration / 2
+            else:
+                section_width = 1800
+            if State.selected_section.value is not None:
+                solara.InputText(
+                    label="Current Selection",
+                    value=State.selected_section.value.id,
+                )
+            SectionGraphComponent(
+                video.sections,
+                current_selection=Ref(State.selected_section),
+                on_click=on_click,
+                max_section_width=section_width,
             )
-            for x in State.sections.value
-        ]
-        with solara.Column():
-            solara.Markdown("")
-        SectionSlide(slides=sects)
-        logger.error(f"Currently selected: {State.selected_section.value}")
+            SectionCarousel(
+                slides=carousel_sections,
+                selected_section=Ref(State.selected_section),
+                event_first_event=afunc,
+            )
+            with solara.Card():
+                solara.Markdown("Current Selection")
+                sect = State.selected_section.value
+                solara.Markdown(str(sect.id))
+                solara.Markdown(str(sect.start))
+                solara.Markdown(str(sect.end))
+                solara.Markdown("# IT WORKS!")
 
-        # with solara.Row():
-        #     for index, item in enumerate(State.sections.value):
-        #         section_item = Ref(State.sections.fields[index])
-        #         is_selected = State.selected_section.value == section_item.value
-
-        #         SectionListItem(
-        #             section_item,
-        #             is_selected=is_selected,
-        #             video=video,
-        #             on_delete=State.on_delete,
-        #             change_section_type=State.change_section_type,
-        #         )
+            logger.error(f"Currently selected: {State.selected_section.value}")

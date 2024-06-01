@@ -3,30 +3,9 @@
 
 html, body {
     overflow-x: hidden;
-    width: 95%;
+    width: 100%;
 }
-.logo {
-    width: 150px;
-    margin-top: 10px;
-    border-radius: 100%;
-    box-shadow: 0 0 3px rgba(0,0,0,0.5);
-}
-        
-.logo-animation {
-    animation: logo-animation 1s infinite;
-}
-        
-@keyframes logo-animation {
-    0% {
-        box-shadow: 0 0 3px rgba(0,0,0,0.5);
-    }
-    50% {
-        box-shadow: 0 0 10px rgb(0 133 255);
-    }
-    100% {
-        box-shadow: 0 0 3px rgba(0,0,0,0.5);
-    }
-}
+
 
 /* remove solara watermark */
 .v-application--wrap > :nth-child(2) > :nth-child(2) {
@@ -37,4 +16,5 @@ html, body {
 {
     font-family: 'Muli', sans-serif;
     font-size: 2em;
+    color:brown;
 }

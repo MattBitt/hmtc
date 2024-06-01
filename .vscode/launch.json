@@ -12,7 +12,8 @@
             "program": ".venv/bin/solara",
             "args": [
                 "run",
-                "hmtc/pages"
+                "hmtc/pages",
+                "--port=8766",
             ],
             "console": "integratedTerminal",
             "justMyCode": true,

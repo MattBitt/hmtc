@@ -677,12 +677,10 @@ class Section(BaseModel):
         return timestamp > self.start and timestamp < self.end
 
     def __repr__(self):
-        return (
-            f"Section({self.ordinal} - {self.start}:{self.end} - {self.section_type})"
-        )
+        return f"Section({self.id} - {self.start}:{self.end} - {self.section_type})"
 
     def __str__(self):
-        return f"Section(id={self.ordinal}, start={self.start}, end={self.end},type={self.section_type})"
+        return f"Section(id={self.id}, start={self.start}, end={self.end},type={self.section_type})"
 
     def find_both_sections(self, timestamp):
         before, after = None, None
