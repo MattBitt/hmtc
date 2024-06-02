@@ -1,7 +1,7 @@
 from typing import Callable
-from loguru import logger
-import numpy as np
+
 import solara
+from loguru import logger
 
 seed = solara.reactive(42)
 

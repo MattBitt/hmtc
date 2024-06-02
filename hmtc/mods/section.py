@@ -1,7 +1,9 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
-from loguru import logger
 from uuid import uuid4
+
+from loguru import logger
+
 from hmtc.models import Section as SectionTable
 
 ####

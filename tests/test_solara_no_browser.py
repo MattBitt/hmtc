@@ -1,8 +1,8 @@
-import solara
-
-import solara.lab
-import ipyvuetify as v
 import time
+
+import ipyvuetify as v
+import solara
+import solara.lab
 
 
 def test_docs_no_browser_api_find():

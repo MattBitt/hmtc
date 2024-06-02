@@ -1,7 +1,7 @@
-import solara
 from loguru import logger
-from hmtc.exceptions import NoVideoFoundError
+
 from hmtc.config import init_config
+from hmtc.exceptions import NoVideoFoundError
 from hmtc.schemas.video import VideoItem
 from hmtc.states.base import State
 

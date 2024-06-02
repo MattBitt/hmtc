@@ -1,6 +1,5 @@
 import json
 import os
-import re
 from datetime import datetime
 from functools import total_ordering
 from pathlib import Path
@@ -22,11 +21,7 @@ from peewee import (
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, my_copy_file, my_move_file
 from hmtc.utils.image import convert_webp_to_png
-from hmtc.utils.youtube_functions import (
-    download_media_files,
-    download_video_info_from_id,
-    fetch_ids_from,
-)
+from hmtc.utils.youtube_functions import download_video_info_from_id, fetch_ids_from
 
 db_null = PostgresqlDatabase(None)
 

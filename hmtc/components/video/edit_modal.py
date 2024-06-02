@@ -3,7 +3,6 @@ from typing import Callable
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
-from solara.lab import task
 from solara.lab.toestand import Ref
 
 from hmtc.schemas.video import VideoItem

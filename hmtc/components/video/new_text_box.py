@@ -1,4 +1,5 @@
 from typing import Callable
+
 import solara
 
 from hmtc.schemas.video import VideoItem

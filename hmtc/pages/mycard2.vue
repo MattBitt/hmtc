@@ -10,14 +10,13 @@
         </v-col>
         <v-col cols="10">
           <v-sheet>
-            <div>
-              <h1>{{ section.id }}</h1>
-              <h3>{{ section.is_last }}</h3>
-              <h3>{{ section.section_type }}</h3>
-
-              <div class="seven-seg mb-2">
+            <div class="align">
+              <div class="seven-seg ma-4">
                 {{ section.start_string }} - {{ section.end_string }}
               </div>
+              <h4>{{ section.id }}</h4>
+              <h4>{{ section.section_type }}</h4>
+
               <div class="mb-6">
                 <v-btn @click="set_section_type('intro')">Intro</v-btn>
                 <v-btn @click="set_section_type('instrumental')"

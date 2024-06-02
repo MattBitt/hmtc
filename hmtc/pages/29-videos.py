@@ -3,10 +3,10 @@ from loguru import logger
 from solara.lab.toestand import Ref
 
 from hmtc.components.pagination_controls import PaginationControls
-from hmtc.components.video.cards_list import VideoCards
-from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.shared.stats_display import StatsDisplay
+from hmtc.components.video.cards_list import VideoCards
+from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.states.videos_state import VideosState as State
 
 

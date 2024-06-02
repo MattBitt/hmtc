@@ -1,5 +1,4 @@
 import solara
-from loguru import logger
 
 
 @solara.component()

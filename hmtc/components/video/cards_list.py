@@ -1,6 +1,6 @@
-import solara
 from typing import Callable
-from loguru import logger
+
+import solara
 from solara.lab.toestand import Ref
 
 from hmtc.components.video.list_item import VideoListItem

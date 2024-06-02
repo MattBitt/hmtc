@@ -1,8 +1,9 @@
-import solara
-from solara.lab.toestand import Ref
 from dataclasses import dataclass, field
-from typing import List, Callable
+from typing import Callable, List
+
+import solara
 from loguru import logger
+from solara.lab.toestand import Ref
 
 
 @dataclass

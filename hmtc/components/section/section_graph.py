@@ -1,6 +1,6 @@
-import solara
 import pandas as pd
 import plotly.express as px
+import solara
 from loguru import logger
 
 
