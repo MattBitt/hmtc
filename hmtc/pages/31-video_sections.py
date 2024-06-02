@@ -10,7 +10,6 @@ from hmtc.models import Video
 from hmtc.mods.section import Section, SectionManager
 
 title = "HMTC Section Editor"
-# definitely used
 
 
 def parse_url_args():
@@ -24,27 +23,52 @@ def parse_url_args():
     return router.parts[level:][0]
 
 
-def format_string(x):
+def compute_section_width(duration):
+    if duration < 300:
+        return 300
+    elif duration < 900:
+        return 900
+    else:
+        return 1800
+
+
+def compute_graph_dimensions(duration):
+    width = compute_section_width(duration)
+    height = duration // width
+    return width, height
+
+
+def format_string(x: int):
     if x == 0:
         return "00:00:00"
     h, m, s = x // 3600, (x % 3600) // 60, x % 60
     return f"{h:02d}:{m:02d}:{s:02d}"
 
 
+@solara.component_vue("../components/section/section_item.vue", vuetify=True)
+def SectionItem(
+    event_button_click: Callable[[dict], None],
+    event_set_start_time: Callable[[str], None],
+    event_set_end_time: Callable[[str], None],
+    event_set_section_type: Callable[[str], None],
+    event_load_next_section: Callable[[dict], None],
+    event_load_previous_section: Callable[[dict], None],
+    section=dict(id=15, start="00:00:00", end="23:59:59"),
+):
+    pass
+
+
 @solara.component
 def SectionCarousel(
     slides,
     selected_section: solara.Reactive[Section],
-    event_first_event: Callable[[dict], None],
+    next_section: Callable[[dict], None],
+    previous_section: Callable[[dict], None],
 ):
 
     start_time = solara.use_reactive(selected_section.value.start)
     end_time = solara.use_reactive(selected_section.value.end)
     section_type = solara.use_reactive(selected_section.value.section_type)
-
-    def first_event(*args):
-        logger.debug(f"First event called with args: {args}")
-        event_first_event(args[0])
 
     def complicated_function(*args):
         logger.error(f"Args = {args}")
@@ -54,15 +78,24 @@ def SectionCarousel(
         logger.error(f"Args = {args}")
         return args[0]
 
+    def load_next_section(*args):
+        logger.debug("Loading Next Section:")
+        next_section(args[0])
+
+    def load_previous_section(*args):
+        logger.debug("Loading Previous Section:")
+        logger.error(f"Args = {args}")
+        return args[0]
+
     with solara.Column(style={"min-width": "600px"}):
         # solara.Markdown(f"Current Selection: {selected_section.value}")
-        MyCard2(
+        SectionItem(
             section=dict(
                 id=selected_section.value.id,
                 start=start_time.value,
                 end=end_time.value,
-                is_first=True,
-                is_last=True,
+                is_first=False,
+                is_last=False,
                 section_type=section_type.value,
                 start_string=format_string(start_time.value),
                 end_string=format_string(end_time.value),
@@ -74,14 +107,9 @@ def SectionCarousel(
             event_set_section_type=lambda data: section_type.set(
                 set_section_type(data)
             ),
+            event_load_next_section=lambda data: load_next_section(data),
+            event_load_previous_section=lambda data: load_previous_section(data),
         )
-
-    # for slide in slides:
-    #     if selected_section.value is not None:
-    #         if slide["id"] == selected_section.value.id:
-    #             solara.Success(f"Selected: {slide['id']}")
-    #             slide["selected"] = True
-    # SectionCarouselVue(slides=slides, event_first_event=first_event)
 
 
 @solara.component
@@ -184,35 +212,6 @@ def VideoInfo(video: solara.Reactive[Section]):
         )
 
 
-@solara.component_vue("mycard2.vue")
-def MyCard2(
-    event_button_click: Callable[[dict], None],
-    event_set_start_time: Callable[[str], None],
-    event_set_end_time: Callable[[str], None],
-    event_set_section_type: Callable[[str], None],
-    section=dict(id=15, start="00:00:00", end="23:59:59"),
-):
-    pass
-
-
-@solara.component_vue("section_carousel.vue", vuetify=True)
-def SectionCarouselVue(
-    event_first_event,
-    slides=[],
-):
-
-    pass
-
-
-@solara.component_vue("section_slide_group.vue", vuetify=True)
-def SectionSlideGroupVue():
-
-    pass
-
-
-current_selection = solara.reactive(None)
-
-
 ### Don't know if this is true, but should be when finished
 ### reusable above this line
 ### below this line is the page definition
@@ -223,10 +222,16 @@ class State:
     selected_section = solara.reactive(None)
 
     @staticmethod
-    def load_sections(video_id: int):
+    def load_sections():
 
-        video = Video.get_by_id(video_id)
-        sm = SectionManager.from_video(video)
+        video_id = parse_url_args()
+
+        State.video = Video.get_by_id(video_id)
+        if State.video.duration == 0:
+            solara.Error("Video has no duration. Please Refresh from youtube.")
+            return
+
+        sm = SectionManager.from_video(State.video)
         if State.selected_section.value is None:
             sect = (
                 SectionTable.select().where(SectionTable.id == video_id).get_or_none()
@@ -237,6 +242,7 @@ class State:
                 logger.debug("No section found🧬🧬🧬")
                 State.selected_section.value = None
         State.sections = solara.use_reactive(sm.sections)
+        State.width, State.height = compute_graph_dimensions(State.video.duration)
 
         if State.selected_section.value is None and len(State.sections.value) > 0:
             State.select_section(State.sections.value[0])
@@ -283,17 +289,43 @@ class State:
         State.selected_section.value = item
         State.loading.value = False
 
+    @staticmethod
+    def on_click_graph(*args):
+        logger.debug(f"on_click called with data: {args}")
+        id = args[0]["id"]
+        logger.debug(f"ID: {id}")
+        sect = SectionTable.select().where(SectionTable.id == id).get()
+        if sect:
+            State.select_section(sect)
+        else:
+            logger.debug("No section found🧬🧬🧬")
+
+    @staticmethod
+    def previous_section(*args):
+        logger.debug(f"Previous Section Called with: {args}")
+        if State.selected_section.value is None:
+            return
+
+        idx = State.sections.value.index(State.selected_section.value)
+        if idx == 0:
+            return
+        State.select_section(State.sections.value[idx - 1])
+
+    @staticmethod
+    def next_section(*args):
+        logger.debug(f"Next Section Called with: {args}")
+        if State.selected_section.value is None:
+            return
+        idx = State.sections.value.index(State.selected_section.value)
+        if idx == len(State.sections.value) - 1:
+            return
+        State.select_section(State.sections.value[idx + 1])
+
 
 @solara.component
 def Page():
 
-    video_id = parse_url_args()
-    State.load_sections(video_id)
-
-    video = Video.get_by_id(video_id)
-    if video.duration == 0:
-        solara.Error("Video has no duration. Please Refresh from youtube.")
-        return
+    State.load_sections()
 
     # package the section info for the section carousel
     carousel_sections = [
@@ -309,69 +341,32 @@ def Page():
     ]
 
     with solara.Columns(6, 6):
-        VideoInfo(video)
+        VideoInfo(State.video)
         SectionControlPanel(
-            video=video,
+            video=State.video,
             on_new=State.on_new,
             loading=State.loading,
             on_delete=State.on_delete,
         )
 
-    def afunc(*args):
-        logger.debug(f"afunc called with data: {args}")
-        id = args[0]
-        logger.debug(f"ID: {id}")
-        sect = SectionTable.select().where(SectionTable.id == id).get()
-        if sect:
-            State.select_section(sect)
-        else:
-            logger.debug("No section found🧬🧬🧬")
-
-    def on_click(*args):
-        logger.debug(f"on_click called with data: {args}")
-        id = args[0]["id"]
-        logger.debug(f"ID: {id}")
-        sect = SectionTable.select().where(SectionTable.id == id).get()
-        if sect:
-            State.select_section(sect)
-        else:
-            logger.debug("No section found🧬🧬🧬")
-
-    with solara.Column():
-        if State.loading.value:
+    if State.loading.value:
+        with solara.Column():
             solara.SpinnerSolara(size="100px")
-        else:
-            if video.sections.count() == 0:
-                solara.Markdown("## No Sections Found. Please add some.")
-                return
-            if video.duration < 1800:
-                section_width = video.duration
-            elif video.duration < 3600:
-                section_width = video.duration / 2
-            else:
-                section_width = 1800
-            if State.selected_section.value is not None:
-                solara.InputText(
-                    label="Current Selection",
-                    value=State.selected_section.value.id,
-                )
-            SectionGraphComponent(
-                video.sections,
-                current_selection=Ref(State.selected_section),
-                on_click=on_click,
-                max_section_width=section_width,
-            )
-            SectionCarousel(
-                slides=carousel_sections,
-                selected_section=Ref(State.selected_section),
-                event_first_event=afunc,
-            )
-            with solara.Card():
-                solara.Markdown("Current Selection")
-                sect = State.selected_section.value
-                solara.Markdown(str(sect.id))
-                solara.Markdown(str(sect.start))
-                solara.Markdown(str(sect.end))
-                solara.Markdown("# IT WORKS!")
+    else:
+        if State.video.sections.count() == 0:
+            solara.Markdown("## No Sections Found. Please add some.")
+            return
 
-            logger.error(f"Currently selected: {State.selected_section.value}")
+        SectionGraphComponent(
+            State.video.sections,
+            current_selection=Ref(State.selected_section),
+            on_click=State.on_click_graph,
+            max_section_width=State.width,
+            max_section_height=State.height,
+        )
+        SectionCarousel(
+            slides=carousel_sections,
+            selected_section=Ref(State.selected_section),
+            next_section=State.next_section,
+            previous_section=State.previous_section,
+        )

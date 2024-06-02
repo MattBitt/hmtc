@@ -3,9 +3,8 @@
     <v-container class="bg-surface-variant mb-6">
       <v-row>
         <v-col cols="1">
-          <v-sheet v-if="section.is_first">
-            <p>Previous Section Controls</p>
-            <p>asdfasdf</p>
+          <v-sheet v-if="section.is_first === false">
+            <v-btn @click="load_previous_section()">Prev</v-btn>
           </v-sheet>
         </v-col>
         <v-col cols="10">
@@ -34,8 +33,8 @@
         </v-col>
 
         <v-col cols="1">
-          <v-sheet v-if="section.is_last">
-            <p>Next Section Controls</p>
+          <v-sheet v-if="section.is_last === false">
+            <v-btn @click="load_next_section()">Next</v-btn>
           </v-sheet>
         </v-col>
       </v-row>

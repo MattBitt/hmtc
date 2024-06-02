@@ -174,23 +174,23 @@ class State:
 
     @staticmethod
     def on_new(item: ChannelItem):
-        logger.debug(f"on_new: {item}, {item.__class__}")
-        logger.info(f"Adding new item: {item}")
+        # logger.debug(f"on_new: {item}, {item.__class__}")
+        # logger.info(f"Adding new item: {item}")
         item.save_to_db()
         State.channels.value = ChannelItem.grab_n_from_db(n=10)
 
     @staticmethod
     def on_delete(item: ChannelItem):
-        logger.debug(f"on_delete: {item}, {item.__class__}")
-        logger.info(f"Deleting item: {item}")
+        # logger.debug(f"on_delete: {item}, {item.__class__}")
+        # logger.info(f"Deleting item: {item}")
         db_item = item.grab_id_from_db(id=item.id)
         db_item.my_delete_instance()
         State.channels.value = ChannelItem.grab_n_from_db(n=10)
 
     @staticmethod
     def on_update(item: ChannelItem):
-        logger.debug(f"on_update: {item}, {item.__class__}")
-        logger.info(f"Updating existing item: {item}")
+        # logger.debug(f"on_update: {item}, {item.__class__}")
+        # logger.info(f"Updating existing item: {item}")
         item.save_to_db()
         State.channels.value = ChannelItem.grab_n_from_db(n=10)
 

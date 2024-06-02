@@ -6,13 +6,8 @@ from dash import Dash, html
 from flask import Flask
 from flask_admin import Admin
 
-from hmtc.admin_views import (
-    PlaylistAdmin,
-    PostAdmin,
-    SeriesAdmin,
-    UserAdmin,
-    VideoAdmin,
-)
+from hmtc.admin_views import (PlaylistAdmin, PostAdmin, SeriesAdmin, UserAdmin,
+                              VideoAdmin)
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/plotly/datasets/master/gapminder_unfiltered.csv"

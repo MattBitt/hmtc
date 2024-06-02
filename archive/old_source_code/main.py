@@ -4,18 +4,11 @@ from db import Base, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from my_logging import setup_logging
-from routers import (
-    album_router,
-    artist_router,
-    beat_router,
-    producer_router,
-    source_router,
-    tag_router,
-    track_router,
-    whatsplaying_router,
-    word_router,
-)
-from source_data import download_sources, update_sources_in_db, verify_files_exist
+from routers import (album_router, artist_router, beat_router, producer_router,
+                     source_router, tag_router, track_router,
+                     whatsplaying_router, word_router)
+from source_data import (download_sources, update_sources_in_db,
+                         verify_files_exist)
 from track_creator import create_all_tracks
 
 app = FastAPI()
