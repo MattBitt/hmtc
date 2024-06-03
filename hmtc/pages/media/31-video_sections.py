@@ -45,7 +45,7 @@ def format_string(x: int):
     return f"{h:02d}:{m:02d}:{s:02d}"
 
 
-@solara.component_vue("../components/section/section_item.vue", vuetify=True)
+@solara.component_vue("../../components/section/section_item.vue", vuetify=True)
 def SectionItem(
     event_button_click: Callable[[dict], None],
     event_set_start_time: Callable[[str], None],

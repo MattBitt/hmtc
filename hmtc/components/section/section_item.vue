@@ -13,6 +13,7 @@
               <div class="seven-seg ma-4">
                 {{ section.start_string }} - {{ section.end_string }}
               </div>
+
               <h4>{{ section.id }}</h4>
               <h4>{{ section.section_type }}</h4>
 
@@ -44,10 +45,22 @@
 <style>
 .seven-seg {
   font-weight: bolder;
-  font-size: 5rem;
+  font-size: 80px;
   color: #ff0000;
   /* font-family: "Seven Segment", sans-serif; */
   font-family: "Digital-7 Mono", sans-serif;
+}
+.intro-text {
+  font-size: 60px;
+  font-weight: bold;
+  font-family: cursive;
+  color: #444;
+}
+.description-text {
+  font-size: 19px;
+  font-family: cursive;
+  margin: 32px 0;
+  color: #4444ba;
 }
 </style>
 

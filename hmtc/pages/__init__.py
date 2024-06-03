@@ -1,6 +1,9 @@
+import dataclasses
 from pathlib import Path
+from typing import Optional, cast
 
 import solara
+import solara.lab
 from loguru import logger
 
 from hmtc.config import init_config
@@ -36,7 +39,7 @@ def setup_folders():
 
 
 def setup():
-    config = init_config()
+    # config = init_config()
     setup_folders()
     setup_logging(config)
 
@@ -53,31 +56,31 @@ def setup():
     return db_instance
 
 
-db = setup()
-
-
 @solara.component
 def Layout(children=[]):
     VERSION = "0.1.0"
-    logger.debug("Creating App Layout")
+
     env = config["general"]["environment"]
     match env:
         case "development":
-            color = "black"
-        case "staging":
             color = "purple"
-        case "testing":
+        case "staging":
             color = "red"
+        case "testing":
+            color = "blue"
         case "production":
             color = "green"
         case _:
             color = "yellow"
     title = f"{config["app"]["name"]} - {VERSION} - {env}"
-    solara.Style(Path("assets/style.css"))
+    # solara.Style(Path("../assets/style.css"))
     return solara.AppLayout(
         children=children,
+        navigation=False,
+        title=title,
         color=color,
         sidebar_open=False,
-        navigation=True,
-        title=title,
     )
+
+
+db = setup()

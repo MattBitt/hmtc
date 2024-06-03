@@ -104,3 +104,8 @@ class PlaylistItem(BaseItem):
         # some problem with the ffmpeg function
         # i had to download and create the info file manually
         raise DeprecationWarning("Can't create playlist from youtube_id automatically")
+
+    def update_from_youtube(self):
+        vids = Video.select().join(Playlist).where(Video.playlist_id == self.id)
+        for vid in vids:
+            vid.update_from_yt()

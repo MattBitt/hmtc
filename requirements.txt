@@ -54,8 +54,10 @@ parso==0.8.4
 peewee==3.17.3
 pexpect==4.9.0
 pillow==10.3.0
+pixelmatch==0.3.0
 platformdirs==4.2.1
 playwright==1.44.0
+plotly==5.22.0
 pluggy==1.5.0
 prompt-toolkit==3.0.43
 psutil==5.9.8
@@ -71,9 +73,13 @@ pyee==11.1.0
 Pygments==2.17.2
 pymdown-extensions==10.8
 pytest==8.2.0
+pytest-base-url==2.1.0
+pytest-ipywidgets==1.31.0
+pytest-playwright==0.5.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-engineio==4.9.0
+python-slugify==8.0.4
 python-socketio==5.11.2
 python-vlc==3.0.20123
 pytz==2024.1
@@ -97,6 +103,8 @@ solara-server==1.31.0
 solara-ui==1.31.0
 stack-data==0.6.3
 starlette==0.37.2
+tenacity==8.3.0
+text-unidecode==1.3
 tornado==6.4
 traitlets==5.14.3
 typing_extensions==4.11.0

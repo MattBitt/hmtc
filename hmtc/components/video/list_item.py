@@ -73,7 +73,7 @@ def VideoListItem(
                 solara.Markdown(f"### {video_item.value.title}")
                 solara.InputText(f"ID: {video_item.value.id}", disabled=True)
 
-                with solara.Link(f"/video-sections/{video_item.value.id}"):
+                with solara.Link(f"/media/video-sections/{video_item.value.id}"):
                     solara.Button("Edit Sections")
             with solara.Row():
                 solara.Button(

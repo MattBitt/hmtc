@@ -3,6 +3,7 @@ from typing import Callable
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
+from solara.lab import task
 
 from hmtc.components.playlist.edit_modal import PlaylistEditModal
 from hmtc.schemas.playlist import PlaylistItem
@@ -46,14 +47,26 @@ def PlaylistListItem(
     on_delete: Callable[[PlaylistItem], None],
 ):
     edit, set_edit = solara.use_state(False)
+
+    @task
+    def download_video_info(*args, **kwargs):
+        logger.debug(f"Downloading {playlist_item.value}")
+        playlist_item.value.update_from_youtube()
+
     with solara.Card():
-        with solara.Column():
-            solara.Markdown(f"### {playlist_item.value.title}")
-            solara.Markdown(f"Num of Videos: {playlist_item.value.count_videos()}")
-            solara.InputText(f"ID: {playlist_item.value.id}", disabled=True)
+
+        solara.Markdown(f"### {playlist_item.value.title}")
+        solara.Markdown(f"Num of Videos: {playlist_item.value.count_videos()}")
+        solara.InputText(f"ID: {playlist_item.value.id}", disabled=True)
+        with solara.CardActions():
             solara.Button(
                 icon_name="mdi-pencil", icon=True, on_click=lambda: set_edit(True)
             )
-            if edit:
-                logger.debug(f"Opening edit modal for {playlist_item.value}")
-                open_modal(playlist_item, on_update, on_delete, edit, set_edit)
+            solara.Button(
+                icon_name="mdi-download",
+                icon=True,
+                on_click=download_video_info,
+            )
+        if edit:
+            logger.debug(f"Opening edit modal for {playlist_item.value}")
+            open_modal(playlist_item, on_update, on_delete, edit, set_edit)
