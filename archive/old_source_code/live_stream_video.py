@@ -5,6 +5,7 @@ from pathlib import Path
 import cv2
 from clip import Clip
 from frame_analyzer import FrameAnalyzer
+
 # from progress.bar import Bar
 from tqdm import tqdm
 

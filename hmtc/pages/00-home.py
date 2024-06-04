@@ -4,8 +4,19 @@ from loguru import logger
 
 from hmtc.config import init_config
 
+
 updating = solara.reactive(False)
 config = init_config()
+
+
+@solara.component_vue("./button.vue")
+def MyButton():
+    pass
+
+
+@solara.component_vue("../components/pages/Landing.vue")
+def LandingPage():
+    pass
 
 
 @solara.component_vue("../components/login/LoginComp.vue")
@@ -39,12 +50,48 @@ class State:
 
 
 @solara.component
+def Sidebar():
+
+    with solara.Sidebar():
+        MyButton()
+        # with solara.Column(align="start"):
+        #     with solara.Link("/"):
+
+        #         solara.Markdown("asdf")
+        #     with solara.Link("/"):
+        #         solara.Text("Home", classes=["sidebarbutton"])
+        #     with solara.Link("/media/videos"):
+        #         solara.Text("Videos", classes=["sidebarbutton"])
+        #     with solara.Link("/media/playlists"):
+        #         solara.Text("Playlists", classes=["sidebarbutton"])
+        #     with solara.Link("/media/channels"):
+        #         solara.Text("Channels", classes=["sidebarbutton"])
+        #     # solara.Link("Videos", to="/media/videos", classes=["sidebarbutton"])
+        #     # solara.Link("Playlists", to="/media/playlists", classes=["sidebarbutton"])
+        #     with solara.Row(justify="center"):
+        #         solara.Button(
+        #             icon=True,
+        #             icon_name="mdi-video",
+        #         )
+        #         solara.Button(
+        #             icon=True,
+        #             icon_name="mdi-playlist-music",
+        #         )
+        #         solara.Button(icon=True, icon_name="mdi-music-rest-eighth")
+
+
+@solara.component
 def Page():
-    LoginForm(
-        event_login=State.login,
-        event_register=State.register,
-        event_forgot_password=State.forgot_password,
-    )
+    Sidebar()
+    LandingPage()
+
+    solara.Markdown("Home Page!")
+
+    # LoginForm(
+    #     event_login=State.login,
+    #     event_register=State.register,
+    #     event_forgot_password=State.forgot_password,
+    # )
     # RegisterForm(
     #     event_login=State.login,
     #     event_forgot_password=State.forgot_password,

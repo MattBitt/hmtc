@@ -1,6 +1,22 @@
-from models import (Album, AlbumFile, Artist, Base, Beat, Producer, Source,
-                    SourceFile, Tag, Track, TrackArtist, TrackBeat, TrackFile,
-                    TrackProducer, TrackTag, TrackWord, Word)
+from models import (
+    Album,
+    AlbumFile,
+    Artist,
+    Base,
+    Beat,
+    Producer,
+    Source,
+    SourceFile,
+    Tag,
+    Track,
+    TrackArtist,
+    TrackBeat,
+    TrackFile,
+    TrackProducer,
+    TrackTag,
+    TrackWord,
+    Word,
+)
 from sqlalchemy.orm import Session
 
 

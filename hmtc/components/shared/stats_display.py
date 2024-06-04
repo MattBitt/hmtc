@@ -7,8 +7,6 @@ def StatsDisplay(stats):
     # with solara.Row():
     #     solara.Text(f"Unique Content: ({stats['unique']})")
 
-    with solara.Row():
-        solara.Text(f"Total: ({stats['total']})")
-
-    with solara.Row():
-        solara.Text(f"Enabled: ({stats['enabled']})")
+    solara.Markdown(f"#### Total: **({stats['total']})**")
+    solara.Markdown(f"#### Enabled: **({stats['enabled']})**")
+    solara.Markdown(f"#### No Duration: **({stats['no_duration']})**")

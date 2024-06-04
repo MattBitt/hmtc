@@ -7,15 +7,34 @@ import solara.lab
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.db import (create_tables, download_channel_videos,
-                     download_playlist_videos, import_playlist_info, init_db,
-                     is_db_empty, seed_database)
+from hmtc.db import (
+    create_tables,
+    download_channel_videos,
+    download_playlist_videos,
+    import_playlist_info,
+    init_db,
+    is_db_empty,
+    seed_database,
+)
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
-
+env = config["general"]["environment"]
+match env:
+    case "development":
+        color = "purple"
+    case "staging":
+        color = "red"
+    case "testing":
+        color = "blue"
+    case "production":
+        color = "green"
+    case _:
+        color = "yellow"
+VERSION = "0.1.0"
+title = f"{config["app"]["name"]} - {VERSION} - {env}"
 
 @logger.catch
 def setup_to_fail():
@@ -56,31 +75,20 @@ def setup():
     return db_instance
 
 
+
 @solara.component
 def Layout(children=[]):
-    VERSION = "0.1.0"
 
-    env = config["general"]["environment"]
-    match env:
-        case "development":
-            color = "purple"
-        case "staging":
-            color = "red"
-        case "testing":
-            color = "blue"
-        case "production":
-            color = "green"
-        case _:
-            color = "yellow"
-    title = f"{config["app"]["name"]} - {VERSION} - {env}"
-    # solara.Style(Path("../assets/style.css"))
+    solara.Style(Path("../assets/style.css"))
     return solara.AppLayout(
-        children=children,
         navigation=False,
         title=title,
         color=color,
-        sidebar_open=False,
+        sidebar_open=True,
+        children=children,
     )
+
+
 
 
 db = setup()

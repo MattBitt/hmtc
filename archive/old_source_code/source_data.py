@@ -12,8 +12,7 @@ from configs import cnf
 from db import Base, db_session, engine
 from my_logging import logger
 from utils import move_file, write_dict_to_yaml
-from yt_dlp_functions import (download_files, get_collection_url_list,
-                              get_json_info)
+from yt_dlp_functions import download_files, get_collection_url_list, get_json_info
 
 
 def parse_yaml(yaml_file):

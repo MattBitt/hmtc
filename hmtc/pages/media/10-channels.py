@@ -216,6 +216,7 @@ def ChannelStatus():
 
 @solara.component
 def Page():
+
     with solara.Card("Channel list", style="min-width: 80%"):
         ChannelNewTextBox(on_new=State.on_new)
         if State.channels.value:

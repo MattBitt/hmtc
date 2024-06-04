@@ -56,7 +56,11 @@ def PlaylistListItem(
     with solara.Card():
 
         solara.Markdown(f"### {playlist_item.value.title}")
+
         solara.Markdown(f"Num of Videos: {playlist_item.value.count_videos()}")
+        solara.Markdown(
+            f"Num of Videos (no duration): {playlist_item.value.count_videos(no_duration=True)}"
+        )
         solara.InputText(f"ID: {playlist_item.value.id}", disabled=True)
         with solara.CardActions():
             solara.Button(

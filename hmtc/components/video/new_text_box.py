@@ -35,5 +35,3 @@ def VideoSearchBox(
         value=text_query,
         on_value=on_change,
     )
-
-    solara.Info(f"Current text_query = {text_query.value}")

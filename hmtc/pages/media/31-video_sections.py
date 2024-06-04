@@ -8,6 +8,7 @@ from hmtc.components.section.section_graph import SectionGraphComponent
 from hmtc.models import Section as SectionTable
 from hmtc.models import Video
 from hmtc.mods.section import Section, SectionManager
+from hmtc.components.app_bar import AppBar
 
 title = "HMTC Section Editor"
 
@@ -43,6 +44,16 @@ def format_string(x: int):
         return "00:00:00"
     h, m, s = x // 3600, (x % 3600) // 60, x % 60
     return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+@solara.component
+def Sidebar():
+    with solara.Sidebar():
+        solara.Markdown("Sidebar")
+        with solara.Column(style={"flex-direction": "column", "align-items": "left"}):
+            solara.Button("Videos", href="/media/videos", outlined=True)
+            solara.Button("Playlists", href="/playlists", outlined=True)
+            solara.Button("Settings", href="/settings", outlined=True, color="red")
 
 
 @solara.component_vue("../../components/section/section_item.vue", vuetify=True)
@@ -339,7 +350,7 @@ def Page():
         )
         for x in State.sections.value
     ]
-
+    Sidebar()
     with solara.Columns(6, 6):
         VideoInfo(State.video)
         SectionControlPanel(

@@ -49,13 +49,16 @@ def VideoEditModal(
         solara.InputText(label="YouTube ID", value=Ref(copy.fields.youtube_id))
         solara.InputText(label="Duration", value=Ref(copy.fields.duration))
         # solara.InputText(label="Upload Date", value=Ref(copy.fields.upload_date))
-        solara.Checkbox(label="Enabled", value=Ref(copy.fields.enabled))
-        solara.Checkbox(
-            label="Contains Unique Content",
-            value=Ref(copy.fields.contains_unique_content),
-        )
-        solara.Checkbox(label="Has Chapters", value=Ref(copy.fields.has_chapters))
-        solara.Checkbox(label="Manually Edited", value=Ref(copy.fields.manually_edited))
+        with solara.Row():
+            solara.Checkbox(label="Enabled", value=Ref(copy.fields.enabled))
+            solara.Checkbox(
+                label="Contains Unique Content",
+                value=Ref(copy.fields.contains_unique_content),
+            )
+            solara.Checkbox(label="Has Chapters", value=Ref(copy.fields.has_chapters))
+            solara.Checkbox(
+                label="Manually Edited", value=Ref(copy.fields.manually_edited)
+            )
         solara.InputText(label="Description", value=Ref(copy.fields.description))
 
         with solara.CardActions():

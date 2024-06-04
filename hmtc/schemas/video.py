@@ -28,6 +28,10 @@ class VideoItem(BaseItem):
         return cls.db_model.select().where(cls.enabled == enabled).count()
 
     @classmethod
+    def count_no_duration(cls):
+        return cls.db_model.select().where(cls.db_model.duration.is_null()).count()
+
+    @classmethod
     def grab_page_from_db(
         cls, current_page, per_page, text_search=None, sort_column=None, sort_order=None
     ):

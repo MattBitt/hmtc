@@ -18,5 +18,3 @@ def PlaylistNewTextBox(
         continuous_update=True,
         on_value=on_change,
     )
-
-    solara.Info(f"Current text_query = {text_query.value}")

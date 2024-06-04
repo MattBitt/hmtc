@@ -93,10 +93,11 @@ class PlaylistItem(BaseItem):
                 title=self.title, youtube_id=self.youtube_id, enabled=self.enabled
             ).where(Playlist.id == self.id).execute()
 
-    def count_videos(self):
-
-        videos = Video.select().join(Playlist).where(Video.playlist_id == self.id)
-        return len(videos)
+    def count_videos(self, no_duration=False):
+        query = Video.select().join(Playlist).where(Video.playlist_id == self.id)
+        if no_duration:
+            query = query.where(Video.duration.is_null())
+        return len(list(query))
 
     @staticmethod
     def create_from_youtube_id(youtube_id):

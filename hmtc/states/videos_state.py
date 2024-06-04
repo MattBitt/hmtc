@@ -39,6 +39,7 @@ class VideosState(State):
             "total": VideoItem.count_enabled(),
             "enabled": VideoItem.count_enabled(),
             "disabled": VideoItem.count_enabled(enabled=False),
+            "no_duration": VideoItem.count_no_duration(),
         }
 
         return stats

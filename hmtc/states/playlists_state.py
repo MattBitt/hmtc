@@ -34,7 +34,7 @@ class PlaylistsState(State):
     num_pages = solara.reactive(compute_number_of_pages(total_items, per_page.value))
 
     @classmethod
-    def playlist_stats(cls):
+    def stats(cls):
         stats = {
             "total": PlaylistItem.count_enabled(),
             "enabled": PlaylistItem.count_enabled(),
