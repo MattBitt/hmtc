@@ -4,6 +4,7 @@ import solara.lab
 from loguru import logger
 
 from hmtc.models import Series, Video
+from hmtc.components.shared.sidebar import MySidebar
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")
@@ -49,6 +50,9 @@ def SeriesCard(series):
 
 @solara.component
 def Page():
+    MySidebar(
+        router=solara.use_router(),
+    )
     solara.Button("Add Series", on_click=add_series)
     with solara.ColumnsResponsive(12, large=4):
 

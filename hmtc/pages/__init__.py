@@ -79,14 +79,16 @@ def setup():
 @solara.component
 def Layout(children=[]):
 
-    solara.Style(Path("../assets/style.css"))
+    # solara.Style(Path("../assets/style.css"))
     return solara.AppLayout(
         navigation=False,
         title=title,
         color=color,
         sidebar_open=True,
         children=children,
+        
     )
+
 
 
 

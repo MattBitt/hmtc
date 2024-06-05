@@ -9,6 +9,12 @@ from hmtc.models import Video
 def Page():
     router = solara.use_router()
     videos = Video.select().where(Video.duration > 0)
+    recent = (
+        Video.select()
+        .where(Video.title.is_null(False))
+        .order_by(Video.upload_date.desc())
+        .limit(10)
+    )
     logger.debug(f"videos: {len(videos)}")
     MySidebar(
         router=router,
@@ -22,5 +28,8 @@ def Page():
     )
     logger.debug(f"seconds: {seconds}")
     timestr = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-    solara.Markdown(f"Total duration (known)")
-    solara.Markdown(f"## {timestr}")
+    solara.Markdown(f"## Total duration (known)")
+    solara.Markdown(f"### {timestr}")
+    solara.Markdown(f"## Recent videos")
+    for vid in recent:
+        solara.Markdown(f"### {vid.title} - {vid.upload_date}")
