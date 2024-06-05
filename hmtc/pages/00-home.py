@@ -1,91 +1,100 @@
 import solara
 import solara.lab
+from solara.lab.toestand import Ref
+
 from loguru import logger
 
 from hmtc.config import init_config
-
+from hmtc.components.shared.sidebar import MySidebar, State as SidebarState
 
 updating = solara.reactive(False)
 config = init_config()
 
 
-@solara.component_vue("./button.vue")
-def MyButton():
-    pass
-
-
 @solara.component_vue("../components/pages/Landing.vue")
-def LandingPage():
+def LandingPage(current_phase, event_login_clicked, event_register_clicked):
     pass
 
 
-@solara.component_vue("../components/login/LoginComp.vue")
-def LoginForm(event_login, event_register, event_forgot_password):
+@solara.component_vue("../components/pages/SignIn.vue")
+def LoginForm(
+    event_login_clicked, event_register_clicked, event_forgot_password_clicked
+):
     pass
 
 
-@solara.component_vue("../components/login/RegisterComp.vue")
-def RegisterForm(event_login, event_forgot_password):
+@solara.component_vue("../components/pages/SignUp.vue")
+def RegisterForm(event_login_clicked, event_forgot_password_clicked):
     pass
 
 
-@solara.component_vue("../components/login/ForgotPassword.vue")
-def ForgotPassword(event_login, event_register):
+@solara.component_vue("../components/pages/Home.vue")
+def ForgotPassword(event_login_clicked, event_register_clicked):
     pass
 
 
 class State:
+    router = None
 
     @staticmethod
     def login(*args):
-        logger.info(f"Login: {args}")
+        logger.info(f"Login clicked")
+        State.router.push("/videos")
 
     @staticmethod
     def register(*args):
-        logger.info(f"Register: {args}")
+        logger.info(f"Register Clicked")
 
     @staticmethod
     def forgot_password(*args):
-        logger.info(f"Forgot Password: {args}")
-
-
-@solara.component
-def Sidebar():
-
-    with solara.Sidebar():
-        MyButton()
-        # with solara.Column(align="start"):
-        #     with solara.Link("/"):
-
-        #         solara.Markdown("asdf")
-        #     with solara.Link("/"):
-        #         solara.Text("Home", classes=["sidebarbutton"])
-        #     with solara.Link("/media/videos"):
-        #         solara.Text("Videos", classes=["sidebarbutton"])
-        #     with solara.Link("/media/playlists"):
-        #         solara.Text("Playlists", classes=["sidebarbutton"])
-        #     with solara.Link("/media/channels"):
-        #         solara.Text("Channels", classes=["sidebarbutton"])
-        #     # solara.Link("Videos", to="/media/videos", classes=["sidebarbutton"])
-        #     # solara.Link("Playlists", to="/media/playlists", classes=["sidebarbutton"])
-        #     with solara.Row(justify="center"):
-        #         solara.Button(
-        #             icon=True,
-        #             icon_name="mdi-video",
-        #         )
-        #         solara.Button(
-        #             icon=True,
-        #             icon_name="mdi-playlist-music",
-        #         )
-        #         solara.Button(icon=True, icon_name="mdi-music-rest-eighth")
+        logger.info(f"Forgot Password clicked")
 
 
 @solara.component
 def Page():
-    Sidebar()
-    LandingPage()
 
-    solara.Markdown("Home Page!")
+    State.router = solara.use_router()
+    MySidebar(
+        router=State.router,
+    )
+    current_phase = solara.use_reactive("landing")
+
+    def set_phase_to_login(*ignore_args):
+        current_phase.set("login")
+
+    def set_phase_to_landing(*ignore_args):
+        current_phase.set("landing")
+
+    def set_phase_to_register(*ignore_args):
+        current_phase.set("register")
+
+    def set_phase_to_forgot_password(*ignore_args):
+        current_phase.set("forgot_password")
+
+    if current_phase.value == "landing":
+        LandingPage(
+            current_phase=current_phase.value,
+            event_login_clicked=set_phase_to_login,
+            event_register_clicked=set_phase_to_register,
+        )
+    elif current_phase.value == "login":
+        LoginForm(
+            event_login_clicked=State.login,
+            event_register_clicked=set_phase_to_register,
+            event_forgot_password_clicked=set_phase_to_forgot_password,
+        )
+    elif current_phase.value == "register":
+        RegisterForm(
+            event_login_clicked=set_phase_to_login,
+            event_forgot_password_clicked=set_phase_to_forgot_password,
+        )
+    elif current_phase.value == "forgot_password":
+        ForgotPassword(
+            event_login=set_phase_to_login, event_register_clicked=set_phase_to_register
+        )
+
+    else:
+        solara.Markdown(f"Home Page! {current_phase.value}")
 
     # LoginForm(
     #     event_login=State.login,

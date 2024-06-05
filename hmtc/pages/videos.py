@@ -9,32 +9,15 @@ from hmtc.components.video.cards_list import VideoCards
 from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.states.videos_state import VideosState as State
 from hmtc.components.app_bar import AppBar
-
-
-@solara.component
-def Sidebar():
-    with solara.Sidebar():
-        solara.Markdown("Sidebar")
-        with solara.Column():
-            solara.Button("Videos", href="/media/videos")
-            solara.Button("Playlists", href="/playlists")
-            solara.Button("Settings", href="/settings")
-
-            SortControls(State)
-            PaginationControls(
-                current_page=State.current_page,
-                num_pages=State.num_pages,
-                on_page_change=State.on_page_change,
-            )
-            StatsDisplay(State.video_stats())
+from hmtc.components.shared.sidebar import MySidebar
 
 
 @solara.component
 def Page():
-    with solara.AppBar():
-        solara.Title("Videos")
-        solara.Button("Home", href="/")
-        Sidebar()
+    router = solara.use_router()
+    MySidebar(
+        router=router,
+    )
     with solara.Card():
 
         # searchable text box
@@ -44,6 +27,7 @@ def Page():
 
             VideoCards(
                 Ref(State.videos),
+                router=router,
                 on_save=State.on_save,
                 on_update_from_youtube=State.on_update_from_youtube,
                 on_delete=State.on_delete,

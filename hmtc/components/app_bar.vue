@@ -60,7 +60,7 @@ export default {
       },
       {
         label: "Videos",
-        url: "/media/videos",
+        url: "/videos",
       },
       {
         label: "Playlists",

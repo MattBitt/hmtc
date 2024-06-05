@@ -50,6 +50,7 @@ def open_modal(
 @solara.component
 def VideoListItem(
     video_item: solara.Reactive[VideoItem],
+    router,
     on_save: Callable[[VideoItem], None],
     on_update_from_youtube: Callable[[VideoItem], None],
     on_delete: Callable[[VideoItem], None],
@@ -73,8 +74,12 @@ def VideoListItem(
                 solara.Markdown(f"### {video_item.value.title}")
                 solara.InputText(f"ID: {video_item.value.id}", disabled=True)
 
-                with solara.Link(f"/media/video-sections/{video_item.value.id}"):
-                    solara.Button("Edit Sections")
+                solara.Button(
+                    "Edit Sections",
+                    on_click=lambda: router.push(
+                        f"/video-sections/{video_item.value.id}"
+                    ),
+                )
             with solara.Row():
                 solara.Button(
                     icon_name="mdi-pencil", icon=True, on_click=lambda: set_edit(True)

@@ -7,6 +7,7 @@ from solara.lab import task
 from solara.lab.toestand import Ref
 
 from hmtc.schemas.channel import ChannelItem
+from hmtc.components.shared.sidebar import MySidebar
 
 
 @solara.component
@@ -216,7 +217,7 @@ def ChannelStatus():
 
 @solara.component
 def Page():
-
+    MySidebar(router=solara.use_router())
     with solara.Card("Channel list", style="min-width: 80%"):
         ChannelNewTextBox(on_new=State.on_new)
         if State.channels.value:

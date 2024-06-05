@@ -9,6 +9,7 @@ from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.shared.stats_display import StatsDisplay
 from hmtc.states.playlists_state import PlaylistsState as State
 from hmtc.components.app_bar import AppBar
+from hmtc.components.shared.sidebar import MySidebar
 
 
 @solara.component
@@ -26,7 +27,7 @@ def Sidebar():
     with solara.Sidebar():
         solara.Markdown("Sidebar")
         with solara.Column():
-            solara.Button("Videos", href="/media/videos")
+            solara.Button("Videos", href="/videos")
             solara.Button("Playlists", href="/playlists")
             solara.Button("Settings", href="/settings")
 
@@ -41,7 +42,9 @@ def Sidebar():
 
 @solara.component
 def Page():
-    Sidebar()
+    MySidebar(
+        router=solara.use_router(),
+    )
     with solara.Card():
         # searchable text box
         PlaylistNewTextBox(on_change=State.on_change_text_search, on_new=State.on_new)

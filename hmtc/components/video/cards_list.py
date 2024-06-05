@@ -9,6 +9,7 @@ from hmtc.components.video.list_item import VideoListItem
 @solara.component
 def VideoCards(
     videos,
+    router,
     on_save: Callable[[], None],
     on_update_from_youtube: Callable[[], None],
     on_delete: Callable[[], None],
@@ -20,6 +21,7 @@ def VideoCards(
             # logger.debug(f"Fields type = {type(videos.fields)} 🔵🔵🔵")
             VideoListItem(
                 Ref(videos.fields[index]),
+                router=router,
                 on_save=on_save,
                 on_update_from_youtube=on_update_from_youtube,
                 on_delete=on_delete,
