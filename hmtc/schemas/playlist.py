@@ -6,14 +6,14 @@ from hmtc.models import Playlist, Video
 from hmtc.schemas.base import BaseItem
 
 
-# our model for a todo item, immutable/frozen avoids common bugs
 @dataclasses.dataclass(frozen=True)
 class PlaylistItem(BaseItem):
 
     title: str = None
     url: str = None
     youtube_id: str = None
-
+    enabled: bool = False
+    has_chapters: bool = False
     last_update_completed = None
     album_per_episode: bool = False
     enable_video_downloads: bool = False
@@ -110,3 +110,6 @@ class PlaylistItem(BaseItem):
         vids = Video.select().join(Playlist).where(Video.playlist_id == self.id)
         for vid in vids:
             vid.update_from_yt()
+
+    def videos(self):
+        return Video.select().join(Playlist).where(Video.playlist_id == self.id)

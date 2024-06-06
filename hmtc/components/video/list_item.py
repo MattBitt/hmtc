@@ -73,7 +73,8 @@ def VideoListItem(
             else:
                 solara.Markdown(f"### {video_item.value.title}")
                 solara.InputText(f"ID: {video_item.value.id}", disabled=True)
-
+                solara.Markdown(f"Series: {video_item.value.series_name}")
+                solara.Markdown(f"Playlist: {video_item.value.playlist_name}")
                 solara.Button(
                     "Edit Sections",
                     on_click=lambda: router.push(

@@ -29,12 +29,12 @@ class VideosState(State):
         sort_column=sort_column.value,
         sort_order=sort_order.value,
     )
-    logger.error(f"Initial items type = {type(initial_items)}")
+    # logger.error(f"Initial items type = {type(initial_items)}")
     videos = solara.reactive(initial_items)
     num_pages = solara.reactive(compute_number_of_pages(total_items, per_page.value))
 
     @classmethod
-    def video_stats(cls):
+    def stats(cls):
         stats = {
             "total": VideoItem.count_enabled(),
             "enabled": VideoItem.count_enabled(),

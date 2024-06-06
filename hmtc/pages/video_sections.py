@@ -11,7 +11,7 @@ from hmtc.mods.section import Section, SectionManager
 from hmtc.components.app_bar import AppBar
 from hmtc.components.shared.sidebar import MySidebar
 
-title = "HMTC Section Editor"
+title = "Section Editor"
 
 
 def parse_url_args():

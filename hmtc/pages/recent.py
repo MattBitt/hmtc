@@ -8,13 +8,22 @@ from hmtc.models import Video
 @solara.component
 def Page():
     router = solara.use_router()
-    videos = Video.select().where(Video.duration > 0)
+    videos = Video.select().where(
+        (Video.duration > 0) & (Video.contains_unique_content == True)
+    )
     recent = (
         Video.select()
         .where(Video.title.is_null(False))
         .order_by(Video.upload_date.desc())
         .limit(10)
     )
+    recent_updated = (
+        Video.select()
+        .where(Video.title.is_null(False))
+        .order_by(Video.updated_at.desc())
+        .limit(10)
+    )
+
     logger.debug(f"videos: {len(videos)}")
     MySidebar(
         router=router,
@@ -28,8 +37,15 @@ def Page():
     )
     logger.debug(f"seconds: {seconds}")
     timestr = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-    solara.Markdown(f"## Total duration (known)")
-    solara.Markdown(f"### {timestr}")
-    solara.Markdown(f"## Recent videos")
+    with solara.Info():
+        solara.Markdown(f"## Unique Content")
+        solara.Markdown(f"### **{len(videos)}** videos")
+        solara.Markdown(f"### Duration: **{timestr}**")
+
+    solara.Markdown(f"## Recently Uploaded")
     for vid in recent:
-        solara.Markdown(f"### {vid.title} - {vid.upload_date}")
+        solara.Markdown(f"### -{vid.title} - {vid.upload_date}")
+
+    solara.Markdown(f"## Recently Updated")
+    for vid in recent_updated:
+        solara.Markdown(f"### -{vid.title} - {vid.updated_at}")

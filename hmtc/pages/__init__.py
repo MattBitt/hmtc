@@ -22,15 +22,20 @@ from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
 env = config["general"]["environment"]
+
+PRIMARY_COLOR = "#5b7a8e"
+SECONDARY_COLOR = "#f5f5f5"
+COMPLIMENTARY_COLOR = "#8E6F5B"
+
 match env:
     case "development":
-        color = "purple"
+        color = PRIMARY_COLOR
     case "staging":
         color = "red"
     case "testing":
         color = "blue"
     case "production":
-        color = "green"
+        color = PRIMARY_COLOR
     case _:
         color = "yellow"
 VERSION = "0.1.0"
@@ -58,20 +63,24 @@ def setup_folders():
 
 
 def setup():
-    # config = init_config()
     setup_folders()
     setup_logging(config)
 
     db_instance = init_db(db_null, config)
-    download = config["running"]["download_on_init"]
+    
     create_tables(db_instance)
+    
+    download = config["running"]["download_on_init"]
+    
     if download and is_db_empty():
         logger.error("Database is empty, initializing tables")
         seed_database()
         download_channel_videos()
         download_playlist_videos()
+    
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
+    
     return db_instance
 
 
@@ -79,12 +88,12 @@ def setup():
 @solara.component
 def Layout(children=[]):
 
-    # solara.Style(Path("../assets/style.css"))
+    solara.Style(Path("../assets/style.css"))
     return solara.AppLayout(
         navigation=False,
         title=title,
         color=color,
-        sidebar_open=True,
+        sidebar_open=False,
         children=children,
         
     )

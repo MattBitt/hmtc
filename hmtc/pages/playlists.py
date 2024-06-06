@@ -1,7 +1,7 @@
 import solara
 from loguru import logger
 from solara.lab.toestand import Ref
-
+from hmtc.models import Playlist
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.playlist.cards_list import PlaylistCards
 from hmtc.components.playlist.new_text_box import PlaylistNewTextBox
@@ -23,31 +23,26 @@ def StatsDisplay(stats):
 
 
 @solara.component
-def Sidebar():
-    with solara.Sidebar():
-        solara.Markdown("Sidebar")
-        with solara.Column():
-            solara.Button("Videos", href="/videos")
-            solara.Button("Playlists", href="/playlists")
-            solara.Button("Settings", href="/settings")
-
-            SortControls(State)
-            PaginationControls(
-                current_page=State.current_page,
-                num_pages=State.num_pages,
-                on_page_change=State.on_page_change,
-            )
-            StatsDisplay(State.stats())
-
-
-@solara.component
 def Page():
+    def apply_all():
+        playlists = Playlist.select().where(Playlist.enabled == True)
+        for playlist in playlists:
+            playlist.apply_to_videos()
+
     MySidebar(
         router=solara.use_router(),
     )
     with solara.Card():
         # searchable text box
         PlaylistNewTextBox(on_change=State.on_change_text_search, on_new=State.on_new)
+        SortControls(State)
+        PaginationControls(
+            current_page=State.current_page,
+            num_pages=State.num_pages,
+            on_page_change=State.on_page_change,
+        )
+        solara.Button("Apply all playlists to their videos", on_click=apply_all)
+        StatsDisplay(State.stats())
 
         if State.playlists.value:
 

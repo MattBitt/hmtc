@@ -22,6 +22,8 @@ class VideoItem(BaseItem):
     has_chapters: bool = False
     manually_edited: bool = False
     db_model = Video
+    series_name: str = "Default"
+    playlist_name: str = "Default"
 
     @classmethod
     def count_videos(cls, enabled: bool = True):
@@ -61,6 +63,7 @@ class VideoItem(BaseItem):
 
         total_items = items.count()
         query = items.paginate(current_page, per_page)
+
         page_of_items = [
             cls(
                 title=item.title,
@@ -74,6 +77,12 @@ class VideoItem(BaseItem):
                 description=item.description,
                 contains_unique_content=item.contains_unique_content,
                 has_chapters=item.has_chapters,
+                series_name=(
+                    item.series.name if item.series else "Default in Constructor"
+                ),
+                playlist_name=(
+                    item.playlist.title if item.playlist else "Default in Constructor"
+                ),
             )
             for item in query
         ]

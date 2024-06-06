@@ -1,23 +1,18 @@
 <template>
-  <v-card min-height="80vh">
-    <div class="sidebar-header">
-      <v-icon size="x-large">mdi-home</v-icon>
-      <a href="/">HMTC</a>
+  <v-card class="sidebar">
+    <div class="header">
+      <a href="/"><v-icon color="white" size="x-large">mdi-home</v-icon>HMTC</a>
     </div>
-    <div class="sidebar-subheader">
+    <div class="subheader">
       <p>{{ version }}</p>
     </div>
 
     <v-divider></v-divider>
 
-    <v-list>
+    <v-list class="top-list">
       <v-list-item v-for="(item, i) in items" :key="i" :value="item">
-        <v-btn
-          class="sidebar-button"
-          @click="sidebar_clicked(item.url)"
-          outlined
-        >
-          <v-icon>{{ item.icon }}</v-icon
+        <v-btn class="button" @click="sidebar_clicked(item.url)">
+          <v-icon class="px-4">{{ item.icon }}</v-icon
           >{{ item.text }}
         </v-btn>
       </v-list-item>
@@ -25,12 +20,8 @@
     <v-divider></v-divider>
     <v-list class="bottom-list">
       <v-list-item v-for="(item, i) in other_items" :key="i" :value="item">
-        <v-btn
-          class="sidebar-button"
-          @click="sidebar_clicked(item.url)"
-          outlined
-        >
-          <v-icon>{{ item.icon }}</v-icon
+        <v-btn class="button" @click="sidebar_clicked(item.url)">
+          <v-icon class="px-4">{{ item.icon }}</v-icon
           >{{ item.text }}
         </v-btn>
       </v-list-item>
@@ -39,6 +30,7 @@
 </template>
 
 <script>
+const backColor = "#5b7a8e";
 export default {
   data: () => ({
     items: [
@@ -50,6 +42,7 @@ export default {
         icon: "mdi-playlist-music",
         url: "/playlists",
       },
+
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },
     ],
     other_items: [
@@ -61,32 +54,43 @@ export default {
   }),
 };
 </script>
-<style>
-.sidebar-header {
-  font-size: 40px;
-  font-weight: bolder;
-  padding: 0.1em;
-  text-align: center;
-  margin-bottom: 0px;
+<style scoped>
+.sidebar {
   font-family: "Verdana", sans-serif;
-}
-
-.sidebar-subheader {
-  font-size: 0.8em;
-
-  padding: 0.1em;
+  font-weight: 600;
   text-align: center;
-  margin-bottom: 10px;
-  font-family: "Verdana", sans-serif;
-}
+  background-color: #5b7a8e !important;
+  min-width: 400px;
+  min-height: 90vh;
 
-.sidebar-button {
-  display: block;
-  margin-left: 1rem;
-  padding: 1rem 1.25rem;
-  font-family: sans-serif;
-  font-size: 1.5rem;
-  text-decoration: none;
+  & .header a {
+    font-size: 40px;
+    font-weight: 800;
+    padding: 0.1em;
+
+    margin-bottom: 0px;
+    color: white;
+  }
+
+  & .subheader {
+    font-size: 0.8em;
+    color: white;
+    padding: 0.1em;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  & .button {
+    padding: 1rem 1.25rem;
+
+    font-family: sans-serif;
+    font-size: 1.25rem;
+    font-family: "Verdana", sans-serif;
+    text-decoration: none;
+    font-weight: 800;
+    color: white;
+    background-color: #5b7a8e !important;
+  }
 }
 .main-container {
   border: 4px solid orange;
@@ -96,5 +100,11 @@ export default {
   position: absolute;
   bottom: 0;
   width: 100%;
+}
+
+.top-list {
+  display: grid;
+  grid-template-columns: 100px;
+  grid-gap: 5px;
 }
 </style>

@@ -25,7 +25,7 @@ class VideoSectionsState(State):
             raise e
 
     @classmethod
-    def video_stats(cls):
+    def stats(cls):
         stats = {
             "total": VideoItem.count_enabled(),
             "enabled": VideoItem.count_enabled(),
