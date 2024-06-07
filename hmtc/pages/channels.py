@@ -6,8 +6,8 @@ from loguru import logger
 from solara.lab import task
 from solara.lab.toestand import Ref
 
-from hmtc.schemas.channel import ChannelItem
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.schemas.channel import ChannelItem
 
 
 @solara.component

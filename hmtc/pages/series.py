@@ -3,8 +3,8 @@ import solara
 import solara.lab
 from loguru import logger
 
-from hmtc.models import Series, Video
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Series, Video
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")

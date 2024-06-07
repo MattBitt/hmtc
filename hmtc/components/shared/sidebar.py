@@ -15,23 +15,23 @@ class State:
 
     @staticmethod
     def login(*args):
-        logger.info(f"Login clicked")
+        logger.info("Login clicked")
         State.router.push("/videos")
 
     @staticmethod
     def register(*args):
-        logger.info(f"Register Clicked")
+        logger.info("Register Clicked")
 
     @staticmethod
     def forgot_password(*args):
-        logger.info(f"Forgot Password clicked")
+        logger.info("Forgot Password clicked")
 
 
 @solara.component
 def MySidebar(
     router,
 ):
-    version = "0.0.1"
+    version = "0.0.3"
 
     def sidebar_clicked(item):
         # need to add a check to make sure the route is existing

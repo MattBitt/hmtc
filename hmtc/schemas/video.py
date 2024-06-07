@@ -3,7 +3,7 @@ from datetime import datetime
 
 from loguru import logger
 
-from hmtc.models import Video
+from hmtc.models import Playlist, Series, Video
 from hmtc.schemas.base import BaseItem
 
 
@@ -35,11 +35,24 @@ class VideoItem(BaseItem):
 
     @classmethod
     def grab_page_from_db(
-        cls, current_page, per_page, text_search=None, sort_column=None, sort_order=None
+        cls,
+        current_page,
+        per_page,
+        text_search=None,
+        sort_column=None,
+        sort_order=None,
+        series_filter=None,
+        playlist_filter=None,
     ):
         # sort column is the column 'string' to sort by
         query = cls.db_model.select()
 
+        if series_filter:
+            query = query.join(Series).where(Series.name == series_filter["title"])
+        if playlist_filter:
+            query = query.join(Playlist).where(
+                Playlist.title == playlist_filter["title"]
+            )
         if text_search:
             query = query.where(
                 (cls.db_model.title.contains(text_search))

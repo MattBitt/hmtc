@@ -5,11 +5,10 @@ from loguru import logger
 from solara.lab.toestand import Ref
 
 from hmtc.components.section.section_graph import SectionGraphComponent
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section as SectionTable
 from hmtc.models import Video
 from hmtc.mods.section import Section, SectionManager
-from hmtc.components.app_bar import AppBar
-from hmtc.components.shared.sidebar import MySidebar
 
 title = "Section Editor"
 

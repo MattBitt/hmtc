@@ -1,16 +1,18 @@
 import solara
 from loguru import logger
-from solara.lab.toestand import Ref
 from solara.lab import task
+from solara.lab.toestand import Ref
+
 from hmtc.components.pagination_controls import PaginationControls
+from hmtc.components.playlist.popover import PlaylistPopover
+from hmtc.components.series.popover import SeriesPopover
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.shared.stats_display import StatsDisplay
 from hmtc.components.video.cards_list import VideoCards
 from hmtc.components.video.new_text_box import VideoSearchBox
-from hmtc.states.videos_state import VideosState as State
-from hmtc.components.app_bar import AppBar
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Video
+from hmtc.states.videos_state import VideosState as State
 
 
 @solara.component
@@ -28,6 +30,25 @@ def Page():
     MySidebar(
         router=router,
     )
+
+    def on_click(*args):
+        State.series_filter.value = None
+        State.playlist_filter.value = None
+        State.refresh_query()
+        logger.debug("Clearing filters")
+
+    with solara.Row():
+
+        SeriesPopover(
+            current_series=State.series_filter.value,
+            handle_click=State.on_click_series,
+        )
+        PlaylistPopover(
+            current_playlist=State.playlist_filter.value,
+            handle_click=State.on_click_playlists,
+        )
+
+        solara.Button("Clear Filters", classes=["button"], on_click=on_click)
     with solara.Card():
 
         # searchable text box

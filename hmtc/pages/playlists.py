@@ -1,15 +1,14 @@
 import solara
-from loguru import logger
 from solara.lab.toestand import Ref
-from hmtc.models import Playlist
+
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.playlist.cards_list import PlaylistCards
 from hmtc.components.playlist.new_text_box import PlaylistNewTextBox
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.shared.stats_display import StatsDisplay
+from hmtc.models import Playlist
 from hmtc.states.playlists_state import PlaylistsState as State
-from hmtc.components.app_bar import AppBar
-from hmtc.components.shared.sidebar import MySidebar
 
 
 @solara.component

@@ -21,13 +21,16 @@ class VideosState(State):
     sort_order = solara.reactive("asc")
     current_page = solara.reactive(1)
     per_page = solara.reactive(config["general"]["items_per_page"])
-
+    playlist_filter = solara.reactive(None)
+    series_filter = solara.reactive(None)
     initial_items, total_items = VideoItem.grab_page_from_db(
         current_page=current_page.value,
         per_page=per_page.value,
         text_search=text_query.value,
         sort_column=sort_column.value,
         sort_order=sort_order.value,
+        series_filter=series_filter.value,
+        playlist_filter=playlist_filter.value,
     )
     # logger.error(f"Initial items type = {type(initial_items)}")
     videos = solara.reactive(initial_items)
@@ -47,12 +50,15 @@ class VideosState(State):
     @classmethod
     def refresh_query(cls):
         logger.debug("refresh_query")
+
         cls.videos.value, total_items = VideoItem.grab_page_from_db(
             current_page=cls.current_page.value,
             per_page=cls.per_page.value,
             text_search=cls.text_query.value,
             sort_column=cls.sort_column.value,
             sort_order=cls.sort_order.value,
+            series_filter=VideosState.series_filter.value,
+            playlist_filter=VideosState.playlist_filter.value,
         )
         np = total_items / cls.per_page.value
         cls.num_pages.value = int(np) + 1 if np > int(np) else int(np)
@@ -62,3 +68,17 @@ class VideosState(State):
         logger.debug(f"on_update_from_youtube: {item}")
         item.update_from_youtube()
         cls.refresh_query()
+
+    @classmethod
+    def on_click_playlists(cls, *args):
+        if args[0]:
+            logger.debug(args[0])
+            VideosState.playlist_filter.value = args[0]
+            VideosState.refresh_query()
+
+    @staticmethod
+    def on_click_series(*args):
+        if args[0]:
+            logger.debug(args[0])
+            VideosState.series_filter.value = args[0]
+            VideosState.refresh_query()

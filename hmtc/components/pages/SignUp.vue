@@ -34,8 +34,8 @@
             ></v-text-field>
           </v-flex>
           <v-flex class="text-xs-center" mt-5>
-            <v-btn color="primary" type="submit">Sign Up</v-btn>
-            <v-btn color="secondary"> <a href="/">Home</a></v-btn>
+            <v-btn class="CTA" type="submit">Sign Up</v-btn>
+            <a href="/"><v-btn class="Regular">Home</v-btn></a>
           </v-flex>
         </v-layout>
       </form>
@@ -47,8 +47,18 @@
 export default {};
 </script>
 <style>
+.CTA {
+  background-color: var(--complimentary) !important;
+  color: var(--whiteish) !important;
+  font-weight: 600;
+}
+.Regular {
+  background-color: var(--primary) !important;
+  color: var(--whiteish) !important;
+  font-weight: 500;
+}
 .main-container {
-  border: 4px solid red;
+  border: 4px solid var(--primary);
   min-height: 100vh;
 }
 </style>

@@ -1,11 +1,9 @@
 import solara
 import solara.lab
-from solara.lab.toestand import Ref
-
 from loguru import logger
 
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.components.shared.sidebar import MySidebar, State as SidebarState
 
 updating = solara.reactive(False)
 config = init_config()
@@ -38,16 +36,16 @@ class State:
 
     @staticmethod
     def login(*args):
-        logger.info(f"Login clicked")
+        logger.info("Login clicked")
         State.router.push("/videos")
 
     @staticmethod
     def register(*args):
-        logger.info(f"Register Clicked")
+        logger.info("Register Clicked")
 
     @staticmethod
     def forgot_password(*args):
-        logger.info(f"Forgot Password clicked")
+        logger.info("Forgot Password clicked")
 
 
 @solara.component

@@ -34,6 +34,7 @@ const backColor = "#5b7a8e";
 export default {
   data: () => ({
     items: [
+      { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Series", icon: "mdi-television", url: "/series" },
       { text: "Videos", icon: "mdi-video", url: "/videos" },
@@ -44,13 +45,14 @@ export default {
       },
 
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },
+      { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },
     ],
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },
       { text: "About", icon: "mdi-information", url: "/about" },
       { text: "Logout", icon: "mdi-logout", url: "/logout" },
     ],
-    version: "0.0.0",
+    version: "-0.0.0",
   }),
 };
 </script>
@@ -58,38 +60,38 @@ export default {
 .sidebar {
   font-family: "Verdana", sans-serif;
   font-weight: 600;
+  font-size: 20px;
   text-align: center;
-  background-color: #5b7a8e !important;
+  background-color: var(--primary) !important;
   min-width: 400px;
   min-height: 90vh;
 
   & .header a {
-    font-size: 40px;
+    font-size: 2em;
     font-weight: 800;
     padding: 0.1em;
 
     margin-bottom: 0px;
-    color: white;
+    color: var(--whiteish) !important;
   }
 
   & .subheader {
-    font-size: 0.8em;
-    color: white;
-    padding: 0.1em;
+    font-size: 1.2em;
+    color: var(--whiteish);
+    padding: 0.2em;
     text-align: center;
-    margin-bottom: 10px;
   }
 
   & .button {
     padding: 1rem 1.25rem;
-
+    min-width: 300px !important;
     font-family: sans-serif;
     font-size: 1.25rem;
     font-family: "Verdana", sans-serif;
     text-decoration: none;
     font-weight: 800;
-    color: white;
-    background-color: #5b7a8e !important;
+    color: var(--whiteish);
+    background-color: var(--primary) !important;
   }
 }
 .main-container {

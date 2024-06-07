@@ -7,15 +7,9 @@ import solara.lab
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.db import (
-    create_tables,
-    download_channel_videos,
-    download_playlist_videos,
-    import_playlist_info,
-    init_db,
-    is_db_empty,
-    seed_database,
-)
+from hmtc.db import (create_tables, download_channel_videos,
+                     download_playlist_videos, import_playlist_info, init_db,
+                     is_db_empty, seed_database)
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
@@ -29,7 +23,7 @@ COMPLIMENTARY_COLOR = "#8E6F5B"
 
 match env:
     case "development":
-        color = PRIMARY_COLOR
+        color = COMPLIMENTARY_COLOR
     case "staging":
         color = "red"
     case "testing":
@@ -40,6 +34,7 @@ match env:
         color = "yellow"
 VERSION = "0.1.0"
 title = f"{config["app"]["name"]} - {VERSION} - {env}"
+
 
 @logger.catch
 def setup_to_fail():
@@ -67,22 +62,21 @@ def setup():
     setup_logging(config)
 
     db_instance = init_db(db_null, config)
-    
+
     create_tables(db_instance)
-    
+
     download = config["running"]["download_on_init"]
-    
+
     if download and is_db_empty():
         logger.error("Database is empty, initializing tables")
         seed_database()
         download_channel_videos()
         download_playlist_videos()
-    
+
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
-    
-    return db_instance
 
+    return db_instance
 
 
 @solara.component
@@ -95,11 +89,7 @@ def Layout(children=[]):
         color=color,
         sidebar_open=False,
         children=children,
-        
     )
-
-
-
 
 
 db = setup()

@@ -1,0 +1,39 @@
+<template>
+  <v-container class="grey lighten-5">
+    <v-row>
+      <v-col>
+        <v-item-group active-class="primary">
+          <v-container>
+            <v-row>
+              <v-col v-for="n in 6" :key="n" cols="12" md="4">
+                <v-item v-slot:default="{ active, toggle }">
+                  <v-card
+                    class="d-flex align-center"
+                    dark
+                    height="200"
+                    @click="toggle"
+                  >
+                    <v-scroll-y-transition>
+                      <div
+                        v-if="active"
+                        class="display-3 flex-grow-1 text-center"
+                      >
+                        Active
+                      </div>
+                    </v-scroll-y-transition>
+                  </v-card>
+                </v-item>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-item-group>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+<script>
+export default {
+  name: "HelloWorld",
+  data: () => ({}),
+};
+</script>

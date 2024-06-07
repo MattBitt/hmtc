@@ -1,7 +1,9 @@
+from functools import reduce
+
 import solara
 from loguru import logger
-from functools import reduce
-from hmtc.components.shared.sidebar import MySidebar, State as SidebarState
+
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Video
 
 
@@ -13,13 +15,13 @@ def Page():
     )
     recent = (
         Video.select()
-        .where(Video.title.is_null(False))
+        .where((Video.title.is_null(False)) & (Video.contains_unique_content == True))
         .order_by(Video.upload_date.desc())
         .limit(10)
     )
     recent_updated = (
         Video.select()
-        .where(Video.title.is_null(False))
+        .where(Video.title.is_null(False) & (Video.contains_unique_content == True))
         .order_by(Video.updated_at.desc())
         .limit(10)
     )
@@ -38,14 +40,14 @@ def Page():
     logger.debug(f"seconds: {seconds}")
     timestr = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
     with solara.Info():
-        solara.Markdown(f"## Unique Content")
+        solara.Markdown("## Unique Content")
         solara.Markdown(f"### **{len(videos)}** videos")
         solara.Markdown(f"### Duration: **{timestr}**")
-
-    solara.Markdown(f"## Recently Uploaded")
-    for vid in recent:
-        solara.Markdown(f"### -{vid.title} - {vid.upload_date}")
-
-    solara.Markdown(f"## Recently Updated")
-    for vid in recent_updated:
-        solara.Markdown(f"### -{vid.title} - {vid.updated_at}")
+    with solara.Card():
+        solara.Markdown("## Recently Uploaded")
+        for vid in recent:
+            solara.Markdown(f"### -{vid.title} - {vid.upload_date}")
+    with solara.Card():
+        solara.Markdown("## Recently Updated")
+        for vid in recent_updated:
+            solara.Markdown(f"### -{vid.title} - {vid.updated_at}")
