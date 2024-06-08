@@ -72,7 +72,6 @@ class VideosState(State):
     @classmethod
     def on_click_playlists(cls, *args):
         if args[0]:
-            logger.debug(args[0])
             VideosState.playlist_filter.value = args[0]
             VideosState.refresh_query()
 

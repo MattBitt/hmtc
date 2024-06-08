@@ -3,7 +3,7 @@ from datetime import datetime
 
 from loguru import logger
 
-from hmtc.models import Playlist, Series, Video
+from hmtc.models import Playlist, Series, Video, Channel
 from hmtc.schemas.base import BaseItem
 
 
@@ -24,6 +24,9 @@ class VideoItem(BaseItem):
     db_model = Video
     series_name: str = "Default"
     playlist_name: str = "Default"
+    channel_id: int = None
+    playlist_id: int = None
+    series_id: int = None
 
     @classmethod
     def count_videos(cls, enabled: bool = True):
@@ -45,14 +48,23 @@ class VideoItem(BaseItem):
         playlist_filter=None,
     ):
         # sort column is the column 'string' to sort by
-        query = cls.db_model.select()
+        query = (
+            Video.select()
+            # .join(Series, "LEFT OUTER")
+            # .join(Playlist, "LEFT OUTER")
+            # .join(Channel, "LEFT OUTER")
+            # .switch(Video)
+        )
 
         if series_filter:
             query = query.join(Series).where(Series.name == series_filter["title"])
         if playlist_filter:
-            query = query.join(Playlist).where(
-                Playlist.title == playlist_filter["title"]
-            )
+            if playlist_filter["title"] == "No Playlists":
+                query = query.where(cls.db_model.playlist.is_null())
+            else:
+                query = query.join(Playlist).where(
+                    Playlist.title == playlist_filter["title"]
+                )
         if text_search:
             query = query.where(
                 (cls.db_model.title.contains(text_search))
@@ -71,7 +83,7 @@ class VideoItem(BaseItem):
             items = query.order_by(cls.id.asc())
 
         if not items:
-            logger.error("no items found")
+            logger.error("no items found 🤠🤠🤠🤠🤠")
             return [], 0
 
         total_items = items.count()
@@ -163,3 +175,6 @@ class VideoItem(BaseItem):
             contains_unique_content=db_object.contains_unique_content,
             has_chapters=db_object.has_chapters,
         )
+
+    def add_file(self, file):
+        self.db_model.add_file(self, file)

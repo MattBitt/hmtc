@@ -49,6 +49,7 @@ export default {
     ],
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },
+      { text: "Files", icon: "mdi-folder", url: "/files" },
       { text: "About", icon: "mdi-information", url: "/about" },
       { text: "Logout", icon: "mdi-logout", url: "/logout" },
     ],

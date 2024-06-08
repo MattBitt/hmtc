@@ -4,7 +4,7 @@ from pathlib import Path
 import solara
 import solara.lab
 from loguru import logger
-
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.db import import_existing_video_files_to_db
 from hmtc.models import Channel, File, Playlist, Series, Video
@@ -176,8 +176,10 @@ def FileTypeCards():
 def Page():
 
     def add_existing_files():
-        import_existing_video_files_to_db(folder)
+        logger.error("deprecate me!!!")
+        # import_existing_video_files_to_db(folder)
 
+    MySidebar(router=solara.use_router())
     with solara.ColumnsResponsive(12, large=4):
         FileTypeCards()
 

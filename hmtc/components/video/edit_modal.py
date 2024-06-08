@@ -4,8 +4,15 @@ import reacton.ipyvuetify as v
 import solara
 from loguru import logger
 from solara.lab.toestand import Ref
+from pathlib import Path
 
 from hmtc.schemas.video import VideoItem
+from hmtc.utils.youtube_functions import download_media_files
+from hmtc.config import init_config
+
+config = init_config()
+WORKING = Path(config["paths"]["working"]) / "downloads"
+STORAGE = Path(config["paths"]["storage"]) / "videos"
 
 
 @solara.component
@@ -30,6 +37,9 @@ def VideoEditModal(
 
     def download_video():
         logger.info(f"Downloading video: {video_item.value.title}")
+        info, files = download_media_files(video_item.value.youtube_id, WORKING)
+        for file in files:
+            video_item.value.add_file(file)
 
     def extract_audio():
         logger.info(f"Extracting Audio: {video_item.value.title}")
@@ -48,11 +58,16 @@ def VideoEditModal(
         solara.InputText(label="URL", value=Ref(copy.fields.url))
         solara.InputText(label="YouTube ID", value=Ref(copy.fields.youtube_id))
         solara.InputText(label="Duration", value=Ref(copy.fields.duration))
+        solara.InputText(label="Channel", value=Ref(copy.fields.channel_id))
+        solara.InputText(label="Series", value=Ref(copy.fields.series_id))
+        solara.InputText(label="Playlist", value=Ref(copy.fields.playlist_id))
+        solara.InputText(label="Episode", value=Ref(copy.fields.episode))
+
         # solara.InputText(label="Upload Date", value=Ref(copy.fields.upload_date))
         with solara.Row():
             solara.Checkbox(label="Enabled", value=Ref(copy.fields.enabled))
             solara.Checkbox(
-                label="Contains Unique Content",
+                label="Unique",
                 value=Ref(copy.fields.contains_unique_content),
             )
             solara.Checkbox(label="Has Chapters", value=Ref(copy.fields.has_chapters))

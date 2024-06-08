@@ -14,6 +14,7 @@ def PlaylistPopover(current_playlist, handle_click):
         Playlist.select().where(Playlist.title.is_null(False)).order_by(Playlist.title)
     )
     items = [{"title": playlist.title, "id": playlist.id} for playlist in playlists]
+    items.append({"title": "No Playlists", "id": 0})
     if current_playlist:
         caption = current_playlist["title"]
     else:

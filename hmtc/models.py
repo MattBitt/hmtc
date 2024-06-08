@@ -5,15 +5,23 @@ from functools import total_ordering
 from pathlib import Path
 
 from loguru import logger
-from peewee import (AutoField, BooleanField, CharField, DateField,
-                    DateTimeField, ForeignKeyField, IntegerField, Model,
-                    PostgresqlDatabase, TextField)
+from peewee import (
+    AutoField,
+    BooleanField,
+    CharField,
+    DateField,
+    DateTimeField,
+    ForeignKeyField,
+    IntegerField,
+    Model,
+    PostgresqlDatabase,
+    TextField,
+)
 
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, my_copy_file, my_move_file
 from hmtc.utils.image import convert_webp_to_png
-from hmtc.utils.youtube_functions import (download_video_info_from_id,
-                                          fetch_ids_from)
+from hmtc.utils.youtube_functions import download_video_info_from_id, fetch_ids_from
 
 db_null = PostgresqlDatabase(None)
 
@@ -491,9 +499,8 @@ class Video(BaseModel):
 
     def add_file(self, filename, move_file=True):
         extension = "".join(Path(filename).suffixes)
-        final_name = Path(self.MEDIA_PATH) / (
-            clean_filename(self.file_stem) + extension
-        )
+        clean_name = f"{self.youtube_id}".lower()
+        final_name = Path(self.MEDIA_PATH) / (clean_name + extension)
         File.add_new_file(
             source=filename, target=final_name, move_file=move_file, video=self
         )
@@ -506,8 +513,8 @@ class Video(BaseModel):
             return p.file_string
         return None
 
-    @property
     def file_stem(self):
+        logger.error("deprecate me!")
         return f"{self.youtube_id}".lower()
 
     def update_from_yt(self):
@@ -753,16 +760,18 @@ class File(BaseModel):
             f.playlist = kwargs["playlist"]
 
         if "video" in kwargs:
-            f.video = kwargs["video"]
+            f.video_id = kwargs["video"].id
 
         f.save()
 
-        if created:
+        if not target.exists():
+            logger.debug(f"Creating new file {target} 💥💥💥💥💥")
             if move_file:
                 my_move_file(source, target)
             else:
                 my_copy_file(source, target)
-            logger.debug(f"Created new file: {f.filename}")
+        else:
+            logger.error(f"File {target} already exists")
 
     @classmethod
     def get_file_model(cls):
