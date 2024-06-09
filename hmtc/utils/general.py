@@ -60,15 +60,15 @@ def my_copy_file(source, target):
 
 def my_move_file(source, target):
     logger.debug(f"Moving file {source} to {target}")
-    try:
-        s = Path(source)
-    except Exception:
-        s = source
+    if source == target:
+        return target
 
-    t = target
-    my_copy_file(s, t)
+    s = Path(source)
+    assert s.exists()
+    t = Path(target)
+    t.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(s, t)
     s.unlink()
-
     return t
 
 

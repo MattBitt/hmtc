@@ -11,8 +11,8 @@ from hmtc.utils.youtube_functions import download_media_files
 from hmtc.config import init_config
 
 config = init_config()
-WORKING = Path(config["paths"]["working"]) / "downloads"
-STORAGE = Path(config["paths"]["storage"]) / "videos"
+WORKING = Path(config["paths"]["working"])
+STORAGE = Path(config["paths"]["storage"])
 
 
 @solara.component
@@ -42,16 +42,16 @@ def VideoEditModal(
             video_item.value.add_file(file)
 
     def extract_audio():
-        logger.info(f"Extracting Audio: {video_item.value.title}")
+        logger.debug(f"Fake Audio Extraction {video_item.value.title}")
 
     def is_dirty():
         return video_item.value != copy.value
 
     with solara.Card("Edit"):
-        poster = video_item.value.get_poster()
 
-        if poster:
-            solara.Image(poster, width="300px")
+        # if VideoItem.has_poster_file(id=video_item.value.id):
+        #     poster = VideoItem.get_poster_file_path(id=video_item.value.id)
+        #     solara.Image(poster, width="300px")
 
         solara.InputText(label="ID", value=Ref(copy.fields.id), disabled=True)
         solara.InputText(label="Video Title", value=Ref(copy.fields.title))

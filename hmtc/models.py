@@ -23,17 +23,20 @@ from hmtc.utils.general import clean_filename, my_copy_file, my_move_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.youtube_functions import download_video_info_from_id, fetch_ids_from
 
+
 db_null = PostgresqlDatabase(None)
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
-
+VIDEO_MEDIA_PATH = STORAGE / "videos"
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
 
 
-def get_file_type(file: str):
+def get_file_type(file: str, override=None):
+    if override is not None:
+        return override
 
     f = Path(file)
     ext = "".join(f.suffixes)
@@ -52,26 +55,6 @@ def get_file_type(file: str):
     else:
         logger.debug(f"Unknown file type: extension is {ext}")
     return filetype
-
-
-def process_downloaded_files(video, files):
-    for downloaded_file in files:
-
-        if downloaded_file.suffix == ".webp":
-            converted = convert_webp_to_png(downloaded_file)
-            Path(downloaded_file).unlink()
-            files.pop(files.index(downloaded_file))
-            files.append(converted)
-            downloaded_file = converted
-
-        existing = (
-            File.select().where(File.filename == downloaded_file.name).get_or_none()
-        )
-        if not existing:
-            if "webp" in downloaded_file.name:
-                raise ValueError("asdfWebp files should be converted to png")
-            video.add_file(downloaded_file)
-            video.save()
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -273,26 +256,6 @@ class Playlist(BaseModel):
     def load_info(self):
         logger.error("Deprecated: Playlist.load_info")
         return
-        playlist_files = (MEDIA_INFO / "playlists").glob(f"*{self.youtube_id}*")
-        for f in playlist_files:
-            file_type = get_file_type(f)
-            if file_type == "info":
-                with open(f, "r") as info_file:
-                    info = json.load(info_file)
-                    if info["id"] != self.youtube_id:
-                        logger.error(
-                            f"Info file {f} doesn't match playlist {self.title}"
-                        )
-                        raise ValueError("Info file doesn't match playlist")
-                    ch = Channel.get_or_none(Channel.youtube_id == info["channel_id"])
-                    if ch:
-                        self.channel = ch
-
-                    self.title = info["title"]
-                    self.url = info["webpage_url"]
-                    self.save()
-            elif file_type == "poster":
-                logger.debug("Found the image file")
 
     @classmethod
     def create_from_youtube_id(cls, youtube_id=None, channel=None):
@@ -431,7 +394,6 @@ class Playlist(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
-    MEDIA_PATH = STORAGE / "videos"
 
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
@@ -497,13 +459,18 @@ class Video(BaseModel):
 
         return video_info, files
 
-    def add_file(self, filename, move_file=True):
-        extension = "".join(Path(filename).suffixes)
-        clean_name = f"{self.youtube_id}".lower()
-        final_name = Path(self.MEDIA_PATH) / (clean_name + extension)
-        File.add_new_file(
-            source=filename, target=final_name, move_file=move_file, video=self
-        )
+    # @staticmethod
+    # def add_file(youtube_id, filename, move_file=True, override=None):
+    #     extension = "".join(Path(filename).suffixes)
+    #     clean_name = Path(filename).stem
+    #     final_name = STORAGE / "videos" / youtube_id / (clean_name + extension)
+    #     File.add_new_file(
+    #         source=filename,
+    #         target=final_name,
+    #         move_file=move_file,
+    #         youtube_id=youtube_id,
+    #         override=override,
+    #     )
 
     @property
     def poster(self):
@@ -518,7 +485,8 @@ class Video(BaseModel):
         return f"{self.youtube_id}".lower()
 
     def update_from_yt(self):
-
+        logger.error("deprecate me!")
+        return
         info, files = self.download_missing_files()
         if info and files:
             process_downloaded_files(self, files)
@@ -730,8 +698,8 @@ class File(BaseModel):
 
     @classmethod
     def add_new_file(cls, source, target, move_file=True, **kwargs):
-
-        file_type = get_file_type(source)
+        over_ride = kwargs["override"] if "override" in kwargs else None
+        file_type = get_file_type(source, override=over_ride)
         extension = "".join(Path(source).suffixes)
         fname = target.stem
         if fname.endswith(".info"):
@@ -743,7 +711,7 @@ class File(BaseModel):
         # if file_type == "poster" and cls.poster is not None:
         #     cls.delete_poster()
 
-        f, created = cls.get_or_create(
+        f = cls.create(
             path=target.parent,
             filename=fname,
             file_type=file_type,
@@ -762,14 +730,17 @@ class File(BaseModel):
         if "video" in kwargs:
             f.video_id = kwargs["video"].id
 
+        if "youtube_id" in kwargs:
+            f.video_id = (
+                Video.select().where(Video.youtube_id == kwargs["youtube_id"]).get().id
+            )
+
         f.save()
 
         if not target.exists():
             logger.debug(f"Creating new file {target} 💥💥💥💥💥")
-            if move_file:
-                my_move_file(source, target)
-            else:
-                my_copy_file(source, target)
+            my_move_file(source, target)
+
         else:
             logger.error(f"File {target} already exists")
 
@@ -792,7 +763,14 @@ class File(BaseModel):
             logger.debug(f"Deleted info for channel {self.name}")
             logger.debug(f"Path({info.filename}).unlink()")
 
-    @property
     def file_string(self):
+        if self.path is None:
+            logger.error(f"Self.path was none.. 💥💥💥💥")
+            return None
+        if self.filename is None:
+            self.filename = "asdf"
+        if self.extension is None:
+            self.extension = "fdsa"
+
         p = Path(self.path) / (self.filename + self.extension)
         return str(p)

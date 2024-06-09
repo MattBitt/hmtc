@@ -2,6 +2,7 @@ import solara
 from loguru import logger
 
 
+# I'm pretty sure this should be removed. Maybe one day...
 class State:
     router = None
 

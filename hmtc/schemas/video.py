@@ -1,10 +1,19 @@
 from dataclasses import dataclass
 from datetime import datetime
-
+from pathlib import Path
+from hmtc.config import init_config
 from loguru import logger
-
-from hmtc.models import Playlist, Series, Video, Channel
+from hmtc.utils.opencv.second import extract_frames
+from hmtc.models import Playlist, Series, Video, Channel, File, get_file_type
 from hmtc.schemas.base import BaseItem
+from hmtc.utils.youtube_functions import get_video_info
+from hmtc.utils.general import my_move_file
+from hmtc.utils.image import convert_webp_to_png
+from hmtc.utils.general import read_json_file
+
+config = init_config()
+WORKING = Path(config["paths"]["working"]) / "downloads"
+STORAGE = Path(config["paths"]["storage"])
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -28,6 +37,49 @@ class VideoItem(BaseItem):
     playlist_id: int = None
     series_id: int = None
 
+    has_video_file: bool = False
+    # has_audio_file: bool = False
+    # has_subtitle_file: bool = False
+    # has_poster_file: bool = False
+    # has_info_file: bool = False
+
+    @staticmethod
+    def has_poster_file(id):
+        poster = VideoItem.get_poster_file_path(id)
+        logger.debug(f"Poster: {poster}")
+        return poster is None
+
+    @staticmethod
+    def get_poster_file_path(id):
+        poster_file = (
+            File.select()
+            .where((File.video_id == id) & (File.file_type == "poster"))
+            .get()
+        )
+        if poster_file is None:
+            return None
+        return f"{poster_file.path}/{poster_file.filename}"
+
+    @staticmethod
+    def has_frame_files(id):
+        return len(VideoItem.get_frame_file_path(id)) > 0
+
+    @staticmethod
+    def get_frame_file_path(id):
+        files = File.select().where((File.video_id == id) & (File.file_type == "frame"))
+        # logger.debug(f"Files found: {len(files)}")
+        return files
+
+    @staticmethod
+    def has_video_file(id):
+        return len(VideoItem.get_video_file_path(id)) > 0
+
+    @staticmethod
+    def get_video_file_path(id):
+        files = File.select().where((File.video_id == id) & (File.file_type == "video"))
+        # logger.debug(f"Files found: {len(files)}")
+        return files
+
     @classmethod
     def count_videos(cls, enabled: bool = True):
         return cls.db_model.select().where(cls.enabled == enabled).count()
@@ -35,6 +87,10 @@ class VideoItem(BaseItem):
     @classmethod
     def count_no_duration(cls):
         return cls.db_model.select().where(cls.db_model.duration.is_null()).count()
+
+    @staticmethod
+    def count_unique():
+        return Video.select().where(Video.contains_unique_content == True).count()
 
     @classmethod
     def grab_page_from_db(
@@ -46,18 +102,35 @@ class VideoItem(BaseItem):
         sort_order=None,
         series_filter=None,
         playlist_filter=None,
+        include_no_durations=False,
+        include_unique_content=True,
+        include_nonunique_content=False,
+        include_manually_edited=False,
     ):
+
         # sort column is the column 'string' to sort by
-        query = (
-            Video.select()
-            # .join(Series, "LEFT OUTER")
-            # .join(Playlist, "LEFT OUTER")
-            # .join(Channel, "LEFT OUTER")
-            # .switch(Video)
-        )
+        query = Video.select()
+        # and = all
+        # 1 and 0 = unique
+        # 0 and 1 = nonunique
+        # 0 and 0 = error
+        if include_unique_content and include_nonunique_content:
+            query = query
+        elif include_unique_content:
+            query = query.where(Video.contains_unique_content == True)
+
+        elif include_nonunique_content:
+            query = query.where(Video.contains_unique_content == False)
+        else:
+            logger.error(f"Tried disabling unique filter but you can't 😃😃😃😃😃")
+            query = query
+
+        if not include_no_durations:
+            query = query.where(Video.duration > 0)
 
         if series_filter:
             query = query.join(Series).where(Series.name == series_filter["title"])
+
         if playlist_filter:
             if playlist_filter["title"] == "No Playlists":
                 query = query.where(cls.db_model.playlist.is_null())
@@ -83,10 +156,8 @@ class VideoItem(BaseItem):
             items = query.order_by(cls.id.asc())
 
         if not items:
-            logger.error("no items found 🤠🤠🤠🤠🤠")
-            return [], 0
+            return [], []
 
-        total_items = items.count()
         query = items.paginate(current_page, per_page)
 
         page_of_items = [
@@ -102,63 +173,15 @@ class VideoItem(BaseItem):
                 description=item.description,
                 contains_unique_content=item.contains_unique_content,
                 has_chapters=item.has_chapters,
-                series_name=(
-                    item.series.name if item.series else "Default in Constructor"
-                ),
-                playlist_name=(
-                    item.playlist.title if item.playlist else "Default in Constructor"
-                ),
+                series_name=(item.series.name if item.series else "---"),
+                playlist_name=(item.playlist.title if item.playlist else "---"),
             )
             for item in query
         ]
-        return page_of_items, total_items
+        return page_of_items, items
 
     def db_object(self):
         return self.db_model.get_or_none(self.db_model.id == self.id)
-
-    def save_to_db(self):
-        logger.debug(f"Saving to db: {self}")
-        url = "https://www.youtube.com/watch?v=" + self.youtube_id
-        if self.id is None:
-            existing = self.db_model.get_or_none(
-                self.db_model.youtube_id == self.youtube_id
-            )
-            if not existing:
-
-                self.db_model.create(
-                    title=self.title,
-                    url=url,
-                    youtube_id=self.youtube_id,
-                    enabled=self.enabled,
-                    manually_edited=True,
-                    upload_date=self.upload_date,
-                    duration=self.duration,
-                    description=self.description,
-                    contains_unique_content=self.contains_unique_content,
-                    has_chapters=self.has_chapters,
-                )
-            else:
-                logger.info(f"Video with youtube_id {self.youtube_id} already exists")
-        else:
-            logger.debug(f"Updating video with id {self.id}")
-            logger.debug(f"Self = {self}")
-            self.db_model.update(
-                title=self.title,
-                youtube_id=self.youtube_id,
-                enabled=self.enabled,
-                manually_edited=True,
-                upload_date=self.upload_date,
-                duration=self.duration,
-                description=self.description,
-                contains_unique_content=self.contains_unique_content,
-                has_chapters=self.has_chapters,
-                url=url,
-            ).where(self.db_model.id == self.id).execute()
-
-    def update_from_youtube(self):
-        video = self.db_model.select().where(self.db_model.id == self.id).get()
-        video.update_from_yt()
-        return video
 
     @classmethod
     def from_orm(cls, db_object):
@@ -176,5 +199,116 @@ class VideoItem(BaseItem):
             has_chapters=db_object.has_chapters,
         )
 
-    def add_file(self, file):
-        self.db_model.add_file(self, file)
+    def add_file(self, file, file_type=None):
+        logger.debug(f"In VideoItem.add_file: {file}")
+
+        extension = "".join(Path(file).suffixes)
+        clean_name = Path(file).stem
+        final_name = STORAGE / "videos" / self.youtube_id / (clean_name + extension)
+        final_name2 = str(final_name.name).replace(".info.info", ".info")
+        if ".info" in str(file):
+            data = read_json_file(file)
+            vid = Video.get(Video.id == self.id)
+            vid.title = data["title"]
+            vid.url = data["webpage_url"]
+            vid.upload_date = data["upload_date"]
+            vid.duration = int(data["duration"])
+            vid.description = data["description"]
+            vid.save()
+
+        File.create(
+            path=final_name.parent,
+            filename=final_name2,
+            move_file=True,
+            video_id=self.id,
+            file_type=file_type,
+        )
+        my_move_file(file, final_name)
+
+    def extract_frames(self):
+        return extract_frames(self.get_video_file_path(self.id), self.youtube_id)
+
+    def add_frame(self, file):
+        Video.add_file(self.youtube_id, file, move_file=False, override="frame")
+        self.save_to_db()
+
+    def update_from_youtube(self):
+        # download files to temp folder
+        get_video_info(self.youtube_id, WORKING)
+
+        for file in WORKING.glob(f"*{self.youtube_id}*"):
+            ft = get_file_type(file)
+            self.add_file(file, file_type=ft)
+        logger.debug("Finished Updating {self.title} from youtube")
+
+    def update_database_object(self):
+        vid = Video.select().where(Video.id == self.id).get()
+        vid.title = self.title
+        vid.url = self.url
+        vid.youtube_id = self.youtube_id
+        vid.enabled = self.enabled
+        vid.duration = self.duration
+        vid.description = self.description
+        vid.contains_unique_content = self.contains_unique_content
+        vid.has_chapters = self.has_chapters
+        vid.save()
+
+    def process_downloaded_files(self, files):
+        for downloaded_file in files:
+
+            if downloaded_file.suffix == ".webp":
+                converted = convert_webp_to_png(downloaded_file)
+                Path(downloaded_file).unlink()
+                files.pop(files.index(downloaded_file))
+                files.append(converted)
+                downloaded_file = converted
+
+            existing = (
+                File.select().where(File.filename == downloaded_file.name).get_or_none()
+            )
+            if not existing:
+                self.add_file(downloaded_file)
+                self.save()
+
+
+## def save_to_db(self):
+#     # logger.debug(f"Saving to db: {self}")
+#     logger.error(f"This might have been most of my problem. 🔵🔵🔵🔵🔵🔵")
+#     logger.error(f"Dont use update in peewee. Use save() instead. 🔵🔵🔵🔵🔵🔵")
+#     return
+#     url = "https://www.youtube.com/watch?v=" + self.youtube_id
+#     if self.id is None:
+#         existing = self.db_model.get_or_none(
+#             self.db_model.youtube_id == self.youtube_id
+#         )
+#         if not existing:
+
+#             self.db_model.create(
+#                 title=self.title,
+#                 url=url,
+#                 youtube_id=self.youtube_id,
+#                 enabled=self.enabled,
+#                 manually_edited=True,
+#                 upload_date=self.upload_date,
+#                 duration=self.duration,
+#                 description=self.description,
+#                 contains_unique_content=self.contains_unique_content,
+#                 has_chapters=self.has_chapters,
+#             )
+#         else:
+#             logger.info(f"Video with youtube_id {self.youtube_id} already exists")
+#     else:
+#         # logger.debug(f"Updating video with id {self.id}")
+#         # logger.debug(f"Self = {self}")
+#         self.db_model.save(
+#             title=self.title,
+#             youtube_id=self.youtube_id,
+#             enabled=self.enabled,
+#             manually_edited=True,
+#             upload_date=self.upload_date,
+#             duration=self.duration,
+#             description=self.description,
+#             contains_unique_content=self.contains_unique_content,
+#             has_chapters=self.has_chapters,
+#             url=url,
+#         ).where(self.db_model.id == self.id).execute()
