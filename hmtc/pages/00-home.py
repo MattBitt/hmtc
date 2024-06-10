@@ -9,6 +9,11 @@ updating = solara.reactive(False)
 config = init_config()
 
 
+@solara.component_vue("../components/shared/logo.vue")
+def Logo():
+    pass
+
+
 @solara.component_vue("../components/pages/Landing.vue")
 def LandingPage(current_phase, event_login_clicked, event_register_clicked):
     pass
@@ -55,6 +60,9 @@ def Page():
     MySidebar(
         router=State.router,
     )
+    Logo()
+    solara.Markdown("### all **harry mack**")
+    solara.Markdown("### all the time")
     current_phase = solara.use_reactive("landing")
 
     def set_phase_to_login(*ignore_args):

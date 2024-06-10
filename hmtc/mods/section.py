@@ -7,7 +7,7 @@ from loguru import logger
 from hmtc.models import Section as SectionTable
 
 ####
-### section manager class should ber the one that knows about the "type"
+### section manager class should be the one that knows about the "type"
 
 
 @dataclass(frozen=True, order=True)

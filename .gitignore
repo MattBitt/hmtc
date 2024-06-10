@@ -163,4 +163,3 @@ cython_debug/
 
 # Ignore dynaconf secret files
 .secrets.*
-hmtc/utils/opencv/*

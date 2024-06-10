@@ -19,10 +19,8 @@ from peewee import (
 )
 
 from hmtc.config import init_config
-from hmtc.utils.general import clean_filename, my_copy_file, my_move_file
-from hmtc.utils.image import convert_webp_to_png
+from hmtc.utils.general import clean_filename, my_move_file
 from hmtc.utils.youtube_functions import download_video_info_from_id, fetch_ids_from
-
 
 db_null = PostgresqlDatabase(None)
 
@@ -332,20 +330,6 @@ class Playlist(BaseModel):
         self.save()
         logger.success(f"Finished updating playlist {self.title}")
 
-    def load_from_info_file(self):
-        logger.error("I think this function is disabled too")
-        return
-        if self.info is None:
-            logger.error(f"No info file found for channel {self.name}")
-            return
-        fn = Path(self.info.path) / self.info.filename
-        with open(fn, "r") as info_file:
-            info = json.load(info_file)
-            self.title = info["title"]
-            self.url = info["webpage_url"]
-            self.youtube_id = info["id"]
-            self.save()
-
     def add_file(self, filename, move_file=True):
         extension = "".join(Path(filename).suffixes)
         final_name = Path(self.MEDIA_PATH) / (
@@ -458,19 +442,6 @@ class Video(BaseModel):
             return None, None
 
         return video_info, files
-
-    # @staticmethod
-    # def add_file(youtube_id, filename, move_file=True, override=None):
-    #     extension = "".join(Path(filename).suffixes)
-    #     clean_name = Path(filename).stem
-    #     final_name = STORAGE / "videos" / youtube_id / (clean_name + extension)
-    #     File.add_new_file(
-    #         source=filename,
-    #         target=final_name,
-    #         move_file=move_file,
-    #         youtube_id=youtube_id,
-    #         override=override,
-    #     )
 
     @property
     def poster(self):
@@ -744,28 +715,9 @@ class File(BaseModel):
         else:
             logger.error(f"File {target} already exists")
 
-    @classmethod
-    def get_file_model(cls):
-        logger.debug(f"Getting file model for {cls.__name__}")
-        return cls.__name__
-
-    def delete_poster(self):
-        poster = self.poster
-        if poster:
-            poster.delete_instance()
-            logger.debug(f"Deleted poster for channel {self.name}")
-            logger.debug(f"Path({poster.filename}).unlink()")
-
-    def delete_info(self):
-        info = self.info
-        if info:
-            info.delete_instance()
-            logger.debug(f"Deleted info for channel {self.name}")
-            logger.debug(f"Path({info.filename}).unlink()")
-
     def file_string(self):
         if self.path is None:
-            logger.error(f"Self.path was none.. 💥💥💥💥")
+            logger.error("Self.path was none.. 💥💥💥💥")
             return None
         if self.filename is None:
             self.filename = "asdf"

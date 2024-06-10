@@ -4,9 +4,9 @@ from pathlib import Path
 import solara
 import solara.lab
 from loguru import logger
+
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.db import import_existing_video_files_to_db
 from hmtc.models import Channel, File, Playlist, Series, Video
 
 config = init_config()

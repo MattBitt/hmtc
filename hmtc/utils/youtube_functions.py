@@ -67,13 +67,16 @@ def fetch_ids_from(url, download_path="."):
         return ids
 
 
-def get_video_info(id, output_folder, thumbnail=True, subtitle=True, info=True):
-    url = f"https://www.youtube.com/watch?v={id}"
+def get_video_info(youtube_id, output_folder, thumbnail=True, subtitle=True, info=True):
+    url = f"https://www.youtube.com/watch?v={youtube_id}"
     folder = Path(output_folder)
     if not folder.exists():
         folder.mkdir(parents=True)
     else:
-        pass
+        logger.error(f"Cleaning out {folder}")
+        for file in folder.glob("*"):
+            logger.debug(f"Removing {file}")
+            file.unlink()
     ydl_opts = {
         "logger": logger,
         "progress_hooks": [my_hook],
@@ -96,7 +99,9 @@ def get_video_info(id, output_folder, thumbnail=True, subtitle=True, info=True):
             info["error"] = True
             info["error_info"] = e
         # ℹ️ ydl.sanitize_info makes the info json-serializable
-        return ydl.sanitize_info(info)
+        info = ydl.sanitize_info(info)
+        files = [f for f in Path(output_folder).glob(f"*{youtube_id}*")]
+        return info, files
 
 
 def get_channel_info(id, output_folder, thumbnail=True, subtitle=True, info=True):

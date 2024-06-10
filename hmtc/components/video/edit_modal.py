@@ -1,14 +1,14 @@
+from pathlib import Path
 from typing import Callable
 
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
 from solara.lab.toestand import Ref
-from pathlib import Path
 
+from hmtc.config import init_config
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.youtube_functions import download_media_files
-from hmtc.config import init_config
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -78,25 +78,6 @@ def VideoEditModal(
 
         with solara.CardActions():
             v.Spacer()
-            solara.Button(
-                icon_name="mdi-refresh",
-                icon=True,
-                on_click=update_from_youtube,
-            ),
-            # mdi-video-box-off would be good if video is missing
-            solara.Button(
-                icon_name="mdi-movie-open",
-                icon=True,
-                on_click=download_video,
-            )
-
-            # mdi-speaker-off would be good if audio is missing
-            solara.Button(
-                icon_name="mdi-speaker",
-                icon=True,
-                on_click=extract_audio,
-            )
-
             solara.Button(
                 "Save",
                 icon_name="mdi-content-save",

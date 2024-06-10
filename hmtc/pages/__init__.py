@@ -7,9 +7,15 @@ import solara.lab
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.db import (create_tables, download_channel_videos,
-                     download_playlist_videos, import_playlist_info, init_db,
-                     is_db_empty, seed_database)
+from hmtc.db import (
+    create_tables,
+    download_channel_videos,
+    download_playlist_videos,
+    import_playlist_info,
+    init_db,
+    is_db_empty,
+    seed_database,
+)
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging

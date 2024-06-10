@@ -1,21 +1,18 @@
 import solara
 from loguru import logger
-from solara.lab import task
 from solara.lab.toestand import Ref
-from hmtc.config import init_config
-
 
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.playlist.popover import PlaylistPopover
 from hmtc.components.series.popover import SeriesPopover
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.shared.sort_controls import SortControls
-from hmtc.components.shared.stats_display import StatsDisplay
 from hmtc.components.video.cards_list import VideoCards
 from hmtc.components.video.new_text_box import VideoSearchBox
+from hmtc.config import init_config
 from hmtc.models import Video as VideoTable
-from hmtc.states.base import State as BaseState
 from hmtc.schemas.video import VideoItem
+from hmtc.states.base import State as BaseState
 
 config = init_config()
 

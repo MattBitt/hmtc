@@ -1,5 +1,5 @@
 from typing import Callable
-from loguru import logger
+
 import solara
 from solara.lab.toestand import Ref
 
@@ -16,8 +16,6 @@ def VideoCards(
 ):
 
     with solara.ColumnsResponsive(12, large=4):
-        logger.error("Rendering Video Cards")
-        logger.error(f"Videos count = {len(videos.value)}")
         for index, item in enumerate(videos.value):
             # logger.debug(f"Rendering item {index} {item}")
             # logger.debug(f"Fields type = {type(videos.fields)} 🔵🔵🔵")
@@ -28,4 +26,3 @@ def VideoCards(
                 on_update_from_youtube=on_update_from_youtube,
                 on_delete=on_delete,
             )
-            # logger.debug("On to the next field 🏠🏠🏠")

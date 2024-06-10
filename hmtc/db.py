@@ -6,17 +6,88 @@ from pathlib import Path
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import (Album, Artist, Beat, BeatArtist, Breakpoint, Channel,
-                         EpisodeNumberTemplate, File, Playlist, PlaylistAlbum,
-                         Post, Section, Series, TodoTable, Track, TrackBeat,
-                         User, UserInfo, Video)
-from hmtc.utils.general import csv_to_dict, get_youtube_id
+from hmtc.models import (
+    Album,
+    Artist,
+    Beat,
+    BeatArtist,
+    Breakpoint,
+    Channel,
+    EpisodeNumberTemplate,
+    File,
+    Playlist,
+    PlaylistAlbum,
+    Post,
+    Section,
+    Series,
+    TodoTable,
+    Track,
+    TrackBeat,
+    User,
+    UserInfo,
+    Video,
+)
+from hmtc.utils.general import get_youtube_id
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
+
+
+def create_tables(db, download_info=False):
+    db.create_tables(
+        [
+            Playlist,
+            Video,
+            Series,
+            Album,
+            Track,
+            EpisodeNumberTemplate,
+            File,
+            Beat,
+            BeatArtist,
+            TrackBeat,
+            Breakpoint,
+            Artist,
+            Section,
+            User,
+            UserInfo,
+            Post,
+            PlaylistAlbum,
+            Channel,
+            TodoTable,
+        ]
+    )
+    if download_info:
+        seed_database()
+
+
+def drop_tables(db):
+    db.drop_tables(
+        [
+            Playlist,
+            Video,
+            Series,
+            Album,
+            Track,
+            EpisodeNumberTemplate,
+            File,
+            Beat,
+            BeatArtist,
+            TrackBeat,
+            Artist,
+            Breakpoint,
+            Section,
+            User,
+            UserInfo,
+            Post,
+            PlaylistAlbum,
+            Channel,
+            TodoTable,
+        ]
+    )
 
 
 def init_db(db, config):
@@ -29,6 +100,13 @@ def init_db(db, config):
         port=config["database"]["port"],
     )
     return db
+
+
+def seed_database():
+    import_channels()
+    import_series()
+    import_playlists()
+    import_playlist_info()
 
 
 def import_series():
@@ -142,67 +220,6 @@ def download_playlist_videos():
         playlist.update_videos_with_playlist_info()
 
 
-def create_tables(db, download_info=False):
-    db.create_tables(
-        [
-            Playlist,
-            Video,
-            Series,
-            Album,
-            Track,
-            EpisodeNumberTemplate,
-            File,
-            Beat,
-            BeatArtist,
-            TrackBeat,
-            Breakpoint,
-            Artist,
-            Section,
-            User,
-            UserInfo,
-            Post,
-            PlaylistAlbum,
-            Channel,
-            TodoTable,
-        ]
-    )
-    if download_info:
-        seed_database()
-
-
-def seed_database():
-    import_channels()
-    import_series()
-    import_playlists()
-    import_playlist_info()
-
-
-def drop_tables(db):
-    db.drop_tables(
-        [
-            Playlist,
-            Video,
-            Series,
-            Album,
-            Track,
-            EpisodeNumberTemplate,
-            File,
-            Beat,
-            BeatArtist,
-            TrackBeat,
-            Artist,
-            Breakpoint,
-            Section,
-            User,
-            UserInfo,
-            Post,
-            PlaylistAlbum,
-            Channel,
-            TodoTable,
-        ]
-    )
-
-
 def is_db_empty():
     vids = Video.select().count()
     logger.debug(f"DB currently has: {vids} Videos")
@@ -258,19 +275,8 @@ def import_existing_video_files_to_db(path):
             if youtube_id:
                 vid = Video.get_or_none(Video.youtube_id == youtube_id)
                 if not vid:
-                    # logger.debug(
-                    #     f"Video not currently in db {video_info['youtube_id']}"
-                    # )
                     unfound = unfound + 1
                     continue
-
-                    # file_info["video"] = vid
-                    # file_info["local_path"] = str(path)
-                    # file_info["filename"] = file.stem
-                    # file_info["extension"] = file.suffix
-                    # file_info["downloaded"] = True
-
-                    # file = File.create(**file_info)
                 else:
                     logger.debug(
                         f"Successfully found video{vid.youtube_id}. Adding file"
@@ -286,57 +292,6 @@ def import_existing_video_files_to_db(path):
         logger.error("Path not found")
         return None
     return f.glob("**/*")
-
-
-def import_existing_tracks(filename):
-    # these aren't really tracks.
-    logger.error("This function is not implemented anymore...")
-    return
-    if not Path(filename).exists():
-        logger.error(f"Track CSV not found {filename}")
-    tracks = csv_to_dict(filename)
-    for track in tracks:
-        video = Video.get_or_none(Video.youtube_id == track["youtube_id"])
-
-        if not video:
-            # logger.error(f"Video not found to for this track {track}")
-            continue
-        if not video.sections:
-            logger.error("Video has no initial section created in the DB.")
-            continue
-
-        if len(video.sections) > 1:
-            logger.error(
-                "New sections (after the initial) have already been created. Skipping import"
-            )
-            continue
-        # for each 'track' insert a section break at the beginning
-        # and at the end timestamps. mark the previous section
-        # as talking, and the new section as music
-        start_ts = int(track["start"])
-        video.add_breakpoint(timestamp=start_ts)
-        end_ts = int(track["end"])
-        video.add_breakpoint(timestamp=end_ts)
-
-        # using the ts +/- 5 below to not worry about edge cases
-        # when the section is or isn't on the section break
-
-        # section before the track
-        prev_section_timestamp = start_ts - 5
-        if prev_section_timestamp < 0:
-            prev_section_timestamp = 0
-        section = video.get_section_with_timestamp(timestamp=(prev_section_timestamp))
-        section.section_type = "talking"
-        section.save()
-
-        # section containing the track
-        section = video.get_section_with_timestamp(timestamp=(start_ts + 5))
-        section.section_type = "music"
-        section.save()
-
-        # should also create a Track object with the words and stuff
-        # but it shouldn't know anything about its position
-        # within the Video (start/end)
 
 
 def update_playlist(playlist, download_path="./downloads", media_path="./media"):
