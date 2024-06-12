@@ -20,7 +20,7 @@ from peewee import (
 
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, my_move_file
-from hmtc.utils.youtube_functions import download_video_info_from_id, fetch_ids_from
+from hmtc.utils.youtube_functions import fetch_ids_from
 
 db_null = PostgresqlDatabase(None)
 
@@ -51,7 +51,9 @@ def get_file_type(file: str, override=None):
     elif ext in [".jpg", ".jpeg", ".png", ".webp"]:
         filetype = "poster"
     else:
-        logger.debug(f"Unknown file type: extension is {ext}")
+        logger.error(f"Unknown file type: file: {file} ext: {ext}")
+        raise ValueError(f"Unknown file type: extension is {ext}")
+
     return filetype
 
 
@@ -378,7 +380,6 @@ class Playlist(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
-
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
     title = CharField(null=True)
@@ -394,81 +395,6 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
-
-    def download_missing_files(self):
-
-        download_path = WORKING / "downloads"
-        media_path = STORAGE / "videos"
-
-        thumbnail = self.poster is None
-        subtitle = True
-        info = True
-
-        if not (thumbnail or subtitle or info):
-            # logger.debug("All files already downloaded")
-            return "", []
-
-        video_info, files = download_video_info_from_id(
-            self.youtube_id,
-            download_path,
-            thumbnail=thumbnail,
-            subtitle=subtitle,
-            info=info,
-        )
-        if video_info["error"] or files is None:
-            logger.error(f"{video_info['error_info']}")
-            return None, None
-        else:
-            new_path = Path(Path(media_path) / video_info["upload_date"][0:4])
-            if not new_path.exists():
-                new_path.mkdir(parents=True, exist_ok=True)
-
-            # video_info["file_path"] = new_path
-            return video_info, files
-
-    @classmethod
-    def download_video_info(
-        cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
-    ):
-
-        download_path = WORKING / "downloads"
-
-        video_info, files = download_video_info_from_id(
-            youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
-        )
-
-        if video_info["error"] or files is None:
-            logger.error(f"{video_info['error_info']}")
-            return None, None
-
-        return video_info, files
-
-    @property
-    def poster(self):
-        logger.error("In Video(BaseModel) poster property")
-        p = self._poster(self.id)
-        if p:
-            return p.file_string
-        return None
-
-    def file_stem(self):
-        logger.error("deprecate me!")
-        return f"{self.youtube_id}".lower()
-
-    def update_from_yt(self):
-        logger.error("deprecate me!")
-        return
-        info, files = self.download_missing_files()
-        if info and files:
-            process_downloaded_files(self, files)
-
-            self.title = info["title"]
-            self.upload_date = info["upload_date"]
-            self.duration = info["duration"]
-            self.description = info["description"]
-            self.url = info["url"]
-            self.youtube_id = info["youtube_id"]
-            self.save()
 
     def __repr__(self):
         return f"Video({self.title=})"
@@ -557,6 +483,7 @@ class Section(BaseModel):
     @property
     def oldbreakpoints(self):
         breaks = set([])
+        logger.error(f"Didn't think this was still used 🐹🐹🐹🐹🐹🐹🐹")
         for sect in self.sections:
             breaks.add(sect.start)
             breaks.add(sect.end)
@@ -567,6 +494,7 @@ class Section(BaseModel):
 class Breakpoint(BaseModel):
     video = ForeignKeyField(Video, backref="breakpoints")
     timestamp = IntegerField()
+    logger.error(f"DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp

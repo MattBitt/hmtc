@@ -9,4 +9,5 @@ def Page():
     MySidebar(
         router=router,
     )
-    solara.Markdown("About Page!")
+    with solara.Column(classes=["main-container"]):
+        solara.Markdown("About Page!")

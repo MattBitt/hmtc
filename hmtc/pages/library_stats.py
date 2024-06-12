@@ -183,11 +183,9 @@ class State:
 def Page():
 
     MySidebar(router=solara.use_router())
-    with solara.Column():
-        solara.Markdown("## Library Stats")
 
-    if State.loading.value:
-        with solara.Column():
-            solara.SpinnerSolara(size="100px")
-    else:
-        StatsGraphs(on_click=State.on_click_graph)
+    with solara.Column(classes=["main-container"]):
+        if State.loading.value:
+            solara.SpinnerSolara(size="500px")
+        else:
+            StatsGraphs(on_click=State.on_click_graph)

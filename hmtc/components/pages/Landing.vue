@@ -12,8 +12,4 @@ export default {
 };
 </script>
 
-<style>
-.main-container {
-  min-height: 100vh;
-}
-</style>
+<style></style>

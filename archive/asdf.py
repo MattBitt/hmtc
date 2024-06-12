@@ -47,3 +47,35 @@ def import_existing_tracks(filename):
         # should also create a Track object with the words and stuff
         # but it shouldn't know anything about its position
         # within the Video (start/end)
+
+
+def download_missing_files(self):
+
+    download_path = WORKING / "downloads"
+    media_path = STORAGE / "videos"
+
+    thumbnail = self.poster is None
+    subtitle = True
+    info = True
+
+    if not (thumbnail or subtitle or info):
+        # logger.debug("All files already downloaded")
+        return "", []
+
+    video_info, files = download_video_info_from_id(
+        self.youtube_id,
+        download_path,
+        thumbnail=thumbnail,
+        subtitle=subtitle,
+        info=info,
+    )
+    if video_info["error"] or files is None:
+        logger.error(f"{video_info['error_info']}")
+        return None, None
+    else:
+        new_path = Path(Path(media_path) / video_info["upload_date"][0:4])
+        if not new_path.exists():
+            new_path.mkdir(parents=True, exist_ok=True)
+
+        # video_info["file_path"] = new_path
+        return video_info, files

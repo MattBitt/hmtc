@@ -1,11 +1,18 @@
 import solara
 import solara.lab
 from loguru import logger
+import json
+import urllib
+from typing import Callable
 
+import pandas as pd
+import plotly.graph_objects as go
+import solara
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
+from hmtc.components.completion_gauge import CompletionGauge
+from hmtc.mods.file import File
 
-updating = solara.reactive(False)
 config = init_config()
 
 
@@ -14,104 +21,43 @@ def Logo():
     pass
 
 
-@solara.component_vue("../components/pages/Landing.vue")
-def LandingPage(current_phase, event_login_clicked, event_register_clicked):
-    pass
+def SubLogo(text):
+    with solara.Row(classes=["sub-logo"]):
+        solara.Text(text)
 
 
-@solara.component_vue("../components/pages/SignIn.vue")
-def LoginForm(
-    event_login_clicked, event_register_clicked, event_forgot_password_clicked
-):
-    pass
+def CompletionGauge(on_click: Callable[[dict], None], on_hover: Callable[[dict], None]):
+    def handle_hover(*args):
+        pass
 
+    def handle_click(*args):
+        pass
 
-@solara.component_vue("../components/pages/SignUp.vue")
-def RegisterForm(event_login_clicked, event_forgot_password_clicked):
-    pass
-
-
-@solara.component_vue("../components/pages/Home.vue")
-def ForgotPassword(event_login_clicked, event_register_clicked):
-    pass
-
-
-class State:
-    router = None
-
-    @staticmethod
-    def login(*args):
-        logger.info("Login clicked")
-        State.router.push("/videos")
-
-    @staticmethod
-    def register(*args):
-        logger.info("Register Clicked")
-
-    @staticmethod
-    def forgot_password(*args):
-        logger.info("Forgot Password clicked")
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge",
+            value=0.5,
+            title={"text": "Tracks Created"},
+        )
+    )
+    return solara.FigurePlotly(fig, on_click=handle_click, on_hover=handle_hover)
 
 
 @solara.component
 def Page():
-
-    State.router = solara.use_router()
     MySidebar(
-        router=State.router,
+        router=solara.use_router(),
     )
-    Logo()
-    solara.Markdown("### all **harry mack**")
-    solara.Markdown("### all the time")
-    current_phase = solara.use_reactive("landing")
 
-    def set_phase_to_login(*ignore_args):
-        current_phase.set("login")
+    def on_click(*args):
+        logger.info("click")
 
-    def set_phase_to_landing(*ignore_args):
-        current_phase.set("landing")
+    def on_hover(*args):
+        logger.info("hover")
 
-    def set_phase_to_register(*ignore_args):
-        current_phase.set("register")
-
-    def set_phase_to_forgot_password(*ignore_args):
-        current_phase.set("forgot_password")
-
-    if current_phase.value == "landing":
-        LandingPage(
-            current_phase=current_phase.value,
-            event_login_clicked=set_phase_to_login,
-            event_register_clicked=set_phase_to_register,
-        )
-    elif current_phase.value == "login":
-        LoginForm(
-            event_login_clicked=State.login,
-            event_register_clicked=set_phase_to_register,
-            event_forgot_password_clicked=set_phase_to_forgot_password,
-        )
-    elif current_phase.value == "register":
-        RegisterForm(
-            event_login_clicked=set_phase_to_login,
-            event_forgot_password_clicked=set_phase_to_forgot_password,
-        )
-    elif current_phase.value == "forgot_password":
-        ForgotPassword(
-            event_login=set_phase_to_login, event_register_clicked=set_phase_to_register
-        )
-
-    else:
-        solara.Markdown(f"Home Page! {current_phase.value}")
-
-    # LoginForm(
-    #     event_login=State.login,
-    #     event_register=State.register,
-    #     event_forgot_password=State.forgot_password,
-    # )
-    # RegisterForm(
-    #     event_login=State.login,
-    #     event_forgot_password=State.forgot_password,
-    # )
-    # ForgotPassword(
-    #     event_login=State.login,
-    #     event_register=State.register,
-    # )
+    with solara.Column(classes=["main-container"]):
+        with solara.Column(align="center"):
+            Logo()
+            SubLogo(text=f"all harry mack")
+            SubLogo(text=f"all the time...")
+            CompletionGauge(on_click=on_click, on_hover=on_hover)

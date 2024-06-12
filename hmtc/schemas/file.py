@@ -25,25 +25,3 @@ class FileItem(BaseItem):
         return FileItem(
             path=str(path), filename=path.name, file_type=None, exists=False
         )
-
-    @staticmethod
-    def add_to_collection(
-        path: str,
-        filename: str,
-        file_type: str,
-        video_id: int = None,
-        channel_id: int = None,
-        series_id: int = None,
-        playlist_id: int = None,
-    ):
-        file = FileItem(
-            path=path,
-            filename=filename,
-            file_type=file_type,
-            video_id=video_id,
-            channel_id=channel_id,
-            series_id=series_id,
-            playlist_id=playlist_id,
-            exists=True,
-        )
-        return file

@@ -53,10 +53,6 @@ def my_copy_file(source, target):
 
     shutil.copy(s, t)
 
-    # except Exception as e:
-    #     logger.error(f"Error moving file: {e}")
-    #     return ""
-
 
 def my_move_file(source, target):
     logger.debug(f"Moving file {source} to {target}")
@@ -200,3 +196,26 @@ def check_folder_exist_and_writable(folder: Path):
         raise
     finally:
         test_file.unlink()
+
+
+def move_file(source: str, dest: str):
+    d = Path(dest)
+
+    if d.exists() and d.is_file():
+        logger.error(f"Destination is a file that already exists. Skipping.")
+        logger.debug(f"Source: {source}")
+        logger.debug(f"Destination: {dest}")
+        return
+
+    try:
+        shutil.move(source, dest)
+    except FileNotFoundError:
+        logger.debug(f"source = {source} dest = {dest}")
+    except PermissionError:
+        logger.debug("Permission denied.")
+    except Exception as e:
+        logger.debug(f"An error occurred: {e}")
+
+
+def is_absolute(path: str) -> bool:
+    return Path(path) == Path(path).resolve()

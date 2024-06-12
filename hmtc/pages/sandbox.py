@@ -1,6 +1,8 @@
 import solara
 
 from hmtc.components.shared.sidebar import MySidebar
+from loguru import logger
+from hmtc.mods.file import File
 
 
 @solara.component_vue("./sandbox.vue")
@@ -16,8 +18,11 @@ def Logo():
 @solara.component
 def Page():
     MySidebar(router=solara.use_router())
-    solara.Markdown("## Sandbox")
+    with solara.Column(classes=["main-container"]):
+        solara.Markdown("## Sandbox")
 
-    # use this to test out new vue components
-    # just change the contents of the vue file and refresh the page
-    # Sandbox(event_trigger=lambda data: logger.error("triggggggggered"))
+        # use this to test out new vue components
+        # just change the contents of the vue file and refresh the page
+        Sandbox(event_trigger=lambda data: logger.error("asdf"))
+        # f = File.from_path("1/asdf.txt")
+        # f.move_to("new_folder")

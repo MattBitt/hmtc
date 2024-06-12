@@ -351,33 +351,34 @@ def Page():
         for x in State.sections.value
     ]
     MySidebar(router=solara.use_router())
-    with solara.Columns(6, 6):
-        VideoInfo(State.video)
-        SectionControlPanel(
-            video=State.video,
-            on_new=State.on_new,
-            loading=State.loading,
-            on_delete=State.on_delete,
-        )
+    with solara.Column(classes=["main-container"]):
+        with solara.Columns(6, 6):
+            VideoInfo(State.video)
+            SectionControlPanel(
+                video=State.video,
+                on_new=State.on_new,
+                loading=State.loading,
+                on_delete=State.on_delete,
+            )
 
-    if State.loading.value:
-        with solara.Column():
-            solara.SpinnerSolara(size="100px")
-    else:
-        if State.video.sections.count() == 0:
-            solara.Markdown("## No Sections Found. Please add some.")
-            return
+        if State.loading.value:
+            with solara.Column():
+                solara.SpinnerSolara(size="100px")
+        else:
+            if State.video.sections.count() == 0:
+                solara.Markdown("## No Sections Found. Please add some.")
+                return
 
-        SectionGraphComponent(
-            State.video.sections,
-            current_selection=Ref(State.selected_section),
-            on_click=State.on_click_graph,
-            max_section_width=State.width,
-            max_section_height=State.height,
-        )
-        SectionCarousel(
-            slides=carousel_sections,
-            selected_section=Ref(State.selected_section),
-            next_section=State.next_section,
-            previous_section=State.previous_section,
-        )
+            SectionGraphComponent(
+                State.video.sections,
+                current_selection=Ref(State.selected_section),
+                on_click=State.on_click_graph,
+                max_section_width=State.width,
+                max_section_height=State.height,
+            )
+            SectionCarousel(
+                slides=carousel_sections,
+                selected_section=Ref(State.selected_section),
+                next_section=State.next_section,
+                previous_section=State.previous_section,
+            )

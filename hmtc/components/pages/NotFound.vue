@@ -10,9 +10,4 @@
 <script>
 export default {};
 </script>
-<style>
-.main-container {
-  border: 4px solid blue;
-  min-height: 100vh;
-}
-</style>
+<style></style>

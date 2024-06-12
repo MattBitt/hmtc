@@ -8,6 +8,7 @@ from loguru import logger
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Channel, File, Playlist, Series, Video
+from hmtc.mods.file import FileManager, File as FileObject
 
 config = init_config()
 
@@ -179,23 +180,33 @@ def Page():
         logger.error("deprecate me!!!")
         # import_existing_video_files_to_db(folder)
 
-    MySidebar(router=solara.use_router())
-    with solara.ColumnsResponsive(12, large=4):
-        FileTypeCards()
+    def add_file(*args):
+        logger.debug(f"This is only for testing 🤠🤠🤠🤠🤠Adding file to video {args}")
+        file = STORAGE / "videos" / "test.info.json"
+        f = FileObject.from_path(file)
+        video = Video.get(Video.id == 1)
+        FileManager.add_file_to_video(f, video)
 
-    with solara.Card():
-        solara.Button(
-            "Add existing files to database",
-            on_click=add_existing_files,
-            disabled=True,
-        )
-        solara.Button(
-            "Download all missing videos",
-            on_click=download_missing_videos,
-            disabled=True,
-        )
-        solara.Button(
-            "Extract all missing audio from downloaded videos",
-            on_click=extract_missing_audio,
-            disabled=True,
-        )
+    MySidebar(router=solara.use_router())
+    with solara.Column(classes=["main-container"]):
+        with solara.Row():
+            solara.Button(f"Add File to a Video", on_click=add_file)
+        with solara.ColumnsResponsive(12, large=4):
+            FileTypeCards()
+
+        with solara.Card():
+            solara.Button(
+                "Add existing files to database",
+                on_click=add_existing_files,
+                disabled=True,
+            )
+            solara.Button(
+                "Download all missing videos",
+                on_click=download_missing_videos,
+                disabled=True,
+            )
+            solara.Button(
+                "Extract all missing audio from downloaded videos",
+                on_click=extract_missing_audio,
+                disabled=True,
+            )

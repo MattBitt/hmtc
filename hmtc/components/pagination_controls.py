@@ -1,6 +1,7 @@
 from typing import Callable
 
 import solara
+from hmtc.assets.colors import Colors
 
 
 @solara.component

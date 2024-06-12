@@ -15,9 +15,4 @@ export default {
   //name: 'Home'
 };
 </script>
-<style>
-.main-container {
-  border: 4px solid yellow;
-  min-height: 100vh;
-}
-</style>
+<style></style>

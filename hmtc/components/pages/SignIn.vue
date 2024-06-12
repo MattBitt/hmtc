@@ -47,9 +47,4 @@ export default {
   }),
 };
 </script>
-<style>
-.main-container {
-  border: 4px solid green;
-  min-height: 100vh;
-}
-</style>
+<style></style>
