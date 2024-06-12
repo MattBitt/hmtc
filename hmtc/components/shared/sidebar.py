@@ -31,12 +31,30 @@ class State:
 def MySidebar(
     router,
 ):
-    version = "0.0.4"
+    version = "0.0.3"
 
     def sidebar_clicked(item):
         # need to add a check to make sure the route is existing
         router.push(item)
         return
+        logger.info(f"Sidebar Clicked: {item}")
+        if item == "Recent":
+            router.push("/recent")
+        elif item == "Videos":
+            router.push("/videos")
+        elif item == "Playlists":
+            router.push("/playlists")
+        elif item == "Channels":
+            router.push("/channels")
+        elif item == "Settings":
+            router.push("/settings")
+        elif item == "About":
+            router.push("/about")
+        elif item == "Series":
+            router.push("/series")
+
+        else:
+            logger.error(f"Unknown sidebar item: {item}")
 
     with solara.Sidebar():
         _Sidebar(

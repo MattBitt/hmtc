@@ -12,31 +12,20 @@
 <script></script>
 
 <style>
-.waviy {
-  display: flex;
-  margin-top: 100px;
-
-  & span {
-    font-family: LogoFont;
-    font-size: 60px;
-    background-color: var(--dark);
-    color: var(--on-dark);
-    position: relative;
-    display: inline-block;
-
-    text-transform: uppercase;
-    animation: flip 2s infinite;
-    animation-delay: calc(0.2s * var(--i));
-  }
+.main-container {
+  min-height: 100vh;
 }
 
-.sub-logo {
-  padding: 0.2em 2em 0.2em 2em;
-  font-size: 40px;
-  background-color: var(--primary) !important;
-  color: var(--on-primary) !important;
+.waviy span {
+  font-weight: 800;
+  position: relative;
+  display: inline-block;
+  font-size: 60px;
+  color: #000;
+  text-transform: uppercase;
+  animation: flip 2s infinite;
+  animation-delay: calc(0.2s * var(--i));
 }
-
 @keyframes flip {
   0%,
   80% {

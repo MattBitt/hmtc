@@ -1,7 +1,7 @@
 import solara
 from loguru import logger
 from solara.lab.toestand import Ref
-from hmtc.assets.colors import Colors
+
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.playlist.popover import PlaylistPopover
 from hmtc.components.series.popover import SeriesPopover
@@ -170,11 +170,6 @@ class State(BaseState):
 @solara.component
 def Page():
     router = solara.use_router()
-    refreshing = solara.use_reactive(False)
-
-    def on_save(*args):
-        logger.debug(f"on_save: {args}🤡🤡🤡🤡🤡")
-        args[0].update_database_object()
 
     # @task
     def download_empty_video_info(num=10):
@@ -184,72 +179,62 @@ def Page():
     MySidebar(
         router=solara.use_router(),
     )
-    with solara.Column(classes=["main-container", "mb-10"]):
-        with solara.Row():
+    # Filter the Records Here
+    with solara.Row():
 
-            SeriesPopover(
-                current_series=State.series_filter.value,
-                handle_click=State.on_click_series,
-            )
-            PlaylistPopover(
-                current_playlist=State.playlist_filter.value,
-                handle_click=State.on_click_playlists,
-            )
+        SeriesPopover(
+            current_series=State.series_filter.value,
+            handle_click=State.on_click_series,
+        )
+        PlaylistPopover(
+            current_playlist=State.playlist_filter.value,
+            handle_click=State.on_click_playlists,
+        )
+        solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))
+        solara.Checkbox(label="Non-Unique", value=Ref(State.include_nonunique_content))
+        solara.Checkbox(
+            label="Include No Durations", value=Ref(State.include_no_durations)
+        )
 
-            solara.Button(
-                "Clear Filters", classes=["button"], on_click=State.clear_filters
-            )
-            solara.Button(
-                classes=["button"],
-                label="Download info for 10 Random Videos!",
-                on_click=download_empty_video_info,
-            )
-            solara.Button(
-                label="Refresh", on_click=State.refresh_query, classes=["button"]
-            )
+        solara.Button("Clear Filters", classes=["button"], on_click=State.clear_filters)
+        solara.Button(
+            classes=["button"],
+            label="Download info for 10 Random Videos!",
+            on_click=download_empty_video_info,
+        )
+    # searchable text box
+    VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
+    # Results of the Filter
+    FilteredVideosStats(label="Filtered Videos", items=State.filtered_items.value)
 
-        with solara.Row():
-            solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))
-            solara.Checkbox(
-                label="Non-Unique", value=Ref(State.include_nonunique_content)
-            )
-            solara.Checkbox(
-                label="Include No Durations", value=Ref(State.include_no_durations)
-            )
-        # searchable text box
-        VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
-        # Results of the Filter
-        FilteredVideosStats(label="Filtered Videos", items=State.filtered_items.value)
+    # Sort the Videos
+    SortControls(State)
 
-        # Sort the Videos
-        SortControls(State)
+    # Results of the sort
+    # VideosStats(label="Page", items=State.items.value)
+    def on_save(*args):
+        logger.debug(f"on_save: {args}")
+        args[0].update_database_object()
 
-        if refreshing.value:
-            solara.SpinnerSolara()
+    if State.items.value:
+        PaginationControls(
+            current_page=State.current_page,
+            num_pages=State.num_pages,
+            on_page_change=State.on_page_change,
+        )
+        VideoCards(
+            Ref(State.items),
+            router=router,
+            on_save=on_save,
+            on_update_from_youtube=State.on_update_from_youtube,
+            on_delete=State.on_delete,
+        )
+    else:
+        if State.text_query.value != "":
+            solara.Error(
+                f"No videos found for {State.text_query.value}",
+                icon="mdi-alert-circle-outline",
+            )
         else:
-            if State.items.value:
-                PaginationControls(
-                    current_page=State.current_page,
-                    num_pages=State.num_pages,
-                    on_page_change=State.on_page_change,
-                )
-                VideoCards(
-                    Ref(State.items),
-                    router=router,
-                    refreshing=refreshing,
-                    on_save=on_save,
-                    on_update_from_youtube=State.on_update_from_youtube,
-                    on_delete=State.on_delete,
-                )
-            else:
-                if State.text_query.value != "":
-                    solara.Error(
-                        f"No videos found for {State.text_query.value}",
-                        icon="mdi-alert-circle-outline",
-                    )
-                else:
-
-                    solara.Error(
-                        "No videos found and No text was entered",
-                        icon="mdi-alert-circle-outline",
-                    )
+            solara.Button("Refresh", on_click=State.refresh_query)
+            solara.Error("No videos found", icon="mdi-alert-circle-outline")

@@ -57,4 +57,8 @@ export default {};
   color: var(--whiteish) !important;
   font-weight: 500;
 }
+.main-container {
+  border: 4px solid var(--primary);
+  min-height: 100vh;
+}
 </style>

@@ -5,7 +5,7 @@ from typing import Optional, cast
 import solara
 import solara.lab
 from loguru import logger
-from hmtc.assets.colors import Colors
+
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,
@@ -23,20 +23,23 @@ from hmtc.utils.my_logging import setup_logging
 config = init_config()
 env = config["general"]["environment"]
 
-
+PRIMARY_COLOR = "#5b7a8e"
+SECONDARY_COLOR = "#f5f5f5"
+COMPLIMENTARY_COLOR = "#8E6F5B"
 
 match env:
     case "development":
-        color = Colors.DARK
+        color = COMPLIMENTARY_COLOR
     case "staging":
-        color = Colors.LIGHT
+        color = "red"
     case "testing":
-        color = Colors.ERROR
+        color = "blue"
     case "production":
-        color = Colors.DARK
+        color = PRIMARY_COLOR
     case _:
-        color = Colors.ERROR
-title = f"{config["app"]["name"]} - {env}"
+        color = "yellow"
+VERSION = "0.1.0"
+title = f"{config["app"]["name"]} - {VERSION} - {env}"
 
 
 @logger.catch
@@ -86,11 +89,10 @@ def setup():
 def Layout(children=[]):
 
     solara.Style(Path("../assets/style.css"))
-    
     return solara.AppLayout(
         navigation=False,
         title=title,
-        color=str(color),
+        color=color,
         sidebar_open=False,
         children=children,
     )

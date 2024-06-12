@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from loguru import logger
-from hmtc.mods.file import FileManager
+
 from hmtc.config import init_config
 from hmtc.models import File, Playlist, Series, Video
 from hmtc.schemas.base import BaseItem
@@ -253,11 +253,12 @@ class VideoItem(BaseItem):
 
         # logger.debug(f"Info: {info}")
         # logger.debug(f"Files: {files}")
-        vid = Video.select().where(Video.id == self.id).get()
         for file in files:
             logger.debug(f"Processing files: {file}")
-            FileManager.add_path_to_video(file, vid)
+            # ft = get_file_type(file)
+            # self.add_file(file, file_type=ft)
 
+        vid = Video.select().where(Video.id == self.id).get()
         vid.title = info["title"]
         vid.url = info["webpage_url"]
         vid.youtube_id = info["id"]

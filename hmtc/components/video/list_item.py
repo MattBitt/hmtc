@@ -4,14 +4,13 @@ from typing import Callable
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
-from hmtc.assets.colors import Colors
+
 from hmtc.components.playlist.chip import Chip
 from hmtc.components.video.edit_modal import VideoEditModal
 from hmtc.config import init_config
 from hmtc.models import Video
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.youtube_functions import download_media_files
-from hmtc.mods.file import FileManager
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -21,11 +20,8 @@ STORAGE = Path(config["paths"]["storage"]) / "videos"
 def download_video(video_item):
     logger.info(f"Downloading video: {video_item.value.title}")
     info, files = download_media_files(video_item.value.youtube_id, WORKING)
-
-    vid = Video.select().where(Video.id == video_item.value.id).get()
     for file in files:
-        logger.debug(f"Processing files: {file}")
-        FileManager.add_path_to_video(file, vid)
+        video_item.value.add_file(file)
 
 
 def extract(video_item, *ignore_args):
@@ -133,6 +129,13 @@ def ActionsToolBar(
         )
 
         ToolTipButton(
+            icon_name="mdi-information",
+            on_click=lambda: video_item.value.update_from_youtube(),
+            tooltip="Download Info from Youtube",
+            color=color,
+        )
+
+        ToolTipButton(
             icon_name="mdi-rhombus-split",
             on_click=lambda: router.push(f"/video-sections/{video_item.value.id}"),
             tooltip="Edit Sections",
@@ -144,7 +147,6 @@ def ActionsToolBar(
 @solara.component
 def FilesToolbar(
     video_item: solara.Reactive[VideoItem],
-    refreshing: solara.Reactive[bool],
     router,
     has_info=False,
     has_video=False,
@@ -153,43 +155,20 @@ def FilesToolbar(
     has_poster=False,
     justify="center",
 ):
-
-    def dwnld():
-        logger.error("Downloading video")
-        refreshing.set(True)
-        download_video(video_item)
-        refreshing.set(False)
-
-    def updt():
-        logger.error("Updating video")
-        refreshing.set(True)
-        video_item.value.update_from_youtube()
-        refreshing.set(False)
-
-    color = "FFA500"
-
+    color = "5b7a8e"
     with solara.Row(justify=justify):
-
-        ToolTipButton(
-            icon_name="mdi-information",
-            on_click=updt,
-            tooltip="Download Info from Youtube",
-            color=str(Colors.PRIMARY),
-            disabled=has_info,
-        )
-
         ToolTipButton(
             icon_name="mdi-movie",
-            on_click=dwnld,
+            on_click=download_video,
             tooltip="Download Video from YouTube",
-            color=str(Colors.DARK),
+            color=color,
             disabled=has_video or not has_info,
         )
 
         ToolTipButton(
             icon_name="mdi-speaker",
             on_click=lambda: logger.error("Extracting audio"),
-            color=str(Colors.DARK),
+            color=color,
             tooltip="Create Audio File",
             disabled=(not has_video or has_audio) or not has_info,
         )
@@ -198,21 +177,21 @@ def FilesToolbar(
             icon_name="mdi-note-text",
             on_click=lambda: logger.error("Extracting subtitles"),
             tooltip="Download Info JSON",
-            color=str(Colors.DARK),
+            color=color,
             disabled=has_video or not has_info,
         )
 
         ToolTipButton(
             icon_name="mdi-image",
             on_click=lambda: logger.error("Extracting poster"),
-            color=str(Colors.DARK),
+            color=color,
             tooltip="Download Poster",
             disabled=has_poster or not has_info,
         )
         ToolTipButton(
             icon_name="mdi-focus-field",
             on_click=extract,
-            color=str(Colors.DARK),
+            color=color,
             tooltip="Extract Image Frames",
             disabled=(not has_video or has_frames),
         )
@@ -221,14 +200,13 @@ def FilesToolbar(
 @solara.component
 def VideoListItem(
     video_item: solara.Reactive[VideoItem],
-    refreshing: solara.Reactive[bool],
     router,
     on_save: Callable[[VideoItem], None],
     on_update_from_youtube: Callable[[VideoItem], None],
     on_delete: Callable[[VideoItem], None],
 ):
     edit, set_edit = solara.use_state(False)
-
+    refreshing = solara.use_reactive(False)
     color = "#5b7a8e"
 
     with solara.Card():
@@ -276,7 +254,6 @@ def VideoListItem(
                     has_frames=has_frames,
                     has_audio=has_audio,
                     has_poster=has_poster,
-                    refreshing=refreshing,
                     justify="start",
                 )
 

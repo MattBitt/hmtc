@@ -1,9 +1,7 @@
 <template>
   <v-card class="sidebar">
     <div class="header">
-      <span class="sidebarlogo">
-        <a href="/">HMTC</a>
-      </span>
+      <a href="/"><v-icon color="white" size="x-large">mdi-home</v-icon>HMTC</a>
     </div>
     <div class="subheader">
       <p>{{ version }}</p>
@@ -32,6 +30,7 @@
 </template>
 
 <script>
+const backColor = "#5b7a8e";
 export default {
   data: () => ({
     items: [
@@ -64,30 +63,42 @@ export default {
   font-weight: 600;
   font-size: 20px;
   text-align: center;
-  background-color: var(--dark) !important;
-  color: var(--on-dark) !important;
+  background-color: var(--primary) !important;
   min-width: 400px;
   min-height: 90vh;
 
   & .header a {
-    font-family: "LogoFont";
-    text-decoration: none;
-    color: var(--on-dark);
     font-size: 2em;
     font-weight: 800;
     padding: 0.1em;
 
     margin-bottom: 0px;
+    color: var(--whiteish) !important;
   }
 
   & .subheader {
     font-size: 1.2em;
-
+    color: var(--whiteish);
     padding: 0.2em;
     text-align: center;
   }
-}
 
+  & .button {
+    padding: 1rem 1.25rem;
+    min-width: 300px !important;
+    font-family: sans-serif;
+    font-size: 1.25rem;
+    font-family: "Verdana", sans-serif;
+    text-decoration: none;
+    font-weight: 800;
+    color: var(--whiteish);
+    background-color: var(--primary) !important;
+  }
+}
+.main-container {
+  border: 4px solid orange;
+  min-height: 100vh;
+}
 .bottom-list {
   position: absolute;
   bottom: 0;

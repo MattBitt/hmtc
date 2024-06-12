@@ -10,5 +10,4 @@ def Page():
     MySidebar(
         router=router,
     )
-    with solara.Column(classes=["main-container"]):
-        solara.Markdown("Settings")
+    solara.Markdown("Settings")

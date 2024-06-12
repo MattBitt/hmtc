@@ -37,8 +37,8 @@ def SeriesForm():
 def SeriesCard(series):
     with solara.Card():
         solara.Markdown(f"# {series.name}")
-        # if series.poster is not None:
-        #     solara.Image(series.poster, width="400px")
+        if series.poster is not None:
+            solara.Image(series.poster, width="400px")
         solara.Markdown(f"* {series.unique_videos} unique source videos")
         solara.Markdown(f"* {series.total_videos} total videos")
 
@@ -53,10 +53,9 @@ def Page():
     MySidebar(
         router=solara.use_router(),
     )
-    with solara.Column(classes=["main-container"]):
-        solara.Button("Add Series", on_click=add_series)
-        with solara.ColumnsResponsive(12, large=4):
+    solara.Button("Add Series", on_click=add_series)
+    with solara.ColumnsResponsive(12, large=4):
 
-            series = Series.select()
-            for ser in series:
-                SeriesCard(ser)
+        series = Series.select()
+        for ser in series:
+            SeriesCard(ser)

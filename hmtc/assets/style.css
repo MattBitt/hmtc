@@ -4,25 +4,7 @@
 html, body {
     overflow-x: hidden;
     width: 100%;
-    background-color: #FFFFFF !important;
 }
-
-:root {
-  --light:  #FFAB91;
-  --primary: #FF5722;
-  --dark: #BF360C;
-  --on-light: #000000;
-  --on-primary: #000000;
-  --on-dark: #FFFFFF;
-  --surface: #808080;
-  --background: #F0FF0F;
-  --error: #B00020;
-  }
-
-  @font-face {
-    font-family: LogoFont;
-    src: local("Sixtyfour-Regular"), url("./Sixtyfour-Regular.ttf"), 
-  }
 
 a {
     text-decoration: none;
@@ -35,22 +17,19 @@ a {
 
 .mizzle
 {
+    font-family: 'Muli', sans-serif;
+    font-size: 2em;
     color:brown;
 }
-.main-container {
-    background-color: var(--surface) !important;
-    min-height: 80vh;
-  }
 
 
 
 
 
-
-.button {
-  text-decoration: none;
-  font-weight: 600;
-  color: var(--on-dark) !important;
-  background-color: var(--dark) !important;
-  height: 40px !important;
+:root {
+--primary: #5b7a8e;
+--complimentary:  #8E6F5B;
+--whiteish: #f5f5f5;
+--gray: #f000ff;
 }
+

@@ -37,15 +37,15 @@ def setup_logging(config):
         diagnose=False,
     )
 
-    # if env != "production":
-    #     logger.add(
-    #         Path(log_file_path) / "hmtc.log",
-    #         format=log_tofile_format,
-    #         level=log_level,
-    #         rotation="10 MB",
-    #         colorize=False,
-    #         backtrace=False,
-    #         diagnose=False,
-    #     )
+    if env != "production":
+        logger.add(
+            Path(log_file_path) / "hmtc.log",
+            format=log_tofile_format,
+            level=log_level,
+            rotation="10 MB",
+            colorize=False,
+            backtrace=False,
+            diagnose=False,
+        )
     logger.debug(f"Log Level is currently {log_level}")
     return logger

@@ -31,7 +31,7 @@ def Page():
     MySidebar(
         router=solara.use_router(),
     )
-    with solara.Column(classes=["main-container"]):
+    with solara.Card():
         # searchable text box
         PlaylistNewTextBox(on_change=State.on_change_text_search, on_new=State.on_new)
         SortControls(State)
