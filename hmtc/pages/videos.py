@@ -199,14 +199,15 @@ def Page():
             solara.Button(
                 "Clear Filters", classes=["button"], on_click=State.clear_filters
             )
-            solara.Button(
-                classes=["button"],
-                label="Download info for 10 Random Videos!",
-                on_click=download_empty_video_info,
-            )
-            solara.Button(
-                label="Refresh", on_click=State.refresh_query, classes=["button"]
-            )
+            with solara.Row():
+                solara.Button(
+                    classes=["button"],
+                    label="Download info for 10 Random Videos!",
+                    on_click=download_empty_video_info,
+                )
+                solara.Button(
+                    label="Refresh", on_click=State.refresh_query, classes=["button"]
+                )
 
         with solara.Row():
             solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))
@@ -238,8 +239,8 @@ def Page():
                     router=router,
                     refreshing=refreshing,
                     on_save=on_save,
-                    on_update_from_youtube=State.on_update_from_youtube,
                     on_delete=State.on_delete,
+                    refresh_query=State.refresh_query,
                 )
             else:
                 if State.text_query.value != "":

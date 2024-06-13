@@ -1,5 +1,6 @@
 import solara
 import solara.lab
+import numpy as np
 from loguru import logger
 import json
 import urllib
@@ -11,7 +12,9 @@ import solara
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.components.completion_gauge import CompletionGauge
+from hmtc.components.stats.percent_downloaded_gauge import PercentDownloadedGauge
 from hmtc.mods.file import File
+from hmtc.schemas.video import VideoItem
 
 config = init_config()
 
@@ -26,21 +29,55 @@ def SubLogo(text):
         solara.Text(text)
 
 
-def CompletionGauge(on_click: Callable[[dict], None], on_hover: Callable[[dict], None]):
-    def handle_hover(*args):
-        pass
+def tempPercentDownloadedGauge(current, total, on_click, on_hover):
+    fig = go.Figure()
 
-    def handle_click(*args):
-        pass
-
-    fig = go.Figure(
+    fig.add_trace(
         go.Indicator(
-            mode="gauge",
-            value=0.5,
-            title={"text": "Tracks Created"},
+            value=current,
+            delta={"reference": total},
+            gauge={"axis": {"visible": False}},
+            domain={"row": 0, "column": 0},
         )
     )
-    return solara.FigurePlotly(fig, on_click=handle_click, on_hover=handle_hover)
+
+    return solara.FigurePlotly(fig, on_click=on_click, on_hover=on_hover)
+
+
+def tempPercentDownloadedGauge2(stats, on_click, on_hover):
+    logger.debug(f"About to create tempPercentDownloadedGauge2")
+
+    fig = go.Figure()
+    for s in stats:
+        logger.debug(f"Stat: {s['name']} - {s['downloaded']} / {s['total']}")
+        x = [1, 2, 3]
+        y = [4, 5, 6]
+        z = [12, 24, 48]
+
+        customscale = [
+            [0, "rgb(255, 0, 0)"],
+            [0.1, "rgb(255, 0, 0)"],
+            [0.9, "rgb(0, 0, 255)"],
+            [1.0, "rgb(0, 0, 255)"],
+        ]
+        fig.add_trace(
+            go.Bar(
+                x=[s["name"]],
+                y=[s["downloaded"] / s["total"]],
+                marker=dict(color=z, colorscale=customscale),
+            )
+        )
+
+    fig.update_layout(
+        hoverlabel=dict(bgcolor="white", font_size=12, font_family="Rockwell"),
+    )
+    return solara.FigurePlotly(fig, on_click=on_click, on_hover=on_hover)
+
+
+def prepare_stats(stats):
+    logger.debug(f"Preparing stats")
+    logger.debug(f"Stats: {stats}")
+    return stats
 
 
 @solara.component
@@ -50,14 +87,31 @@ def Page():
     )
 
     def on_click(*args):
-        logger.info("click")
+        logger.info(f"click {args}")
 
     def on_hover(*args):
-        logger.info("hover")
+        # logger.info("hover")
+        pass
 
     with solara.Column(classes=["main-container"]):
         with solara.Column(align="center"):
+            current_downloaded = 50
+            total_downloaded = 100
+            s = VideoItem.get_downloaded_stats_by_series()
+            prepared = prepare_stats(s)
             Logo()
             SubLogo(text=f"all harry mack")
             SubLogo(text=f"all the time...")
-            CompletionGauge(on_click=on_click, on_hover=on_hover)
+            with solara.Columns():
+                CompletionGauge(on_click=on_click, on_hover=on_hover)
+                tempPercentDownloadedGauge(
+                    current=50,
+                    total=100,
+                    on_click=on_click,
+                    on_hover=on_hover,
+                )
+                tempPercentDownloadedGauge2(
+                    stats=prepared,
+                    on_click=on_click,
+                    on_hover=on_hover,
+                )

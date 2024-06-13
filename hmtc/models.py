@@ -52,7 +52,7 @@ def get_file_type(file: str, override=None):
         filetype = "poster"
     else:
         logger.error(f"Unknown file type: file: {file} ext: {ext}")
-        raise ValueError(f"Unknown file type: extension is {ext}")
+        filetype = "unknown"
 
     return filetype
 

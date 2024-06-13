@@ -152,6 +152,7 @@ def FilesToolbar(
     has_audio=False,
     has_poster=False,
     justify="center",
+    refresh_query=None,
 ):
 
     def dwnld():
@@ -159,12 +160,14 @@ def FilesToolbar(
         refreshing.set(True)
         download_video(video_item)
         refreshing.set(False)
+        refresh_query()
 
     def updt():
         logger.error("Updating video")
         refreshing.set(True)
         video_item.value.update_from_youtube()
         refreshing.set(False)
+        refresh_query()
 
     color = "FFA500"
 
@@ -224,36 +227,34 @@ def VideoListItem(
     refreshing: solara.Reactive[bool],
     router,
     on_save: Callable[[VideoItem], None],
-    on_update_from_youtube: Callable[[VideoItem], None],
+    refresh_query: Callable[[VideoItem], None],
     on_delete: Callable[[VideoItem], None],
 ):
     edit, set_edit = solara.use_state(False)
 
-    color = "#5b7a8e"
-
-    with solara.Card():
-        with solara.Row():
-            if video_item.value.duration is None:
-                solara.Error("Please update video information from YouTube")
-                has_info = False
-                has_video = False
-                has_frames = False
-                has_audio = False
-                has_poster = False
-            else:
-                solara.Success(f"{video_item.value.title[:50]}")
-                has_info = True
-                has_video = VideoItem.has_video_file(id=video_item.value.id)
-                has_frames = VideoItem.has_frame_files(id=video_item.value.id)
-                has_audio = False  # VideoItem.has_audio_file(id=video_item.value.id)
-                has_poster = False
-            with solara.Column():
-                solara.Text(f"{video_item.value.id}", classes=["mizzle"])
-        with solara.Column():
-            if refreshing.value is True:
-                solara.SpinnerSolara()
-            else:
-                with solara.Row():
+    with solara.Column():
+        if refreshing.value is True:
+            solara.SpinnerSolara()
+        else:
+            with solara.Row():
+                if video_item.value.duration is None:
+                    solara.Error("Please update video information from YouTube")
+                    has_info = False
+                    has_video = False
+                    has_frames = False
+                    has_audio = False
+                    has_poster = False
+                else:
+                    solara.Success(f"{video_item.value.title[:50]}")
+                    has_info = True
+                    has_video = VideoItem.has_video_file(id=video_item.value.id)
+                    has_frames = VideoItem.has_frame_files(id=video_item.value.id)
+                    has_audio = (
+                        False  # VideoItem.has_audio_file(id=video_item.value.id)
+                    )
+                    has_poster = False
+                with solara.Column():
+                    solara.Text(f"{video_item.value.id}", classes=["mizzle"])
 
                     Chip(
                         label=video_item.value.series_name,
@@ -278,6 +279,7 @@ def VideoListItem(
                     has_poster=has_poster,
                     refreshing=refreshing,
                     justify="start",
+                    refresh_query=refresh_query,
                 )
 
                 ActionsToolBar(

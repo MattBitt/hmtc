@@ -5,6 +5,7 @@ import shutil
 from hmtc.utils.general import move_file, is_absolute
 from hmtc.config import init_config
 from hmtc.models import Video, get_file_type, File as FileModel
+from peewee import fn
 
 config = init_config()
 WORKING = config["paths"]["working"]
@@ -102,3 +103,12 @@ class FileManager:
         except Exception as e:
             logger.error(e)
             raise
+
+    @staticmethod
+    def get_duration_downloaded_videos(series=None):
+
+        if series:
+            duration = Video.select(fn.Sum(Video.duration)).where(
+                (Video.series == series) & (Video.downloaded == True)
+            )
+            return duration.scalar()

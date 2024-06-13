@@ -27,7 +27,7 @@ env = config["general"]["environment"]
 
 match env:
     case "development":
-        color = Colors.DARK
+        color = Colors.ERROR
     case "staging":
         color = Colors.LIGHT
     case "testing":
@@ -35,7 +35,7 @@ match env:
     case "production":
         color = Colors.DARK
     case _:
-        color = Colors.ERROR
+        color = Colors.PRIMARY
 title = f"{config["app"]["name"]} - {env}"
 
 

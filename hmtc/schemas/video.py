@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-
+from peewee import fn
 from loguru import logger
 from hmtc.mods.file import FileManager
 from hmtc.config import init_config
@@ -295,3 +295,40 @@ class VideoItem(BaseItem):
             if not existing:
                 self.add_file(downloaded_file)
                 self.save()
+
+    @staticmethod
+    def get_downloaded_stats_by_series():
+
+        total_durations = (
+            Series.select(
+                Series.name,
+                fn.Sum(Video.duration).alias("duration"),
+            )
+            .join(Video)
+            .where(
+                (
+                    Video.duration.is_null(False)
+                    & (Video.contains_unique_content == True)
+                )
+            )
+            .group_by(Series)
+        )
+        downloaded = (
+            Series.select(
+                Series.name,
+                fn.Sum(Video.duration).alias("duration"),
+            )
+            .join(Video)
+            .join(File)
+            .where((File.video_id == Video.id) & (File.file_type == "video"))
+            .distinct()
+            .group_by(Series)
+        )
+        logger.error(f"Total: {[(s.name, s.duration) for s in total_durations]}")
+        logger.error(f"Downloaded: {[(s.name, s.duration) for s in downloaded]}")
+        stats = [
+            dict(name=t.name, downloaded=d.duration, total=t.duration)
+            for t, d in zip(total_durations, downloaded)
+        ]
+
+        return stats
