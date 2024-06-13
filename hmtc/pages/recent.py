@@ -17,13 +17,13 @@ def Page():
         Video.select()
         .where((Video.title.is_null(False)) & (Video.contains_unique_content == True))
         .order_by(Video.upload_date.desc())
-        .limit(10)
+        .limit(5)
     )
     recent_updated = (
         Video.select()
         .where(Video.title.is_null(False) & (Video.contains_unique_content == True))
         .order_by(Video.updated_at.desc())
-        .limit(10)
+        .limit(5)
     )
 
     logger.debug(f"videos: {len(videos)}")

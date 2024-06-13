@@ -255,12 +255,13 @@ class VideoItem(BaseItem):
         # logger.debug(f"Files: {files}")
         vid = Video.select().where(Video.id == self.id).get()
         for file in files:
-            logger.debug(f"Processing files: {file}")
+            logger.debug(f"Processing files in VideoItem.update_from_youtube: {file}")
             FileManager.add_path_to_video(file, vid)
 
         vid.title = info["title"]
         vid.url = info["webpage_url"]
         vid.youtube_id = info["id"]
+        vid.upload_date = info["upload_date"]
         vid.enabled = True
         vid.duration = info["duration"]
         vid.description = info["description"]

@@ -69,6 +69,7 @@ def fetch_ids_from(url, download_path="."):
 
 def get_video_info(youtube_id, output_folder, thumbnail=True, subtitle=True, info=True):
     url = f"https://www.youtube.com/watch?v={youtube_id}"
+    logger.error("🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢")
     folder = Path(output_folder)
     if not folder.exists():
         folder.mkdir(parents=True)
@@ -86,7 +87,7 @@ def get_video_info(youtube_id, output_folder, thumbnail=True, subtitle=True, inf
         "writeautomaticsub": subtitle,
         "subtitlesformat": "vtt",
         "subtitleslangs": ["en"],
-        "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
+        "outtmpl": str(folder / "%(upload_date)s___%(id)s.%(ext)s"),
     }
 
     info = {}
@@ -115,7 +116,7 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
     # this function kinda works, but it keeps downloading
     # the videos. i manually downloaded the playlists 1 by 1
     # and put them in the for_input folder
-
+    logger.error("🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵")
     url = f"https://www.youtube.com/playlist?list={id}"
     # url = f"https://www.youtube.com/@HarryMack/playlists"
     folder = Path(output_folder)
@@ -140,7 +141,7 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
         "clean_infojson": True,
         "playlist_items": None,
         "verbose": True,
-        "outtmpl": str(folder / "%(id)s"),
+        "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
     }
 
     info = {}
@@ -158,6 +159,7 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
 
 def download_media_files(id, output_folder):
     url = f"https://www.youtube.com/watch?v={id}"
+    logger.error("🟣🟣🟣🟣🟣🟣🟣")
     folder = Path(output_folder)
     if not is_disk_full(folder):
         if not folder.exists():
@@ -167,22 +169,23 @@ def download_media_files(id, output_folder):
         raise Exception(f"Disk is full: {folder}")
         # using 3 _ to split the date from the id since the id
     # can have underscores in it
+
     ydl_opts = {
+        "logger": logger,
+        "progress_hooks": [my_hook],
         "writethumbnail": False,
         "skip_download": False,
         "writeinfojson": False,
-        "formats": ["247", "251"],
-        "outtmpl": str(folder / "%(upload_date)s___%(id)s"),
+        "writeautomaticsub": False,
+        "outtmpl": str(folder / "%(upload_date)s___%(id)s.%(ext)s"),
     }
 
     info = {}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url)
-
-            files = []
-            for f in Path(output_folder).glob(f"*{id}*"):
-                files.append(f)
+            files = [f for f in Path(output_folder).glob(f"*{id}*")]
+            logger.debug(f"Files: {files}")
 
         except Exception as e:
             logger.error(e)
@@ -195,6 +198,7 @@ def download_media_files(id, output_folder):
 def download_video_info_from_id(
     id, download_path, thumbnail=True, subtitle=True, info=True
 ):
+    logger.error("🔴🔴🔴🔴🔴🔴🔴🔴")
     video = get_video_info(id, download_path, thumbnail, subtitle, info)
     files = []
     for f in Path(download_path).glob(f"*{id}*"):

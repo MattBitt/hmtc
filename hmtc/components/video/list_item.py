@@ -24,7 +24,7 @@ def download_video(video_item):
 
     vid = Video.select().where(Video.id == video_item.value.id).get()
     for file in files:
-        logger.debug(f"Processing files: {file}")
+        logger.debug(f"Processing files in download_video of the list item {file}")
         FileManager.add_path_to_video(file, vid)
 
 

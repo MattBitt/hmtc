@@ -36,8 +36,12 @@ def get_file_type(file: str, override=None):
     if override is not None:
         return override
 
+    logger.debug(f"File = {file}")
     f = Path(file)
+    logger.debug(f"Path object {f}")
+
     ext = "".join(f.suffixes)
+
     logger.debug(f"Getting file type for {file} ext = {ext}")
 
     if ext in [".mkv", ".mp4", ".webm"]:

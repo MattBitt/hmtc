@@ -10,7 +10,7 @@ from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.video.cards_list import VideoCards
 from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.config import init_config
-from hmtc.models import Video as VideoTable
+from hmtc.models import Video as VideoTable, Channel
 from hmtc.schemas.video import VideoItem
 from hmtc.states.base import State as BaseState
 
@@ -166,6 +166,13 @@ class State(BaseState):
         State.playlist_filter.value = None
         State.refresh_query()
 
+    @classmethod
+    def refresh_videos_from_youtube(cls):
+        channels = Channel.select().where(Channel.enabled == True)
+        for c in channels:
+            c.check_for_new_videos()
+            State.refresh_query()
+
 
 @solara.component
 def Page():
@@ -207,6 +214,11 @@ def Page():
                 )
                 solara.Button(
                     label="Refresh", on_click=State.refresh_query, classes=["button"]
+                )
+                solara.Button(
+                    label="Check for New Videos",
+                    on_click=State.refresh_videos_from_youtube,
+                    classes=["button"],
                 )
 
         with solara.Row():
