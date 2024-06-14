@@ -153,28 +153,11 @@ class State(BaseState):
                 State.series_filter.value = args[0]
             State.refresh_query()
 
-    @staticmethod
-    def download_empty_video_info(num):
-        logger.debug("Downloading empty video info")
-        vids = VideoTable.select().where(VideoTable.duration.is_null()).limit(num)
-        logger.info(f"Updating {len(vids)} videos")
-        for v in vids:
-            vt = VideoItem.from_orm(v)
-            vt.update_from_youtube()
-        logger.info("finished updating videos")
-
     def clear_filters(*args):
         logger.debug("Clearing filters")
         State.series_filter.value = None
         State.playlist_filter.value = None
         State.refresh_query()
-
-    @classmethod
-    def refresh_videos_from_youtube(cls):
-        channels = Channel.select().where(Channel.enabled == True)
-        for c in channels:
-            c.check_for_new_videos()
-            State.refresh_query()
 
 
 @solara.component
@@ -185,11 +168,6 @@ def Page():
     def on_save(*args):
         logger.debug(f"on_save: {args}🤡🤡🤡🤡🤡")
         args[0].update_database_object()
-
-    # @task
-    def download_empty_video_info(num=10):
-        if num > 0:
-            State.download_empty_video_info(num)
 
     MySidebar(
         router=solara.use_router(),
@@ -210,20 +188,9 @@ def Page():
             solara.Button(
                 "Clear Filters", classes=["button"], on_click=State.clear_filters
             )
-            with solara.Row():
-                solara.Button(
-                    classes=["button"],
-                    label="Download info for 10 Random Videos!",
-                    on_click=download_empty_video_info,
-                )
-                solara.Button(
-                    label="Refresh", on_click=State.refresh_query, classes=["button"]
-                )
-                solara.Button(
-                    label="Check for New Videos",
-                    on_click=State.refresh_videos_from_youtube,
-                    classes=["button"],
-                )
+            solara.Button(
+                label="Refresh", on_click=State.refresh_query, classes=["button"]
+            )
 
         with solara.Row():
             solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))

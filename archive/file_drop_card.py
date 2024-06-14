@@ -2,7 +2,7 @@ from typing import BinaryIO, TypedDict
 
 import solara
 
-from hmtc.components.progress_slider import SimpleProgressBar
+from hmtc.components.shared.progress_slider import SimpleProgressBar
 
 
 class FileInfo(TypedDict):

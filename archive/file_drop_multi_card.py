@@ -2,7 +2,7 @@ from typing import Callable, List, TypedDict
 
 import solara
 
-from hmtc.components.progress_slider import SimpleProgressBar
+from hmtc.components.shared.progress_slider import SimpleProgressBar
 
 clicks = solara.reactive(0)
 

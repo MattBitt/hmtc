@@ -9,6 +9,8 @@ from solara.lab.toestand import Ref
 from hmtc.config import init_config
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.youtube_functions import download_video_file
+from hmtc.mods.file import FileManager
+import PIL.Image
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -52,9 +54,12 @@ def VideoEditModal(
 
     with solara.Card("Edit"):
 
-        # if VideoItem.has_poster_file(id=video_item.value.id):
-        #     poster = VideoItem.get_poster_file_path(id=video_item.value.id)
-        #     solara.Image(poster, width="300px")
+        poster = Path(str(FileManager.get_file_for_video(video_item.value, "poster")))
+        if poster is not None and poster != "":
+            logger.debug(f"Poster = {poster}")
+            has_poster = True
+            image = PIL.Image.open(poster)
+            solara.Image(image, width="300px")
 
         solara.InputText(label="ID", value=Ref(copy.fields.id), disabled=True)
         solara.InputText(label="Video Title", value=Ref(copy.fields.title))

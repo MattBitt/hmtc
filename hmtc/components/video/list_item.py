@@ -278,14 +278,31 @@ def VideoListItem(
                     has_audio = False
                     has_poster = False
                 else:
-                    solara.Success(f"{video_item.value.title[:50]}")
-                    has_info = True
-                    has_video = VideoItem.has_video_file(id=video_item.value.id)
-                    has_frames = VideoItem.has_frame_files(id=video_item.value.id)
-                    has_audio = (
-                        False  # VideoItem.has_audio_file(id=video_item.value.id)
-                    )
-                    has_poster = False
+                    with solara.Success():
+                        solara.Text(f"{video_item.value.title[:50]}")
+
+                        poster = Path(
+                            str(
+                                FileManager.get_file_for_video(
+                                    video_item.value, "poster"
+                                )
+                            )
+                        )
+                        if poster is not None and poster != "":
+                            logger.debug(f"Poster = {poster}")
+                            has_poster = True
+                            # image = PIL.Image.open(poster)
+                            # solara.Image(image, width="200px")
+
+                        else:
+                            has_poster = False
+                        has_info = True
+                        has_video = VideoItem.has_video_file(id=video_item.value.id)
+                        has_frames = VideoItem.has_frame_files(id=video_item.value.id)
+                        has_audio = (
+                            False  # VideoItem.has_audio_file(id=video_item.value.id)
+                        )
+
                 with solara.Column():
                     solara.Text(f"{video_item.value.id}", classes=["mizzle"])
 

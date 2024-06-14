@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import peewee
 from peewee import fn
 from loguru import logger
 from hmtc.mods.file import FileManager
@@ -11,6 +12,7 @@ from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
 from hmtc.utils.youtube_functions import get_video_info
+from peewee import fn
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -308,39 +310,36 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def get_downloaded_stats_by_series():
-        
-        total_durations = (
-            Series.select(
+        query = (
+            Video.select(
+                fn.SUM(Video.duration).alias("downloaded"),
                 Series.name,
-                fn.Sum(Video.duration).alias("duration"),
             )
-            .join(Video)
+            .join(Series, peewee.JOIN.RIGHT_OUTER)
             .where(
-                (
-                    Video.duration.is_null(False)
-                    & (Video.contains_unique_content == True)
+                Video.id.in_(
+                    File.select(File.video_id).where(File.file_type == "video")
                 )
             )
-            .group_by(Series)
-            .order_by(Series.name)
+            .group_by(Series.name)
         )
-        downloaded = (
-            Series.select(
-                Series.name,
-                fn.Sum(Video.duration).alias("duration"),
-            )
-            .join(Video)
-            .join(File)
-            .where((File.video_id == Video.id) & (File.file_type == "video"))
-            .distinct()
-            .group_by(Series)
-            .order_by(Series.name)
-        )
-        logger.error(f"Total: {[(s.name, s.duration) for s in total_durations]}")
-        logger.error(f"Downloaded: {[(s.name, s.duration) for s in downloaded]}")
-        stats = [
-            dict(name=t.name, downloaded=d.duration, total=t.duration)
-            for t, d in zip(total_durations, downloaded)
-        ]
 
-        return stats
+        query2 = (
+            Video.select(
+                fn.SUM(Video.duration).alias("total"),
+                Series.name,
+            )
+            .join(Series)
+            .group_by(Series.name)
+        )
+        downloaded = [(a.series, a.downloaded) for a in query]
+        total = [(b.series, b.total) for b in query2]
+        combined = []
+        for d in downloaded:
+            for t in total:
+                if d[0].name == t[0].name:
+                    combined.append(
+                        {"name": d[0].name, "downloaded": d[1], "total": t[1]}
+                    )
+                    break
+        return combined

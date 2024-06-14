@@ -4,7 +4,7 @@ from typing import List, TypedDict
 import solara
 from loguru import logger
 
-from hmtc.components.progress_slider import SimpleProgressBar
+from hmtc.components.shared.progress_slider import SimpleProgressBar
 
 clicks = solara.reactive(0)
 

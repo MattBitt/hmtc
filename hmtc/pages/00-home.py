@@ -49,27 +49,23 @@ def tempPercentDownloadedGauge2(stats, on_click, on_hover):
 
     fig = go.Figure()
     for s in stats:
-        logger.debug(f"Stat: {s['name']} - {s['downloaded']} / {s['total']}")
-        x = [1, 2, 3]
-        y = [4, 5, 6]
-        z = [12, 24, 48]
+        logger.debug(
+            f"Stat: {s['name']} - downloaded = {s['downloaded']}  total={s['total']}"
+        )
 
-        customscale = [
-            [0, "rgb(255, 0, 0)"],
-            [0.1, "rgb(255, 0, 0)"],
-            [0.9, "rgb(0, 0, 255)"],
-            [1.0, "rgb(0, 0, 255)"],
-        ]
         fig.add_trace(
             go.Bar(
-                x=[s["name"]],
-                y=[s["downloaded"] / s["total"]],
-                marker=dict(color=z, colorscale=customscale),
+                y=[s["name"]],
+                x=[s["downloaded"] / s["total"]] if s["total"] > 0 else [0],
+                orientation="h",
             )
         )
 
     fig.update_layout(
-        hoverlabel=dict(bgcolor="white", font_size=12, font_family="Rockwell"),
+        hoverlabel=dict(bgcolor="white", font_size=18, font_family="Rockwell"),
+        yaxis=dict(title="Series"),
+        xaxis=dict(title="Percent Downloaded"),
+        title="Percent Downloaded by Series",
     )
     return solara.FigurePlotly(fig, on_click=on_click, on_hover=on_hover)
 
@@ -97,21 +93,21 @@ def Page():
         with solara.Column(align="center"):
             current_downloaded = 50
             total_downloaded = 100
-            s = VideoItem.get_downloaded_stats_by_series()
-            prepared = prepare_stats(s)
+            stats = VideoItem.get_downloaded_stats_by_series()
+
             Logo()
             SubLogo(text=f"all harry mack")
             SubLogo(text=f"all the time...")
             with solara.Columns():
-                CompletionGauge(on_click=on_click, on_hover=on_hover)
-                tempPercentDownloadedGauge(
-                    current=50,
-                    total=100,
-                    on_click=on_click,
-                    on_hover=on_hover,
-                )
+                # CompletionGauge(on_click=on_click, on_hover=on_hover)
+                # tempPercentDownloadedGauge(
+                #     current=50,
+                #     total=100,
+                #     on_click=on_click,
+                #     on_hover=on_hover,
+                # )
                 tempPercentDownloadedGauge2(
-                    stats=prepared,
+                    stats=stats,
                     on_click=on_click,
                     on_hover=on_hover,
                 )

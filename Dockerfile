@@ -16,8 +16,8 @@ RUN /root/.cargo/bin/uv venv /opt/venv && \
 # App image
 FROM python:3.12-slim-bookworm as app-stage
 COPY --from=build /opt/venv /opt/venv
-RUN apt-get update && apt-get install -y libpq-dev ffmpeg yt-dlp
-
+RUN apt-get update && apt-get install -y libpq-dev ffmpeg
+RUN pip install ffmpeg-python
 WORKDIR /app
 COPY . .
 ENV PATH="/opt/venv/bin:$PATH"

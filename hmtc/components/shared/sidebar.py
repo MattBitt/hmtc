@@ -31,7 +31,7 @@ class State:
 def MySidebar(
     router,
 ):
-    version = "0.0.5"
+    VERSION = "0.0.6"
 
     def sidebar_clicked(item):
         # need to add a check to make sure the route is existing
@@ -40,7 +40,7 @@ def MySidebar(
 
     with solara.Sidebar():
         _Sidebar(
-            version=version,
+            version=VERSION,
             router=router,
             event_sidebar_clicked=sidebar_clicked,
         )

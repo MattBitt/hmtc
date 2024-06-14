@@ -654,13 +654,14 @@ class File(BaseModel):
             logger.error(f"File {target} already exists")
 
     def file_string(self):
-        if self.path is None:
-            logger.error("Self.path was none.. 💥💥💥💥")
-            return None
-        if self.filename is None:
-            self.filename = "asdf"
-        if self.extension is None:
-            self.extension = "fdsa"
+        pass
+        # if self.path is None:
+        #     logger.error("Self.path was none.. 💥💥💥💥")
+        #     return None
+        # if self.filename is None:
+        #     self.filename = "asdf"
+        # if self.extension is None:
+        #     self.extension = "fdsa"
 
-        p = Path(self.path) / (self.filename + self.extension)
-        return str(p)
+        # p = Path(self.path) / (self.filename + self.extension)
+        # return str(p)

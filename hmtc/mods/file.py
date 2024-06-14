@@ -143,3 +143,20 @@ class FileManager:
         except Exception as e:
             logger.error(e)
             raise
+
+    @staticmethod
+    def get_file_for_video(video: Video, filetype: str):
+        try:
+            if not video:
+                raise ValueError("Video object is required")
+            if not filetype:
+                raise ValueError("Filetype is required")
+
+            file = FileModel.get(
+                (FileModel.video_id == video.id) & (FileModel.file_type == filetype)
+            )
+            return File(path=file.path, filename=file.filename)
+
+        except Exception as e:
+            logger.error(e)
+            raise
