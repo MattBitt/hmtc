@@ -144,7 +144,10 @@ class VideoItem(BaseItem):
             query = query.where(Video.duration > 0)
 
         if series_filter:
-            query = query.join(Series).where(Series.name == series_filter["title"])
+            if series_filter["title"] == "All Series":
+                query = query
+            else:
+                query = query.join(Series).where(Series.name == series_filter["title"])
 
         if playlist_filter:
             if playlist_filter["title"] == "No Playlists":
@@ -188,7 +191,7 @@ class VideoItem(BaseItem):
                 description=item.description,
                 contains_unique_content=item.contains_unique_content,
                 has_chapters=item.has_chapters,
-                series_name=(item.series.name if item.series else "---"),
+                series_name=(item.series.name if item.series != "NOSERIES" else "---"),
                 playlist_name=(item.playlist.title if item.playlist else "---"),
             )
             for item in query
@@ -268,6 +271,12 @@ class VideoItem(BaseItem):
         vid.save()
         logger.success(f"Grabbed metadata for {vid.title} from youtube")
 
+    def update_series(self, series_name):
+        series = Series.select().where(Series.name == series_name).get()
+        vid = Video.select().where(Video.id == self.id).get()
+        vid.series = series
+        vid.save()
+
     def update_database_object(self):
         vid = Video.select().where(Video.id == self.id).get()
         vid.title = self.title
@@ -313,6 +322,7 @@ class VideoItem(BaseItem):
                 )
             )
             .group_by(Series)
+            .order_by(Series.name)
         )
         downloaded = (
             Series.select(
@@ -324,6 +334,7 @@ class VideoItem(BaseItem):
             .where((File.video_id == Video.id) & (File.file_type == "video"))
             .distinct()
             .group_by(Series)
+            .order_by(Series.name)
         )
         logger.error(f"Total: {[(s.name, s.duration) for s in total_durations]}")
         logger.error(f"Downloaded: {[(s.name, s.duration) for s in downloaded]}")

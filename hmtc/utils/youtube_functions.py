@@ -18,9 +18,12 @@ def is_disk_full(folder):
 
 
 # ℹ️ See "progress_hooks" in help(yt_dlp.YoutubeDL)
-def my_hook(d):
-    if d["status"] == "finished":
-        print("Done downloading, now post-processing ...")
+def internal_hook(d, *args, **kwargs):
+    # if d["status"] == "downloading":
+    #     logger.error(f"Downloading {d['downloaded_bytes']}")
+    # if d["status"] == "finished":
+    #     logger.error(f"Done downloading, now post-processing ...")
+    pass
 
 
 class MyLogger:
@@ -67,7 +70,14 @@ def fetch_ids_from(url, download_path="."):
         return ids
 
 
-def get_video_info(youtube_id, output_folder, thumbnail=True, subtitle=True, info=True):
+def get_video_info(
+    youtube_id,
+    output_folder,
+    progress_hook=None,
+    thumbnail=True,
+    subtitle=True,
+    info=True,
+):
     url = f"https://www.youtube.com/watch?v={youtube_id}"
     logger.error("🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢")
     folder = Path(output_folder)
@@ -78,9 +88,14 @@ def get_video_info(youtube_id, output_folder, thumbnail=True, subtitle=True, inf
         for file in folder.glob("*"):
             logger.debug(f"Removing {file}")
             file.unlink()
+    if progress_hook:
+        hook = progress_hook
+    else:
+        hook = internal_hook
+
     ydl_opts = {
-        "logger": logger,
-        "progress_hooks": [my_hook],
+        # "logger": logger,
+        "progress_hooks": [hook],
         "writethumbnail": thumbnail,
         "skip_download": True,
         "writeinfojson": info,
@@ -132,9 +147,10 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
 
     # using 3 _ to split the date from the id since the id
     # can have underscores in it
+
     ydl_opts = {
-        "logger": logger,
-        "progress_hooks": [my_hook],
+        #  "logger": logger,
+        "progress_hooks": [internal_hook],
         "writethumbnail": thumbnail,
         "skip_download": True,
         "writeinfojson": info,
@@ -157,7 +173,12 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
         return ydl.sanitize_info(info)
 
 
-def download_media_files(id, output_folder):
+def download_media_files(
+    id,
+    output_folder,
+    progress_hook=None,
+):
+
     url = f"https://www.youtube.com/watch?v={id}"
     logger.error("🟣🟣🟣🟣🟣🟣🟣")
     folder = Path(output_folder)
@@ -167,16 +188,16 @@ def download_media_files(id, output_folder):
     else:
         logger.error(f"Disk is full: {folder}")
         raise Exception(f"Disk is full: {folder}")
-        # using 3 _ to split the date from the id since the id
-    # can have underscores in it
+
+    if progress_hook:
+        hook = progress_hook
+    else:
+        hook = internal_hook
 
     ydl_opts = {
-        "logger": logger,
-        "progress_hooks": [my_hook],
-        "writethumbnail": False,
-        "skip_download": False,
-        "writeinfojson": False,
-        "writeautomaticsub": False,
+        # "logger": logger,
+        "progress_hooks": [hook],
+        "format": "bestvideo[height<=720]+bestaudio",
         "outtmpl": str(folder / "%(upload_date)s___%(id)s.%(ext)s"),
     }
 

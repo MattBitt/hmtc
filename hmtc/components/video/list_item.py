@@ -6,10 +6,14 @@ import solara
 from loguru import logger
 from hmtc.assets.colors import Colors
 from hmtc.components.playlist.chip import Chip
+from hmtc.components.series.popover import SeriesPopover
+from hmtc.components.video.series_popover import VideoSeriesPopover
 from hmtc.components.video.edit_modal import VideoEditModal
 from hmtc.config import init_config
 from hmtc.models import Video
 from hmtc.schemas.video import VideoItem
+
+
 from hmtc.utils.youtube_functions import download_media_files
 from hmtc.mods.file import FileManager
 
@@ -17,10 +21,25 @@ config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
 STORAGE = Path(config["paths"]["storage"]) / "videos"
 
+current_download_progress = solara.reactive(0)
+
+
+def my_hook(*args):
+    # this seems to work but not getting the feedback on the page
+    pass
+    # d = args[0]["downloaded_bytes"]
+    # t = args[0]["total_bytes"]
+    # p = d / t * 100
+    # if p < 1:
+    #     logger.info(f"Percent Complete: {d/t*100:.2f}%")
+    # current_download_progress.set(p)
+
 
 def download_video(video_item):
     logger.info(f"Downloading video: {video_item.value.title}")
-    info, files = download_media_files(video_item.value.youtube_id, WORKING)
+    info, files = download_media_files(
+        video_item.value.youtube_id, WORKING, progress_hook=my_hook
+    )
 
     vid = Video.select().where(Video.id == video_item.value.id).get()
     for file in files:
@@ -158,6 +177,7 @@ def FilesToolbar(
     def dwnld():
         logger.error("Downloading video")
         refreshing.set(True)
+        current_download_progress.set(0)
         download_video(video_item)
         refreshing.set(False)
         refresh_query()
@@ -231,10 +251,22 @@ def VideoListItem(
     on_delete: Callable[[VideoItem], None],
 ):
     edit, set_edit = solara.use_state(False)
+    current_series = solara.use_reactive(video_item.value.series_name)
+
+    def on_click_series(*args):
+        if args[0]:
+            logger.debug(args[0])
+            video_item.value.update_series(args[0]["title"])
+            refresh_query()
+        else:
+            logger.debug(f"No args[0] in on_click_series {args}")
 
     with solara.Column():
         if refreshing.value is True:
-            solara.SpinnerSolara()
+            with solara.Column():
+                solara.SpinnerSolara()
+                solara.Info(f"Refreshing {video_item.value.title}")
+                solara.Info(f"Progress: {current_download_progress.value:.2f}%")
         else:
             with solara.Row():
                 if video_item.value.duration is None:
@@ -262,6 +294,10 @@ def VideoListItem(
                         icon="mdi-view-sequential",
                     )
 
+                    VideoSeriesPopover(
+                        current_series=video_item.value.series_name,
+                        handle_click=on_click_series,
+                    )
                     Chip(
                         label=video_item.value.playlist_name,
                         color="green",

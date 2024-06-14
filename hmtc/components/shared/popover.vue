@@ -19,7 +19,7 @@
               <v-btn
                 v-for="(item, index) in items"
                 :key="index"
-                class="button ma-2 pa-2"
+                class="button ma-1 pa-1"
                 @click="on_click(item)"
                 >{{ item.title }}
               </v-btn>
@@ -55,6 +55,6 @@ export default {
 <style scoped>
 .footer {
   background-color: var(--light);
-  color: var(--on-dark);
+  color: var(--on-light);
 }
 </style>

@@ -145,6 +145,12 @@ class Series(BaseModel):
     def unique_videos(self):
         return self.videos.select().where(Video.contains_unique_content == True).count()
 
+    def __repr__(self):
+        return f"Series({self.name})"
+
+    def __str__(self):
+        return f"Series({self.name})"
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Album(BaseModel):

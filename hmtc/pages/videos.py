@@ -146,8 +146,11 @@ class State(BaseState):
     @staticmethod
     def on_click_series(*args):
         if args[0]:
-            logger.debug(args[0])
-            State.series_filter.value = args[0]
+            if args[0].get("id") is None:
+                State.series_filter.value = None
+            else:
+                logger.debug(args[0])
+                State.series_filter.value = args[0]
             State.refresh_query()
 
     @staticmethod
@@ -197,6 +200,7 @@ def Page():
             SeriesPopover(
                 current_series=State.series_filter.value,
                 handle_click=State.on_click_series,
+                include_blank=True,
             )
             PlaylistPopover(
                 current_playlist=State.playlist_filter.value,
