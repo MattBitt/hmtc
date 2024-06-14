@@ -14,7 +14,7 @@ from hmtc.models import Video
 from hmtc.schemas.video import VideoItem
 
 
-from hmtc.utils.youtube_functions import download_media_files
+from hmtc.utils.youtube_functions import download_video_file
 from hmtc.mods.file import FileManager
 
 config = init_config()
@@ -37,12 +37,13 @@ def my_hook(*args):
 
 def download_video(video_item):
     logger.info(f"Downloading video: {video_item.value.title}")
-    info, files = download_media_files(
+    info, files = download_video_file(
         video_item.value.youtube_id, WORKING, progress_hook=my_hook
     )
 
     vid = Video.select().where(Video.id == video_item.value.id).get()
     for file in files:
+
         logger.debug(f"Processing files in download_video of the list item {file}")
         FileManager.add_path_to_video(file, vid)
 

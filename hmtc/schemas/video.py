@@ -308,7 +308,7 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def get_downloaded_stats_by_series():
-
+        
         total_durations = (
             Series.select(
                 Series.name,

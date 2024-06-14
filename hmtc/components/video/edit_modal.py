@@ -8,7 +8,7 @@ from solara.lab.toestand import Ref
 
 from hmtc.config import init_config
 from hmtc.schemas.video import VideoItem
-from hmtc.utils.youtube_functions import download_media_files
+from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -33,16 +33,19 @@ def VideoEditModal(
         on_save()
 
     def update_from_youtube():
-        on_update(video_item.value)
+        # on_update(video_item.value)
+        pass
 
     def download_video():
-        logger.info(f"Downloading video: {video_item.value.title}")
-        info, files = download_media_files(video_item.value.youtube_id, WORKING)
-        for file in files:
-            video_item.value.add_file(file)
+        pass
+        # logger.info(f"Downloading video: {video_item.value.title}")
+        # ##info, files = download_media_files(video_item.value.youtube_id, WORKING)
+        # ###for file in files:
+        #     video_item.value.add_file(file)
 
     def extract_audio():
-        logger.debug(f"Fake Audio Extraction {video_item.value.title}")
+        pass
+        # logger.debug(f"Fake Audio Extraction {video_item.value.title}")
 
     def is_dirty():
         return video_item.value != copy.value

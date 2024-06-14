@@ -3,6 +3,7 @@ from loguru import logger
 from pathlib import Path
 import shutil
 from hmtc.utils.general import move_file, is_absolute
+from hmtc.utils.ffmpeg_utils import extract_audio
 from hmtc.config import init_config
 from hmtc.models import Video, get_file_type, File as FileModel
 from peewee import fn
@@ -87,6 +88,17 @@ class FileManager:
                 raise ValueError("path object is required")
             file = File.from_path(path)
             filetype = get_file_type(file.filename)
+            if filetype == "video":
+                audio = FileManager.extract_audio(file)
+                audio_file = File.from_path(audio)
+                audio_file.move_to(output_path)
+                f = FileModel.create(
+                    path=str(audio_file),
+                    filename=audio_file.filename,
+                    file_type="audio",
+                    video_id=video.id,
+                )
+
             file.move_to(output_path)
             f = FileModel.create(
                 path=str(output_path),
@@ -112,3 +124,22 @@ class FileManager:
                 (Video.series == series) & (Video.downloaded == True)
             )
             return duration.scalar()
+
+    @staticmethod
+    def extract_audio(file: File):
+        try:
+            if not file:
+                raise ValueError("File object is required")
+            logger.info(f"Extracting audio from {file}")
+            vid_extensions = [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
+            for ve in vid_extensions:
+                if ve in file.filename:
+                    outfile = Path(file.path) / (file.filename.replace(ve, ".mp3"))
+                    break
+            logger.debug(f"Extracting audio from {file} to {outfile}")
+            extract_audio(input=str(file), output=str(outfile))
+            return outfile
+
+        except Exception as e:
+            logger.error(e)
+            raise

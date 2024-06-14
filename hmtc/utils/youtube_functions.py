@@ -173,7 +173,7 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
         return ydl.sanitize_info(info)
 
 
-def download_media_files(
+def download_video_file(
     id,
     output_folder,
     progress_hook=None,
@@ -198,6 +198,7 @@ def download_media_files(
         # "logger": logger,
         "progress_hooks": [hook],
         "format": "bestvideo[height<=720]+bestaudio",
+        "extract_audio": True,
         "outtmpl": str(folder / "%(upload_date)s___%(id)s.%(ext)s"),
     }
 
