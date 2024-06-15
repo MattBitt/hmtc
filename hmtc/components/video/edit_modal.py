@@ -1,16 +1,15 @@
 from pathlib import Path
 from typing import Callable
 
+import PIL.Image
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
 from solara.lab.toestand import Ref
 
 from hmtc.config import init_config
-from hmtc.schemas.video import VideoItem
-from hmtc.utils.youtube_functions import download_video_file
 from hmtc.mods.file import FileManager
-import PIL.Image
+from hmtc.schemas.video import VideoItem
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

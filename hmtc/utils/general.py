@@ -202,7 +202,7 @@ def move_file(source: str, dest: str):
     d = Path(dest)
 
     if d.exists() and d.is_file():
-        logger.error(f"Destination is a file that already exists. Skipping.")
+        logger.error("Destination is a file that already exists. Skipping.")
         logger.debug(f"Source: {source}")
         logger.debug(f"Destination: {dest}")
         return

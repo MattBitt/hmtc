@@ -1,8 +1,7 @@
 import solara
+from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
-from loguru import logger
-from hmtc.mods.file import File
 
 
 @solara.component_vue("./sandbox.vue")

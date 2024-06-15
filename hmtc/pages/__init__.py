@@ -5,6 +5,7 @@ from typing import Optional, cast
 import solara
 import solara.lab
 from loguru import logger
+
 from hmtc.assets.colors import Colors
 from hmtc.config import init_config
 from hmtc.db import (
@@ -22,7 +23,6 @@ from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
 env = config["general"]["environment"]
-
 
 
 match env:
@@ -86,7 +86,7 @@ def setup():
 def Layout(children=[]):
 
     solara.Style(Path("../assets/style.css"))
-    
+
     return solara.AppLayout(
         navigation=False,
         title=title,

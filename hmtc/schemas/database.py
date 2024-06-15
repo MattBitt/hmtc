@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from hmtc.config import init_config
 
+from hmtc.config import init_config
 
 config = init_config()
 

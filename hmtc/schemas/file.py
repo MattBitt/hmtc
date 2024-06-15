@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-
 from hmtc.schemas.base import BaseItem
 
 

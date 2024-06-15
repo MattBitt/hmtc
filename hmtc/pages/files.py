@@ -8,7 +8,8 @@ from loguru import logger
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Channel, File, Playlist, Series, Video
-from hmtc.mods.file import FileManager, File as FileObject
+from hmtc.mods.file import File as FileObject
+from hmtc.mods.file import FileManager
 
 config = init_config()
 
@@ -190,7 +191,7 @@ def Page():
     MySidebar(router=solara.use_router())
     with solara.Column(classes=["main-container"]):
         with solara.Row():
-            solara.Button(f"Add File to a Video", on_click=add_file)
+            solara.Button("Add File to a Video", on_click=add_file)
         with solara.ColumnsResponsive(12, large=4):
             FileTypeCards()
 

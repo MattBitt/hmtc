@@ -1,8 +1,5 @@
-import json
-import urllib
 from typing import Callable
 
-import pandas as pd
 import plotly.graph_objects as go
 import solara
 

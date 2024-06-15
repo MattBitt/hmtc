@@ -1,12 +1,14 @@
-from dataclasses import dataclass, field
-from loguru import logger
+from dataclasses import dataclass
 from pathlib import Path
-import shutil
-from hmtc.utils.general import move_file, is_absolute
-from hmtc.utils.ffmpeg_utils import extract_audio
-from hmtc.config import init_config
-from hmtc.models import Video, get_file_type, File as FileModel
+
+from loguru import logger
 from peewee import fn
+
+from hmtc.config import init_config
+from hmtc.models import File as FileModel
+from hmtc.models import Video, get_file_type
+from hmtc.utils.ffmpeg_utils import extract_audio
+from hmtc.utils.general import move_file
 
 config = init_config()
 WORKING = config["paths"]["working"]

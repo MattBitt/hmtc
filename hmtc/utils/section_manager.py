@@ -5,7 +5,7 @@ from hmtc.models import Section, Video
 
 class SectionManager:
     def __init__(self, video, min_section_length=5):
-        logger.error(f"💥💥💥💥💥💥DELETE ME (6/9/24) 💥💥💥💥💥💥")
+        logger.error("💥💥💥💥💥💥DELETE ME (6/9/24) 💥💥💥💥💥💥")
         self.video = video
         self.sections = video.sections
         self.min_section_length = min_section_length

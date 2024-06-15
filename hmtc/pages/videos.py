@@ -1,7 +1,7 @@
 import solara
 from loguru import logger
 from solara.lab.toestand import Ref
-from hmtc.assets.colors import Colors
+
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.playlist.popover import PlaylistPopover
 from hmtc.components.series.popover import SeriesPopover
@@ -10,7 +10,6 @@ from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.video.cards_list import VideoCards
 from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.config import init_config
-from hmtc.models import Video as VideoTable, Channel
 from hmtc.schemas.video import VideoItem
 from hmtc.states.base import State as BaseState
 
@@ -39,13 +38,14 @@ def FilteredVideosStats(label="Video Stats....", items=[]):
             no_duration = [v for v in items if v.duration is None]
             with_duration = total - len(no_duration)
             manually_edited = [v for v in items if v.manually_edited]
-
+            downloaded = VideoItem.count_vids_with_media_files()
             with solara.Row():
                 ScoreCard("Unique", len(unique))
                 ScoreCard("Non-Unique", nonunique)
                 ScoreCard("No Duration", len(no_duration))
                 ScoreCard("Has Duration", with_duration)
                 ScoreCard("Manually Edited", len(manually_edited))
+                ScoreCard("Videos Downloaded", downloaded)
                 ScoreCard("Total", total)
 
 

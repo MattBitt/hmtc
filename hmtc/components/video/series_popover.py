@@ -1,5 +1,5 @@
 import solara
-from loguru import logger
+
 from hmtc.models import Series
 
 

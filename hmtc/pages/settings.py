@@ -1,10 +1,11 @@
 import solara
-
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Channel, Video as VideoTable
-from hmtc.schemas.video import VideoItem
 from loguru import logger
+
 from hmtc.components.shared.progress_slider import SimpleProgressBar
+from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Channel
+from hmtc.models import Video as VideoTable
+from hmtc.schemas.video import VideoItem
 
 
 class PageState:
@@ -26,6 +27,26 @@ class PageState:
             vt = VideoItem.from_orm(v)
             try:
                 vt.update_from_youtube()
+            except Exception as e:
+                logger.error(f"Error updating video: {e}")
+
+            PageState.i.set(PageState.i.value + 1)
+        logger.info("finished updating videos")
+        PageState.i.set(0)
+        PageState.updating.set(False)
+
+    @staticmethod
+    def download_missing_media_files():
+        logger.debug("Downloading missing media files")
+        PageState.updating.set(True)
+        vids = VideoItem.get_vids_with_no_media_files(
+            limit=PageState.num_to_download.value
+        )
+        logger.info(f"Updating {len(vids)} videos")
+        for v in vids:
+
+            try:
+                v.download_video()
             except Exception as e:
                 logger.error(f"Error updating video: {e}")
 
@@ -69,8 +90,13 @@ def Page():
                         value=PageState.num_to_download,
                     )
                     solara.Button(
-                        label="Download info for 10 Random Videos!",
+                        label="Download info for Random Videos!",
                         on_click=PageState.download_empty_video_info,
+                        classes=["button"],
+                    )
+                    solara.Button(
+                        label="Download media files for Random Videos! (be careful with big numbers....)",
+                        on_click=PageState.download_missing_media_files,
                         classes=["button"],
                     )
                 with solara.Card():

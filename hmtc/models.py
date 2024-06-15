@@ -493,7 +493,7 @@ class Section(BaseModel):
     @property
     def oldbreakpoints(self):
         breaks = set([])
-        logger.error(f"Didn't think this was still used 🐹🐹🐹🐹🐹🐹🐹")
+        logger.error("Didn't think this was still used 🐹🐹🐹🐹🐹🐹🐹")
         for sect in self.sections:
             breaks.add(sect.start)
             breaks.add(sect.end)
@@ -504,7 +504,7 @@ class Section(BaseModel):
 class Breakpoint(BaseModel):
     video = ForeignKeyField(Video, backref="breakpoints")
     timestamp = IntegerField()
-    logger.error(f"DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
+    logger.error("DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp

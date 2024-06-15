@@ -1,18 +1,19 @@
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+
 import peewee
-from peewee import fn
 from loguru import logger
-from hmtc.mods.file import FileManager
+from peewee import fn
+
 from hmtc.config import init_config
 from hmtc.models import File, Playlist, Series, Video
+from hmtc.mods.file import FileManager
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
-from hmtc.utils.youtube_functions import get_video_info
-from peewee import fn
+from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -335,6 +336,9 @@ class VideoItem(BaseItem):
         downloaded = [(a.series, a.downloaded) for a in query]
         total = [(b.series, b.total) for b in query2]
         combined = []
+        for t in total:
+            if t[0].name not in [d[0].name for d in downloaded]:
+                combined.append(({"name": t[0].name, "downloaded": 0, "total": t[1]}))
         for d in downloaded:
             for t in total:
                 if d[0].name == t[0].name:
@@ -342,4 +346,53 @@ class VideoItem(BaseItem):
                         {"name": d[0].name, "downloaded": d[1], "total": t[1]}
                     )
                     break
-        return combined
+        return sorted(combined, key=lambda series: series["name"], reverse=True)
+
+    def download_video(self):
+        def my_hook(*args):
+            pass
+
+        logger.info(f"Downloading video: {self.title}")
+        info, files = download_video_file(
+            self.youtube_id, WORKING, progress_hook=my_hook
+        )
+
+        vid = Video.select().where(Video.id == self.id).get()
+        for file in files:
+
+            logger.debug(f"Processing files in download_video of the list item {file}")
+            FileManager.add_path_to_video(file, vid)
+
+    @staticmethod
+    def get_vids_with_no_media_files(limit=10):
+        vids = (
+            Video.select()
+            .where(
+                (Video.contains_unique_content == True)
+                & (
+                    Video.id.not_in(
+                        File.select(File.video_id).where(File.file_type == "video")
+                    )
+                )
+            )
+            .order_by(Video.duration.asc())
+            .limit(limit)
+        )
+
+        vid_items = [VideoItem.from_orm(v) for v in vids]
+        return vid_items
+
+    @staticmethod
+    def count_vids_with_media_files():
+        return (
+            Video.select()
+            .where(
+                (Video.contains_unique_content == True)
+                & (
+                    Video.id.in_(
+                        File.select(File.video_id).where(File.file_type == "video")
+                    )
+                )
+            )
+            .count()
+        )

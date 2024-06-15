@@ -4,18 +4,16 @@ from typing import Callable
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
+
 from hmtc.assets.colors import Colors
 from hmtc.components.playlist.chip import Chip
-from hmtc.components.series.popover import SeriesPopover
-from hmtc.components.video.series_popover import VideoSeriesPopover
 from hmtc.components.video.edit_modal import VideoEditModal
+from hmtc.components.video.series_popover import VideoSeriesPopover
 from hmtc.config import init_config
 from hmtc.models import Video
-from hmtc.schemas.video import VideoItem
-
-
-from hmtc.utils.youtube_functions import download_video_file
 from hmtc.mods.file import FileManager
+from hmtc.schemas.video import VideoItem
+from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
