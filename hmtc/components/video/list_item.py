@@ -158,6 +158,14 @@ def ActionsToolBar(
             disabled=not has_info,
         )
 
+        ToolTipButton(
+            icon_name="mdi-album",
+            on_click=lambda: router.push(f"/video-album/{video_item.value.id}"),
+            tooltip="Edit Album",
+            color=color,
+            disabled=not has_info,
+        )
+
 
 @solara.component
 def FilesToolbar(

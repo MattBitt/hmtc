@@ -154,7 +154,6 @@ class Series(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Album(BaseModel):
-    MEDIA_PATH = STORAGE / "albums"
 
     name = CharField(unique=True)
     release_date = DateField(null=True)
@@ -405,6 +404,7 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
+    album = ForeignKeyField(Album, backref="video", null=True)
 
     def __repr__(self):
         return f"Video({self.title=})"

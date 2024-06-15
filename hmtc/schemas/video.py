@@ -9,6 +9,7 @@ from peewee import fn
 from hmtc.config import init_config
 from hmtc.models import File, Playlist, Series, Video
 from hmtc.mods.file import FileManager
+
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
@@ -396,3 +397,7 @@ class VideoItem(BaseItem):
             )
             .count()
         )
+
+    @staticmethod
+    def get_album(video_id):
+        album = AlbumTable.select().where()
