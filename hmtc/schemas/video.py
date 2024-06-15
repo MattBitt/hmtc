@@ -11,6 +11,7 @@ from hmtc.models import File, Playlist, Series, Video
 from hmtc.mods.file import FileManager
 
 from hmtc.schemas.base import BaseItem
+from hmtc.models import Album as AlbumTable
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
@@ -400,4 +401,7 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def get_album(video_id):
-        album = AlbumTable.select().where()
+        vid = Video.select().join(AlbumTable).where(Video.id == video_id).get_or_none()
+        if vid:
+            return vid.album
+        return None

@@ -5,6 +5,7 @@ from loguru import logger
 from hmtc.schemas.video import VideoItem
 from hmtc.models import Album as AlbumTable
 from hmtc.mods.file import FileManager
+from hmtc.mods.section import SectionManager
 
 
 @dataclass
@@ -47,11 +48,11 @@ class Album:
             logger.info(f"Creating album for {video}")
             tracks = Album.create_tracks_for_video(video)
             try:
-                AlbumTable.create(video_id=video.id, title=video.title, tracks=tracks)
+                AlbumTable.create(video_id=video.id, name=video.title, tracks=tracks)
             except Exception as e:
                 logger.error(e)
                 raise
-            album = Album(video_id=video.id, title=video.title, tracks=tracks)
+            album = Album(video_id=video.id, name=video.title, tracks=tracks)
             logger.info(f"Album created")
 
             return album
@@ -68,9 +69,10 @@ class Album:
             album = VideoItem.get_album(video_id)
             logger.info(f"Grabbing album for {video_id}")
             if not album:
-                raise ValueError("Album not found")
-            logger.info(f"Album grabbed {album.name}")
+                logger.debug("No Album Found...")
+                return None
 
+            logger.info(f"Album grabbed {album.name}")
             return album
 
         except ValueError as e:
@@ -79,11 +81,15 @@ class Album:
 
     @staticmethod
     def create_tracks_for_video(video: VideoItem):
-        try:
-            if not video:
-                raise ValueError("Video object is required")
 
-            logger.info(f"Creating track for {video}")
+        if not video:
+            raise ValueError("Video object is required")
+
+        logger.info(f"Creating track for {video}")
+        sections = None  # video load sections
+        sm = SectionManager.from_video(video)
+        sections = sm.sections
+        if sections is not None:
             tracks = []
             for section in video.sections:
                 track = Track(
@@ -95,7 +101,5 @@ class Album:
                 tracks.append(track)
 
             return tracks
-
-        except ValueError as e:
-            logger.error(e)
-            raise
+        else:
+            return None

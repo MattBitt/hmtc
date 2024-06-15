@@ -8,7 +8,7 @@ from hmtc.components.section.section_graph import SectionGraphComponent
 from hmtc.components.shared.sidebar import MySidebar
 
 from hmtc.models import Video
-from hmtc.mods.section import Section
+from hmtc.mods.section import Section, SectionManager
 from hmtc.mods.album import Album
 
 title = "Video Album Editor"
@@ -46,13 +46,20 @@ class State:
     def load_album():
 
         video_id = parse_url_args()
+        vid = Video.get_by_id(video_id)
+        album = Album.grab_for_video(video_id)
+        if vid is not None:
+            State.video.set(vid)
+        if album is not None:
+            State.album.set(album)
 
-        State.video.set(Video.get_by_id(video_id))
-        State.album.set(Album.grab_for_video(video_id))
+    @staticmethod
+    def create_album():
+        State.loading.set(True)
 
-        if State.video.duration == 0:
-            solara.Error("Video has no duration. Please Refresh from youtube.")
-            return
+        album = Album.create_for_video(State.video.value)
+        State.album.set(album)
+        State.loading.set(False)
 
     @staticmethod
     def on_new(video, sections: List[Section]):
@@ -78,7 +85,9 @@ def Page():
                     solara.SpinnerSolara(size="100px")
             else:
                 with solara.Column():
-                    solara.Markdown(f"# {State.video.title}")
-                    solara.Markdown(f"Duration: {format_string(State.video.duration)}")
-                    solara.Markdown(f"Album: {State.album.title}")
-                    solara.Markdown(f"Tracks: {len(State.album.tracks)}")
+                    solara.Markdown(f"# {State.video.value.title}")
+                    if State.album.value is None:
+                        solara.Button("Create Album", on_click=State.create_album)
+                    # solara.Markdown(f"Duration: {format_string(State.video.duration)}")
+                    # solara.Markdown(f"Album: {State.album.title}")
+                    # solara.Markdown(f"Tracks: {len(State.album.tracks)}")
