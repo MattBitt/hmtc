@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List
+
 from loguru import logger
-from hmtc.schemas.video import VideoItem
+
 from hmtc.models import Album as AlbumTable
-from hmtc.mods.file import FileManager
 from hmtc.mods.section import SectionManager
+from hmtc.schemas.video import VideoItem
 
 
 @dataclass
@@ -33,7 +33,7 @@ class Album:
             # this should probably delete the tracks too
             logger.info(f"Deleting {album}")
             # album.delete_instance()
-            logger.info(f"Album deleted")
+            logger.info("Album deleted")
 
         except ValueError as e:
             logger.error(e)
@@ -53,7 +53,7 @@ class Album:
                 logger.error(e)
                 raise
             album = Album(video_id=video.id, name=video.title, tracks=tracks)
-            logger.info(f"Album created")
+            logger.info("Album created")
 
             return album
 

@@ -7,11 +7,10 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.config import init_config
+from hmtc.models import Album as AlbumTable
 from hmtc.models import File, Playlist, Series, Video
 from hmtc.mods.file import FileManager
-
 from hmtc.schemas.base import BaseItem
-from hmtc.models import Album as AlbumTable
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
@@ -320,9 +319,12 @@ class VideoItem(BaseItem):
             )
             .join(Series, peewee.JOIN.RIGHT_OUTER)
             .where(
-                Video.id.in_(
-                    File.select(File.video_id).where(File.file_type == "video")
+                (
+                    Video.id.in_(
+                        File.select(File.video_id).where(File.file_type == "video")
+                    )
                 )
+                & (Video.contains_unique_content == True)
             )
             .group_by(Series.name)
         )
@@ -333,6 +335,7 @@ class VideoItem(BaseItem):
                 Series.name,
             )
             .join(Series)
+            .where(Video.contains_unique_content == True)
             .group_by(Series.name)
         )
         downloaded = [(a.series, a.downloaded) for a in query]

@@ -5,18 +5,9 @@ from functools import total_ordering
 from pathlib import Path
 
 from loguru import logger
-from peewee import (
-    AutoField,
-    BooleanField,
-    CharField,
-    DateField,
-    DateTimeField,
-    ForeignKeyField,
-    IntegerField,
-    Model,
-    PostgresqlDatabase,
-    TextField,
-)
+from peewee import (AutoField, BooleanField, CharField, DateField,
+                    DateTimeField, ForeignKeyField, IntegerField, Model,
+                    PostgresqlDatabase, TextField)
 
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, my_move_file

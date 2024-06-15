@@ -6,16 +6,8 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import seed_database
-from hmtc.models import (
-    Channel,
-    File,
-    Playlist,
-    Section,
-    Series,
-    TodoTable,
-    Video,
-    get_file_type,
-)
+from hmtc.models import (Channel, File, Playlist, Section, Series, TodoTable,
+                         Video, get_file_type)
 
 config = init_config()
 

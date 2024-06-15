@@ -7,7 +7,8 @@ from loguru import logger
 from hmtc.components.my_app_bar import MyAppBar
 from hmtc.config import init_config
 from hmtc.models import Channel, Playlist, Series, Video
-from hmtc.utils.general import determine_file_object_association, read_json_file
+from hmtc.utils.general import (determine_file_object_association,
+                                read_json_file)
 
 config = init_config()
 downloads_path = Path(config["paths"]["working"]) / "downloads"

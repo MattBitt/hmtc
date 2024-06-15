@@ -6,27 +6,10 @@ from pathlib import Path
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import (
-    Album,
-    Artist,
-    Beat,
-    BeatArtist,
-    Breakpoint,
-    Channel,
-    EpisodeNumberTemplate,
-    File,
-    Playlist,
-    PlaylistAlbum,
-    Post,
-    Section,
-    Series,
-    TodoTable,
-    Track,
-    TrackBeat,
-    User,
-    UserInfo,
-    Video,
-)
+from hmtc.models import (Album, Artist, Beat, BeatArtist, Breakpoint, Channel,
+                         EpisodeNumberTemplate, File, Playlist, PlaylistAlbum,
+                         Post, Section, Series, TodoTable, Track, TrackBeat,
+                         User, UserInfo, Video)
 from hmtc.utils.general import get_youtube_id
 
 config = init_config()

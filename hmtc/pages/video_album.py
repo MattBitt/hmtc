@@ -1,15 +1,12 @@
-from typing import Callable, List
+from typing import List
 
 import solara
 from loguru import logger
-from solara.lab.toestand import Ref
 
-from hmtc.components.section.section_graph import SectionGraphComponent
 from hmtc.components.shared.sidebar import MySidebar
-
 from hmtc.models import Video
-from hmtc.mods.section import Section, SectionManager
 from hmtc.mods.album import Album
+from hmtc.mods.section import Section
 
 title = "Video Album Editor"
 
