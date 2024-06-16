@@ -5,6 +5,7 @@ from pathlib import Path
 import cv2
 from clip import Clip
 from frame_analyzer import FrameAnalyzer
+
 # from progress.bar import Bar
 from tqdm import tqdm
 
@@ -34,7 +35,6 @@ class LiveStreamVideo:
         self.video.release()
 
     def process_video(self):
-
         # leave this as screen grabs for now
         # once testing is finished should change to video file
         # instead
@@ -198,7 +198,6 @@ def find_letter_counts(target_folder, csv_file):
     donations = []
     text = []
     with open(str(target_folder / csv_file), mode="r") as file:
-
         # reading the CSV file
         csvFile = csv.reader(file)
 
@@ -231,7 +230,6 @@ def find_letter_counts(target_folder, csv_file):
 
 def find_key_words(target_folder, csv_file):
     with open(str(target_folder / csv_file), mode="r") as file:
-
         # reading the CSV file
         csvFile = csv.reader(file)
 

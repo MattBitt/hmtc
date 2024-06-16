@@ -30,9 +30,7 @@ def FilteredVideosStats(label="Video Stats....", items=[]):
         with solara.Card(title=label):
             solara.Error("No videos found", icon="mdi-alert-circle-outline")
     else:
-
         with solara.Card(title=label):
-
             unique = [v for v in items if v.contains_unique_content]
             nonunique = total - len(unique)
             no_duration = [v for v in items if v.duration is None]
@@ -174,7 +172,6 @@ def Page():
     )
     with solara.Column(classes=["main-container", "mb-10"]):
         with solara.Row():
-
             SeriesPopover(
                 current_series=State.series_filter.value,
                 handle_click=State.on_click_series,
@@ -232,7 +229,6 @@ def Page():
                         icon="mdi-alert-circle-outline",
                     )
                 else:
-
                     solara.Error(
                         "No videos found and No text was entered",
                         icon="mdi-alert-circle-outline",

@@ -6,8 +6,16 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import seed_database
-from hmtc.models import (Channel, File, Playlist, Section, Series, TodoTable,
-                         Video, get_file_type)
+from hmtc.models import (
+    Channel,
+    File,
+    Playlist,
+    Section,
+    Series,
+    TodoTable,
+    Video,
+    get_file_type,
+)
 
 config = init_config()
 
@@ -94,7 +102,6 @@ def test_video():
         Video.create(title="test")
 
     except peewee.IntegrityError:
-
         assert len(Video.select()) == 1
 
     v3, created3 = Video.get_or_create(title="test")
@@ -160,7 +167,6 @@ def test_add_poster_to_channel(test_image_filename):
 
 @pytest.mark.xfail
 def test_add_info_to_channel_from_file(test_files):
-
     c = Channel.create(
         name="Test Channel", youtube_id="asdfasdf", url="www.youtube.com"
     )

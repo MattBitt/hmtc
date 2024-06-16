@@ -9,7 +9,6 @@ from hmtc.schemas.playlist import PlaylistItem
 def PlaylistNewTextBox(
     on_change: Callable[[str], None], on_new: Callable[[PlaylistItem], None]
 ):
-
     text_query = solara.use_reactive("")
 
     solara.InputText(

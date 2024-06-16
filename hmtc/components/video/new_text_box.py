@@ -27,7 +27,6 @@ def CustomTextBox(
 def VideoSearchBox(
     on_change: Callable[[str], None], on_new: Callable[[VideoItem], None]
 ):
-
     text_query = solara.use_reactive("")
 
     CustomTextBox(

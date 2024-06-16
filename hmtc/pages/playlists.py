@@ -13,7 +13,6 @@ from hmtc.states.playlists_state import PlaylistsState as State
 
 @solara.component
 def StatsDisplay(stats):
-
     # with solara.Row():
     #     solara.Text(f"Unique Content: ({stats['unique']})")
 
@@ -44,7 +43,6 @@ def Page():
         StatsDisplay(State.stats())
 
         if State.playlists.value:
-
             PlaylistCards(
                 Ref(State.playlists),
                 on_update=State.on_update,

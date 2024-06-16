@@ -31,7 +31,6 @@ def open_modal(
         persistent=True,
         max_width="90%",
     ):
-
         PlaylistEditModal(
             item,
             on_save=on_save_in_edit,

@@ -8,7 +8,6 @@ from hmtc.schemas.playlist import PlaylistItem
 
 @solara.component
 def PlaylistNewButton(on_new: Callable[[PlaylistItem], None]):
-
     def create_new_item(*ignore_args):
         default_yt_id = "youtube_id"
         new_item = PlaylistItem.grab_by_youtube_id(youtube_id=default_yt_id)

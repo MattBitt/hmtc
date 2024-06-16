@@ -16,7 +16,6 @@ def VideoCards(
     on_save: Callable[[], None],
     on_delete: Callable[[], None],
 ):
-
     with solara.ColumnsResponsive(12, large=6):
         for index, item in enumerate(videos.value):
             refr = solara.use_reactive(False)

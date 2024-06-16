@@ -72,7 +72,6 @@ home_row_card = dbc.Card(dbc.CardBody(html.H1("Home Row", id="home_row")))
 
 
 def section_cards(sections):
-
     return html.Div(
         [
             html.H1(

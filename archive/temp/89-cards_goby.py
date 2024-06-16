@@ -65,7 +65,6 @@ def TodoListItem(
     """
     edit, set_edit = solara.use_state(False)
     with v.ListItem():
-
         solara.InputText(f"ID: {todo_item.value.id}", disabled=True)
         solara.InputText(label="", value=Ref(todo_item.fields.text), disabled=True)
         # solara.Markdown(todo_item.value.text)
@@ -121,7 +120,6 @@ def TodoNewTextBox(on_new: Callable[[TodoItem], None]):
 
 @solara.component
 def TodoNewButton(on_new: Callable[[TodoItem], None]):
-
     def create_new_item(*ignore_args):
         new_item = TodoItem(text="Buy Milk (default)", done=False)
         on_new(new_item)
@@ -139,7 +137,6 @@ def TodoNewButton(on_new: Callable[[TodoItem], None]):
 
 
 class State:
-
     initial_items = TodoItem.grab_n_from_db(n=10)
     todos = solara.reactive(initial_items)
 

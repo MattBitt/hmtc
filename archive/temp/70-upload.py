@@ -37,7 +37,6 @@ def FileDropCard():
         progress_complete.set(progress)
 
     with solara.Card():
-
         SimpleProgressBar("Progress", progress_complete.value, 100)
         solara.FileDropMultiple(
             label="Drag and drop a file here to read the first 100 bytes.",
@@ -57,6 +56,5 @@ def FileDropCard():
 @solara.component
 def Page():
     with solara.Card():
-
         solara.Markdown("## Upload File")
         FileDropCard()

@@ -32,7 +32,6 @@ def Page():
         return args[0]
 
     with solara.Column(style={"min-width": "600px"}):
-
         MyCard2(
             section=dict(
                 id=147,

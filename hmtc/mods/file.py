@@ -30,7 +30,6 @@ class File:
         return cls(path=str(p.parent), filename=p.name)
 
     def move_to(self, dest: str) -> "File":
-
         destination = Path(File.folder) / dest
         if not destination.exists():
             logger.info(f"Creating folder {destination}")
@@ -61,7 +60,6 @@ class File:
 
 @dataclass
 class FileManager:
-
     @staticmethod
     def add_file_to_video(file: File, video: Video):
         filetype = get_file_type(file.filename)
@@ -120,7 +118,6 @@ class FileManager:
 
     @staticmethod
     def get_duration_downloaded_videos(series=None):
-
         if series:
             duration = Video.select(fn.Sum(Video.duration)).where(
                 (Video.series == series) & (Video.downloaded == True)

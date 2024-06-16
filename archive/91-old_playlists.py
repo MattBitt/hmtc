@@ -143,7 +143,6 @@ def PlaylistCard(playlist):
 
 @solara.component
 def AddPlaylistCard():
-
     with solara.Card():
         if adding_mode.value is True:
             logger.debug("Adding Playlist")
@@ -166,5 +165,4 @@ def PlaylistsGroup():
 
 @solara.component
 def Page():
-
     PlaylistsGroup()

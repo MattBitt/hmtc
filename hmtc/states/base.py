@@ -2,7 +2,6 @@ from loguru import logger
 
 
 class State:
-
     @classmethod
     def on_new(cls, item):
         logger.debug(f"on_new: {item}, {item.__class__}")

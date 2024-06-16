@@ -1,7 +1,12 @@
 from textual.app import App
 
-from hmtc.ui.screens import (DashboardScreen, HelpScreen, PlaylistListScreen,
-                             QuitScreen, SettingsScreen)
+from hmtc.ui.screens import (
+    DashboardScreen,
+    HelpScreen,
+    PlaylistListScreen,
+    QuitScreen,
+    SettingsScreen,
+)
 
 
 class HMTCApp(App):

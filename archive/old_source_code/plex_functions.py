@@ -2,7 +2,6 @@ from plexapi.server import PlexServer
 
 
 def plex_update_library(plex, library):
-
     harrymack = plex.library.section(library)
     harrymack.update()
 

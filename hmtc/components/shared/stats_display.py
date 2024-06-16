@@ -3,7 +3,6 @@ import solara
 
 @solara.component
 def StatsDisplay(stats):
-
     # with solara.Row():
     #     solara.Text(f"Unique Content: ({stats['unique']})")
 

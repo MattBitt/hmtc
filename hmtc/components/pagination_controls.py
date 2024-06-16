@@ -25,11 +25,13 @@ def PaginationControls(
             on_click=lambda: set_page(1),
             disabled=is_first,
         )
-        solara.Button(
-            "Previous",
-            on_click=lambda: set_page(current_page.value - 1),
-            disabled=(current_page.value == 1),
-        ),
+        (
+            solara.Button(
+                "Previous",
+                on_click=lambda: set_page(current_page.value - 1),
+                disabled=(current_page.value == 1),
+            ),
+        )
 
         solara.Button(
             "Next",

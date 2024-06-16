@@ -56,7 +56,6 @@ def Page():
     with solara.Column(classes=["main-container"]):
         solara.Button("Add Series", on_click=add_series)
         with solara.ColumnsResponsive(12, large=4):
-
             series = Series.select()
             for ser in series:
                 SeriesCard(ser)

@@ -47,7 +47,6 @@ def csv_to_dict(filename):
 
 
 def my_copy_file(source, target):
-
     s = str(Path(source))
     t = str(Path(target))
 
@@ -75,7 +74,6 @@ def save_file_to_disk(source, target):
 
 
 def get_youtube_id(filename):
-
     f = Path(filename)
     pattern = r"^.*___([a-zA-Z0-9_.-]{11}).*"
 
@@ -156,7 +154,6 @@ def determine_file_object_association(file):
             return "channel", data
 
     else:
-
         if file.stem[:2] == "PL" and len(file.stem) > 33:
             p_id = file.stem[:34]
             return "playlist", {"id": p_id}

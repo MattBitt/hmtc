@@ -10,7 +10,6 @@ def _Popover(items, caption, event_on_click):
 
 @solara.component
 def VideoSeriesPopover(current_series, handle_click):
-
     # def on_click(*args):
     #     logger.error(f"local on click for testing 🟣🟣🟣🟣 {args}")
 

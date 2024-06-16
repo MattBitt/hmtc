@@ -21,6 +21,7 @@ if __name__ == "__main__":
 import asyncio
 import os
 import signal
+
 # for finding free ports
 import socket
 from random import randint
@@ -64,7 +65,6 @@ class VlcInstance:
     async def open_vlc(
         self, host: str = "localhost", port: int = get_free_port()
     ) -> None:
-
         if self.writer is not None:  # if socket is already opened
             Exception("vlc is already opened")
             return

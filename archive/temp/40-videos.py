@@ -34,7 +34,6 @@ per_page = solara.reactive(config["general"]["items_per_page"])
 
 @solara.component
 def VideoCard(video):
-
     @task
     def update():
         video.update_from_yt()
@@ -47,7 +46,6 @@ def VideoCard(video):
 
     else:
         with solara.Card():
-
             with solara.Column():
                 if video.poster:
                     solara.Image(video.poster, width="300px")
@@ -85,11 +83,13 @@ def PaginationControls():
             on_click=lambda: current_page.set(1),
             disabled=(current_page.value == 1),
         )
-        solara.Button(
-            "Previous",
-            on_click=lambda: current_page.set(current_page.value - 1),
-            disabled=(current_page.value == 1),
-        ),
+        (
+            solara.Button(
+                "Previous",
+                on_click=lambda: current_page.set(current_page.value - 1),
+                disabled=(current_page.value == 1),
+            ),
+        )
 
         solara.Button(
             "Next",
@@ -175,12 +175,10 @@ def paginated(query):
 
 @solara.component
 def Page():
-
     # this sql will return all videos that have more than 1 section
     # SELECT video.*, (SELECT COUNT(*) FROM section WHERE section.video_id = video.id) AS TOT FROM video where TOT > 1;
 
     with solara.Sidebar():
-
         SortToolBar()
         ShowDisabledVideos()
         ShowVidsWithNoInfo()

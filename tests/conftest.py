@@ -64,7 +64,6 @@ def test_files():
 
 @pytest.fixture(scope="function")
 def test_image_filename():
-
     img = [x for x in SOURCE_PATH.glob("*.png")][0]
 
     my_copy_file(img, TARGET_PATH)

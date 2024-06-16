@@ -27,7 +27,6 @@ def _Dropdown(items, caption, event_on_click, color):
 
 @solara.component
 def Dropdown(items, caption, handle_click, color):
-
     _Dropdown(
         items=items,
         caption=caption,

@@ -8,7 +8,6 @@ from hmtc.schemas.base import BaseItem
 
 @dataclasses.dataclass(frozen=True)
 class PlaylistItem(BaseItem):
-
     title: str = None
     url: str = None
     youtube_id: str = None

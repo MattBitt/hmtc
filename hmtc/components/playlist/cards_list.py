@@ -6,7 +6,6 @@ from hmtc.components.playlist.list_item import PlaylistListItem
 
 @solara.component
 def PlaylistCards(playlists, on_update, on_delete):
-
     with solara.ColumnsResponsive(12, large=4):
         for index, item in enumerate(playlists.value):
             # logger.debug(f"Rendering item {index} {item}")

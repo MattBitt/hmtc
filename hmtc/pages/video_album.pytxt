@@ -41,7 +41,6 @@ class State:
 
     @staticmethod
     def load_album():
-
         video_id = parse_url_args()
         vid = Video.get_by_id(video_id)
         album = Album.grab_for_video(video_id)
@@ -60,7 +59,6 @@ class State:
 
     @staticmethod
     def on_new(video, sections: List[Section]):
-
         # logger.debug(f"Adding new item: {start}, {end}, {section_type}")
         pass
 
@@ -71,7 +69,6 @@ class State:
 
 @solara.component
 def Page():
-
     State.load_album()
 
     MySidebar(router=solara.use_router())

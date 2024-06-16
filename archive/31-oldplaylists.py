@@ -63,7 +63,6 @@ def PlaylistCard(playlist):
 
     @task
     def update():
-
         logger.debug(f"Updating playlist {playlist.title}")
         updating.set(True)
         # time.sleep(3)

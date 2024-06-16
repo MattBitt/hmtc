@@ -178,7 +178,6 @@ def download_video_file(
     output_folder,
     progress_hook=None,
 ):
-
     url = f"https://www.youtube.com/watch?v={id}"
     logger.error("🟣🟣🟣🟣🟣🟣🟣")
     folder = Path(output_folder)

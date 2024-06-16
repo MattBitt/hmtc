@@ -26,7 +26,6 @@ series = solara.reactive([x for x in Series.select()])
 
 
 def get_video(video_id):
-
     query = (
         Video.select()
         .join(PlaylistVideo)
@@ -42,7 +41,6 @@ def get_video(video_id):
 
 
 def get_videos(order_by=None, sort_direction=None):
-
     query = (
         Video.select(Video.id, Video.title)
         .join(PlaylistVideo)
@@ -73,7 +71,6 @@ class VideoFilters:
 
 @solara.component
 def VideoDetail(video_id):
-
     loading, set_loading = solara.use_state(True)
     video = solara.reactive(Video.get(Video.id == video_id))
 
@@ -125,7 +122,6 @@ def calc_number_pages(number_videos, per_page):
 
 @solara.component
 def VideosGalleryComponent(init_query=None):
-
     # query parameters
     per_page = int(config.get("GENERAL", "PER_PAGE"))
     sort, set_sort = solara.use_state(None)
@@ -217,11 +213,9 @@ def VideosGalleryComponent(init_query=None):
 
     else:
         if number_videos == 0:
-
             solara.Markdown("No videos found")
         else:
             with solara.Row(justify="space-between"):
-
                 solara.Markdown(f"## Page {str(current_page)} of {number_pages} ")
                 solara.Markdown(f"(Sort: {sort if sort else ''}) (Filter: {filter} )")
                 solara.Markdown(f"## {number_videos} videos found")
@@ -263,14 +257,12 @@ def VideoDetailCard(video_id):
     if video.value is not None:
         vid = video.value
         with solara.Card(title=vid.title):
-
             solara.Markdown(vid.title)
             # solara.Image(Path(vid.poster), width=f"300px")
 
             solara.Markdown(vid.series.name)
             solara.Markdown(f"**Uploaded**: {vid.upload_date}")
             with solara.CardActions():
-
                 with solara.Link(f"/videos/{vid.id}"):
                     solara.Button("Edit")
 
@@ -326,9 +318,7 @@ def SeriesFilter():
 
 @solara.component
 def Filters(series_filter):
-
     with solara.Card("Filters"):
-
         SeriesFilter()
         with solara.CardActions():
             solara.Button("Apply Filters")
@@ -355,7 +345,6 @@ def Sort():
 
 @solara.component
 def VideosToolBar(series_filter):
-
     with solara.Columns():
         with solara.Row():
             # Filters(series_filter)
@@ -390,7 +379,6 @@ def Page():
         solara.Markdown("## Videos View will go here")
 
     else:
-
         video_id = router.parts[level:][0]
         if video_id.isdigit():
             VideoDetail(get_video(video_id))

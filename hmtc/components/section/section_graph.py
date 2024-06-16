@@ -81,7 +81,6 @@ def format_sections(sections, width=1800):
 def SectionGraphComponent(
     sections, current_selection, on_click, max_section_width=1800, max_section_height=24
 ):
-
     def handle_hover(*args):
         # logger.error(f"Graph Component Hovered Over")
         # logger.debug(f"args: {args}")

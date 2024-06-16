@@ -67,7 +67,6 @@ def DBversusFileCards(db_files, folder_files):
         return
     solara.Markdown("")
     with solara.Card(title="File Issues"):
-
         solara.Markdown(
             f"**{len(missing)}** files that are not in BOTH db and folder (not sure which)"
         )
@@ -168,7 +167,6 @@ def FileTypeInfoCard(ftype):
 
 @solara.component
 def FileTypeCards():
-
     ftypes = ["Series", "Playlists", "Channels", "Videos"]
     for f in ftypes:
         FileTypeInfoCard(f)
@@ -176,7 +174,6 @@ def FileTypeCards():
 
 @solara.component
 def Page():
-
     def add_existing_files():
         logger.error("deprecate me!!!")
         # import_existing_video_files_to_db(folder)

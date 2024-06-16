@@ -93,7 +93,6 @@ def ChannelListItem(
     """
     edit, set_edit = solara.use_state(False)
     with v.ListItem():
-
         solara.InputText(f"ID: {channel_item.value.id}", disabled=True)
         solara.InputText(label="", value=Ref(channel_item.fields.name), disabled=True)
         # solara.Markdown(channel_item.value.text)
@@ -149,7 +148,6 @@ def ChannelNewTextBox(on_new: Callable[[ChannelItem], None]):
 
 @solara.component
 def ChannelNewButton(on_new: Callable[[ChannelItem], None]):
-
     def create_new_item(*ignore_args):
         new_item = ChannelItem(
             name="Some Youtube Channel", enabled=True, youtube_id="1234"
@@ -169,7 +167,6 @@ def ChannelNewButton(on_new: Callable[[ChannelItem], None]):
 
 
 class State:
-
     initial_items = ChannelItem.grab_n_from_db(n=10)
     channels = solara.reactive(initial_items)
 

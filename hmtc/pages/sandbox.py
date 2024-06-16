@@ -5,7 +5,7 @@ from hmtc.components.shared.sidebar import MySidebar
 
 
 @solara.component_vue("./sandbox.vue")
-def Sandbox(event_trigger2):
+def Sandbox(playbackTime=0):
     pass
 
 

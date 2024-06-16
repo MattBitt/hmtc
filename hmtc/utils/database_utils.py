@@ -7,7 +7,6 @@ config = init_config()
 
 
 def delete_and_create_database():
-
     env = config["general"]["environment"]
     if env == "production":
         logger.error("Cannot delete database in production")
@@ -32,7 +31,6 @@ def delete_and_create_database():
 
 
 def delete_database(cursor, db_name):
-
     drop_cmd = f"DROP DATABASE IF EXISTS {db_name};"
 
     cursor.execute(drop_cmd)

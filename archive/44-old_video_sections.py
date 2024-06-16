@@ -164,7 +164,6 @@ class State:
         )
 
     def on_add_breakpoint(self, timestamp):
-
         Breakpoint.create(video=self.video, timestamp=timestamp)
 
         self.breakpoints.value = Breakpoint.select().where(
@@ -198,7 +197,6 @@ def get_id_from_url():
 
 @solara.component
 def Page():
-
     video_id = get_id_from_url()
     try:
         state = State(video_id)

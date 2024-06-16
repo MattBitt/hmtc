@@ -126,7 +126,6 @@ class VideoItem(BaseItem):
         include_nonunique_content=False,
         include_manually_edited=False,
     ):
-
         # sort column is the column 'string' to sort by
         query = Video.select()
         # and = all
@@ -295,7 +294,6 @@ class VideoItem(BaseItem):
 
     def process_downloaded_files(self, files):
         for downloaded_file in files:
-
             if downloaded_file.suffix == ".webp":
                 converted = convert_webp_to_png(downloaded_file)
                 Path(downloaded_file).unlink()
@@ -364,7 +362,6 @@ class VideoItem(BaseItem):
 
         vid = Video.select().where(Video.id == self.id).get()
         for file in files:
-
             logger.debug(f"Processing files in download_video of the list item {file}")
             FileManager.add_path_to_video(file, vid)
 
@@ -408,3 +405,7 @@ class VideoItem(BaseItem):
         if vid:
             return vid.album
         return None
+
+    @staticmethod
+    def get_by_youtube_id(youtube_id):
+        return Video.select().where(Video.youtube_id == youtube_id).get_or_none()

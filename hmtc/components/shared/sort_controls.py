@@ -16,7 +16,6 @@ def SortButton(label, col_name, sort_column, sort_order, on_click):
 
 @solara.component
 def SortControls(state):
-
     def sort_by_created_date():
         state.sort_column.value = "created_at"
         if state.sort_order.value == "asc":

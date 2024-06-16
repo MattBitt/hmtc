@@ -1,6 +1,22 @@
-from models import (Album, AlbumFile, Artist, Base, Beat, Producer, Source,
-                    SourceFile, Tag, Track, TrackArtist, TrackBeat, TrackFile,
-                    TrackProducer, TrackTag, TrackWord, Word)
+from models import (
+    Album,
+    AlbumFile,
+    Artist,
+    Base,
+    Beat,
+    Producer,
+    Source,
+    SourceFile,
+    Tag,
+    Track,
+    TrackArtist,
+    TrackBeat,
+    TrackFile,
+    TrackProducer,
+    TrackTag,
+    TrackWord,
+    Word,
+)
 from sqlalchemy.orm import Session
 
 
@@ -72,7 +88,6 @@ class DBOperations:
         return session.query(self.object_type).all()
 
     def fetchNotIgnored(self, session: Session):
-
         return session.query(self.object_type).filter_by(ignore=False)
 
     def fetchIgnored(self, session: Session):

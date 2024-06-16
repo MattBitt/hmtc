@@ -79,7 +79,6 @@ def write_to_disk(file: FileInfo):
 
 
 def VideoDetail(video_id):
-
     video = Video.select().join(Section).where(Video.id == video_id).get_or_none()
     if video is None:
         return solara.Markdown("No Video Found")

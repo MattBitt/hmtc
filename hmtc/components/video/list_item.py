@@ -41,7 +41,6 @@ def download_video(video_item):
 
     vid = Video.select().where(Video.id == video_item.value.id).get()
     for file in files:
-
         logger.debug(f"Processing files in download_video of the list item {file}")
         FileManager.add_path_to_video(file, vid)
 
@@ -180,7 +179,6 @@ def FilesToolbar(
     justify="center",
     refresh_query=None,
 ):
-
     def dwnld():
         logger.error("Downloading video")
         refreshing.set(True)
@@ -199,7 +197,6 @@ def FilesToolbar(
     color = "FFA500"
 
     with solara.Row(justify=justify):
-
         ToolTipButton(
             icon_name="mdi-information",
             on_click=updt,

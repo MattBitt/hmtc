@@ -25,10 +25,8 @@ def get_env():
 
 
 def get_config_file(file: str):
-
     config = Path(CONFIG) / file
     if not config.exists():
-
         raise FileNotFoundError(f"Config file {config} does not exist")
     return config
 
@@ -51,7 +49,6 @@ def check_paths():
 
 
 def init_config():
-
     try:
         env = get_env()
         if env in ["development", "testing", "staging"]:

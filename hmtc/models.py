@@ -5,9 +5,18 @@ from functools import total_ordering
 from pathlib import Path
 
 from loguru import logger
-from peewee import (AutoField, BooleanField, CharField, DateField,
-                    DateTimeField, ForeignKeyField, IntegerField, Model,
-                    PostgresqlDatabase, TextField)
+from peewee import (
+    AutoField,
+    BooleanField,
+    CharField,
+    DateField,
+    DateTimeField,
+    ForeignKeyField,
+    IntegerField,
+    Model,
+    PostgresqlDatabase,
+    TextField,
+)
 
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, my_move_file
@@ -118,7 +127,6 @@ class Series(BaseModel):
 
     @property
     def poster(self):
-
         p = self._poster(self.id)
         if p:
             return p.file_string
@@ -141,14 +149,6 @@ class Series(BaseModel):
 
     def __str__(self):
         return f"Series({self.name})"
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Album(BaseModel):
-
-    name = CharField(unique=True)
-    release_date = DateField(null=True)
-    series = ForeignKeyField(Series, backref="albums", null=True)
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -274,7 +274,6 @@ class Playlist(BaseModel):
     def download_playlist_info(
         cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
     ):
-
         def download_playlist_info_from_id(*args, **kwargs):
             logger.error("Deprecated download_playlist_info ... from_id")
             return None
@@ -395,7 +394,6 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
-    album = ForeignKeyField(Album, backref="video", null=True)
 
     def __repr__(self):
         return f"Video({self.title=})"
@@ -405,19 +403,6 @@ class Video(BaseModel):
 class EpisodeNumberTemplate(BaseModel):
     playlist = ForeignKeyField(Playlist, backref="episode_number_templates")
     template = CharField()
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Track(BaseModel):
-    title = CharField(null=True)
-    track_number = CharField(null=True)
-    album = ForeignKeyField(Album, backref="tracks", null=True)
-    video = ForeignKeyField(Video, backref="tracks", null=True)
-    start_time = IntegerField(null=True)
-    length = IntegerField(null=True)
-    end_time = IntegerField(null=True)
-    words = CharField(null=True)
-    notes = CharField(null=True)
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -489,66 +474,6 @@ class Section(BaseModel):
             breaks.add(sect.start)
             breaks.add(sect.end)
         return breaks
-
-
-@total_ordering
-class Breakpoint(BaseModel):
-    video = ForeignKeyField(Video, backref="breakpoints")
-    timestamp = IntegerField()
-    logger.error("DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
-
-    def __lt__(self, other):
-        return self.timestamp < other.timestamp
-
-    class Meta:
-        indexes = ((("video", "timestamp"), True),)
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Artist(BaseModel):
-    name = CharField()
-    url = CharField(null=True)
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Beat(BaseModel):
-    name = CharField()
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class TrackBeat(BaseModel):
-    beat = ForeignKeyField(Beat, backref="tracks")
-    track = ForeignKeyField(Track, backref="beats")
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and track
-            (("beat", "track"), True),
-        )
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class BeatArtist(BaseModel):
-    beat = ForeignKeyField(Beat, backref="artists")
-    artist = ForeignKeyField(Artist, backref="beats")
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("beat", "artist"), True),
-        )
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class PlaylistAlbum(BaseModel):
-    album = ForeignKeyField(Album, backref="playlists")
-    playlist = ForeignKeyField(Playlist, backref="albums")
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("album", "playlist"), True),
-        )
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -656,3 +581,84 @@ class File(BaseModel):
 
         # p = Path(self.path) / (self.filename + self.extension)
         # return str(p)
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class Album(BaseModel):
+    title = CharField(unique=True)
+    release_date = DateField(null=True)
+    series = ForeignKeyField(Series, backref="albums", null=True)
+    video = ForeignKeyField(Video, backref="album", null=True)
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class Track(BaseModel):
+    title = CharField(null=True)
+    track_number = CharField(null=True)
+    album = ForeignKeyField(Album, backref="tracks", null=True)
+    video = ForeignKeyField(Video, backref="tracks", null=True)
+    start_time = IntegerField(null=True)
+    length = IntegerField(null=True)
+    end_time = IntegerField(null=True)
+    words = CharField(null=True)
+    notes = CharField(null=True)
+
+
+@total_ordering
+class Breakpoint(BaseModel):
+    video = ForeignKeyField(Video, backref="breakpoints")
+    timestamp = IntegerField()
+    logger.error("DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
+
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp
+
+    class Meta:
+        indexes = ((("video", "timestamp"), True),)
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class Artist(BaseModel):
+    name = CharField()
+    url = CharField(null=True)
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class Beat(BaseModel):
+    name = CharField()
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class TrackBeat(BaseModel):
+    beat = ForeignKeyField(Beat, backref="tracks")
+    track = ForeignKeyField(Track, backref="beats")
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and track
+            (("beat", "track"), True),
+        )
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class BeatArtist(BaseModel):
+    beat = ForeignKeyField(Beat, backref="artists")
+    artist = ForeignKeyField(Artist, backref="beats")
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and Artist
+            (("beat", "artist"), True),
+        )
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class PlaylistAlbum(BaseModel):
+    album = ForeignKeyField(Album, backref="playlists")
+    playlist = ForeignKeyField(Playlist, backref="albums")
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and Artist
+            (("album", "playlist"), True),
+        )

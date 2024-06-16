@@ -17,7 +17,6 @@ def write_to_disk(file: FileInfo):
 
 @solara.component
 def SourceSearchCard(query, choice, process_file):
-
     def clear():
         query.value = ""
         choice.value = "Detect"

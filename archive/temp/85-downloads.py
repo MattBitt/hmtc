@@ -7,8 +7,7 @@ from loguru import logger
 from hmtc.components.my_app_bar import MyAppBar
 from hmtc.config import init_config
 from hmtc.models import Channel, Playlist, Series, Video
-from hmtc.utils.general import (determine_file_object_association,
-                                read_json_file)
+from hmtc.utils.general import determine_file_object_association, read_json_file
 
 config = init_config()
 downloads_path = Path(config["paths"]["working"]) / "downloads"
@@ -124,7 +123,6 @@ def VideoFilesCard(file, data):
 
 @solara.component
 def FileCard(file, playlist_id=None):
-
     def add_file_to_playlist():
         logger.debug(f"Adding file {file} to playlist {playlist_id}")
         if file.suffix == ".json":
@@ -150,7 +148,6 @@ def FileCard(file, playlist_id=None):
 
 @solara.component
 def UnknownFilesCard(file, data):
-
     def delete_file():
         try:
             (Path(downloads_path) / file).unlink()

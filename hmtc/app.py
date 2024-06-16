@@ -7,7 +7,6 @@ app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")
 
 @app.route("/hello")
 def hello_world():
-
     return "Hi Earth"
 
 

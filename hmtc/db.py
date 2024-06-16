@@ -6,10 +6,27 @@ from pathlib import Path
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import (Album, Artist, Beat, BeatArtist, Breakpoint, Channel,
-                         EpisodeNumberTemplate, File, Playlist, PlaylistAlbum,
-                         Post, Section, Series, TodoTable, Track, TrackBeat,
-                         User, UserInfo, Video)
+from hmtc.models import (
+    Album,
+    Artist,
+    Beat,
+    BeatArtist,
+    Breakpoint,
+    Channel,
+    EpisodeNumberTemplate,
+    File,
+    Playlist,
+    PlaylistAlbum,
+    Post,
+    Section,
+    Series,
+    TodoTable,
+    Track,
+    TrackBeat,
+    User,
+    UserInfo,
+    Video,
+)
 from hmtc.utils.general import get_youtube_id
 
 config = init_config()
@@ -74,7 +91,6 @@ def drop_tables(db):
 
 
 def init_db(db, config):
-
     db.init(
         database=config["database"]["name"],
         user=config["database"]["user"],
@@ -93,7 +109,6 @@ def seed_database():
 
 
 def import_series():
-
     with open(MEDIA_INFO / "series" / "series.txt", "r") as f:
         series = f.readlines()
         for s in series:

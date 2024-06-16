@@ -114,6 +114,7 @@ class SectionManager:
         )
         self.save_to_db(section)
         self._sections.append(section)
+        return section
 
     def add_section(self, section: Section) -> None:
         logger.error("Using instance of SectionManager (self) - add_section")

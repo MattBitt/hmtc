@@ -9,6 +9,7 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section as SectionTable
 from hmtc.models import Video
 from hmtc.mods.section import Section, SectionManager
+from hmtc.mods.album import Album
 
 title = "Section Editor"
 
@@ -46,14 +47,14 @@ def format_string(x: int):
     return f"{h:02d}:{m:02d}:{s:02d}"
 
 
-@solara.component
-def Sidebar():
-    with solara.Sidebar():
-        solara.Markdown("Sidebar")
-        with solara.Column(style={"flex-direction": "column", "align-items": "left"}):
-            solara.Button("Videos", href="/videos", outlined=True)
-            solara.Button("Playlists", href="/playlists", outlined=True)
-            solara.Button("Settings", href="/settings", outlined=True, color="red")
+# @solara.component
+# def Sidebar():
+#     with solara.Sidebar():
+#         solara.Markdown("Sidebar")
+#         with solara.Column(style={"flex-direction": "column", "align-items": "left"}):
+#             solara.Button("Videos", href="/videos", outlined=True)
+#             solara.Button("Playlists", href="/playlists", outlined=True)
+#             solara.Button("Settings", href="/settings", outlined=True, color="red")
 
 
 @solara.component_vue("../components/section/section_item.vue", vuetify=True)
@@ -76,7 +77,6 @@ def SectionCarousel(
     next_section: Callable[[dict], None],
     previous_section: Callable[[dict], None],
 ):
-
     start_time = solara.use_reactive(selected_section.value.start)
     end_time = solara.use_reactive(selected_section.value.end)
     section_type = solara.use_reactive(selected_section.value.section_type)
@@ -123,6 +123,11 @@ def SectionCarousel(
         )
 
 
+@solara.component_vue("../components/audio_player.vue", vuetify=True)
+def AudioPlayer(playbackTime=0):
+    pass
+
+
 @solara.component
 def SectionControlPanel(
     video,
@@ -130,7 +135,6 @@ def SectionControlPanel(
     loading: solara.Reactive[bool],
     on_delete: Callable[[Section], None],
 ):
-
     start = solara.reactive(0)
     end = solara.reactive(video.duration)
     section_type = solara.reactive("intro")
@@ -157,7 +161,6 @@ def SectionControlPanel(
         loading.value = False
 
     def split():
-
         logger.debug(f"Splitting {video.title} into {num_sections.value} sections")
         logger.debug(
             f"Each section will be { video.duration / num_sections.value} seconds long"
@@ -177,40 +180,67 @@ def SectionControlPanel(
         split()
         loading.value = False
 
-    def split_into_2():
+    def split_evenly():
         loading.value = True
-        num_sections.value = 2
-        split()
-        loading.value = False
-
-    def split_into_10():
-        loading.value = True
-        num_sections.value = 10
-        split()
-        loading.value = False
-
-    def split_into_40():
-        loading.value = True
-        num_sections.value = 40
+        num_sections.value = video.duration // 60
         split()
         loading.value = False
 
     with solara.Column():
-        solara.Markdown("#### Clear and Create Sections")
-        with solara.Row():
-            solara.Button("1", on_click=split_into_1)
-            solara.Button("2", on_click=split_into_2)
-            solara.Button("10", on_click=split_into_10)
-            solara.Button("40", on_click=split_into_40)
-            solara.Button("Clear All Sections", on_click=clear_sections)
+        solara.Markdown("#### Section Control Panel")
+        with solara.Column(align="center"):
+            solara.Button("Single Section", on_click=split_into_1, classes=["button"])
+            solara.Button("Split Evenly", on_click=split_evenly, classes=["button"])
+            solara.Button(
+                "Clear All Sections", on_click=clear_sections, classes=["button"]
+            )
 
 
 @solara.component
-def VideoInfo(video: solara.Reactive[Section]):
+def AlbumInfo(video, album):
+    def delete_album():
+        album.value.delete_album()
+        album.set(None)
+
+    def create_album():
+        Album.create_for_video(video)
+        album.set(Album.grab_for_video(video.id))
+
+    def update_album():
+        logger.debug("Updating Album")
+        Album.update_album(title=album.value.title, video_id=video.id)
+
+    has_album = album.value is not None
+    if has_album:
+        solara.InputText(
+            label="Album Title",
+            value=album.value.title,
+            on_value=lambda x: album.set(Album(title=x, video_id=video.id, tracks=[])),
+        )
+        solara.Button(
+            label="Save Album",
+            on_click=update_album,
+        )
+        solara.Button(
+            f"Delete Album",
+            on_click=delete_album,
+        )
+    else:
+        solara.Button(
+            f"Create Album",
+            on_click=create_album,
+            disabled=has_album,
+        )
+
+
+@solara.component
+def VideoInfo(video):
     h, m, s = video.duration // 3600, (video.duration % 3600) // 60, video.duration % 60
     duration_string = f"{h:02d}:{m:02d}:{s:02d}"
+
     with solara.Column():
-        solara.Markdown(f"## {video.title}")
+        solara.Markdown(f"### {video.title}")
+
         with solara.Row(justify="space-between"):
             solara.Markdown(f"#### Duration: **{duration_string}**")
             with solara.Column():
@@ -234,7 +264,6 @@ class State:
 
     @staticmethod
     def load_sections():
-
         video_id = parse_url_args()
 
         State.video = Video.get_by_id(video_id)
@@ -262,7 +291,6 @@ class State:
 
     @staticmethod
     def on_new(video, start: int, end: int, section_type: str):
-
         # logger.debug(f"Adding new item: {start}, {end}, {section_type}")
         sm = SectionManager.from_video(video)
         sm.create_section(start=start, end=end, section_type=section_type)
@@ -335,7 +363,6 @@ class State:
 
 @solara.component
 def Page():
-
     State.load_sections()
 
     # package the section info for the section carousel
@@ -354,6 +381,10 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Columns(6, 6):
             VideoInfo(State.video)
+            album = solara.use_reactive(Album.grab_for_video(State.video.id))
+            with solara.Card():
+                AlbumInfo(State.video, album)
+
             SectionControlPanel(
                 video=State.video,
                 on_new=State.on_new,
@@ -376,6 +407,7 @@ def Page():
                 max_section_width=State.width,
                 max_section_height=State.height,
             )
+            AudioPlayer()
             SectionCarousel(
                 slides=carousel_sections,
                 selected_section=Ref(State.selected_section),

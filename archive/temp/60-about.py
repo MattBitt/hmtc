@@ -49,7 +49,6 @@ def Page():
 
     @task
     def update():
-
         updating.set(True)
         result: solara.Result[bool] = solara.use_thread(some_task)
         if result.error:
@@ -62,7 +61,6 @@ def Page():
         solara.Markdown(f"## Vids in DB: {vids_in_db}")
         solara.Markdown(f"DB Name {config.get('DATABASE', 'NAME')}")
     with solara.Card():
-
         if updating.value is True:
             solara.SpinnerSolara(size="100px")
         else:

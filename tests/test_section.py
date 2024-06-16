@@ -35,7 +35,7 @@ def test_section_manager(video):
 
 
 def test_section_manager_from_db(video):
-
+    video.youtube_id = "test1234"
     sm = SectionManager.from_video(video)
     assert sm.duration == 8531
     assert sm.sections == []

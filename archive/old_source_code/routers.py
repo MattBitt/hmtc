@@ -6,13 +6,28 @@ from db import get_session
 from fastapi import APIRouter, Depends, HTTPException
 from my_logging import logger
 from plex_functions import currently_playing
-from schemas import (AlbumBaseSchema, AlbumSchema, AlbumWithRelationships,
-                     ArtistBaseSchema, ArtistSchema, BeatBaseSchema,
-                     BeatSchema, ProducerBaseSchema, ProducerSchema,
-                     SourceSchema, SourceWithRelationships, TagBaseSchema,
-                     TagSchema, TrackBaseSchema, TrackSchema,
-                     TrackWithRelationships, WhatsPlayingSchema,
-                     WordBaseSchema, WordSchema, WordWithRelationships)
+from schemas import (
+    AlbumBaseSchema,
+    AlbumSchema,
+    AlbumWithRelationships,
+    ArtistBaseSchema,
+    ArtistSchema,
+    BeatBaseSchema,
+    BeatSchema,
+    ProducerBaseSchema,
+    ProducerSchema,
+    SourceSchema,
+    SourceWithRelationships,
+    TagBaseSchema,
+    TagSchema,
+    TrackBaseSchema,
+    TrackSchema,
+    TrackWithRelationships,
+    WhatsPlayingSchema,
+    WordBaseSchema,
+    WordSchema,
+    WordWithRelationships,
+)
 from sqlalchemy.orm import Session
 
 source_router = APIRouter(prefix="/sources", tags=["Sources"])
@@ -28,7 +43,6 @@ whatsplaying_router = APIRouter(prefix="/whatsplaying", tags=["Whats Playing"])
 
 @source_router.get("/", response_model=List[SourceSchema])
 def read_sources(session: Session = Depends(get_session)):
-
     sources = crud.SourceRepo.fetchNotIgnored(session=session).all()
     logger.debug("Getting all sources")
     return sources
@@ -82,7 +96,6 @@ def read_source(id: int, session: Session = Depends(get_session)):
 
 @source_router.put("/{id}", response_model=SourceSchema)
 def update_source(source: SourceSchema, session: Session = Depends(get_session)):
-
     updated_source = crud.SourceRepo.fetchById(id=source.id, session=session)
     if updated_source:
         updated_source.video_title = source.video_title

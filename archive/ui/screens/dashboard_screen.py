@@ -12,7 +12,6 @@ def get_ep_num_templates(playlist: Playlist):
 
 class DashboardScreen(Screen):
     def compose(self) -> ComposeResult:
-
         yield Header()
         yield Button("My First Button", id="first")
         yield RichLog()

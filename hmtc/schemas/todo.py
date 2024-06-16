@@ -8,7 +8,6 @@ from hmtc.models import TodoTable
 # our model for a todo item, immutable/frozen avoids common bugs
 @dataclasses.dataclass(frozen=True)
 class TodoItem:
-
     text: str
     done: bool
     id: int = None

@@ -4,7 +4,6 @@ import vlc
 
 
 def video(source):
-
     # creating a vlc instance
     vlc_instance = vlc.Instance()
 

@@ -50,7 +50,6 @@ def import_existing_tracks(filename):
 
 
 def download_missing_files(self):
-
     download_path = WORKING / "downloads"
     media_path = STORAGE / "videos"
 

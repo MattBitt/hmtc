@@ -14,14 +14,12 @@ class FileInfo(TypedDict):
 
 @solara.component
 def FileDropCard(on_file, lazy=False):
-
     progress_complete = solara.use_reactive(0)
 
     def update_progress(progress: float):
         progress_complete.set(progress)
 
     with solara.Card():
-
         SimpleProgressBar("Progress", progress_complete.value, 100)
         solara.FileDrop(
             label="Drag and drop a file here.",

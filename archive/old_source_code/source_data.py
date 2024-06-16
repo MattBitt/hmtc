@@ -12,8 +12,7 @@ from configs import cnf
 from db import Base, db_session, engine
 from my_logging import logger
 from utils import move_file, write_dict_to_yaml
-from yt_dlp_functions import (download_files, get_collection_url_list,
-                              get_json_info)
+from yt_dlp_functions import download_files, get_collection_url_list, get_json_info
 
 
 def parse_yaml(yaml_file):
@@ -348,7 +347,6 @@ def add_rest_of_videos_to_db():
         urls_in_db = read_urls_from_db()
 
         for url in urls:
-
             if url not in urls_in_db:
                 if "shorts" not in url:  # ignore shorts on the channel
                     metadata = get_source_metadata(url)
@@ -434,14 +432,12 @@ def compute_source_file_paths(source, source_root_path, files):
 
 
 def verify_files_exist():
-
     # i built this to verify source repo files only
     # and later expanded it to be more generic
     # should probably move to a different file
     file_models = [crud.SourceFileRepo, crud.TrackFileRepo]
     logger.info("Checking that all files listed in db exist on disk")
     for fm in file_models:
-
         session = db_session()
         file_list = fm.fetchAll(session)
         session.close
@@ -494,7 +490,6 @@ def download_sources():
 
 
 def update_sources_in_db():
-
     individual_videos = parse_individual_videos()
     add_collections_to_db(individual_videos)
     add_individual_video_to_db(individual_videos)

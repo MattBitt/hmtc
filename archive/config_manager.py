@@ -2,7 +2,6 @@ from pydantic import BaseSettings
 
 
 class ConfigManager(BaseSettings):
-
     app_name: str = "Harry Mack Track Creator"
     debug: bool
     db_name: str = "hmtc-"

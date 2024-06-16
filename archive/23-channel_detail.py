@@ -87,7 +87,6 @@ def write_to_disk(file: FileInfo):
 
 
 def ChannelDetail(channel_id):
-
     channel = Channel.select().where(Channel.id == channel_id).get()
     name.set(channel.name)
     url.set(channel.url)

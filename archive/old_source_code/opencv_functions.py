@@ -57,7 +57,6 @@ def extract_images_from_video():
         while cap.isOpened():
             success, image = cap.read()
             if success:
-
                 count += 1
                 if not (count % fps):  # sample one frame each second
                     file_number_str = str(int(count / fps)).zfill(6)
@@ -73,7 +72,6 @@ def extract_images_from_video():
 
 
 def read_text_from_image(image, super_chat_color, text_color="black"):
-
     # Need to redo this whole section!!!!
     """Reads text from an image file and outputs found text to text file"""
     # Convert the image to grayscale
@@ -100,7 +98,10 @@ def read_text_from_image(image, super_chat_color, text_color="black"):
         )
     else:
         ret, thresh = cv2.threshold(
-            thresh, 120, 255, cv2.THRESH_BINARY  # cv2.THRESH_OTSU
+            thresh,
+            120,
+            255,
+            cv2.THRESH_BINARY,  # cv2.THRESH_OTSU
         )  # | cv2.THRESH_BINARY)
 
     save_image(thresh, "after_threshold.png", hsv=False)
@@ -127,7 +128,6 @@ def read_text_from_image(image, super_chat_color, text_color="black"):
 
 
 def create_color_mask(image, color):
-
     return cv2.inRange(image, color[0], color[1])
 
 
@@ -142,7 +142,6 @@ def save_image(im, filename, hsv=True):
 
 
 def draw_contours(image, contours, filename):
-
     return cv2.drawContours(
         image=image,
         contours=contours,
@@ -417,7 +416,6 @@ def find_superchat_in_image(img, filename, current_time):
 
 
 def plot_histogram(filename):
-
     img = cv2.imread(filename)
     assert img is not None, "file could not be read, check with os.path.exists()"
     # plt.hist(img.ravel(), 256, [0, 256])
@@ -549,7 +547,6 @@ def add_text_to_image(
         else:
             lines_to_print.append(item)
     for line in lines_to_print:
-
         x, y = top_left_xy
 
         # ====== get text size
@@ -993,7 +990,6 @@ if __name__ == "__main__":
         MAX_TIME_TO_BE_ACTIVE = 4
         frame_counter = 0
         for f in file_list:
-
             current_time += 1  # position in the video.  1 sec = 30 frames (need to verify per video)
             print(f"checking for superchats for {f} ")
             if active_message_clip.super_chat:
@@ -1013,7 +1009,6 @@ if __name__ == "__main__":
                 paf = potential_active_message_clip.image
 
                 if current_frame != active_message_clip:
-
                     print("current NO MATCH FOR active")
                     if current_frame == potential_active_message_clip:
                         print(

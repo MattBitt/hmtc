@@ -1,11 +1,41 @@
+import csv
 import solara
-from loguru import logger
+import operator
+from itertools import groupby
 
+from loguru import logger
+from pathlib import Path
+import os
 from hmtc.components.shared.progress_slider import SimpleProgressBar
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Channel
 from hmtc.models import Video as VideoTable
 from hmtc.schemas.video import VideoItem
+from hmtc.mods.album import Album, Track
+from hmtc.mods.section import SectionManager
+
+
+MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
+
+
+def import_tracks():
+    track_file = MEDIA_INFO / "tracks/track_info.csv"
+    with open(track_file, "r", encoding="utf") as f:
+        csv_file = csv.DictReader(f)
+        tracks = []
+        for row in csv_file:
+            tracks.append(
+                dict(
+                    title=row["words"],
+                    youtube_id=row["youtube_id"],
+                    start=row["start"],
+                    end=row["end"],
+                    length=row["length"],
+                )
+            )
+            pass
+    key_func = operator.itemgetter("youtube_id")
+    return groupby(tracks, key=key_func)
 
 
 class PageState:
@@ -44,7 +74,6 @@ class PageState:
         )
         logger.info(f"Updating {len(vids)} videos")
         for v in vids:
-
             try:
                 v.download_video()
             except Exception as e:
@@ -62,6 +91,34 @@ class PageState:
         for c in channels:
             c.check_for_new_videos()
         PageState.updating.set(False)
+
+    @staticmethod
+    def import_track_info():
+        grouped_tracks = import_tracks()
+        current_id = None
+        for id, tracks in grouped_tracks:
+
+            video = VideoItem.get_by_youtube_id(id)
+            if video:
+                album = Album.grab_for_video(video.id)
+                if not album:
+                    album = Album.create_for_video(video)
+                if video.duration == 0 or video.duration is None:
+                    video.duration = 7200
+
+                sm = SectionManager.from_video(video)
+                if len(sm.sections) > 0:
+                    logger.error(f"Sections already exist for {video}. Skipping Import")
+                    continue
+
+                for track in tracks:
+                    section = sm.create_section(
+                        start=int(track["start"]),
+                        end=int(track["end"]),
+                        section_type="instrumental",
+                    )
+                logger.debug(f"Section created: {section}")
+                # album.add_track(section=section)
 
 
 @solara.component
@@ -103,5 +160,11 @@ def Page():
                     solara.Button(
                         label="Check for New Videos",
                         on_click=PageState.refresh_videos_from_youtube,
+                        classes=["button"],
+                    )
+                with solara.Card():
+                    solara.Button(
+                        label="Import Track Info",
+                        on_click=PageState.import_track_info,
                         classes=["button"],
                     )
