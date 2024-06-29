@@ -32,7 +32,7 @@ class VideoItem(BaseItem):
     upload_date: datetime = None
     duration: int = 0
     description: str = None
-    contains_unique_content: bool = False
+    contains_unique_content: bool = True
     has_chapters: bool = False
     manually_edited: bool = False
     series_name: str = "Default"
@@ -56,7 +56,7 @@ class VideoItem(BaseItem):
         audio_file = (
             File.select()
             .where((File.video_id == id) & (File.file_type == "audio"))
-            .get()
+            .get_or_none()
         )
         if audio_file is None:
             return None
@@ -194,7 +194,7 @@ class VideoItem(BaseItem):
                 description=item.description,
                 contains_unique_content=item.contains_unique_content,
                 has_chapters=item.has_chapters,
-                series_name=(item.series.name if item.series != "NOSERIES" else "---"),
+                series_name=item.series.name,
                 playlist_name=(item.playlist.title if item.playlist else "---"),
             )
             for item in query
@@ -403,9 +403,43 @@ class VideoItem(BaseItem):
     def get_album(video_id):
         vid = Video.select().join(AlbumTable).where(Video.id == video_id).get_or_none()
         if vid:
-            return vid.album
+            return vid.album.get_or_none()
         return None
 
     @staticmethod
     def get_by_youtube_id(youtube_id):
         return Video.select().where(Video.youtube_id == youtube_id).get_or_none()
+
+    @staticmethod
+    def get_unique_with_no_durations():
+        return Video.select().where(
+            (Video.duration.is_null() & Video.contains_unique_content == True)
+        )
+
+    @staticmethod
+    def get_by_id(video_id):
+        return Video.select().where(Video.id == video_id).get_or_none()
+
+    @staticmethod
+    def get_youtube_ids():
+
+        return Video.select(Video.youtube_id)
+
+    @staticmethod
+    def create_from_youtube_id(youtube_id):
+        info, files = get_video_info(youtube_id=youtube_id, output_folder=WORKING)
+        series = Series.get(Series.name == "UNSORTED")
+        vid = Video.create(
+            title=info["title"],
+            url=info["webpage_url"],
+            youtube_id=info["id"],
+            upload_date=info["upload_date"],
+            enabled=True,
+            duration=info["duration"],
+            description=info["description"],
+            series_id=series.id,
+            contains_unique_content=True,
+        )
+        for file in files:
+            FileManager.add_path_to_video(file, vid)
+        return vid

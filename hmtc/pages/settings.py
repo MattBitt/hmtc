@@ -12,10 +12,14 @@ from hmtc.models import Channel
 from hmtc.models import Video as VideoTable
 from hmtc.schemas.video import VideoItem
 from hmtc.mods.album import Album, Track
-from hmtc.mods.section import SectionManager
-
+from hmtc.mods.section import SectionManager, Section
+from hmtc.config import init_config
+from hmtc.mods.track import TrackItem
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
+config = init_config()
+WORKING = Path(config["paths"]["working"])
+STORAGE = Path(config["paths"]["storage"])
 
 
 def import_tracks():
@@ -86,10 +90,20 @@ class PageState:
 
     @staticmethod
     def refresh_videos_from_youtube():
+        logger.debug(f"Refreshing videos from youtube")
         PageState.updating.set(True)
+        existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
+
         channels = Channel.select().where(Channel.enabled == True)
         for c in channels:
-            c.check_for_new_videos()
+            yt_ids = c.grab_ids()
+
+            for id in yt_ids:
+                if id not in existing_ids:
+                    logger.debug(f"Found a new video. Adding to Database {id}")
+
+                    VideoItem.create_from_youtube_id(id)
+                    PageState.i.set(PageState.i.value + 1)
         PageState.updating.set(False)
 
     @staticmethod
@@ -118,7 +132,17 @@ class PageState:
                         section_type="instrumental",
                     )
                 logger.debug(f"Section created: {section}")
-                # album.add_track(section=section)
+
+    @staticmethod
+    def create_tracks_from_sections():
+
+        for sect in Section.get_all():
+            vid = VideoItem.get_by_id(sect.video_id)
+            album = VideoItem.get_album(video_id=vid.id)
+            track = TrackItem.create_from_section(video=vid, album=album, section=sect)
+            if track:
+                track.write_file()
+        pass
 
 
 @solara.component
@@ -166,5 +190,11 @@ def Page():
                     solara.Button(
                         label="Import Track Info",
                         on_click=PageState.import_track_info,
+                        classes=["button"],
+                    )
+                with solara.Card():
+                    solara.Button(
+                        label="Create Tracks from Sections",
+                        on_click=PageState.create_tracks_from_sections,
                         classes=["button"],
                     )

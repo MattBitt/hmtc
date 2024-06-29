@@ -123,11 +123,6 @@ def SectionCarousel(
         )
 
 
-@solara.component_vue("../components/audio_player.vue", vuetify=True)
-def AudioPlayer(playbackTime=0):
-    pass
-
-
 @solara.component
 def SectionControlPanel(
     video,
@@ -407,7 +402,7 @@ def Page():
                 max_section_width=State.width,
                 max_section_height=State.height,
             )
-            AudioPlayer()
+
             SectionCarousel(
                 slides=carousel_sections,
                 selected_section=Ref(State.selected_section),

@@ -162,16 +162,20 @@ class Channel(BaseModel):
     last_update_completed = DateTimeField(null=True)
 
     def check_for_new_videos(self):
+        # this should be deprecated
         ids = fetch_ids_from(self.url)
         for youtube_id in ids:
             vid, created = Video.get_or_create(youtube_id=youtube_id, channel=self)
-            if not created:
-                vid.channel = self
-                vid.save()
+            # if not created:
+            #     vid.channel = self
+            #     vid.save()
         # once finished updating the playlist, update the last_updated field
         self.last_update_completed = datetime.now()
         self.save()
         logger.debug(f"Finished updating channel {self.name}")
+
+    def grab_ids(self):
+        return fetch_ids_from(self.url)
 
     def add_file(self, filename, move_file=True):
         extension = "".join(Path(filename).suffixes)
@@ -388,7 +392,7 @@ class Video(BaseModel):
     description = TextField(null=True)
     enabled = BooleanField(default=True)
     private = BooleanField(default=False)
-    contains_unique_content = BooleanField(default=False)
+    contains_unique_content = BooleanField(default=True)
     has_chapters = BooleanField(default=False)
     manually_edited = BooleanField(default=False)
     channel = ForeignKeyField(Channel, backref="videos", null=True)

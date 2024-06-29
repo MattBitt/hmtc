@@ -36,6 +36,16 @@ class Section:
             logger.error(e)
             raise
 
+    def __str__(self) -> str:
+        return f"Section {self.id}: {self.start} - {self.end} - {self.section_type}"
+
+    def __repr__(self) -> str:
+        return f"Section {self.id}: {self.start} - {self.end} - {self.section_type}"
+
+    @staticmethod
+    def get_all():
+        return SectionTable.select()
+
 
 @dataclass
 class SectionManager:
@@ -142,3 +152,6 @@ class SectionManager:
                 self.add_section(s1)
                 self.add_section(s2)
                 self.remove_section(section)
+
+    def grab_all_sections(self):
+        return SectionTable.select()

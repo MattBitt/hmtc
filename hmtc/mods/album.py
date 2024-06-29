@@ -3,7 +3,7 @@ from typing import List
 
 from loguru import logger
 
-from hmtc.models import Album as AlbumTable
+from hmtc.models import Album as AlbumTable, Track as TrackTable
 from hmtc.mods.section import SectionManager, Section
 from hmtc.schemas.video import VideoItem
 
@@ -76,29 +76,29 @@ class Album:
         else:
             return None
 
-    @staticmethod
-    def create_tracks_for_video(video: VideoItem):
-        if not video:
-            raise ValueError("Video object is required")
+    # @staticmethod
+    # def create_tracks_for_video(video: VideoItem):
+    #     if not video:
+    #         raise ValueError("Video object is required")
 
-        logger.info(f"Creating track for {video}")
-        sections = None  # video load sections
-        sm = SectionManager.from_video(video)
-        sections = sm.sections
-        if sections is not None:
-            tracks = []
-            for section in video.sections:
-                track = Track(
-                    title="Some random title",
-                    track_number=len(tracks),
-                    duration=section.duration,
-                    album_id=video.album_id,
-                )
-                tracks.append(track)
+    #     logger.info(f"Creating track for {video}")
+    #     sections = None  # video load sections
+    #     sm = SectionManager.from_video(video)
+    #     sections = sm.sections
+    #     if sections is not None:
+    #         tracks = []
+    #         for section in video.sections:
+    #             track = Track(
+    #                 title="Some random title",
+    #                 track_number=len(tracks),
+    #                 duration=section.duration,
+    #                 album_id=video.album_id,
+    #             )
+    #             tracks.append(track)
 
-            return tracks
-        else:
-            return None
+    #         return tracks
+    #     else:
+    #         return None
 
     @staticmethod
     def update_album(title, video_id):
@@ -113,3 +113,10 @@ class Album:
 
     def add_track(self, section: Section):
         logger.debug(f"Adding track {section} to {self.title}")
+
+    @staticmethod
+    def get_next_track_number(album: "Album"):
+        if not album:
+            raise ValueError("Album object is required")
+        t = TrackTable.select().where(TrackTable.album_id == album.id).count()
+        return t + 1

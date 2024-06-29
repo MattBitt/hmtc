@@ -175,7 +175,6 @@ def Page():
             SeriesPopover(
                 current_series=State.series_filter.value,
                 handle_click=State.on_click_series,
-                include_blank=True,
             )
             PlaylistPopover(
                 current_playlist=State.playlist_filter.value,

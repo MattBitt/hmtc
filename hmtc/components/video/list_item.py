@@ -266,13 +266,12 @@ def VideoListItem(
             logger.debug(f"No args[0] in on_click_series {args}")
 
     with solara.Column():
-        if refreshing.value is True:
-            with solara.Column():
+        with solara.Column():
+            if refreshing.value is True:
                 solara.SpinnerSolara()
                 solara.Info(f"Refreshing {video_item.value.title}")
                 solara.Info(f"Progress: {current_download_progress.value:.2f}%")
-        else:
-            with solara.Row():
+            else:
                 if video_item.value.duration is None:
                     solara.Error("Please update video information from YouTube")
                     has_info = False
@@ -282,7 +281,7 @@ def VideoListItem(
                     has_poster = False
                 else:
                     with solara.Success():
-                        solara.Text(f"{video_item.value.title[:50]}")
+                        solara.Text(f"{video_item.value.title[:80]}")
 
                         poster = Path(
                             str(
@@ -306,9 +305,9 @@ def VideoListItem(
                             False  # VideoItem.has_audio_file(id=video_item.value.id)
                         )
 
-                with solara.Column():
+                with solara.Row():
                     solara.Text(f"{video_item.value.id}", classes=["mizzle"])
-
+                    solara.Text(f"{video_item.value.duration}", classes=["mizzle"])
                     Chip(
                         label=video_item.value.series_name,
                         color="orange",

@@ -93,7 +93,7 @@ class FileManager:
                 audio_file = File.from_path(audio)
                 audio_file.move_to(output_path)
                 f = FileModel.create(
-                    path=str(audio_file),
+                    path=str(output_path),
                     filename=audio_file.filename,
                     file_type="audio",
                     video_id=video.id,
