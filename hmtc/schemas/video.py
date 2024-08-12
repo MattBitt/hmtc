@@ -222,10 +222,11 @@ class VideoItem(BaseItem):
 
     def add_file(self, file, file_type=None):
         logger.debug(f"In VideoItem.add_file: {file}")
-
+        logger.debug(f"Fix this 🤡🤡🤡🤡🤡🤡🤡")
         extension = "".join(Path(file).suffixes)
         clean_name = Path(file).stem
         final_name = STORAGE / "videos" / self.youtube_id / (clean_name + extension)
+        # LOL
         final_name2 = str(final_name.name).replace(".info.info", ".info")
         if ".info" in str(file):
             data = read_json_file(file)

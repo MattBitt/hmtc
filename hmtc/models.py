@@ -400,7 +400,7 @@ class Video(BaseModel):
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
 
     def __repr__(self):
-        return f"Video({self.title=})"
+        return f"VideoModel({self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -606,6 +606,7 @@ class Track(BaseModel):
     end_time = IntegerField(null=True)
     words = CharField(null=True)
     notes = CharField(null=True)
+    jf_id = CharField(null=True)
 
 
 @total_ordering
