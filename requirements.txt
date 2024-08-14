@@ -124,3 +124,4 @@ yt-dlp==2024.4.9
 opencv-python-headless
 ffmpeg-python
 aenum
+jellyfin-apiclient-python

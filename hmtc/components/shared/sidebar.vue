@@ -35,6 +35,7 @@
 export default {
   data: () => ({
     items: [
+      { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
       { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Series", icon: "mdi-television", url: "/series" },

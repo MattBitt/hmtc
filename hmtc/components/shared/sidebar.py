@@ -31,7 +31,7 @@ class State:
 def MySidebar(
     router,
 ):
-    VERSION = "0.0.8"
+    VERSION = "0.0.9"
 
     def sidebar_clicked(item):
         # need to add a check to make sure the route is existing

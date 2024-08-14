@@ -52,6 +52,15 @@ def SortControls(state):
 
         state.refresh_query()
 
+    def sort_by_duration():
+        state.sort_column.value = "duration"
+        if state.sort_order.value == "asc":
+            state.sort_order.value = "desc"
+        else:
+            state.sort_order.value = "asc"
+
+        state.refresh_query()
+
     with solara.Row():
         SortButton(
             label="Title",
@@ -82,4 +91,12 @@ def SortControls(state):
             sort_column=state.sort_column.value,
             sort_order=state.sort_order.value,
             on_click=sort_by_updated_date,
+        )
+
+        SortButton(
+            label="Duration",
+            col_name="duration",
+            sort_column=state.sort_column.value,
+            sort_order=state.sort_order.value,
+            on_click=sort_by_duration,
         )

@@ -54,7 +54,7 @@ def VideoEditModal(
     with solara.Card("Edit"):
         poster = Path(str(FileManager.get_file_for_video(video_item.value, "poster")))
         if poster is not None and poster != "":
-            logger.debug(f"Poster = {poster}")
+            # logger.debug(f"Poster = {poster}")
             has_poster = True
             image = PIL.Image.open(poster)
             solara.Image(image, width="300px")

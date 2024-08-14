@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Callable
-
+import PIL.Image
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
@@ -20,6 +20,21 @@ WORKING = Path(config["paths"]["working"]) / "downloads"
 STORAGE = Path(config["paths"]["storage"]) / "videos"
 
 current_download_progress = solara.reactive(0)
+
+
+def duration_text(duration):
+    hours, minutes, seconds = (
+        (duration % (24 * 3600) // 3600),
+        (duration % 3600 // 60),
+        (duration % 60),
+    )
+    if hours > 0:
+        timestr = f"{hours} hours, {minutes} minutes, {seconds} seconds"
+    else:
+        timestr = f"{minutes} minutes, {seconds} seconds"
+
+    # logger.debug(f"timestr: {timestr}")
+    return timestr
 
 
 def my_hook(*args):
@@ -265,102 +280,100 @@ def VideoListItem(
         else:
             logger.debug(f"No args[0] in on_click_series {args}")
 
-    with solara.Column():
+    if refreshing.value is True:
         with solara.Column():
-            if refreshing.value is True:
-                solara.SpinnerSolara()
-                solara.Info(f"Refreshing {video_item.value.title}")
-                solara.Info(f"Progress: {current_download_progress.value:.2f}%")
+            solara.SpinnerSolara()
+            solara.Info(f"Refreshing {video_item.value.title}")
+            solara.Info(f"Progress: {current_download_progress.value:.2f}%")
+    elif video_item.value.duration is None:
+        with solara.Column():
+
+            solara.Error("Please update video information from YouTube")
+            has_info = False
+            has_video = False
+            has_frames = False
+            has_audio = False
+            has_poster = False
+    else:
+
+        poster = Path(str(FileManager.get_file_for_video(video_item.value, "poster")))
+        if poster is not None and poster != "":
+            # logger.debug(f"Poster = {poster}")
+            has_poster = True
+            # image = PIL.Image.open(poster)
+            # solara.Image(image, width="200px")
+
+        else:
+            has_poster = False
+        has_info = True
+        has_video = VideoItem.has_video_file(id=video_item.value.id)
+        has_frames = VideoItem.has_frame_files(id=video_item.value.id)
+        has_audio = False  # VideoItem.has_audio_file(id=video_item.value.id)
+
+        with solara.Column():
+
+            if video_item.value.contains_unique_content:
+                with solara.Success():
+                    solara.Text(f"{video_item.value.title[:80]}")
             else:
-                if video_item.value.duration is None:
-                    solara.Error("Please update video information from YouTube")
-                    has_info = False
-                    has_video = False
-                    has_frames = False
-                    has_audio = False
-                    has_poster = False
-                else:
-                    with solara.Success():
-                        solara.Text(f"{video_item.value.title[:80]}")
+                with solara.Error():
+                    solara.Text(f"{video_item.value.title[:80]}")
 
-                        poster = Path(
-                            str(
-                                FileManager.get_file_for_video(
-                                    video_item.value, "poster"
-                                )
-                            )
-                        )
-                        if poster is not None and poster != "":
-                            logger.debug(f"Poster = {poster}")
-                            has_poster = True
-                            # image = PIL.Image.open(poster)
-                            # solara.Image(image, width="200px")
+            with solara.Columns(1, 1, 1):
+                solara.Text(f"ID: {video_item.value.id}", classes=["mizzle"])
+                solara.Text(
+                    f"{duration_text(video_item.value.duration)}",
+                    classes=["mizzle"],
+                )
+                solara.Text(f"{video_item.value.upload_date}", classes=["mizzle"])
 
-                        else:
-                            has_poster = False
-                        has_info = True
-                        has_video = VideoItem.has_video_file(id=video_item.value.id)
-                        has_frames = VideoItem.has_frame_files(id=video_item.value.id)
-                        has_audio = (
-                            False  # VideoItem.has_audio_file(id=video_item.value.id)
-                        )
-
-                with solara.Row():
-                    solara.Text(f"{video_item.value.id}", classes=["mizzle"])
-                    solara.Text(f"{video_item.value.duration}", classes=["mizzle"])
-                    Chip(
-                        label=video_item.value.series_name,
-                        color="orange",
-                        icon="mdi-view-sequential",
-                    )
-
-                    VideoSeriesPopover(
-                        current_series=video_item.value.series_name,
-                        handle_click=on_click_series,
-                    )
-                    Chip(
-                        label=video_item.value.playlist_name,
-                        color="green",
-                        icon="mdi-playlist-play",
-                    )
-
-            with solara.Columns(6, 6):
-                FilesToolbar(
-                    video_item=video_item,
-                    router=router,
-                    has_info=has_info,
-                    has_video=has_video,
-                    has_frames=has_frames,
-                    has_audio=has_audio,
-                    has_poster=has_poster,
-                    refreshing=refreshing,
-                    justify="start",
-                    refresh_query=refresh_query,
+            with solara.Row():
+                VideoSeriesPopover(
+                    current_series=video_item.value.series_name,
+                    handle_click=on_click_series,
+                )
+                solara.Text(
+                    f"Channel: {video_item.value.channel_name}",
+                    classes=["mizzle"],
                 )
 
-                ActionsToolBar(
-                    video_item=video_item,
-                    router=router,
-                    has_info=has_info,
-                    set_edit=set_edit,
-                    justify="end",
-                )
+        with solara.Columns(6, 6):
+            FilesToolbar(
+                video_item=video_item,
+                router=router,
+                has_info=has_info,
+                has_video=has_video,
+                has_frames=has_frames,
+                has_audio=has_audio,
+                has_poster=has_poster,
+                refreshing=refreshing,
+                justify="start",
+                refresh_query=refresh_query,
+            )
 
-            if edit:
-                logger.debug(f"Opening edit modal for {video_item.value.title}")
-                if isinstance(video_item.value, Video):
-                    logger.error(
-                        "This probably shouldn't be happening sometimes. either always or never 🥦🥦🥦🥦"
-                    )
-                    video_item.value = VideoItem.from_orm(video_item.value)
-                else:
-                    logger.error("This is the sometimes 🥕🥕🥕🥕🥕🥕🥕")
-                assert isinstance(video_item.value, VideoItem)
-                open_modal(
-                    item=video_item,
-                    on_save=on_save,
-                    on_update_from_youtube=None,
-                    on_delete=on_delete,
-                    edit=edit,
-                    set_edit=set_edit,
+            ActionsToolBar(
+                video_item=video_item,
+                router=router,
+                has_info=has_info,
+                set_edit=set_edit,
+                justify="end",
+            )
+
+        if edit:
+            logger.debug(f"Opening edit modal for {video_item.value.title}")
+            if isinstance(video_item.value, Video):
+                logger.error(
+                    "This probably shouldn't be happening sometimes. either always or never 🥦🥦🥦🥦"
                 )
+                video_item.value = VideoItem.from_orm(video_item.value)
+            else:
+                logger.error("This is the sometimes 🥕🥕🥕🥕🥕🥕🥕")
+            assert isinstance(video_item.value, VideoItem)
+            open_modal(
+                item=video_item,
+                on_save=on_save,
+                on_update_from_youtube=None,
+                on_delete=on_delete,
+                edit=edit,
+                set_edit=set_edit,
+            )

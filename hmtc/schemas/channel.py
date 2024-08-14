@@ -54,3 +54,8 @@ class ChannelItem:
     def get_poster(self):
         channel = Channel.select().where(Channel.id == self.id).get()
         return channel.poster
+
+    @staticmethod
+    def grab_by_youtube_id(youtube_id: str):
+        item = Channel.get_or_none(Channel.youtube_id == youtube_id)
+        return item

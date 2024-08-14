@@ -49,8 +49,8 @@ def ChannelEditModal(
         solara.InputText(label="YouTube ID", value=Ref(copy.fields.youtube_id))
         solara.Checkbox(label="Enabled", value=Ref(copy.fields.enabled))
 
-        if channel_item.value is not None:
-            solara.Image(channel_item.value.db_object().poster, width="300px")
+        # if channel_item.value is not None:
+        #     solara.Image(channel_item.value.db_object().poster, width="300px")
 
         solara.Button(label="Check for new Videos", on_click=update)
         solara.Button(label="Check for new Playlists", on_click=update_playlists)

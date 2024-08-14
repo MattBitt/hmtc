@@ -52,6 +52,7 @@ def grab_session():
 
     else:
         print("login failed")
+        logger.error("Error Connecting to Jellyfin")
         return None
 
 

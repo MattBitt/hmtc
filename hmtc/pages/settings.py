@@ -93,17 +93,18 @@ class PageState:
         logger.debug(f"Refreshing videos from youtube")
         PageState.updating.set(True)
         existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
-
+        logger.debug(f"DB currently has {len(existing_ids)} videos")
         channels = Channel.select().where(Channel.enabled == True)
         for c in channels:
             yt_ids = c.grab_ids()
+            logger.debug(f"Found {len(yt_ids)} videos in channel {c}")
+            ids_to_update = [id for id in yt_ids if id not in existing_ids]
+            logger.debug(f"Updating {len(ids_to_update)} videos")
+            for id in ids_to_update:
+                logger.debug(f"Found a new video. Adding to Database {id}")
+                VideoItem.create_from_youtube_id(id)
+                PageState.i.set(PageState.i.value + 1)
 
-            for id in yt_ids:
-                if id not in existing_ids:
-                    logger.debug(f"Found a new video. Adding to Database {id}")
-
-                    VideoItem.create_from_youtube_id(id)
-                    PageState.i.set(PageState.i.value + 1)
         PageState.updating.set(False)
 
     @staticmethod

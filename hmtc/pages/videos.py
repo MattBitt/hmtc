@@ -55,15 +55,17 @@ def compute_number_of_pages(total_items, per_page):
 class State(BaseState):
     logger.debug("Initializing VideosState object page = (Videos)")
 
-    # initialize reactive variables
     text_query = solara.reactive("")
     sort_column = solara.reactive("title")
     sort_order = solara.reactive("asc")
     current_page = solara.reactive(1)
     per_page = solara.reactive(config["general"]["items_per_page"])
+
     playlist_filter = solara.reactive(None)
     series_filter = solara.reactive(None)
-    include_no_durations = solara.reactive(True)
+    # channel_filter = solara.reactive(None)
+
+    include_no_durations = solara.reactive(False)
     include_unique_content = solara.reactive(True)
     include_nonunique_content = solara.reactive(False)
     include_manually_edited = solara.reactive(False)
@@ -76,16 +78,18 @@ class State(BaseState):
         sort_order=sort_order.value,
         series_filter=series_filter.value,
         playlist_filter=playlist_filter.value,
+        # channel_filter=channel_filter.value,
         include_no_durations=include_no_durations.value,
         include_unique_content=include_unique_content.value,
         include_nonunique_content=include_nonunique_content.value,
         include_manually_edited=include_manually_edited.value,
     )
     if not initial_items:
-        logger.error("DOes this always happen???? 🧬🧬🧬🧬🧬")
+        logger.error("IF YOU SEE THIS, SOMETHING IS WRONG")
         num_pages = solara.reactive(1)
         items = solara.reactive([])
         filtered_items = solara.reactive([])
+
     else:
         # logger.debug(f"Initial items {initial_items}")
         items = solara.reactive(initial_items)
@@ -121,6 +125,7 @@ class State(BaseState):
             sort_order=cls.sort_order.value,
             series_filter=State.series_filter.value,
             playlist_filter=State.playlist_filter.value,
+            # channel_filter=State.channel_filter.value,
             include_no_durations=State.include_no_durations.value,
             include_unique_content=State.include_unique_content.value,
             include_nonunique_content=State.include_nonunique_content.value,
@@ -196,8 +201,10 @@ def Page():
             solara.Checkbox(
                 label="Include No Durations", value=Ref(State.include_no_durations)
             )
-        # searchable text box
-        VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
+        with solara.Card():
+            # searchable text box
+            VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
+
         # Results of the Filter
         FilteredVideosStats(label="Filtered Videos", items=State.filtered_items.value)
 

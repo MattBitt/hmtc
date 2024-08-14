@@ -8,7 +8,7 @@ from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumTable
-from hmtc.models import File, Playlist, Series, Video
+from hmtc.models import File, Playlist, Series, Video, Channel
 from hmtc.mods.file import FileManager
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
@@ -32,11 +32,12 @@ class VideoItem(BaseItem):
     upload_date: datetime = None
     duration: int = 0
     description: str = None
-    contains_unique_content: bool = True
+    contains_unique_content: bool = False
     has_chapters: bool = False
     manually_edited: bool = False
     series_name: str = "Default"
     playlist_name: str = "Default"
+    channel_name: str = "Default"
     channel_id: int = None
     playlist_id: int = None
     series_id: int = None
@@ -121,13 +122,14 @@ class VideoItem(BaseItem):
         sort_order=None,
         series_filter=None,
         playlist_filter=None,
+        # channel_filter=None,
         include_no_durations=False,
         include_unique_content=True,
         include_nonunique_content=False,
         include_manually_edited=False,
     ):
         # sort column is the column 'string' to sort by
-        query = Video.select()
+        query = Video.select().join(Channel)
         # and = all
         # 1 and 0 = unique
         # 0 and 1 = nonunique
@@ -159,6 +161,15 @@ class VideoItem(BaseItem):
                 query = query.join(Playlist).where(
                     Playlist.title == playlist_filter["title"]
                 )
+
+        # if channel_filter:
+        #     if channel_filter["title"] == "No Channel":
+        #         query = query.where(cls.db_model.channel.is_null())
+        #     else:
+        #         query = query.join(Channel).where(
+        #             Channel.name == channel_filter["title"]
+        #         )
+
         if text_search:
             query = query.where(
                 (cls.db_model.title.contains(text_search))
@@ -194,8 +205,9 @@ class VideoItem(BaseItem):
                 description=item.description,
                 contains_unique_content=item.contains_unique_content,
                 has_chapters=item.has_chapters,
-                series_name=item.series.name,
-                playlist_name=(item.playlist.title if item.playlist else "---"),
+                series_name=item.series.name if item.series else "",
+                playlist_name=item.playlist.title if item.playlist else "---",
+                channel_name=item.channel.name if item.channel else "---",
             )
             for item in query
         ]
@@ -439,8 +451,13 @@ class VideoItem(BaseItem):
             duration=info["duration"],
             description=info["description"],
             series_id=series.id,
-            contains_unique_content=True,
+            contains_unique_content=False,
         )
         for file in files:
             FileManager.add_path_to_video(file, vid)
         return vid
+
+    @staticmethod
+    def grab_info_from_youtube(youtube_id):
+        info, files = get_video_info(youtube_id=youtube_id, output_folder=WORKING)
+        return info
