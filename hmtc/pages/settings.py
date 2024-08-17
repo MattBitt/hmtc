@@ -201,6 +201,34 @@ class PageState:
                 track.write_file()
         pass
 
+    @staticmethod
+    def update_episode_numbers_omegle_exlusive():
+        logger.debug(f"Updating episode numbers")
+        PageState.updating.set(True)
+        vids = VideoItem.get_vids_with_no_episode_number()
+        ex_omegle = [v for v in vids if "omegle" in v.title.lower()]
+        episode_number = 0
+        for v in sorted(ex_omegle, key=lambda x: x.upload_date):
+            episode_number += 1
+            v.set_episode_number(episode_number)
+            # v.update_episode_number()
+            PageState.i.set(PageState.i.value + 1)
+        PageState.updating.set(False)
+
+    @staticmethod
+    def update_episode_numbers_guerilla_exlusive():
+        logger.debug(f"Updating episode numbers")
+        PageState.updating.set(True)
+        vids = VideoItem.get_vids_with_no_episode_number()
+        ex_gb = [v for v in vids if "guerilla" in v.title.lower()]
+        episode_number = 0
+        for v in sorted(ex_gb, key=lambda x: x.upload_date):
+            # v.update_episode_number()
+            episode_number += 1
+            v.set_episode_number(episode_number)
+            PageState.i.set(PageState.i.value + 1)
+        PageState.updating.set(False)
+
 
 @solara.component
 def OldControls():
@@ -270,9 +298,22 @@ def Page():
                     classes=["button"],
                 )
                 solara.Button(
-                    label="Update Episode Numbers",
+                    label="Update Episode Numbers (Individual Videos)",
                     on_click=PageState.update_episode_numbers,
                     classes=["button"],
                 )
+
+                solara.Button(
+                    label="Update Episode Numbers (Omegle Exclusive Videos)",
+                    on_click=PageState.update_episode_numbers_omegle_exlusive,
+                    classes=["button"],
+                )
+
+                solara.Button(
+                    label="Update Episode Numbers (Guerilla Exclusive Videos)",
+                    on_click=PageState.update_episode_numbers_guerilla_exlusive,
+                    classes=["button"],
+                )
+
         solara.Markdown(status.value)
         OldControls()

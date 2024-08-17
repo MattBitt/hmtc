@@ -484,6 +484,11 @@ class VideoItem(BaseItem):
     def get_vids_with_no_channel():
         return Video.select().where(Video.channel.is_null())
 
+    def set_episode_number(self, episode_number: int):
+        vid = Video.get(Video.id == self.id)
+        vid.episode = episode_number
+        vid.save()
+
     @staticmethod
     def get_vids_with_no_episode_number():
         vids = Video.select().where(
@@ -524,6 +529,7 @@ class VideoItem(BaseItem):
                     v.episode = match.group(1)
                     v.save()
                     return
+
         elif "wordplay" in self.title.lower():
             for w in ww:
                 match = re.search(w, self.title)
