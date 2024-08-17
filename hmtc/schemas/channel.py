@@ -44,11 +44,17 @@ class ChannelItem:
         logger.debug(f"Saving to db: {self}")
         if self.id is None:
             Channel.create(
-                name=self.name, youtube_id=self.youtube_id, enabled=self.enabled
+                name=self.name,
+                youtube_id=self.youtube_id,
+                enabled=self.enabled,
+                url=self.url,
             )
         else:
             Channel.update(
-                name=self.name, youtube_id=self.youtube_id, enabled=self.enabled
+                name=self.name,
+                youtube_id=self.youtube_id,
+                enabled=self.enabled,
+                url=self.url,
             ).where(Channel.id == self.id).execute()
 
     def get_poster(self):

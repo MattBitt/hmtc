@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-
+import re
 import peewee
 from loguru import logger
 from peewee import fn
@@ -199,6 +199,7 @@ class VideoItem(BaseItem):
                 id=item.id,
                 youtube_id=item.youtube_id,
                 enabled=item.enabled,
+                episode=item.episode,
                 manually_edited=True,
                 upload_date=item.upload_date,
                 duration=item.duration,
@@ -224,6 +225,7 @@ class VideoItem(BaseItem):
             id=db_object.id,
             youtube_id=db_object.youtube_id,
             enabled=db_object.enabled,
+            episode=db_object.episode,
             manually_edited=True,
             upload_date=db_object.upload_date,
             duration=db_object.duration,
@@ -299,6 +301,7 @@ class VideoItem(BaseItem):
         vid.url = self.url
         vid.youtube_id = self.youtube_id
         vid.enabled = self.enabled
+        vid.episode = self.episode
         vid.duration = self.duration
         vid.description = self.description
         vid.contains_unique_content = self.contains_unique_content
@@ -442,6 +445,20 @@ class VideoItem(BaseItem):
     def create_from_youtube_id(youtube_id):
         info, files = get_video_info(youtube_id=youtube_id, output_folder=WORKING)
         series = Series.get(Series.name == "UNSORTED")
+        try:
+            channel = Channel.get(Channel.youtube_id == info["channel_id"])
+        except:
+            logger.error("Channel Doesn't Exist!")
+            # not sure if i should create it here. probably shouldn't be here
+            # if it doesn't exist, it should be created in the channel page
+            return
+            # channel = Channel.create(
+            #     name=info["uploader"],
+            #     url=info["uploader_url"],
+            #     youtube_id=info["channel_id"],
+            #     enabled=True,
+            # )
+
         vid = Video.create(
             title=info["title"],
             url=info["webpage_url"],
@@ -451,6 +468,7 @@ class VideoItem(BaseItem):
             duration=info["duration"],
             description=info["description"],
             series_id=series.id,
+            channel_id=channel.id,
             contains_unique_content=False,
         )
         for file in files:
@@ -461,3 +479,67 @@ class VideoItem(BaseItem):
     def grab_info_from_youtube(youtube_id):
         info, files = get_video_info(youtube_id=youtube_id, output_folder=WORKING)
         return info
+
+    @staticmethod
+    def get_vids_with_no_channel():
+        return Video.select().where(Video.channel.is_null())
+
+    @staticmethod
+    def get_vids_with_no_episode_number():
+        vids = Video.select().where(
+            (
+                Video.title.is_null(False)
+                & Video.episode.is_null()
+                & Video.contains_unique_content
+                == True
+            )
+        )
+        return [VideoItem.from_orm(v) for v in vids]
+
+    # this is a temporary function to update the episode numbers for videos
+    # as of 8-16-2024
+    def update_episode_number(self):
+        omegle = [
+            "Omegle Bars ([0-9]+)",
+            "Omegle Bars Episode ([0-9]+)",
+            "Omegle Bars Ep. ([0-9]+)",
+        ]
+        ww = [
+            r"Wordplay Wednesday \#([0-9]+)",
+            r"Wordplay Wednesday Episode ([0-9]+)",
+            r"Wordplay Wednesday w/ Harry Mack.*([0-9]+)",
+            r"Wordplay Tuesday \#([0-9]+)",
+        ]
+        guerrilla = [
+            "Guerrilla Bars ([0-9]+)",
+            r"Guerrilla Bars \(Episode ([0-9]+)",
+            "Guerrilla Bars Episode ([0-9]+)",
+        ]
+
+        if "omegle" in self.title.lower():
+            for o in omegle:
+                match = re.search(o, self.title)
+                if match:
+                    v = Video.get(Video.id == self.id)
+                    v.episode = match.group(1)
+                    v.save()
+                    return
+        elif "wordplay" in self.title.lower():
+            for w in ww:
+                match = re.search(w, self.title)
+                if match:
+                    v = Video.get(Video.id == self.id)
+                    v.episode = match.group(1)
+                    v.save()
+                    return
+        elif "guerrilla" in self.title.lower():
+            for g in guerrilla:
+                match = re.search(g, self.title)
+                if match:
+                    v = Video.get(Video.id == self.id)
+                    v.episode = match.group(1)
+                    v.save()
+                    return
+        else:
+            # logger.debug(f"Could not find episode number for {self.title}")
+            return

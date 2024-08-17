@@ -217,10 +217,11 @@ def Page():
     MySidebar(router=solara.use_router())
     with solara.Column(classes=["main-container"]):
         with solara.Card("Channel list"):
-            ChannelNewTextBox(on_new=State.on_new)
             if State.channels.value:
-                ChannelStatus()
-                with solara.ColumnsResponsive(4):
+                logger.error(
+                    f"Current Channel Query results: {[c.name for c in State.channels.value]}"
+                )
+                with solara.Column():
                     for index, item in enumerate(State.channels.value):
                         channel_item = Ref(State.channels.fields[index])
                         with solara.Card():
@@ -229,6 +230,5 @@ def Page():
                                 on_update=State.on_update,
                                 on_delete=State.on_delete,
                             )
-            else:
-                solara.Info("No channel items, enter some text above, and hit enter")
+
             ChannelNewButton(on_new=State.on_new)

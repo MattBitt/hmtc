@@ -314,7 +314,12 @@ def VideoListItem(
 
             if video_item.value.contains_unique_content:
                 with solara.Success():
-                    solara.Text(f"{video_item.value.title[:80]}")
+                    solara.Text(f"## {video_item.value.title[:50]}")
+                    if video_item.value.episode and video_item.value.series_name:
+                        solara.Markdown(
+                            f"#### {video_item.value.series_name} {video_item.value.episode}"
+                        )
+
             else:
                 with solara.Error():
                     solara.Text(f"{video_item.value.title[:80]}")

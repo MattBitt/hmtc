@@ -94,17 +94,73 @@ class PageState:
         PageState.updating.set(True)
         existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
         logger.debug(f"DB currently has {len(existing_ids)} videos")
-        channels = Channel.select().where(Channel.enabled == True)
+        channels = Channel.select().where(
+            (Channel.enabled == True) & (Channel.name.contains("Harry"))
+        )
+        num_new_vids = 0
         for c in channels:
+            status.set(f"Checking Channel {c.name}")
             yt_ids = c.grab_ids()
-            logger.debug(f"Found {len(yt_ids)} videos in channel {c}")
+            logger.debug(f"Found {len(yt_ids)} videos in channel {c.name}")
             ids_to_update = [id for id in yt_ids if id not in existing_ids]
             logger.debug(f"Updating {len(ids_to_update)} videos")
+            status.set(f"Found {len(yt_ids)} videos, {len(ids_to_update)} new")
+            num_new_vids += len(ids_to_update)
             for id in ids_to_update:
                 logger.debug(f"Found a new video. Adding to Database {id}")
                 VideoItem.create_from_youtube_id(id)
                 PageState.i.set(PageState.i.value + 1)
 
+        if num_new_vids == 0:
+            t = "No new videos found"
+        else:
+            t = f"Found {num_new_vids} new videos"
+        status.set(f"Finished Updating Videos. {t}")
+        PageState.updating.set(False)
+
+    @staticmethod
+    def sync_channels_from_youtube():
+        logger.debug(f"Syncing channel_id in Database from youtube")
+        PageState.updating.set(True)
+        vids_with_no_channel = VideoItem.get_vids_with_no_channel()
+        if len(vids_with_no_channel) == 0:
+            logger.debug("All videos have a channel assigned.")
+            status.set("All videos have a channel assigned.")
+            return
+        else:
+            logger.debug(f"Found {len(vids_with_no_channel)} videos with no channel")
+            status.set(f"Found {len(vids_with_no_channel)} videos with no channel")
+
+        channels = Channel.select().where(
+            (Channel.enabled == True) & (Channel.name.contains("Harry"))
+        )
+
+        for c in channels:
+            status.set(f"Checking Channel {c.name}")
+
+            yt_ids = c.grab_ids()
+            for vid in vids_with_no_channel:
+                if vid.youtube_id in yt_ids:
+                    vid.channel_id = c.id
+                    vid.save()
+                    logger.debug(f"Assigned {vid} to {c}")
+                    PageState.i.set(PageState.i.value + 1)
+
+            status.set(f"Finished synching channel ids to videos in database")
+
+        PageState.updating.set(False)
+
+    # this is a temporary function to update the episode numbers for videos
+    # as of 8-16-2024
+    @staticmethod
+    def update_episode_numbers():
+        logger.debug(f"Updating episode numbers")
+        PageState.updating.set(True)
+        vids = VideoItem.get_vids_with_no_episode_number()
+        logger.debug(f"Found {len(vids)} videos with no episode number")
+        for v in vids:
+            v.update_episode_number()
+            PageState.i.set(PageState.i.value + 1)
         PageState.updating.set(False)
 
     @staticmethod
@@ -147,55 +203,76 @@ class PageState:
 
 
 @solara.component
+def OldControls():
+    with solara.Card("Use at your own peril"):
+        with solara.Card():
+            solara.InputInt(
+                label="Number of Videos to Download",
+                value=PageState.num_to_download,
+            )
+            solara.Button(
+                label="Download info for Random Videos!",
+                on_click=PageState.download_empty_video_info,
+                classes=["button"],
+            )
+            solara.Button(
+                label="Download media files for Random Videos! (be careful with big numbers....)",
+                on_click=PageState.download_missing_media_files,
+                classes=["button"],
+            )
+
+        with solara.Card():
+            solara.Button(
+                label="Import Track Info",
+                on_click=PageState.import_track_info,
+                classes=["button"],
+            )
+        with solara.Card():
+            solara.Button(
+                label="Create Tracks from Sections",
+                on_click=PageState.create_tracks_from_sections,
+                classes=["button"],
+            )
+
+
+status = solara.reactive("")
+
+
+@solara.component
 def Page():
-    router = solara.use_router()
 
     MySidebar(
-        router=router,
+        router=solara.use_router(),
     )
 
     with solara.Column(classes=["main-container"]):
-        with solara.Column():
-            if PageState.updating.value:
-                with solara.Card():
-                    solara.Text("Updating Videos")
-                    SimpleProgressBar(
-                        label="Videos Updated",
-                        current_value=PageState.i.value,
-                        total=PageState.num_to_download.value,
-                        color="blue",
-                    )
-            else:
-                with solara.Card():
-                    solara.InputInt(
-                        label="Number of Videos to Download",
-                        value=PageState.num_to_download,
-                    )
-                    solara.Button(
-                        label="Download info for Random Videos!",
-                        on_click=PageState.download_empty_video_info,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Download media files for Random Videos! (be careful with big numbers....)",
-                        on_click=PageState.download_missing_media_files,
-                        classes=["button"],
-                    )
-                with solara.Card():
-                    solara.Button(
-                        label="Check for New Videos",
-                        on_click=PageState.refresh_videos_from_youtube,
-                        classes=["button"],
-                    )
-                with solara.Card():
-                    solara.Button(
-                        label="Import Track Info",
-                        on_click=PageState.import_track_info,
-                        classes=["button"],
-                    )
-                with solara.Card():
-                    solara.Button(
-                        label="Create Tracks from Sections",
-                        on_click=PageState.create_tracks_from_sections,
-                        classes=["button"],
-                    )
+
+        if PageState.updating.value:
+            with solara.Card():
+                solara.Text("Updating Videos")
+                SimpleProgressBar(
+                    label="Videos Updated",
+                    current_value=PageState.i.value,
+                    total=PageState.num_to_download.value,
+                    color="blue",
+                )
+
+        else:
+            with solara.Card():
+                solara.Button(
+                    label="Check for New Videos",
+                    on_click=PageState.refresh_videos_from_youtube,
+                    classes=["button"],
+                )
+                solara.Button(
+                    label="Sync Channel IDs to Existing Videos",
+                    on_click=PageState.sync_channels_from_youtube,
+                    classes=["button"],
+                )
+                solara.Button(
+                    label="Update Episode Numbers",
+                    on_click=PageState.update_episode_numbers,
+                    classes=["button"],
+                )
+        solara.Markdown(status.value)
+        OldControls()
