@@ -318,10 +318,10 @@ def VideoListItem(
                     solara.Text(f"## {video_item.value.title[:80]}")
                     if (
                         video_item.value.episode
-                        and video_item.value.youtube_series_name
+                        and video_item.value.youtube_series_title
                     ):
                         solara.Markdown(
-                            f"#### {video_item.value.youtube_series_name} {video_item.value.episode}"
+                            f"#### {video_item.value.youtube_series_title} {video_item.value.episode}"
                         )
 
             else:

@@ -42,7 +42,7 @@ class VideoItem(BaseItem):
     playlist_id: int = None
     series_id: int = None
     youtube_series_id: int = None
-    youtube_series_name: str = None
+    youtube_series_title: str = None
 
     # has_video_file: bool = False
     # has_audio_file: bool = False
@@ -211,7 +211,7 @@ class VideoItem(BaseItem):
                 series_name=item.series.name if item.series else "",
                 playlist_name=item.playlist.title if item.playlist else "---",
                 channel_name=item.channel.name if item.channel else "---",
-                youtube_series_name=(
+                youtube_series_title=(
                     item.youtube_series.title if item.youtube_series else ""
                 ),
             )
@@ -243,6 +243,7 @@ class VideoItem(BaseItem):
     def add_file(self, file, file_type=None):
         logger.debug(f"In VideoItem.add_file: {file}")
         logger.debug(f"Fix this 🤡🤡🤡🤡🤡🤡🤡")
+        exit()
         extension = "".join(Path(file).suffixes)
         clean_name = Path(file).stem
         final_name = STORAGE / "videos" / self.youtube_id / (clean_name + extension)
