@@ -4,7 +4,7 @@ description = "Harry Mack Track Creator"
 
 [running]
 log_level = "DEBUG"
-download_on_init = true
+download_on_init = false
 
 [general]
 environment="development"

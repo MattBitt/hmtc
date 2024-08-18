@@ -41,6 +41,8 @@ class VideoItem(BaseItem):
     channel_id: int = None
     playlist_id: int = None
     series_id: int = None
+    youtube_series_id: int = None
+    youtube_series_name: str = None
 
     # has_video_file: bool = False
     # has_audio_file: bool = False
@@ -209,6 +211,9 @@ class VideoItem(BaseItem):
                 series_name=item.series.name if item.series else "",
                 playlist_name=item.playlist.title if item.playlist else "---",
                 channel_name=item.channel.name if item.channel else "---",
+                youtube_series_name=(
+                    item.youtube_series.title if item.youtube_series else ""
+                ),
             )
             for item in query
         ]
@@ -232,6 +237,7 @@ class VideoItem(BaseItem):
             description=db_object.description,
             contains_unique_content=db_object.contains_unique_content,
             has_chapters=db_object.has_chapters,
+            youtube_series_id=db_object.youtube_series_id,
         )
 
     def add_file(self, file, file_type=None):

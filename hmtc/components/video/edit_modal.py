@@ -52,12 +52,12 @@ def VideoEditModal(
         return video_item.value != copy.value
 
     with solara.Card("Edit"):
-        poster = Path(str(FileManager.get_file_for_video(video_item.value, "poster")))
-        if poster is not None and poster != "":
-            # logger.debug(f"Poster = {poster}")
-            has_poster = True
-            image = PIL.Image.open(poster)
-            solara.Image(image, width="300px")
+        # poster = Path(str(FileManager.get_file_for_video(video_item.value, "poster")))
+        # if poster is not None and poster != "":
+        #     # logger.debug(f"Poster = {poster}")
+        #     has_poster = True
+        #     image = PIL.Image.open(poster)
+        #     solara.Image(image, width="300px")
 
         solara.InputText(label="ID", value=Ref(copy.fields.id), disabled=True)
         solara.InputText(label="Video Title", value=Ref(copy.fields.title))

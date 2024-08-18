@@ -26,6 +26,7 @@ from hmtc.models import (
     User,
     UserInfo,
     Video,
+    YoutubeSeries,
 )
 from hmtc.utils.general import get_youtube_id
 
@@ -58,10 +59,13 @@ def create_tables(db, download_info=False):
             PlaylistAlbum,
             Channel,
             TodoTable,
+            YoutubeSeries,
         ]
     )
     if download_info:
-        seed_database()
+        # 'shouldn't need any more'
+        # seed_database()
+        pass
 
 
 def drop_tables(db):
@@ -86,6 +90,7 @@ def drop_tables(db):
             PlaylistAlbum,
             Channel,
             TodoTable,
+            YoutubeSeries,
         ]
     )
 
@@ -106,6 +111,7 @@ def seed_database():
     import_series()
     import_playlists()
     import_playlist_info()
+    import_youtube_series()
 
 
 def import_series():
@@ -121,6 +127,20 @@ def import_series():
             logger.success(f"Poster for Series {c.stem} added to db!")
         else:
             logger.error(f"Series {c.stem} not found in db")
+
+
+def import_youtube_series():
+    with open(MEDIA_INFO / "youtube_series.json", "r") as f:
+        youtube_series = json.load(f)
+        for s in youtube_series:
+            original_series = Series.get_or_none(Series.name == s["series_name"])
+            if original_series is None:
+                logger.error(f"Series {s['series_name']} not found in db")
+                continue
+
+            YoutubeSeries.get_or_create(
+                title=s["title"].strip(), series=original_series
+            )
 
 
 def import_channels():
@@ -219,6 +239,7 @@ def download_playlist_videos():
 
 
 def is_db_empty():
+
     vids = Video.select().count()
     logger.debug(f"DB currently has: {vids} Videos")
     return vids < 10

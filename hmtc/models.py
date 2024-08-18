@@ -382,6 +382,15 @@ class Playlist(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class YoutubeSeries(BaseModel):
+    title = CharField(unique=True, max_length=120)
+    series = ForeignKeyField(Series, backref="youtube_series", null=True)
+
+    def __repr__(self):
+        return f"YoutubeSeriesModel({self.title=})"
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
@@ -398,6 +407,7 @@ class Video(BaseModel):
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
+    youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
 
     def __repr__(self):
         return f"VideoModel({self.title=})"

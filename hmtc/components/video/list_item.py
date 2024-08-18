@@ -295,13 +295,14 @@ def VideoListItem(
             has_audio = False
             has_poster = False
     else:
-
-        poster = Path(str(FileManager.get_file_for_video(video_item.value, "poster")))
-        if poster is not None and poster != "":
-            # logger.debug(f"Poster = {poster}")
-            has_poster = True
-            # image = PIL.Image.open(poster)
-            # solara.Image(image, width="200px")
+        p = FileManager.get_file_for_video(video_item.value, "poster")
+        if p:
+            poster = Path(str(p))
+            if poster is not None and poster != "":
+                # logger.debug(f"Poster = {poster}")
+                has_poster = True
+                # image = PIL.Image.open(poster)
+                # solara.Image(image, width="200px")
 
         else:
             has_poster = False
@@ -314,10 +315,13 @@ def VideoListItem(
 
             if video_item.value.contains_unique_content:
                 with solara.Success():
-                    solara.Text(f"## {video_item.value.title[:50]}")
-                    if video_item.value.episode and video_item.value.series_name:
+                    solara.Text(f"## {video_item.value.title[:80]}")
+                    if (
+                        video_item.value.episode
+                        and video_item.value.youtube_series_name
+                    ):
                         solara.Markdown(
-                            f"#### {video_item.value.series_name} {video_item.value.episode}"
+                            f"#### {video_item.value.youtube_series_name} {video_item.value.episode}"
                         )
 
             else:
