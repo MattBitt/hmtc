@@ -49,6 +49,7 @@ def my_hook(*args):
 
 
 def download_video(video_item):
+    return
     logger.info(f"Downloading video: {video_item.value.title}")
     info, files = download_video_file(
         video_item.value.youtube_id, WORKING, progress_hook=my_hook
@@ -61,6 +62,7 @@ def download_video(video_item):
 
 
 def extract(video_item, *ignore_args):
+    return
     logger.error("Extracting frames")
     frames = video_item.value.extract_frames()
     logger.error("Frames extracted")
@@ -70,6 +72,7 @@ def extract(video_item, *ignore_args):
 
 
 def update(refreshing, video_item, on_save, *ignore_args):
+    return
     logger.error("Refresh button clicked and now updating")
 
     refreshing.value = True
@@ -270,7 +273,10 @@ def VideoListItem(
     on_delete: Callable[[VideoItem], None],
 ):
     edit, set_edit = solara.use_state(False)
-    current_series = solara.use_reactive(video_item.value.series_name)
+    # current_series = solara.use_reactive(video_item.value.series_name)
+    if video_item.value is None:
+        logger.error("No video item to display")
+        return
 
     def on_click_series(*args):
         if args[0]:
@@ -285,6 +291,7 @@ def VideoListItem(
             solara.SpinnerSolara()
             solara.Info(f"Refreshing {video_item.value.title}")
             solara.Info(f"Progress: {current_download_progress.value:.2f}%")
+
     elif video_item.value.duration is None:
         with solara.Column():
 
@@ -312,16 +319,19 @@ def VideoListItem(
         has_audio = False  # VideoItem.has_audio_file(id=video_item.value.id)
 
         with solara.Column():
+            if video_item.value.title is None:
+                with solara.Error():
+                    solara.Text("No Title")
+                    logger.error("No Title found for video")
+                    return
 
             if video_item.value.contains_unique_content:
+
                 with solara.Success():
                     solara.Text(f"## {video_item.value.title[:80]}")
-                    if (
-                        video_item.value.episode
-                        and video_item.value.youtube_series_title
-                    ):
+                    if video_item.value.episode and video_item.value.youtube_series:
                         solara.Markdown(
-                            f"#### {video_item.value.youtube_series_title} {video_item.value.episode}"
+                            f"#### {video_item.value.youtube_series.title} {video_item.value.episode}"
                         )
 
             else:
@@ -338,13 +348,18 @@ def VideoListItem(
 
             with solara.Row():
                 VideoSeriesPopover(
-                    current_series=video_item.value.series_name,
+                    current_series=video_item.value.series.name,
                     handle_click=on_click_series,
                 )
                 solara.Text(
-                    f"Channel: {video_item.value.channel_name}",
+                    f"Channel: {video_item.value.channel.name}",
                     classes=["mizzle"],
                 )
+                if video_item.value.youtube_series:
+                    solara.Text(
+                        f"Youtube Series: {video_item.value.youtube_series.title}",
+                        classes=["mizzle"],
+                    )
 
         with solara.Columns(6, 6):
             FilesToolbar(
@@ -372,12 +387,13 @@ def VideoListItem(
             logger.debug(f"Opening edit modal for {video_item.value.title}")
             if isinstance(video_item.value, Video):
                 logger.error(
-                    "This probably shouldn't be happening sometimes. either always or never 🥦🥦🥦🥦"
+                    "If this doesn't show up in the logs, delete this code 8-21-24 🥦🥦🥦🥦"
                 )
                 video_item.value = VideoItem.from_orm(video_item.value)
-            else:
-                logger.error("This is the sometimes 🥕🥕🥕🥕🥕🥕🥕")
-            assert isinstance(video_item.value, VideoItem)
+            # else:
+            #     logger.error("This is the sometimes 🥕🥕🥕🥕🥕🥕🥕")
+            # assert isinstance(video_item.value, VideoItem)
+
             open_modal(
                 item=video_item,
                 on_save=on_save,

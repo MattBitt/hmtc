@@ -156,7 +156,7 @@ class FileManager:
                 (FileModel.video_id == video.id) & (FileModel.file_type == filetype)
             )
             if not file:
-                logger.debug(f"No {filetype} file found for {video}")
+                # logger.debug(f"No {filetype} file found for {video.title}")
                 return
 
             return File(path=file.path, filename=file.filename)

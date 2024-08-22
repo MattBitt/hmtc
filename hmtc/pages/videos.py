@@ -5,6 +5,7 @@ from solara.lab.toestand import Ref
 from hmtc.components.pagination_controls import PaginationControls
 from hmtc.components.playlist.popover import PlaylistPopover
 from hmtc.components.series.popover import SeriesPopover
+from hmtc.components.youtube_series.popover import YoutubeSeriesPopover
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.video.cards_list import VideoCards
@@ -64,6 +65,7 @@ class State(BaseState):
     playlist_filter = solara.reactive(None)
     series_filter = solara.reactive(None)
     # channel_filter = solara.reactive(None)
+    youtube_series_filter = solara.reactive(None)
 
     include_no_durations = solara.reactive(False)
     include_unique_content = solara.reactive(True)
@@ -79,6 +81,7 @@ class State(BaseState):
         series_filter=series_filter.value,
         playlist_filter=playlist_filter.value,
         # channel_filter=channel_filter.value,
+        youtube_series_filter=youtube_series_filter.value,
         include_no_durations=include_no_durations.value,
         include_unique_content=include_unique_content.value,
         include_nonunique_content=include_nonunique_content.value,
@@ -98,20 +101,20 @@ class State(BaseState):
         filtered_items = solara.reactive(filtered_items)
 
         num_pages = solara.reactive(
-            compute_number_of_pages(len(filtered_items.value), per_page.value)
+            compute_number_of_pages(items.value, per_page.value)
         )
 
-    @classmethod
-    def stats(cls):
-        stats = {
-            "total": VideoItem.count_enabled(),
-            "enabled": VideoItem.count_enabled(),
-            "disabled": VideoItem.count_enabled(enabled=False),
-            "no_duration": VideoItem.count_no_duration(),
-            "unique": VideoItem.count_unique(),
-        }
+    # @classmethod
+    # def stats(cls):
+    #     stats = {
+    #         "total": VideoItem.count_enabled(),
+    #         "enabled": VideoItem.count_enabled(),
+    #         "disabled": VideoItem.count_enabled(enabled=False),
+    #         "no_duration": VideoItem.count_no_duration(),
+    #         "unique": VideoItem.count_unique(),
+    #     }
 
-        return stats
+    #     return stats
 
     @classmethod
     def refresh_query(cls):
@@ -126,6 +129,7 @@ class State(BaseState):
             series_filter=State.series_filter.value,
             playlist_filter=State.playlist_filter.value,
             # channel_filter=State.channel_filter.value,
+            youtube_series_filter=State.youtube_series_filter.value,
             include_no_durations=State.include_no_durations.value,
             include_unique_content=State.include_unique_content.value,
             include_nonunique_content=State.include_nonunique_content.value,
@@ -156,11 +160,67 @@ class State(BaseState):
                 State.series_filter.value = args[0]
             State.refresh_query()
 
+    @staticmethod
+    def on_click_youtube_series(*args):
+        if args[0]:
+            if args[0].get("id") is None:
+                State.youtube_series_filter.value = None
+            else:
+                logger.debug(args[0])
+                State.youtube_series_filter.value = args[0]
+            State.refresh_query()
+
     def clear_filters(*args):
         logger.debug("Clearing filters")
         State.series_filter.value = None
         State.playlist_filter.value = None
+        State.youtube_series_filter.value = None
         State.refresh_query()
+
+
+@solara.component
+def PageHeader():
+    with solara.Row():
+        SeriesPopover(
+            current_series=State.series_filter.value,
+            handle_click=State.on_click_series,
+        )
+        PlaylistPopover(
+            current_playlist=State.playlist_filter.value,
+            handle_click=State.on_click_playlists,
+        )
+        YoutubeSeriesPopover(
+            current_youtube_series=State.youtube_series_filter.value,
+            handle_click=State.on_click_youtube_series,
+        )
+
+        solara.Button("Clear Filters", classes=["button"], on_click=State.clear_filters)
+        solara.Button(label="Refresh", on_click=State.refresh_query, classes=["button"])
+
+    with solara.Row():
+        solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))
+        solara.Checkbox(label="Non-Unique", value=Ref(State.include_nonunique_content))
+        solara.Checkbox(
+            label="Include No Durations", value=Ref(State.include_no_durations)
+        )
+    with solara.Card():
+        # searchable text box
+        VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
+
+    # Results of the Filter
+    FilteredVideosStats(label="Filtered Videos", items=State.filtered_items.value)
+
+    # Sort the Videos
+    SortControls(State)
+
+
+def on_save_in_edit(*args):
+    if args[0] is None:
+        logger.error("No video item to save")
+        return
+
+    logger.debug(f"Saving: {args[0].title}")
+    args[0].update_database_object()
 
 
 @solara.component
@@ -168,49 +228,13 @@ def Page():
     router = solara.use_router()
     refreshing = solara.use_reactive(False)
 
-    def on_save(*args):
-        logger.debug(f"on_save: {args}🤡🤡🤡🤡🤡")
-        args[0].update_database_object()
-
     MySidebar(
-        router=solara.use_router(),
+        router=router,
     )
+
     with solara.Column(classes=["main-container", "mb-10"]):
-        with solara.Row():
-            SeriesPopover(
-                current_series=State.series_filter.value,
-                handle_click=State.on_click_series,
-            )
-            PlaylistPopover(
-                current_playlist=State.playlist_filter.value,
-                handle_click=State.on_click_playlists,
-            )
 
-            solara.Button(
-                "Clear Filters", classes=["button"], on_click=State.clear_filters
-            )
-            solara.Button(
-                label="Refresh", on_click=State.refresh_query, classes=["button"]
-            )
-
-        with solara.Row():
-            solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))
-            solara.Checkbox(
-                label="Non-Unique", value=Ref(State.include_nonunique_content)
-            )
-            solara.Checkbox(
-                label="Include No Durations", value=Ref(State.include_no_durations)
-            )
-        with solara.Card():
-            # searchable text box
-            VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
-
-        # Results of the Filter
-        FilteredVideosStats(label="Filtered Videos", items=State.filtered_items.value)
-
-        # Sort the Videos
-        SortControls(State)
-
+        PageHeader()
         if refreshing.value:
             solara.SpinnerSolara()
         else:
@@ -224,7 +248,7 @@ def Page():
                     Ref(State.items),
                     router=router,
                     refreshing=refreshing,
-                    on_save=on_save,
+                    on_save=on_save_in_edit,
                     on_delete=State.on_delete,
                     refresh_query=State.refresh_query,
                 )
