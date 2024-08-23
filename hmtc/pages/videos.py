@@ -3,7 +3,7 @@ from loguru import logger
 from solara.lab.toestand import Ref
 
 from hmtc.components.pagination_controls import PaginationControls
-from hmtc.components.playlist.popover import PlaylistPopover
+
 from hmtc.components.series.popover import SeriesPopover
 from hmtc.components.youtube_series.popover import YoutubeSeriesPopover
 from hmtc.components.shared.sidebar import MySidebar
@@ -16,202 +16,21 @@ from hmtc.states.base import State as BaseState
 
 config = init_config()
 
-
-@solara.component
-def ScoreCard(label, value):
-    with solara.Card():
-        solara.Markdown(f"#### {label}")
-        solara.Markdown(f"# {value}")
+page_filtered = solara.reactive(False)
+filter_status = solara.reactive("None")
 
 
-@solara.component
-def FilteredVideosStats(label="Video Stats....", items=[]):
-    total = len(items)
-    if total == 0:
-        with solara.Card(title=label):
-            solara.Error("No videos found", icon="mdi-alert-circle-outline")
+@solara.component()
+def SortButton(label, col_name, sort_by, sort_order, on_click):
+    if sort_by == col_name:
+        if sort_order == "asc":
+            icon_name = "mdi-arrow-up-bold"
+        else:
+            icon_name = "mdi-arrow-down-bold"
     else:
-        with solara.Card(title=label):
-            unique = [v for v in items if v.contains_unique_content]
-            nonunique = total - len(unique)
-            no_duration = [v for v in items if v.duration is None]
-            with_duration = total - len(no_duration)
-            manually_edited = [v for v in items if v.manually_edited]
-            downloaded = VideoItem.count_vids_with_media_files()
-            with solara.Row():
-                ScoreCard("Unique", len(unique))
-                ScoreCard("Non-Unique", nonunique)
-                ScoreCard("No Duration", len(no_duration))
-                ScoreCard("Has Duration", with_duration)
-                ScoreCard("Manually Edited", len(manually_edited))
-                ScoreCard("Videos Downloaded", downloaded)
-                ScoreCard("Total", total)
+        icon_name = ""
 
-
-def compute_number_of_pages(total_items, per_page):
-    np = total_items / per_page
-    return int(np) + 1 if np > int(np) else int(np)
-
-
-class State(BaseState):
-    logger.debug("Initializing VideosState object page = (Videos)")
-
-    text_query = solara.reactive("")
-    sort_column = solara.reactive("title")
-    sort_order = solara.reactive("asc")
-    current_page = solara.reactive(1)
-    per_page = solara.reactive(config["general"]["items_per_page"])
-
-    playlist_filter = solara.reactive(None)
-    series_filter = solara.reactive(None)
-    # channel_filter = solara.reactive(None)
-    youtube_series_filter = solara.reactive(None)
-
-    include_no_durations = solara.reactive(False)
-    include_unique_content = solara.reactive(True)
-    include_nonunique_content = solara.reactive(False)
-    include_manually_edited = solara.reactive(False)
-
-    initial_items, filtered_items = VideoItem.grab_page_from_db(
-        current_page=current_page.value,
-        per_page=per_page.value,
-        text_search=text_query.value,
-        sort_column=sort_column.value,
-        sort_order=sort_order.value,
-        series_filter=series_filter.value,
-        playlist_filter=playlist_filter.value,
-        # channel_filter=channel_filter.value,
-        youtube_series_filter=youtube_series_filter.value,
-        include_no_durations=include_no_durations.value,
-        include_unique_content=include_unique_content.value,
-        include_nonunique_content=include_nonunique_content.value,
-        include_manually_edited=include_manually_edited.value,
-    )
-    if not initial_items:
-        logger.error("IF YOU SEE THIS, SOMETHING IS WRONG")
-        num_pages = solara.reactive(1)
-        items = solara.reactive([])
-        filtered_items = solara.reactive([])
-
-    else:
-        # logger.debug(f"Initial items {initial_items}")
-        items = solara.reactive(initial_items)
-
-        # logger.debug(f"Filtered items {filtered_items}")
-        filtered_items = solara.reactive(filtered_items)
-
-        num_pages = solara.reactive(
-            compute_number_of_pages(items.value, per_page.value)
-        )
-
-    # @classmethod
-    # def stats(cls):
-    #     stats = {
-    #         "total": VideoItem.count_enabled(),
-    #         "enabled": VideoItem.count_enabled(),
-    #         "disabled": VideoItem.count_enabled(enabled=False),
-    #         "no_duration": VideoItem.count_no_duration(),
-    #         "unique": VideoItem.count_unique(),
-    #     }
-
-    #     return stats
-
-    @classmethod
-    def refresh_query(cls):
-        logger.debug("refresh_query in Base State of Videos Page 🏠🏠🏠🏠🏠")
-
-        cls.items.value, cls.filtered_items.value = VideoItem.grab_page_from_db(
-            current_page=cls.current_page.value,
-            per_page=cls.per_page.value,
-            text_search=cls.text_query.value,
-            sort_column=cls.sort_column.value,
-            sort_order=cls.sort_order.value,
-            series_filter=State.series_filter.value,
-            playlist_filter=State.playlist_filter.value,
-            # channel_filter=State.channel_filter.value,
-            youtube_series_filter=State.youtube_series_filter.value,
-            include_no_durations=State.include_no_durations.value,
-            include_unique_content=State.include_unique_content.value,
-            include_nonunique_content=State.include_nonunique_content.value,
-            include_manually_edited=State.include_manually_edited.value,
-        )
-        np = len(cls.filtered_items.value) / cls.per_page.value
-        cls.num_pages.value = int(np) + 1 if np > int(np) else int(np)
-
-    @classmethod
-    def on_update_from_youtube(cls, item):
-        logger.debug(f"on_update_from_youtube: {item}")
-        item.update_from_youtube()
-        cls.refresh_query()
-
-    @classmethod
-    def on_click_playlists(cls, *args):
-        if args[0]:
-            State.playlist_filter.value = args[0]
-            State.refresh_query()
-
-    @staticmethod
-    def on_click_series(*args):
-        if args[0]:
-            if args[0].get("id") is None:
-                State.series_filter.value = None
-            else:
-                logger.debug(args[0])
-                State.series_filter.value = args[0]
-            State.refresh_query()
-
-    @staticmethod
-    def on_click_youtube_series(*args):
-        if args[0]:
-            if args[0].get("id") is None:
-                State.youtube_series_filter.value = None
-            else:
-                logger.debug(args[0])
-                State.youtube_series_filter.value = args[0]
-            State.refresh_query()
-
-    def clear_filters(*args):
-        logger.debug("Clearing filters")
-        State.series_filter.value = None
-        State.playlist_filter.value = None
-        State.youtube_series_filter.value = None
-        State.refresh_query()
-
-
-@solara.component
-def PageHeader():
-    with solara.Row():
-        SeriesPopover(
-            current_series=State.series_filter.value,
-            handle_click=State.on_click_series,
-        )
-        PlaylistPopover(
-            current_playlist=State.playlist_filter.value,
-            handle_click=State.on_click_playlists,
-        )
-        YoutubeSeriesPopover(
-            current_youtube_series=State.youtube_series_filter.value,
-            handle_click=State.on_click_youtube_series,
-        )
-
-        solara.Button("Clear Filters", classes=["button"], on_click=State.clear_filters)
-        solara.Button(label="Refresh", on_click=State.refresh_query, classes=["button"])
-
-    with solara.Row():
-        solara.Checkbox(label="Unique", value=Ref(State.include_unique_content))
-        solara.Checkbox(label="Non-Unique", value=Ref(State.include_nonunique_content))
-        solara.Checkbox(
-            label="Include No Durations", value=Ref(State.include_no_durations)
-        )
-    with solara.Card():
-        # searchable text box
-        VideoSearchBox(on_change=State.on_change_text_search, on_new=State.on_new)
-
-    # Results of the Filter
-    FilteredVideosStats(label="Filtered Videos", items=State.filtered_items.value)
-
-    # Sort the Videos
-    SortControls(State)
+    solara.Button(label=label, icon_name=icon_name, on_click=on_click)
 
 
 def on_save_in_edit(*args):
@@ -223,6 +42,178 @@ def on_save_in_edit(*args):
     args[0].update_database_object()
 
 
+def compute_number_of_pages(total_items, per_page):
+    np = total_items / per_page
+    return int(np) + 1 if np > int(np) else int(np)
+
+
+class State(BaseState):
+    logger.debug("Initializing State object on Videos New Page")
+    per_page = solara.reactive(config["general"]["items_per_page"])
+
+    current_page = solara.reactive(1)
+
+    series_filter = solara.reactive(None)
+    youtube_series_filter = solara.reactive(None)
+
+    sort_by = solara.reactive("upload_date")
+    sort_order = solara.reactive("asc")
+    # State.video_ids will be the currently filtered list of ids
+    #
+    video_ids = VideoItem.get_base_video_ids()
+
+    logger.debug(f"Found {len(video_ids)} videos")
+
+    if not video_ids:
+        logger.error("No Videos Found")
+        num_pages = solara.reactive(1)
+        page_items = solara.reactive([])
+
+    else:
+
+        num_pages = solara.reactive(
+            compute_number_of_pages(len(video_ids), per_page.value)
+        )
+        ids = video_ids[(current_page.value - 1) * per_page.value : per_page.value]
+        vis = VideoItem.grab_list_of_video_details(ids=ids)
+
+        page_items = solara.reactive(vis)
+
+    @staticmethod
+    def apply_filters():
+        logger.debug("Applying filters")
+
+        if State.series_filter.value:
+            page_filtered.set(True)
+            filter_status.set(f"Series: {State.series_filter.value['title']}")
+        elif State.youtube_series_filter.value:
+            page_filtered.set(True)
+            filter_status.set(
+                f"Youtube Series: {State.youtube_series_filter.value['title']}"
+            )
+        else:
+            page_filtered.set(False)
+            filter_status.set("None")
+
+        State.video_ids = VideoItem.get_filtered_video_ids(
+            series_filter=State.series_filter.value,
+            youtube_series_filter=State.youtube_series_filter.value,
+            sort_by=State.sort_by.value,
+            sort_order=State.sort_order.value,
+        )
+
+        State.load_page_number(1)
+
+        logger.debug(f"Found {len(State.video_ids)} videos")
+
+        if not State.video_ids:
+            logger.error("No Videos Found")
+            num_pages = solara.reactive(1)
+            page_items = solara.reactive([])
+        else:
+            State.num_pages.set(
+                compute_number_of_pages(len(State.video_ids), State.per_page.value)
+            )
+            ids = State.video_ids[
+                (State.current_page.value - 1)
+                * State.per_page.value : State.per_page.value
+            ]
+            vis = VideoItem.grab_list_of_video_details(ids=ids)
+
+            State.page_items.set(vis)
+
+    @staticmethod
+    def load_page_number(page_number):
+        State.current_page.set(page_number)
+        State.refresh_page_items()
+
+    @staticmethod
+    def refresh_page_items():
+
+        logger.debug("Refreshing page contents - Videos-New")
+        page = State.current_page.value
+        per_page = State.per_page.value
+
+        ids = State.video_ids[(page - 1) * per_page :][:per_page]
+        vis = VideoItem.grab_list_of_video_details(ids=ids)
+        State.page_items.set(vis)
+
+    @staticmethod
+    def on_click_series(*args):
+        if args[0]:
+            if args[0].get("id") is None:
+                State.series_filter.value = None
+            else:
+                logger.debug(args[0])
+                State.series_filter.value = args[0]
+            State.apply_filters()
+
+    @staticmethod
+    def on_click_youtube_series(*args):
+        if args[0]:
+            if args[0].get("id") is None:
+                State.youtube_series_filter.value = None
+            else:
+                logger.debug(args[0])
+                State.youtube_series_filter.value = args[0]
+            State.apply_filters()
+
+    @staticmethod
+    def clear_filters():
+        logger.debug("Clearing filters")
+        State.series_filter.value = None
+        State.youtube_series_filter.value = None
+        State.apply_filters()
+
+
+@solara.component
+def PageHeader():
+
+    def sort_by_title():
+        State.sort_by.set("title")
+        if State.sort_order.value == "asc":
+            State.sort_order.set("desc")
+        else:
+            State.sort_order.set("asc")
+
+        State.apply_filters()
+
+    with solara.Row():
+        if not page_filtered.value:
+
+            SeriesPopover(
+                current_series=State.series_filter.value,
+                handle_click=State.on_click_series,
+            )
+
+            YoutubeSeriesPopover(
+                current_youtube_series=State.youtube_series_filter.value,
+                handle_click=State.on_click_youtube_series,
+            )
+        else:
+            if State.series_filter.value:
+                SeriesPopover(
+                    current_series=State.series_filter.value,
+                    handle_click=State.on_click_series,
+                )
+            elif State.youtube_series_filter.value:
+                YoutubeSeriesPopover(
+                    current_youtube_series=State.youtube_series_filter.value,
+                    handle_click=State.on_click_youtube_series,
+                )
+            solara.Button(
+                "Clear Filters", classes=["button"], on_click=State.clear_filters
+            )
+            with solara.Row():
+                solara.Markdown(f"## Current Filters: {filter_status.value}")
+    with solara.Row():
+        # solara.Button("Title Ascending", on_click=sort_title_ascending)
+        SortControls(State)
+        solara.Markdown(
+            f"## Current Sort: {State.sort_by.value} {State.sort_order.value}"
+        )
+
+
 @solara.component
 def Page():
     router = solara.use_router()
@@ -232,34 +223,34 @@ def Page():
         router=router,
     )
 
+    def on_page_change_local(*args):
+        logger.debug(f"on_page_change_local: {args}")
+        new_page = args[0]
+        State.load_page_number(new_page)
+
     with solara.Column(classes=["main-container", "mb-10"]):
 
         PageHeader()
         if refreshing.value:
             solara.SpinnerSolara()
         else:
-            if State.items.value:
+            if State.page_items.value:
+
                 PaginationControls(
                     current_page=State.current_page,
                     num_pages=State.num_pages,
-                    on_page_change=State.on_page_change,
+                    on_page_change=on_page_change_local,
                 )
                 VideoCards(
-                    Ref(State.items),
+                    Ref(State.page_items),
                     router=router,
                     refreshing=refreshing,
                     on_save=on_save_in_edit,
                     on_delete=State.on_delete,
-                    refresh_query=State.refresh_query,
+                    refresh_query=State.refresh_page_items,
                 )
             else:
-                if State.text_query.value != "":
-                    solara.Error(
-                        f"No videos found for {State.text_query.value}",
-                        icon="mdi-alert-circle-outline",
-                    )
-                else:
-                    solara.Error(
-                        "No videos found and No text was entered",
-                        icon="mdi-alert-circle-outline",
-                    )
+                solara.Error(
+                    "No videos found and No text was entered",
+                    icon="mdi-alert-circle-outline",
+                )

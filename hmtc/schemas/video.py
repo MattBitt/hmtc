@@ -288,13 +288,38 @@ class VideoItem(BaseItem):
         return [v.id for v in vid_ids]
 
     @staticmethod
-    def create_filtered_video_ids_query(
+    def get_filtered_video_ids(
         text_search=None,
-        sort_column=None,
+        sort_by=None,
         sort_order=None,
         series_filter=None,
-        playlist_filter=None,
-        channel_filter=None,
+        youtube_series_filter=None,
+        include_no_durations=False,
+        include_unique_content=True,
+        include_nonunique_content=False,
+    ):
+        query = VideoItem.create_filtered_video_ids_query(
+            text_search=text_search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            series_filter=series_filter,
+            include_no_durations=include_no_durations,
+            include_unique_content=include_unique_content,
+            include_nonunique_content=include_nonunique_content,
+            youtube_series_filter=youtube_series_filter,
+        )
+
+        if not query:
+            return [], []
+
+        return [v.id for v in query]
+
+    @staticmethod
+    def create_filtered_video_ids_query(
+        text_search=None,
+        sort_by=None,
+        sort_order=None,
+        series_filter=None,
         youtube_series_filter=None,
         include_no_durations=False,
         include_unique_content=True,
@@ -326,22 +351,6 @@ class VideoItem(BaseItem):
             else:
                 query = query.join(Series).where(Series.name == series_filter["title"])
 
-        if playlist_filter:
-            if playlist_filter["title"] == "No Playlists":
-                query = query.where(Video.playlist.is_null())
-            else:
-                query = query.join(Playlist).where(
-                    Playlist.title == playlist_filter["title"]
-                )
-
-        # if channel_filter:
-        #     if channel_filter["title"] == "No Channel":
-        #         query = query.where(Video.channel.is_null())
-        #     else:
-        #         query = query.join(Channel).where(
-        #             Channel.name == channel_filter["title"]
-        #         )
-
         if youtube_series_filter:
             if youtube_series_filter["title"] == "No youtube_series":
                 query = query.where(Video.youtube_series.is_null())
@@ -361,16 +370,20 @@ class VideoItem(BaseItem):
         # sort column is the column 'string' to sort by
         sort_field = None
 
-        if sort_column is not None:
-            sort_field = VideoItem.get_sort_field(sort_column, sort_order)
+        if sort_by is not None:
 
-        if sort_field is not None:
-            q = query.order_by(sort_field)
+            sort_field = VideoItem.get_sort_field(sort_by, sort_order)
+            if sort_order == "asc":
+                sort_field = sort_field.asc()
+            else:
+                sort_field = sort_field.desc()
         else:
-            q = query.order_by(VideoItem.id.asc())
+            sort_field = Video.upload_date.desc()
+
+        q = query.order_by(sort_field)
 
         if not q:
-            logger.debug(f"No items found for query: {query.sql()}")
+            # logger.debug(f"No items found for query: {query.sql()}")
             return [], []
 
         return q
@@ -526,7 +539,7 @@ class VideoItem(BaseItem):
         current_page,
         per_page,
         text_search=None,
-        sort_column=None,
+        sort_by=None,
         sort_order=None,
         series_filter=None,
         playlist_filter=None,
@@ -540,27 +553,23 @@ class VideoItem(BaseItem):
 
         query = VideoItem.create_filtered_video_ids_query(
             text_search=text_search,
-            sort_column=sort_column,
+            sort_by=sort_by,
             sort_order=sort_order,
             series_filter=series_filter,
-            playlist_filter=playlist_filter,
-            # channel_filter=channel_filter,
             include_no_durations=include_no_durations,
             include_unique_content=include_unique_content,
             include_nonunique_content=include_nonunique_content,
             youtube_series_filter=youtube_series_filter,
         )
 
-        items = len(query)
         page_of_items = [
             VideoItem.from_orm(item) for item in query.paginate(current_page, per_page)
         ]
-        return page_of_items, items
+        return page_of_items
 
     @staticmethod
     def from_orm(db_object):
-        logger.debug("Creating VideoItem from ORM")
-        logger.debug(f"DB Object: {db_object}")
+        # logger.debug("Creating VideoItem from ORM DB Object: {db_object}")
 
         return VideoItem(
             title=db_object.title,

@@ -2,8 +2,8 @@ import solara
 
 
 @solara.component()
-def SortButton(label, col_name, sort_column, sort_order, on_click):
-    if sort_column == col_name:
+def SortButton(label, col_name, sort_by, sort_order, on_click):
+    if sort_by == col_name:
         if sort_order == "asc":
             icon_name = "mdi-arrow-up-bold"
         else:
@@ -17,86 +17,86 @@ def SortButton(label, col_name, sort_column, sort_order, on_click):
 @solara.component
 def SortControls(state):
     def sort_by_created_date():
-        state.sort_column.value = "created_at"
+        state.sort_by.value = "created_at"
         if state.sort_order.value == "asc":
             state.sort_order.value = "desc"
         else:
             state.sort_order.value = "asc"
 
-        state.refresh_query()
+        state.apply_filters()
 
     def sort_by_title():
-        state.sort_column.value = "title"
+        state.sort_by.value = "title"
         if state.sort_order.value == "asc":
             state.sort_order.value = "desc"
         else:
             state.sort_order.value = "asc"
 
-        state.refresh_query()
+        state.apply_filters()
 
     def sort_by_upload_date():
-        state.sort_column.value = "upload_date"
+        state.sort_by.value = "upload_date"
         if state.sort_order.value == "asc":
             state.sort_order.value = "desc"
         else:
             state.sort_order.value = "asc"
 
-        state.refresh_query()
+        state.apply_filters()
 
     def sort_by_updated_date():
-        state.sort_column.value = "updated_at"
+        state.sort_by.value = "updated_at"
         if state.sort_order.value == "asc":
             state.sort_order.value = "desc"
         else:
             state.sort_order.value = "asc"
 
-        state.refresh_query()
+        state.apply_filters()
 
     def sort_by_duration():
-        state.sort_column.value = "duration"
+        state.sort_by.value = "duration"
         if state.sort_order.value == "asc":
             state.sort_order.value = "desc"
         else:
             state.sort_order.value = "asc"
 
-        state.refresh_query()
+        state.apply_filters()
 
     with solara.Row():
         SortButton(
-            label="Title",
+            label="title",
             col_name="title",
-            sort_column=state.sort_column.value,
+            sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=sort_by_title,
+            on_click=state.apply_filters,
         )
         SortButton(
             label="Created At",
             col_name="created_at",
-            sort_column=state.sort_column.value,
+            sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=sort_by_created_date,
+            on_click=state.apply_filters,
         )
 
         SortButton(
             label="Upload Date",
             col_name="upload_date",
-            sort_column=state.sort_column.value,
+            sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=sort_by_upload_date,
+            on_click=state.apply_filters,
         )
 
         SortButton(
             label="Updated At",
             col_name="updated_at",
-            sort_column=state.sort_column.value,
+            sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=sort_by_updated_date,
+            on_click=state.apply_filters,
         )
 
         SortButton(
             label="Duration",
             col_name="duration",
-            sort_column=state.sort_column.value,
+            sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=sort_by_duration,
+            on_click=state.apply_filters,
         )

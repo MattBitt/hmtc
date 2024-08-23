@@ -34,6 +34,6 @@ class BaseItem:
 
         field = getattr(cls.db_model, sort_column)
 
-        if sort_order != "asc":
-            field = field.desc()
+        # if sort_order != "asc":
+        #     field = field.desc()
         return field

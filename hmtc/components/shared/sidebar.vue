@@ -40,7 +40,7 @@ export default {
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Series", icon: "mdi-television", url: "/series" },
       { text: "Videos", icon: "mdi-video", url: "/videos" },
-      { text: "Videos New", icon: "mdi-video", url: "/videos-new" },
+
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
       {
         text: "Playlists",
@@ -53,6 +53,7 @@ export default {
     ],
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },
+      { text: "Videos Old", icon: "mdi-video", url: "/videos-old" },
       { text: "Files", icon: "mdi-folder", url: "/files" },
       { text: "About", icon: "mdi-information", url: "/about" },
       { text: "Logout", icon: "mdi-logout", url: "/logout" },

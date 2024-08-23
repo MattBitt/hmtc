@@ -18,17 +18,19 @@ def VideoCards(
 ):
     with solara.ColumnsResponsive(12, large=6):
         for index, item in enumerate(videos.value):
-            refr = solara.use_reactive(False)
 
             with solara.Card(style={"min-height": "250px"}):
-                if refr.value:
+                if refreshing.value:
                     solara.SpinnerSolara()
                 else:
-                    VideoListItem(
-                        Ref(videos.fields[index]),
-                        router=router,
-                        refreshing=refr,
-                        on_save=on_save,
-                        on_delete=on_delete,
-                        refresh_query=refresh_query,
-                    )
+                    if item is None:
+                        solara.Alert("No videos found")
+                    else:
+                        VideoListItem(
+                            Ref(videos.fields[index]),
+                            router=router,
+                            refreshing=refreshing,
+                            on_save=on_save,
+                            on_delete=on_delete,
+                            refresh_query=refresh_query,
+                        )
