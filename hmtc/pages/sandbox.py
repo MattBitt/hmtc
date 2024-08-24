@@ -59,7 +59,30 @@ def Page():
         Sandbox(event_trigger=lambda data: logger.error("asdf"))
         # f = File.from_path("1/asdf.txt")
         # f.move_to("new_folder")
-
+        with solara.Columns(6, 6):
+            SectionItem(
+                section=dict(
+                    id=15,
+                    start="00:01:02",
+                    end="01:02:03",
+                    is_first=False,
+                    is_last=False,
+                    section_type="Instrumental",
+                    start_string="04:07:16",
+                    end_string="12:13:19",
+                ),
+                event_set_start_time=lambda data: logger.debug(f"Start Time = {data}"),
+                event_set_end_time=lambda data: logger.debug(f"End Time = {data}"),
+                event_set_section_type=lambda data: logger.debug(
+                    f"Section Type  = {data}"
+                ),
+                event_load_next_section=lambda data: logger.debug(
+                    f"Loading Next Section {data}"
+                ),
+                event_load_previous_section=lambda data: logger.debug(
+                    f"Loading Previous Section {data}"
+                ),
+            )
         SectionItem(
             section=dict(
                 id=15,
