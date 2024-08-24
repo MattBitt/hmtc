@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from loguru import logger
 from hmtc.models import Track as TrackTable
 from hmtc.schemas.video import VideoItem
-from hmtc.mods.section import SectionManager, Section
+from hmtc.mods.section import Section
 from hmtc.mods.album import Album as AlbumItem
 from hmtc.config import init_config
 from hmtc.utils.ffmpeg_utils import rip_track

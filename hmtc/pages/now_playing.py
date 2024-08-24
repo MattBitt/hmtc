@@ -16,7 +16,7 @@ def get_youtube_id(filename):
 def RatingStars():
     with solara.Row():
         for i in range(1, 6):
-            solara.Button(f"⭐️" * i, on_click=lambda: add_tag_to_item(f"star:{i}"))
+            solara.Button("⭐️" * i, on_click=lambda: add_tag_to_item(f"star:{i}"))
 
 
 @solara.component
@@ -42,7 +42,7 @@ def Page():
         now_playing = grab_now_playing()
         if now_playing:
             if now_playing["type"] == "track":
-                solara.Markdown(f"### This is a track playing, somehow....")
+                solara.Markdown("### This is a track playing, somehow....")
             else:
                 solara.Markdown(f"### {now_playing}")
                 youtube_id = get_youtube_id(now_playing["path"])

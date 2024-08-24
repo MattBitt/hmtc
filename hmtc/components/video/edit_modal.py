@@ -1,14 +1,11 @@
 from pathlib import Path
 from typing import Callable
 
-import PIL.Image
 import reacton.ipyvuetify as v
 import solara
-from loguru import logger
 from solara.lab.toestand import Ref
 
 from hmtc.config import init_config
-from hmtc.mods.file import FileManager
 from hmtc.schemas.video import VideoItem
 
 config = init_config()

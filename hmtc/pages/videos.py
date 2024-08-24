@@ -9,7 +9,6 @@ from hmtc.components.youtube_series.popover import YoutubeSeriesPopover
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.video.cards_list import VideoCards
-from hmtc.components.video.new_text_box import VideoSearchBox
 from hmtc.config import init_config
 from hmtc.schemas.video import VideoItem
 from hmtc.states.base import State as BaseState

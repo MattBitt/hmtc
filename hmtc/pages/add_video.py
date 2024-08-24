@@ -49,7 +49,7 @@ def add_video():
     if not channel:
         logger.debug(f"Channel not found in DB. Using downloaded info.{channel_id}")
         status.set(
-            f"Channel not found in DB. Using downloaded info. Add channel to DB before adding the video."
+            "Channel not found in DB. Using downloaded info. Add channel to DB before adding the video."
         )
         channel_name.set(vid_info["channel"])
         channel_url.set(vid_info["uploader_url"])
@@ -57,7 +57,7 @@ def add_video():
         channel_auto_update.set(False)
 
     else:
-        logger.debug(f"Channel was found in DB. Loading info.")
+        logger.debug("Channel was found in DB. Loading info.")
         channel_name.set(channel.name)
         channel_url.set(channel.url)
         channel_youtube_id.set(channel.youtube_id)

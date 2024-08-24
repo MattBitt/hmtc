@@ -4,7 +4,7 @@ from typing import List
 from loguru import logger
 
 from hmtc.models import Album as AlbumTable, Track as TrackTable
-from hmtc.mods.section import SectionManager, Section
+from hmtc.mods.section import Section
 from hmtc.schemas.video import VideoItem
 
 

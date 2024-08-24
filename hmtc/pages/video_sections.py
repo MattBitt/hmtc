@@ -217,12 +217,12 @@ def AlbumInfo(video, album):
             on_click=update_album,
         )
         solara.Button(
-            f"Delete Album",
+            "Delete Album",
             on_click=delete_album,
         )
     else:
         solara.Button(
-            f"Create Album",
+            "Create Album",
             on_click=create_album,
             disabled=has_album,
         )

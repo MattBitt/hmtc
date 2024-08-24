@@ -1,5 +1,4 @@
 from jellyfin_apiclient_python import JellyfinClient
-import json
 from uuid import uuid1
 from hmtc.config import init_config
 from hmtc.utils.my_logging import logger

@@ -426,7 +426,7 @@ class VideoItem(BaseItem):
 
     def add_file(self, file, file_type=None):
         logger.debug(f"In VideoItem.add_file: {file}")
-        logger.debug(f"Fix this 🤡🤡🤡🤡🤡🤡🤡")
+        logger.debug("Fix this 🤡🤡🤡🤡🤡🤡🤡")
         exit()
         extension = "".join(Path(file).suffixes)
         clean_name = Path(file).stem

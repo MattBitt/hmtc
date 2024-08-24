@@ -11,7 +11,7 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Channel
 from hmtc.models import Video as VideoTable
 from hmtc.schemas.video import VideoItem
-from hmtc.mods.album import Album, Track
+from hmtc.mods.album import Album
 from hmtc.mods.section import SectionManager, Section
 from hmtc.config import init_config
 from hmtc.mods.track import TrackItem
@@ -90,7 +90,7 @@ class PageState:
 
     @staticmethod
     def refresh_videos_from_youtube():
-        logger.debug(f"Refreshing videos from youtube")
+        logger.debug("Refreshing videos from youtube")
         PageState.updating.set(True)
         existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
         logger.debug(f"DB currently has {len(existing_ids)} videos")
@@ -120,7 +120,7 @@ class PageState:
 
     @staticmethod
     def sync_channels_from_youtube():
-        logger.debug(f"Syncing channel_id in Database from youtube")
+        logger.debug("Syncing channel_id in Database from youtube")
         PageState.updating.set(True)
         vids_with_no_channel = VideoItem.get_vids_with_no_channel()
         if len(vids_with_no_channel) == 0:
@@ -146,7 +146,7 @@ class PageState:
                     logger.debug(f"Assigned {vid} to {c}")
                     PageState.i.set(PageState.i.value + 1)
 
-            status.set(f"Finished synching channel ids to videos in database")
+            status.set("Finished synching channel ids to videos in database")
 
         PageState.updating.set(False)
 
@@ -154,7 +154,7 @@ class PageState:
     # as of 8-16-2024
     @staticmethod
     def update_episode_numbers():
-        logger.debug(f"Updating episode numbers")
+        logger.debug("Updating episode numbers")
         PageState.updating.set(True)
         vids = VideoItem.get_vids_with_no_episode_number()
         logger.debug(f"Found {len(vids)} videos with no episode number")
@@ -203,7 +203,7 @@ class PageState:
 
     @staticmethod
     def update_episode_numbers_omegle_exlusive():
-        logger.debug(f"Updating episode numbers")
+        logger.debug("Updating episode numbers")
         PageState.updating.set(True)
         vids = VideoItem.get_vids_with_no_episode_number()
         ex_omegle = [v for v in vids if "omegle" in v.title.lower()]
@@ -217,7 +217,7 @@ class PageState:
 
     @staticmethod
     def update_episode_numbers_guerilla_exlusive():
-        logger.debug(f"Updating episode numbers")
+        logger.debug("Updating episode numbers")
         PageState.updating.set(True)
         vids = VideoItem.get_vids_with_no_episode_number()
         ex_gb = [v for v in vids if "guerilla" in v.title.lower()]

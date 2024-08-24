@@ -1,12 +1,10 @@
 from pathlib import Path
 from typing import Callable
-import PIL.Image
 import reacton.ipyvuetify as v
 import solara
 from loguru import logger
 
 from hmtc.assets.colors import Colors
-from hmtc.components.playlist.chip import Chip
 from hmtc.components.video.edit_modal import VideoEditModal
 from hmtc.components.video.series_popover import VideoSeriesPopover
 from hmtc.config import init_config

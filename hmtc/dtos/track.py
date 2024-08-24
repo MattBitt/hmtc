@@ -1,8 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass
-from hmtc.models import Track
 from hmtc.config import init_config
-from loguru import logger
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
