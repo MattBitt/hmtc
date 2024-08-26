@@ -20,20 +20,6 @@
             </v-range-slider>
           </v-col>
         </v-row>
-        <v-row class="pa-0">
-          <v-col>
-            <div>Start</div>
-            <div>04:23:00.1234</div></v-col
-          >
-          <v-col>
-            <div>End</div>
-            <div>08:14:74.1234</div></v-col
-          >
-          <v-col>
-            <div>Duration</div>
-            <div>04:23:00.1234</div></v-col
-          >
-        </v-row>
       </v-container>
     </template>
   </div>
@@ -41,7 +27,7 @@
 <script>
 export default {
   data: () => ({
-    seasons: ["Winter", "Spring", "Summer", "Fall"],
+    seasons: ["00:00", "07:23", "12:32", "20:00"],
     icons: ["mdi-snowflake", "mdi-leaf", "mdi-fire", "mdi-water"],
   }),
 

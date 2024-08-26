@@ -7,4 +7,10 @@
     "python.REPL.enableREPLSmartSend": false,
     "editor.find.autoFindInSelection": "multiline",
     "editor.foldingStrategy": "indentation",
+    "[vue]": {
+        "editor.tabSize": 2,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Vue.volar",
+        "editor.wordWrapColumn": 90
+    },
 }
