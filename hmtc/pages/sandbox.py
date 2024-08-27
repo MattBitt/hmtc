@@ -21,7 +21,7 @@ def SectionItem(
 @solara.component_vue("../components/digits/digit_label.vue", vuetify=True)
 def DigitLabel(
     label="default label for DigitalLabel",
-    section=dict(id=15, start="00:00:00", end="23:59:59", duration=74685),
+    timestamp=dict(id=159, timestamp=12),
     event_enable_editing: Callable[[dict], None] = lambda data: logger.error(
         f"Default Function Call= {data}"
     ),
@@ -32,13 +32,13 @@ def DigitLabel(
 @solara.component_vue("../components/digits/digit_input.vue", vuetify=True)
 def DigitInput(
     label="default label for DigitalInput",
-    section=dict(id=15, start="00:00:00", end="23:59:59", duration=74685),
+    timestamp=dict(id=387, timestamp=1203),
 ):
     pass
 
 
-@solara.component_vue("./sandbox.vue")
-def Sandbox(playbackTime=0):
+@solara.component_vue("../components/section/section_line.vue", vuetify=True)
+def SectionLine(playbackTime=0):
     pass
 
 
@@ -89,45 +89,51 @@ def Page():
             elevation=10,
             margin="2",
         ):
-            Sandbox(event_trigger=lambda data: logger.error("asdf"))
+
             with solara.Card():
                 solara.Markdown("## Placeholder for Words")
 
             with solara.ColumnsResponsive(6, 6):
+                start = dict(id=15, timestamp=61)
+                end = dict(id=37, timestamp=3662)
                 with solara.Column():
                     with solara.Row():
                         solara.Button(
-                            label="Enable",
-                            on_click=lambda: editing_start.set(True),
+                            label="Toggle Edit Mode",
+                            on_click=lambda: editing_start.set(not editing_start.value),
                         )
-                        solara.Button(
-                            label="Disable",
-                            on_click=lambda: editing_start.set(False),
-                        )
+
                     if editing_start.value:
                         with solara.Row():
-                            DigitInput(label="Start Time")
+                            DigitInput(
+                                label="Start Time",
+                                timestamp=start,
+                            )
                     else:
                         with solara.Row():
-                            DigitLabel(label="Start Time")
+                            DigitLabel(
+                                label="Start Time",
+                                timestamp=start,
+                            )
+
                 with solara.Column():
                     with solara.Row():
                         solara.Button(
-                            label="Enable",
-                            on_click=lambda: editing_end.set(True),
-                        )
-                        solara.Button(
-                            label="Disable",
-                            on_click=lambda: editing_end.set(False),
+                            label="Toggle Edit Mode",
+                            on_click=lambda: editing_end.set(not editing_end.value),
                         )
                     if editing_end.value:
 
                         with solara.Row():
-                            DigitInput(label="End Time")
+                            DigitInput(
+                                label="End Time",
+                                timestamp=end,
+                            )
                     else:
                         with solara.Row():
                             DigitLabel(
                                 label="End Time",
+                                timestamp=end,
                                 event_enable_editing=lambda data: logger.error(
                                     f"Event Enable Editing Called = {data}"
                                 ),

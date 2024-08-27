@@ -63,13 +63,9 @@
 export default {
         data: () => ({
                 label: "Blank Text",
-                section: {
-                        id: "Section 2",
-                        start: "Start 2",
-                        end: "End 2",
-
-                        duration: 92287,
-
+                timestamp: {
+                        id: 123,
+                        timestamp: 123,
                 },
                 number: 0,
                 numberRule: (val) => {
@@ -80,16 +76,17 @@ export default {
         methods: {
 
                 hour() {
-                        h = Math.floor(this.section.duration / 3600);
+                        console.log(this.timestamp.timestamp);
+                        h = Math.floor(this.timestamp.timestamp / 3600);
                         return String(h).padStart(2, "0");
                 },
                 minute() {
-                        t = this.section.duration - this.hour() * 3600;
+                        t = this.timestamp.timestamp - this.hour() * 3600;
                         m = Math.floor(t / 60);
                         return String(m).padStart(2, "0");
                 },
                 second() {
-                        t = this.section.duration - this.hour() * 3600 - this.minute() * 60;
+                        t = this.timestamp.timestamp - this.hour() * 3600 - this.minute() * 60;
 
                         s = Math.floor(t);
                         return String(s).padStart(2, "0");
