@@ -43,10 +43,6 @@ a {
   }
 
 
-
-
-
-
 .button {
   text-decoration: none;
   font-weight: 600;
@@ -54,3 +50,5 @@ a {
   background-color: var(--dark) !important;
   height: 40px !important;
 }
+
+  

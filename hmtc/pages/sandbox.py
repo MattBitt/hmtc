@@ -37,8 +37,20 @@ def DigitInput(
     pass
 
 
-@solara.component_vue("../components/section/section_line.vue", vuetify=True)
-def SectionLine(playbackTime=0):
+@solara.component_vue("../components/section/section_timeline.vue", vuetify=True)
+def SectionLine(
+    timestamps=dict(
+        whole_start=0,
+        whole_end=2447,
+        part_start=600,
+        part_end=1200,
+    )
+):
+    pass
+
+
+@solara.component_vue("../components/topic/topics_list.vue", vuetify=True)
+def TopicsList(topics=["Topic 1", "Topic 2", "Topic 3"]):
     pass
 
 
@@ -73,131 +85,95 @@ def func1(*args):
     return None
 
 
+### need functions below for refactoring 8-27-24
+
+
 @solara.component
 def Page():
     MySidebar(router=solara.use_router())
 
     editing_start = solara.use_reactive(False)
     editing_end = solara.use_reactive(True)
+    new_topic = solara.use_reactive("")
+    topics = solara.use_reactive(["football", "cats", "dogs"])
+    video = dict(id=17, duration=1080)
+    section = dict(id=15, start=182, end=687)
+    start = dict(id=15, timestamp=section["start"], hour=1, minute=3, second=5)
+    end = dict(id=37, timestamp=section["end"], hour=2, minute=3, second=4)
+
+    def add_topic():
+        if new_topic.value:
+            topics.value.append(new_topic.value)
+            new_topic.value = ""
 
     with solara.Column(classes=["main-container"]):
         solara.Markdown("## Sandbox")
 
-        # use this to test out new vue components
-        # just change the contents of the vue file and refresh the page
         with solara.Card(
             elevation=10,
             margin="2",
         ):
+            with solara.ColumnsResponsive(6, 6):
+                with solara.Card():
+                    with solara.Row():
+                        solara.InputText(label="Topic", value=new_topic)
+                        solara.Button(label="Add Topic", on_click=add_topic),
+                    TopicsList(topics=topics.value)
 
-            with solara.Card():
-                solara.Markdown("## Placeholder for Words")
+                with solara.Card():
+                    SectionLine(
+                        timestamps=dict(
+                            whole_start=0,
+                            whole_end=video["duration"],
+                            part_start=section["start"],
+                            part_end=section["end"],
+                        )
+                    )
 
             with solara.ColumnsResponsive(6, 6):
-                start = dict(id=15, timestamp=61)
-                end = dict(id=37, timestamp=3662)
-                with solara.Column():
-                    with solara.Row():
-                        solara.Button(
-                            label="Toggle Edit Mode",
-                            on_click=lambda: editing_start.set(not editing_start.value),
-                        )
 
-                    if editing_start.value:
+                with solara.Card():
+                    with solara.Column():
                         with solara.Row():
-                            DigitInput(
-                                label="Start Time",
-                                timestamp=start,
-                            )
-                    else:
-                        with solara.Row():
-                            DigitLabel(
-                                label="Start Time",
-                                timestamp=start,
-                            )
-
-                with solara.Column():
-                    with solara.Row():
-                        solara.Button(
-                            label="Toggle Edit Mode",
-                            on_click=lambda: editing_end.set(not editing_end.value),
-                        )
-                    if editing_end.value:
-
-                        with solara.Row():
-                            DigitInput(
-                                label="End Time",
-                                timestamp=end,
-                            )
-                    else:
-                        with solara.Row():
-                            DigitLabel(
-                                label="End Time",
-                                timestamp=end,
-                                event_enable_editing=lambda data: logger.error(
-                                    f"Event Enable Editing Called = {data}"
+                            solara.Button(
+                                label="Toggle Edit Mode",
+                                on_click=lambda: editing_start.set(
+                                    not editing_start.value
                                 ),
                             )
 
-                #     SectionItem(
-                #         section=dict(
-                #             id=15,
-                #             start="00:01:02",
-                #             end="01:02:03",
-                #             is_first=False,
-                #             is_last=False,
-                #             section_type="Instrumental",
-                #             start_string="04:07:16",
-                #             end_string="12:13:19",
-                #         ),
-                #         event_set_start_time=lambda data: logger.debug(
-                #             f"Start Time = {data}"
-                #         ),
-                #         event_set_end_time=lambda data: logger.debug(
-                #             f"End Time = {data}"
-                #         ),
-                #         event_set_section_type=lambda data: logger.debug(
-                #             f"Section Type  = {data}"
-                #         ),
-                #         event_load_next_section=lambda data: logger.debug(
-                #             f"Loading Next Section {data}"
-                #         ),
-                #         event_load_previous_section=lambda data: logger.debug(
-                #             f"Loading Previous Section {data}"
-                #         ),
-                #         editing=editing_start.value,
-                #     )
-                # with solara.Column():
-                #     with solara.Row():
-                #         solara.Button(
-                #             label="Enable", on_click=lambda: editing_end.set(True)
-                #         )
-                #         solara.Button(
-                #             label="Disable", on_click=lambda: editing_end.set(False)
-                #         )
-                #     SectionItem(
-                #         section=dict(
-                #             id=15,
-                #             start="00:01:02",
-                #             end="01:02:03",
-                #             is_first=False,
-                #             is_last=False,
-                #             section_type="Instrumental",
-                #             start_string="04:07:16",
-                #             end_string="12:13:19",
-                #         ),
-                #         event_set_start_time=lambda data: func1(data),
-                #         event_set_end_time=lambda data: logger.debug(
-                #             f"End Time = {data}"
-                #         ),
-                #         event_set_section_type=lambda data: logger.debug(
-                #             f"Section Type  = {data}"
-                #         ),
-                #         event_load_next_section=lambda data: logger.debug(
-                #             f"Loading Next Section {data}"
-                #         ),
-                #         event_load_previous_section=lambda data: logger.debug(
-                #             f"Loading Previous Section {data}"
-                #         ),
-                #         editing=editing_end.value,
-                #     )
+                        if editing_start.value:
+                            with solara.Row():
+                                DigitInput(
+                                    label="Start Time",
+                                    timestamp=start,
+                                )
+                        else:
+                            with solara.Row():
+                                DigitLabel(
+                                    label="Start Time",
+                                    timestamp=start,
+                                )
+                with solara.Card():
+                    with solara.Column():
+                        with solara.Row():
+                            solara.Button(
+                                label="Toggle Edit Mode",
+                                on_click=lambda: editing_end.set(not editing_end.value),
+                            )
+                        if editing_end.value:
+
+                            with solara.Row():
+                                DigitInput(
+                                    label="End Time",
+                                    timestamp=end,
+                                )
+                        else:
+                            with solara.Row():
+                                DigitLabel(
+                                    label="End Time",
+                                    timestamp=end,
+                                    event_enable_editing=lambda data: logger.error(
+                                        f"Event Enable Editing Called = {data}"
+                                    ),
+                                )

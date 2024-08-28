@@ -3,18 +3,21 @@
                 <v-row>{{ label }}</v-row>
 
                 <!-- Timer Display -->
-                <v-sheet height="300px">
+                <v-sheet height="250px">
                         <v-row class="d-flex justify-center">
                                 <!-- Hours Digit -->
-                                <v-col class="hours"> {{ hour() }}</v-col>
-
+                                <v-responsive max-width="50" class="hours mx-2 py-2">
+                                        {{ timestamp.hour }}
+                                </v-responsive>
                                 <!-- Minutes Digit -->
-                                <v-col class="minutes"> {{ minute() }}</v-col>
+                                <v-responsive max-width="50" class="hours mx-2 py-2">
+                                        {{ timestamp.minute }}
+                                </v-responsive>
 
                                 <!-- Seconds Digit -->
-                                <v-col class="seconds">
-                                        {{ second() }}
-                                </v-col>
+                                <v-responsive max-width="50" class="hours mx-2 py-2">
+                                        {{ timestamp.second }}
+                                </v-responsive>
 
                         </v-row>
 
@@ -30,23 +33,17 @@
 </template>
 
 <style>
-.row {
-
-        font-weight: bold;
-
-        border: 1px dashed black;
-
-}
-
 .hours {
         font-size: 30px;
-        color: red !important;
-        text-align: right;
+        background-color: var(--dark) !important;
+        color: var(--on-dark) !important;
+        text-align: center;
 }
 
 .minutes {
         font-size: 30px;
-        color: green !important;
+        background-color: var(--dark) !important;
+        color: var(--on-dark) !important;
         text-align: center;
 
 
@@ -54,8 +51,9 @@
 
 .seconds {
         font-size: 30px;
-        color: blue !important;
-        text-align: left;
+        background-color: var(--dark) !important;
+        color: var(--on-dark) !important;
+        text-align: center;
 }
 </style>
 
@@ -64,8 +62,11 @@ export default {
         data: () => ({
                 label: "Blank Text",
                 timestamp: {
-                        id: 123,
-                        timestamp: 123,
+                        id: 456,
+                        timestamp: 456,
+                        hour: 10,
+                        minute: 20,
+                        second: 30,
                 },
                 number: 0,
                 numberRule: (val) => {

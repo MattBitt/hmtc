@@ -1,26 +1,26 @@
 <template>
-        <v-container style="border: 4px solid pink">
+        <v-container style="">
                 <v-row>{{ label }}</v-row>
                 <!-- Timer Display -->
-                <v-sheet height="300px">
+                <v-sheet height="250px">
                         <v-row class="d-flex justify-center">
                                 <!-- Hours Digit -->
-                                <v-responsive max-width="100">
-                                        <v-text-field type="number" ref="input" :rules="[numberRule]"
-                                                v-model.number="hour()"></v-text-field>
+                                <v-responsive max-width="50" class="mx-2 py-2">
+                                        <v-text-field ref="input" v-model="timestamp.hour"
+                                                class="digit-input"></v-text-field>
                                 </v-responsive>
 
                                 <!-- Minutes Digit -->
-                                <v-responsive max-width="100">
-                                        <v-text-field type="number" ref="input" :rules="[numberRule]"
-                                                v-model.number=minute()></v-text-field>
+                                <v-responsive max-width="50" class="mx-2 py-2">
+                                        <v-text-field ref="input" v-model="timestamp.minute"
+                                                class="digit-input"></v-text-field>
 
                                 </v-responsive>
 
                                 <!-- Seconds Digit -->
-                                <v-responsive max-width="100">
-                                        <v-text-field type="number" ref="input" :rules="[numberRule]"
-                                                v-model.number="second()"></v-text-field>
+                                <v-responsive max-width="50" class="mx-2 py-2">
+                                        <v-text-field ref="input" v-model="timestamp.second"
+                                                class="digit-input"></v-text-field>
                                 </v-responsive>
                         </v-row>
                         <v-row class="d-flex justify-center px-4 mx-10 my-2">
@@ -51,7 +51,13 @@
                 </v-sheet>
         </v-container>
 </template>
-<style></style>
+<style>
+.digit-input {
+        font-size: 30px;
+        text-align: center;
+
+}
+</style>
 
 <script>
 export default {
@@ -60,6 +66,9 @@ export default {
                 timestamp: {
                         id: 456,
                         timestamp: 456,
+                        hour: 10,
+                        minute: 20,
+                        second: 30,
                 },
 
                 number: 0,
@@ -69,21 +78,7 @@ export default {
                 },
         }),
         methods: {
-                hour() {
-                        h = Math.floor(this.timestamp.timestamp / 3600);
-                        return String(h).padStart(2, "0");
-                },
-                minute() {
-                        t = this.timestamp.timestamp - this.hour() * 3600;
-                        m = Math.floor(t / 60);
-                        return String(m).padStart(2, "0");
-                },
-                second() {
-                        t = this.timestamp.timestamp - this.hour() * 3600 - this.minute() * 60;
 
-                        s = Math.floor(t);
-                        return String(s).padStart(2, "0");
-                },
         },
         mounted: () => {
                 console.log("mounted");
