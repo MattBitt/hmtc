@@ -67,14 +67,14 @@ def SortControls(state):
             col_name="title",
             sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=state.apply_filters,
+            on_click=sort_by_title,
         )
         SortButton(
             label="Created At",
             col_name="created_at",
             sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=state.apply_filters,
+            on_click=sort_by_created_date,
         )
 
         SortButton(
@@ -82,7 +82,7 @@ def SortControls(state):
             col_name="upload_date",
             sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=state.apply_filters,
+            on_click=sort_by_upload_date,
         )
 
         SortButton(
@@ -90,7 +90,7 @@ def SortControls(state):
             col_name="updated_at",
             sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=state.apply_filters,
+            on_click=sort_by_updated_date,
         )
 
         SortButton(
@@ -98,5 +98,5 @@ def SortControls(state):
             col_name="duration",
             sort_by=state.sort_by.value,
             sort_order=state.sort_order.value,
-            on_click=state.apply_filters,
+            on_click=sort_by_duration,
         )

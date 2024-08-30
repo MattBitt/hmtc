@@ -19,19 +19,6 @@ page_filtered = solara.reactive(False)
 filter_status = solara.reactive("None")
 
 
-@solara.component()
-def SortButton(label, col_name, sort_by, sort_order, on_click):
-    if sort_by == col_name:
-        if sort_order == "asc":
-            icon_name = "mdi-arrow-up-bold"
-        else:
-            icon_name = "mdi-arrow-down-bold"
-    else:
-        icon_name = ""
-
-    solara.Button(label=label, icon_name=icon_name, on_click=on_click)
-
-
 def on_save_in_edit(*args):
     if args[0] is None:
         logger.error("No video item to save")
@@ -46,6 +33,71 @@ def compute_number_of_pages(total_items, per_page):
     return int(np) + 1 if np > int(np) else int(np)
 
 
+@solara.component()
+def SortButton(label, col_name, sort_by, sort_order, on_click):
+    if sort_by == col_name:
+        if sort_order == "asc":
+            icon_name = "mdi-arrow-up-bold"
+        else:
+            icon_name = "mdi-arrow-down-bold"
+    else:
+        icon_name = ""
+
+    solara.Button(label=label, icon_name=icon_name, on_click=on_click)
+
+
+@solara.component
+def PageHeader():
+
+    def sort_by_title():
+        State.sort_by.set("title")
+        if State.sort_order.value == "asc":
+            State.sort_order.set("desc")
+        else:
+            State.sort_order.set("asc")
+
+        State.apply_filters()
+
+    with solara.Row():
+        if not page_filtered.value:
+
+            SeriesPopover(
+                current_series=State.series_filter.value,
+                handle_click=State.on_click_series,
+            )
+
+            YoutubeSeriesPopover(
+                current_youtube_series=State.youtube_series_filter.value,
+                handle_click=State.on_click_youtube_series,
+            )
+        else:
+            if State.series_filter.value:
+                SeriesPopover(
+                    current_series=State.series_filter.value,
+                    handle_click=State.on_click_series,
+                )
+            elif State.youtube_series_filter.value:
+                YoutubeSeriesPopover(
+                    current_youtube_series=State.youtube_series_filter.value,
+                    handle_click=State.on_click_youtube_series,
+                )
+            solara.Button(
+                "Clear Filters", classes=["button"], on_click=State.clear_filters
+            )
+            with solara.Row():
+                solara.Markdown(f"## Current Filters: {filter_status.value}")
+    with solara.Row():
+        # solara.Button("Title Ascending", on_click=sort_title_ascending)
+        SortControls(State)
+        solara.Checkbox(label="Include Nonunique", value=State.include_nonunique)
+        solara.Button(
+            label="Apply Filters", on_click=State.apply_filters, classes=["button"]
+        )
+        solara.Markdown(
+            f"## Current Sort: {State.sort_by.value} {State.sort_order.value}"
+        )
+
+
 class State(BaseState):
     logger.debug("Initializing State object on Videos New Page")
     per_page = solara.reactive(config["general"]["items_per_page"])
@@ -57,8 +109,9 @@ class State(BaseState):
 
     sort_by = solara.reactive("upload_date")
     sort_order = solara.reactive("asc")
-    # State.video_ids will be the currently filtered list of ids
-    #
+
+    include_nonunique = solara.reactive(False)
+
     video_ids = VideoItem.get_base_video_ids()
 
     logger.debug(f"Found {len(video_ids)} videos")
@@ -99,6 +152,7 @@ class State(BaseState):
             youtube_series_filter=State.youtube_series_filter.value,
             sort_by=State.sort_by.value,
             sort_order=State.sort_order.value,
+            include_nonunique_content=State.include_nonunique.value,
         )
 
         State.load_page_number(1)
@@ -106,7 +160,7 @@ class State(BaseState):
         logger.debug(f"Found {len(State.video_ids)} videos")
 
         if not State.video_ids:
-            logger.error("No Videos Found")
+            logger.debug("🐹🐹🐹🐹 8-30-24 Does this ever happen? No Videos Found")
             num_pages = solara.reactive(1)
             page_items = solara.reactive([])
         else:
@@ -163,54 +217,6 @@ class State(BaseState):
         State.series_filter.value = None
         State.youtube_series_filter.value = None
         State.apply_filters()
-
-
-@solara.component
-def PageHeader():
-
-    def sort_by_title():
-        State.sort_by.set("title")
-        if State.sort_order.value == "asc":
-            State.sort_order.set("desc")
-        else:
-            State.sort_order.set("asc")
-
-        State.apply_filters()
-
-    with solara.Row():
-        if not page_filtered.value:
-
-            SeriesPopover(
-                current_series=State.series_filter.value,
-                handle_click=State.on_click_series,
-            )
-
-            YoutubeSeriesPopover(
-                current_youtube_series=State.youtube_series_filter.value,
-                handle_click=State.on_click_youtube_series,
-            )
-        else:
-            if State.series_filter.value:
-                SeriesPopover(
-                    current_series=State.series_filter.value,
-                    handle_click=State.on_click_series,
-                )
-            elif State.youtube_series_filter.value:
-                YoutubeSeriesPopover(
-                    current_youtube_series=State.youtube_series_filter.value,
-                    handle_click=State.on_click_youtube_series,
-                )
-            solara.Button(
-                "Clear Filters", classes=["button"], on_click=State.clear_filters
-            )
-            with solara.Row():
-                solara.Markdown(f"## Current Filters: {filter_status.value}")
-    with solara.Row():
-        # solara.Button("Title Ascending", on_click=sort_title_ascending)
-        SortControls(State)
-        solara.Markdown(
-            f"## Current Sort: {State.sort_by.value} {State.sort_order.value}"
-        )
 
 
 @solara.component

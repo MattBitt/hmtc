@@ -92,12 +92,18 @@ class PageState:
     def refresh_videos_from_youtube():
         logger.debug("Refreshing videos from youtube")
         PageState.updating.set(True)
+
         existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
-        logger.debug(f"DB currently has {len(existing_ids)} videos")
+        logger.debug(f"Database currently has {len(existing_ids)} videos")
+
+        # only want to automatically update videos from channels
+        # Harry Mack and Harry Mack Clips
         channels = Channel.select().where(
             (Channel.enabled == True) & (Channel.name.contains("Harry"))
         )
+
         num_new_vids = 0
+
         for c in channels:
             status.set(f"Checking Channel {c.name}")
             yt_ids = c.grab_ids()
@@ -107,8 +113,11 @@ class PageState:
             status.set(f"Found {len(yt_ids)} videos, {len(ids_to_update)} new")
             num_new_vids += len(ids_to_update)
             for id in ids_to_update:
-                logger.debug(f"Found a new video. Adding to Database {id}")
+                logger.debug(
+                    f"Found a new video. Adding to Database from YouTube  {id}"
+                )
                 VideoItem.create_from_youtube_id(id)
+                logger.debug(f"Finished creating new video.")
                 PageState.i.set(PageState.i.value + 1)
 
         if num_new_vids == 0:
@@ -116,6 +125,7 @@ class PageState:
         else:
             t = f"Found {num_new_vids} new videos"
         status.set(f"Finished Updating Videos. {t}")
+
         PageState.updating.set(False)
 
     @staticmethod
@@ -233,34 +243,33 @@ class PageState:
 @solara.component
 def OldControls():
     with solara.Card("Use at your own peril"):
-        with solara.Card():
-            solara.InputInt(
-                label="Number of Videos to Download",
-                value=PageState.num_to_download,
-            )
-            solara.Button(
-                label="Download info for Random Videos!",
-                on_click=PageState.download_empty_video_info,
-                classes=["button"],
-            )
-            solara.Button(
-                label="Download media files for Random Videos! (be careful with big numbers....)",
-                on_click=PageState.download_missing_media_files,
-                classes=["button"],
-            )
 
-        with solara.Card():
-            solara.Button(
-                label="Import Track Info",
-                on_click=PageState.import_track_info,
-                classes=["button"],
-            )
-        with solara.Card():
-            solara.Button(
-                label="Create Tracks from Sections",
-                on_click=PageState.create_tracks_from_sections,
-                classes=["button"],
-            )
+        solara.InputInt(
+            label="Number of Videos to Download",
+            value=PageState.num_to_download,
+        )
+        solara.Button(
+            label="Download info for Random Videos!",
+            on_click=PageState.download_empty_video_info,
+            classes=["button"],
+        )
+        solara.Button(
+            label="Download media files for Random Videos! (be careful with big numbers....)",
+            on_click=PageState.download_missing_media_files,
+            classes=["button"],
+        )
+
+        solara.Button(
+            label="Import Track Info",
+            on_click=PageState.import_track_info,
+            classes=["button"],
+        )
+
+        solara.Button(
+            label="Create Tracks from Sections",
+            on_click=PageState.create_tracks_from_sections,
+            classes=["button"],
+        )
 
 
 status = solara.reactive("")
@@ -286,34 +295,37 @@ def Page():
                 )
 
         else:
-            with solara.Card():
-                solara.Button(
-                    label="Check for New Videos",
-                    on_click=PageState.refresh_videos_from_youtube,
-                    classes=["button"],
-                )
-                solara.Button(
-                    label="Sync Channel IDs to Existing Videos",
-                    on_click=PageState.sync_channels_from_youtube,
-                    classes=["button"],
-                )
-                solara.Button(
-                    label="Update Episode Numbers (Individual Videos)",
-                    on_click=PageState.update_episode_numbers,
-                    classes=["button"],
-                )
+            with solara.Card("Reusuable Functions"):
+                with solara.ColumnsResponsive():
+                    solara.Button(
+                        label="Check for New Videos",
+                        on_click=PageState.refresh_videos_from_youtube,
+                        classes=["button"],
+                    )
 
-                solara.Button(
-                    label="Update Episode Numbers (Omegle Exclusive Videos)",
-                    on_click=PageState.update_episode_numbers_omegle_exlusive,
-                    classes=["button"],
-                )
+            with solara.Card("Reusuable Functions"):
+                with solara.ColumnsResponsive():
+                    solara.Button(
+                        label="Sync Channel IDs to Existing Videos",
+                        on_click=PageState.sync_channels_from_youtube,
+                        classes=["button"],
+                    )
+                    solara.Button(
+                        label="Update Episode Numbers (Individual Videos)",
+                        on_click=PageState.update_episode_numbers,
+                        classes=["button"],
+                    )
 
-                solara.Button(
-                    label="Update Episode Numbers (Guerilla Exclusive Videos)",
-                    on_click=PageState.update_episode_numbers_guerilla_exlusive,
-                    classes=["button"],
-                )
+                    solara.Button(
+                        label="Update Episode Numbers (Omegle Exclusive Videos)",
+                        on_click=PageState.update_episode_numbers_omegle_exlusive,
+                        classes=["button"],
+                    )
 
-        solara.Markdown(status.value)
+                    solara.Button(
+                        label="Update Episode Numbers (Guerilla Exclusive Videos)",
+                        on_click=PageState.update_episode_numbers_guerilla_exlusive,
+                        classes=["button"],
+                    )
+
         OldControls()

@@ -221,21 +221,24 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def create_from_youtube_id(youtube_id):
+        logger.debug(f"Creating video from youtube id: {youtube_id}")
         info, files = get_video_info(youtube_id=youtube_id, output_folder=WORKING)
-        series = Series.get(Series.name == "UNSORTED")
+        try:
+            series = Series.get(Series.name.contains("UNSORTED"))
+        except:
+            logger.error("Series Doesn't Exist!")
+            return
         try:
             channel = Channel.get(Channel.youtube_id == info["channel_id"])
         except:
             logger.error("Channel Doesn't Exist!")
-            # not sure if i should create it here. probably shouldn't be here
-            # if it doesn't exist, it should be created in the channel page
             return
-            # channel = Channel.create(
-            #     name=info["uploader"],
-            #     url=info["uploader_url"],
-            #     youtube_id=info["channel_id"],
-            #     enabled=True,
-            # )
+
+        # he posts 'shorts' on his main channel that arent unique
+        if channel.name == "Harry Mack" and info["duration"] > 120:
+            unique = True
+        else:
+            unique = False
 
         vid = Video.create(
             title=info["title"],
@@ -247,9 +250,14 @@ class VideoItem(BaseItem):
             description=info["description"],
             series_id=series.id,
             channel_id=channel.id,
-            contains_unique_content=False,
+            contains_unique_content=unique,
         )
+        logger.debug(f"Created video: {vid.title}")
+
         for file in files:
+            logger.debug(
+                f"Processing files in VideoItem.create_from_youtube_id: {file}"
+            )
             FileManager.add_path_to_video(file, vid)
         return vid
 

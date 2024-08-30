@@ -360,20 +360,6 @@ class State:
         State.sections.value = new_items
 
     @staticmethod
-    def change_section_type(item: Section, new_type: str):
-        State.loading.value = True
-        logger.debug(f"Changing section type of item: {item}")
-        new_items = list(State.sections.value)
-        new_items.remove(item)
-        item.section_type = "instrumental"
-        new_items.append(item)
-        sect = SectionTable.select().where(SectionTable.id == item.id).get()
-        sect.section_type = "instrumental"
-        sect.save()
-        State.sections.value = new_items
-        State.loading.value = False
-
-    @staticmethod
     def select_section(item: Section):
         State.loading.value = True
         State.selected_section.value = item
