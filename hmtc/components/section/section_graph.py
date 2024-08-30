@@ -95,6 +95,9 @@ def SectionGraphComponent(
     # logger.error(f"Current Selection: {current_selection.value}")
 
     formatted_sections = format_sections(sections, width=max_section_width)
+    if len(formatted_sections) == 0:
+        logger.debug("No formatted sections to display")
+        return solara.Markdown("No Sections to Display")
 
     fig = px.timeline(
         formatted_sections,

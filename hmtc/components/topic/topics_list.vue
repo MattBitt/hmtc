@@ -3,7 +3,7 @@
     <v-item-group mandatory>
       <v-container>
         <v-row>
-
+          <h1>hello</h1>
           <v-item v-for="topic in topics" v-slot="{ active, toggle }">
             <v-card :color="active ? 'primary' : ''" class="d-flex align-center mx-4 px-4" height="50" @click="toggle">
               <v-scroll-y-transition>

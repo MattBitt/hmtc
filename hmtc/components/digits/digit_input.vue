@@ -2,7 +2,7 @@
         <v-container style="">
                 <v-row>{{ label }}</v-row>
                 <!-- Timer Display -->
-                <v-sheet height="250px">
+                <v-sheet height="200px">
                         <v-row class="d-flex justify-center">
                                 <!-- Hours Digit -->
                                 <v-responsive max-width="50" class="mx-2 py-2">

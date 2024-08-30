@@ -3,19 +3,19 @@
                 <v-row>{{ label }}</v-row>
 
                 <!-- Timer Display -->
-                <v-sheet height="250px">
+                <v-sheet height="200px">
                         <v-row class="d-flex justify-center">
                                 <!-- Hours Digit -->
-                                <v-responsive max-width="50" class="hours mx-2 py-2">
+                                <v-responsive max-width="50" class="digit-label mr-1 ml-4">
                                         {{ timestamp.hour }}
                                 </v-responsive>
                                 <!-- Minutes Digit -->
-                                <v-responsive max-width="50" class="hours mx-2 py-2">
+                                <v-responsive max-width="50" class="digit-label mx-0">
                                         {{ timestamp.minute }}
                                 </v-responsive>
 
                                 <!-- Seconds Digit -->
-                                <v-responsive max-width="50" class="hours mx-2 py-2">
+                                <v-responsive max-width="50" class="digit-label mr-4 ml-1">
                                         {{ timestamp.second }}
                                 </v-responsive>
 
@@ -33,27 +33,13 @@
 </template>
 
 <style>
-.hours {
+.digit-label {
         font-size: 30px;
         background-color: var(--dark) !important;
         color: var(--on-dark) !important;
         text-align: center;
-}
+        padding: 4px;
 
-.minutes {
-        font-size: 30px;
-        background-color: var(--dark) !important;
-        color: var(--on-dark) !important;
-        text-align: center;
-
-
-}
-
-.seconds {
-        font-size: 30px;
-        background-color: var(--dark) !important;
-        color: var(--on-dark) !important;
-        text-align: center;
 }
 </style>
 
