@@ -1,5 +1,7 @@
 import pandas as pd
+from hmtc.assets.colors import Colors
 import plotly.express as px
+import plotly.graph_objects as go
 import solara
 from loguru import logger
 
@@ -35,6 +37,7 @@ def format_sections(sections, width=1800):
             section["duration"] = abs_end - abs_start
             section["start_string"] = start_string
             section["end_string"] = end_string
+            section["type"] = sect.section_type
             graph_sections.append(section)
         else:
             # logger.debug(
@@ -56,6 +59,7 @@ def format_sections(sections, width=1800):
                 end=abs_end - (width * end_row),
                 id=section_id,
                 hour=-end_row,
+                type=sect.section_type,
             )
             section2["start_ts"] = to_dt(0)
             section2["end_ts"] = to_dt(abs_end - (width * end_row))
@@ -104,8 +108,12 @@ def SectionGraphComponent(
         x_start="start_ts",
         x_end="end_ts",
         y="hour",
+        color="type",
+        color_discrete_map={
+            "instrumental": str(Colors.PRIMARY),
+        },
         range_x=[to_dt(0), to_dt(max_section_width)],
-        range_y=[-max_section_height - 1, 1],
+        range_y=[-max_section_height - 0.5, 0.5],
         hover_name="id",
         hover_data={
             "start_string": True,
@@ -118,4 +126,23 @@ def SectionGraphComponent(
         },
     )
 
+    fig.update_layout(
+        plot_bgcolor=str(Colors.SURFACE),
+        xaxis={"tickformat": "%H:%M"},
+        yaxis={"dtick": 1},
+        showlegend=False,
+        # annotations=list(fig.layout.annotations)
+        # + [
+        #     go.layout.Annotation(
+        #         x=0.5,
+        #         y=-0.2,
+        #         font=dict(size=16, color=str(Colors.PRIMARY)),
+        #         showarrow=False,
+        #         text="time",
+        #         textangle=-0,
+        #         xref="paper",
+        #         yref="paper",
+        #     )
+        # ],
+    )
     solara.FigurePlotly(fig, on_click=handle_click, on_hover=handle_hover)

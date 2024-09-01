@@ -3,6 +3,7 @@ from enum import Enum
 
 class Colors(Enum):
     LIGHT = "#FFAB91"
+
     PRIMARY = "#FF5722"
     DARK = "#BF360C"
     ONLIGHT = "#000000"

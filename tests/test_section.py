@@ -34,6 +34,26 @@ def test_section_manager(video):
     )
 
 
+def test_section_manager_edit_start(video):
+    video.youtube_id = "test123445687"
+    SectionManager.from_video(video).create_section(
+        start=0, end=300, section_type="acapella"
+    )
+    sect = SectionManager.from_video(video).sections[0]
+    SectionManager.edit_section_start(sect, timestamp=150)
+    assert SectionManager.from_video(video).sections[0].start == 150
+
+
+def test_section_manager_edit_end(video):
+    video.youtube_id = "test12asdfq45687"
+    SectionManager.from_video(video).create_section(
+        start=0, end=300, section_type="acapella"
+    )
+    sect = SectionManager.from_video(video).sections[0]
+    SectionManager.edit_section_end(sect, timestamp=390)
+    assert SectionManager.from_video(video).sections[0].end == 390
+
+
 def test_section_manager_from_db(video):
     video.youtube_id = "test1234"
     sm = SectionManager.from_video(video)

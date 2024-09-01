@@ -75,4 +75,4 @@ def Page():
         ):
 
             with solara.Card():
-                SectionLine(timestamps=timestamps)
+                SectionTimeButtons()

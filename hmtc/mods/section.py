@@ -12,10 +12,10 @@ from hmtc.models import Section as SectionTable
 
 @dataclass(frozen=True, order=True)
 class Section:
-    id: int
     start: int
     end: int
     video_id: int
+    id: int = None
     section_type: str = "INITIAL"
 
     def check_times(self) -> None:
@@ -81,16 +81,21 @@ class SectionManager:
         return self._sections
 
     def save_to_db(self, section) -> None:
-        SectionTable.create(
+        new_sect = SectionTable.create(
             start=section.start,
             end=section.end,
             section_type=section.section_type,
             video_id=self.video_id,
         )
+        return new_sect
 
     @staticmethod
     def delete_from_db(section) -> None:
         SectionTable.delete().where(SectionTable.id == section.id).execute()
+
+    @staticmethod
+    def load_from_db():
+        pass
 
     @staticmethod
     def get_new_id() -> int:
@@ -116,15 +121,14 @@ class SectionManager:
             raise ValueError("Invalid section type")
         logger.debug(f"Creating section from args {start} {end} {section_type}")
         section = Section(
-            id=self.get_new_id(),
             section_type=section_type,
             start=start,
             end=end,
             video_id=self.video_id,
         )
-        self.save_to_db(section)
+        new_sect = self.save_to_db(section)
         self._sections.append(section)
-        return section
+        return new_sect.id
 
     def add_section(self, section: Section) -> None:
         logger.error("Using instance of SectionManager (self) - add_section")
@@ -155,3 +159,23 @@ class SectionManager:
 
     def grab_all_sections(self):
         return SectionTable.select()
+
+    @staticmethod
+    def edit_section_start(section, timestamp):
+        # need to add error checking
+        sect = SectionTable.get_or_none(SectionTable.id == section.id)
+        if sect is None:
+            logger.error("Section not found in DB")
+            return
+        sect.start = timestamp
+        sect.save()
+
+    @staticmethod
+    def edit_section_end(section, timestamp):
+        # need to add error checking
+        sect = SectionTable.get_or_none(SectionTable.id == section.id)
+        if sect is None:
+            logger.error("Section not found in DB")
+            return
+        sect.end = timestamp
+        sect.save()

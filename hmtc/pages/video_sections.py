@@ -81,21 +81,79 @@ def SectionLine(
     pass
 
 
-@solara.component_vue("../components/topic/topics_list.vue", vuetify=True)
-def TopicsList(topics=["Topic 1", "Topic 2", "Topic 3"]):
-    pass
+@solara.component
+def SectionTimeButtons(
+    small_forward: Callable = None,
+    small_backward: Callable = None,
+    large_forward: Callable = None,
+    large_backward: Callable = None,
+):
+    with solara.Row(justify="center"):
+        solara.Button(
+            label="-5",
+            icon_name="mdi-step-backward-2",
+            on_click=large_backward,
+            classes=["button"],
+        )
+        solara.Button(
+            label="-1",
+            icon_name="mdi-step-backward",
+            on_click=small_backward,
+            classes=["button"],
+        )
+        solara.Button(
+            label="+1",
+            icon_name="mdi-step-forward",
+            on_click=small_forward,
+            classes=["button"],
+        )
+
+        solara.Button(
+            label="+5",
+            icon_name="mdi-step-forward-2",
+            on_click=large_forward,
+            classes=["button"],
+        )
 
 
 @solara.component
-def SectionInformation(_section, _video):
+def SectionSaveCancel(
+    save: Callable = None,
+    cancel: Callable = None,
+):
+    with solara.Row(justify="center"):
+        solara.Button(
+            label="Save",
+            icon_name="mdi-content-save",
+            on_click=save,
+            classes=["button"],
+        )
+        solara.Button(
+            label="Cancel",
+            icon_name="mdi-cancel",
+            on_click=cancel,
+            classes=["button"],
+        )
 
-    video = _video
-    section = _section
+
+@solara.component
+def SectionTiming(
+    current_selection: solara.Reactive[Section],
+    _video,
+):
+
+    section = current_selection.value
+
+    def section_start_minus_5():
+        logger.debug("Section Start Minus 5")
+        SectionManager.edit_section_start(section, timestamp=section.start - 5)
+
+    def section_end_minus_5():
+        logger.debug("Section Start Minus 5")
+        SectionManager.edit_section_end(section, timestamp=section.end - 5)
 
     editing_start = solara.use_reactive(False)
-    editing_end = solara.use_reactive(True)
-    new_topic = solara.use_reactive("")
-    topics = solara.use_reactive(["football", "cats", "dogs"])
+    editing_end = solara.use_reactive(False)
 
     h, m, s = section.start // 3600, (section.start % 3600) // 60, section.start % 60
     start = dict(id=15, timestamp=section.start, hour=h, minute=m, second=s)
@@ -103,6 +161,7 @@ def SectionInformation(_section, _video):
     h, m, s = section.end // 3600, (section.end % 3600) // 60, section.end % 60
     end = dict(id=37, timestamp=section.end, hour=h, minute=m, second=s)
 
+    video = _video
     timestamps = dict(
         whole_start=0,
         whole_end=video.duration,
@@ -110,69 +169,75 @@ def SectionInformation(_section, _video):
         part_end=section.end,
     )
 
-    def add_topic():
-        if new_topic.value:
-            topics.value.append(new_topic.value)
-            new_topic.value = ""
+    with solara.Card(elevation=10, margin="2"):
+        with solara.Columns():
+            SectionLine(timestamps=timestamps)
 
-    with solara.Card(
-        elevation=10,
-        margin="2",
-    ):
-        with solara.ColumnsResponsive(6, 6):
+        with solara.Columns():
             with solara.Card():
-                with solara.Row():
-                    solara.InputText(label="Topic", value=new_topic)
-                    solara.Button(label="Add Topic", on_click=add_topic),
-                TopicsList(topics=topics.value)
-
-            with solara.Card():
-                SectionLine(timestamps=timestamps)
-
-        with solara.ColumnsResponsive(6, 6):
-            with solara.Card():
-                with solara.Column():
-                    with solara.Row():
-                        solara.Button(
-                            label="Toggle Edit Mode",
-                            on_click=lambda: editing_start.set(not editing_start.value),
+                if editing_start.value:
+                    with solara.Column():
+                        DigitInput(
+                            label="Start Time",
+                            timestamp=start,
                         )
 
-                    if editing_start.value:
-                        with solara.Row():
-                            DigitInput(
-                                label="Start Time",
-                                timestamp=start,
-                            )
-                    else:
-                        with solara.Row():
-                            DigitLabel(
-                                label="Start Time",
-                                timestamp=start,
-                            )
-            with solara.Card():
-                with solara.Column():
-                    with solara.Row():
-                        solara.Button(
-                            label="Toggle Edit Mode",
-                            on_click=lambda: editing_end.set(not editing_end.value),
+                        SectionTimeButtons(
+                            small_forward=lambda: logger.debug("Start Small Forward"),
+                            small_backward=lambda: logger.debug("Start Small Backward"),
+                            large_forward=lambda: logger.debug("Start Large Forward"),
+                            large_backward=section_start_minus_5,
                         )
-                    if editing_end.value:
+                        SectionSaveCancel(
+                            save=lambda: editing_start.set(False),
+                            cancel=lambda: editing_start.set(False),
+                        )
 
-                        with solara.Row():
-                            DigitInput(
-                                label="End Time",
-                                timestamp=end,
-                            )
-                    else:
-                        with solara.Row():
-                            DigitLabel(
-                                label="End Time",
-                                timestamp=end,
-                                event_enable_editing=lambda data: logger.error(
-                                    f"Event Enable Editing Called = {data}"
-                                ),
-                            )
+                else:
+                    with solara.Column():
+                        DigitLabel(
+                            label="Start Time",
+                            timestamp=start,
+                        )
+                        solara.Button(
+                            label="Edit",
+                            icon_name="mdi-pencil",
+                            on_click=lambda: editing_start.set(True),
+                            classes=["button"],
+                        )
+            with solara.Card():
+                if editing_end.value:
+
+                    with solara.Column():
+                        DigitInput(
+                            label="End Time",
+                            timestamp=end,
+                        )
+                        SectionTimeButtons(
+                            small_forward=lambda: logger.debug("End Small Forward"),
+                            small_backward=lambda: logger.debug("End Small Backward"),
+                            large_forward=lambda: logger.debug("End Large Forward"),
+                            large_backward=section_end_minus_5,
+                        )
+                        SectionSaveCancel(
+                            save=lambda: logger.error("Save"),
+                            cancel=lambda: editing_end.set(False),
+                        )
+                else:
+                    with solara.Column():
+                        DigitLabel(
+                            label="End Time",
+                            timestamp=end,
+                            event_enable_editing=lambda data: logger.error(
+                                f"Event Enable Editing Called = {data}"
+                            ),
+                        )
+                        solara.Button(
+                            label="Edit",
+                            icon_name="mdi-pencil",
+                            on_click=lambda: editing_end.set(True),
+                            classes=["button"],
+                        )
 
 
 @solara.component
@@ -304,9 +369,33 @@ def VideoInfo(video):
         )
 
 
-### Don't know if this is true, but should be when finished
-### reusable above this line
-### below this line is the page definition
+@solara.component
+def TopicInput(new_topic, on_click_func):
+    with solara.Row():
+        solara.InputText(label="Topic", value=new_topic)
+        solara.Button(label="Add Topic", on_click=on_click_func),
+
+
+@solara.component_vue("../components/topic/topics_list.vue", vuetify=True)
+def TopicsList(topics=["Topic 1", "Topic 2", "Topic 3"]):
+    pass
+
+
+@solara.component
+def SectionTopics(current_selection: solara.Reactive[Section]):
+    new_topic = solara.use_reactive("")
+    topics = solara.use_reactive(["football", "cats", "dogs"])
+
+    def add_topic():
+        if new_topic.value:
+            topics.value.append(new_topic.value)
+            new_topic.value = ""
+
+    section = current_selection.value
+
+    with solara.Card():
+        TopicInput(new_topic=new_topic, on_click_func=add_topic)
+        TopicsList(topics=topics.value)
 
 
 class State:
@@ -380,6 +469,7 @@ class State:
 
     @staticmethod
     def previous_section(*args):
+        logger.debug("🚨🚨🚨 8-31-24 Not sure if this does anything 🧬🧬🧬")
         logger.debug(f"Previous Section Called with: {args}")
         if State.selected_section.value is None:
             return
@@ -391,6 +481,7 @@ class State:
 
     @staticmethod
     def next_section(*args):
+        logger.debug("🚨🚨🚨 8-31-24 Not sure if this does anything 🧬🧬🧬")
         logger.debug(f"Next Section Called with: {args}")
         if State.selected_section.value is None:
             return
@@ -402,6 +493,7 @@ class State:
 
 @solara.component
 def Page():
+
     State.load_sections()
 
     MySidebar(router=solara.use_router())
@@ -427,7 +519,7 @@ def Page():
                     current_section=State.selected_section.value,
                 )
 
-        with solara.Card(title="Sections", elevation=17):
+        with solara.Card():
             if State.loading.value:
                 solara.SpinnerSolara(size="500px")
             elif State.video.sections.count() == 0:
@@ -440,7 +532,11 @@ def Page():
                     max_section_width=State.width,
                     max_section_height=State.height,
                 )
-                with solara.Card(title="Section Information", elevation=10):
-                    SectionInformation(
-                        _section=State.selected_section.value, _video=State.video
-                    )
+
+                SectionTiming(
+                    current_selection=Ref(State.selected_section),
+                    _video=State.video,
+                )
+                SectionTopics(
+                    current_selection=Ref(State.selected_section),
+                )

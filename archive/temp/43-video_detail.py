@@ -9,7 +9,7 @@ from solara.lab import task
 from hmtc.components.file_drop_card import FileInfo
 from hmtc.config import init_config
 from hmtc.models import Section, Video
-from hmtc.utils.section_manager import SectionManager
+from hmtc.utils.fdsasection_manager import SectionManager
 
 all_videos = [c.title for c in Video.select()]
 if all_videos == []:

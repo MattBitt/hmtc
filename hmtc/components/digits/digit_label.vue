@@ -3,29 +3,21 @@
                 <v-row>{{ label }}</v-row>
 
                 <!-- Timer Display -->
-                <v-sheet height="200px">
+                <v-sheet>
                         <v-row class="d-flex justify-center">
                                 <!-- Hours Digit -->
                                 <v-responsive max-width="50" class="digit-label mr-1 ml-4">
-                                        {{ timestamp.hour }}
+                                        {{ String(timestamp.hour).padStart(2, "0") }}
                                 </v-responsive>
                                 <!-- Minutes Digit -->
                                 <v-responsive max-width="50" class="digit-label mx-0">
-                                        {{ timestamp.minute }}
+                                        {{ String(timestamp.minute).padStart(2, "0") }}
                                 </v-responsive>
 
                                 <!-- Seconds Digit -->
                                 <v-responsive max-width="50" class="digit-label mr-4 ml-1">
-                                        {{ timestamp.second }}
+                                        {{ String(timestamp.second).padStart(2, "0") }}
                                 </v-responsive>
-
-                        </v-row>
-
-                        <v-row class="d-flex justify-center px-4 mx-10 my-2">
-
-                                <v-btn medium @click="setEditMode('true')">
-                                        <v-icon> mdi-pencil </v-icon>
-                                </v-btn>
 
                         </v-row>
                 </v-sheet>
