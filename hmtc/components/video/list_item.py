@@ -47,7 +47,6 @@ def my_hook(*args):
 
 
 def download_video(video_item):
-    return
     logger.info(f"Downloading video: {video_item.value.title}")
     info, files = download_video_file(
         video_item.value.youtube_id, WORKING, progress_hook=my_hook
@@ -60,7 +59,6 @@ def download_video(video_item):
 
 
 def extract(video_item, *ignore_args):
-    return
     logger.error("Extracting frames")
     frames = video_item.value.extract_frames()
     logger.error("Frames extracted")
@@ -70,7 +68,6 @@ def extract(video_item, *ignore_args):
 
 
 def update(refreshing, video_item, on_save, *ignore_args):
-    return
     logger.error("Refresh button clicked and now updating")
 
     refreshing.value = True
@@ -388,9 +385,6 @@ def VideoListItem(
                     "If this doesn't show up in the logs, delete this code 8-21-24 🥦🥦🥦🥦"
                 )
                 video_item.value = VideoItem.from_orm(video_item.value)
-            # else:
-            #     logger.error("This is the sometimes 🥕🥕🥕🥕🥕🥕🥕")
-            # assert isinstance(video_item.value, VideoItem)
 
             open_modal(
                 item=video_item,

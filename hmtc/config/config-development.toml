@@ -27,5 +27,5 @@ port = 5432
 [jellyfin]
 api = "d035af26e54542e9a3a31785ec260e14"
 url = "http://192.168.0.202:8096"
-user = "matt"
-password = "mblfjkrk81"
+user = "user1"
+password = "user1"

@@ -1,3 +1,4 @@
+import time
 from jellyfin_apiclient_python import JellyfinClient
 from uuid import uuid1
 from hmtc.config import init_config
@@ -13,130 +14,153 @@ user = config["jellyfin"]["user"]
 password = config["jellyfin"]["password"]
 
 
-class RATINGS(Enum):
-
-    STAR1 = 1
-    STAR2 = 2
-    STAR3 = 3
-    STAR4 = 4
-    STAR5 = 5
-
-
 client = JellyfinClient()
 
-client.config.app("hmtc", "0.0.a", "this_machine", uuid1())
+client.config.app("hmtc", "0.0.a", "this_machine", "this_version")
 client.config.data["auth.ssl"] = True
 
 client.auth.connect_to_address(url)
 client.auth.login(url, user, password)
 
 
-def grab_session():
+def grab_sessions():
 
     credentials = client.auth.credentials.get_credentials()
     # need to check for empty credentials
     s = credentials["Servers"]
+    # logger.debug(f"Found {len(s)} Jellyfin Servers")
     if s == []:
         logger.error("No Jellyfin Servers found")
         return None
 
+    # not sure what this does 8-30-24
     server = credentials["Servers"][0]
     server["username"] = "matt"
 
     client.authenticate(credentials, discover=False)
-    if client.logged_in:
-        for sess in client.jellyfin.sessions():
-            if sess["UserName"] == "firefox":
-                return sess
 
+    if client.logged_in:
+        sessions_list = []
+
+        total_sessions = len(client.jellyfin.sessions())
+
+        for sess in client.jellyfin.sessions():
+            if sess["UserName"] == user and sess["Client"] != "hmtc":
+
+                if sess["SupportsMediaControl"] is True:
+                    sessions_list.append(sess)
+                else:
+
+                    logger.debug(
+                        f"This session doesn't support media control: {sess['Client']}"
+                    )
+        logger.debug(
+            f"Current sessions: {len(sessions_list)} of {total_sessions} total"
+        )
+
+        return sessions_list
     else:
         print("login failed")
         logger.error("Error Connecting to Jellyfin")
         return None
 
 
-def grab_now_playing():
+def grab_now_playing(session=None):
 
-    session = grab_session()
-    if session is None:
-        print("No session found")
+    if session["PlayState"]["CanSeek"] is False:
+        logger.error("Cannot seek")
+        now_playing = None
     else:
-        if session["PlayState"]["CanSeek"] is False:
-            print("Cannot seek")
-            now_playing = None
+        position = int(session["PlayState"]["PositionTicks"]) / 10_000_000
+        status = "paused" if session["PlayState"]["IsPaused"] is True else "playing"
+        now_playing = session["NowPlayingItem"]
+        path_str = session["NowPlayingItem"]["Path"]
+        if "inputs" in path_str:
+            item_type = "input"
         else:
-            position = int(session["PlayState"]["PositionTicks"]) / 10_000_000
-            status = "paused" if session["PlayState"]["IsPaused"] is True else "playing"
-            now_playing = session["NowPlayingItem"]
-            path_str = session["NowPlayingItem"]["Path"]
-            if "inputs" in path_str:
-                item_type = "input"
-            else:
-                item_type = "track"
-
+            item_type = "track"
+        try:
             item = session["NowPlayingQueueFullItems"][0]
+        except:
+            logger.debug("No item found in NowPlayingQueueFullItems")
+            return None
 
-            print(f"Current status: {status}")
-            print(f"Current position: {position}")
+        # logger.debug(f"Current status: {status}")
+        # logger.debug(f"Current position: {position}")
 
-        return (
-            {
-                "jf_id": now_playing["Id"],
-                "title": now_playing["Name"],
-                "path": now_playing["Path"],
-                "status": status,
-                "position": position,
-                "tags": item["Tags"],
-                "type": item_type,
-            }
-            if now_playing
-            else None
-        )
-
-
-def pause_client():
-    session = grab_session()
-    if session is None:
-        print("No session found")
-    else:
-        client.jellyfin.remote_pause(session["Id"])
-    # what makes sense to return, anything?
+    return (
+        {
+            "jf_id": now_playing["Id"],
+            "title": now_playing["Name"],
+            "path": now_playing["Path"],
+            "status": status,
+            "position": position,
+            "tags": item["Tags"],
+            "type": item_type,
+        }
+        if now_playing
+        else None
+    )
 
 
-def play_client():
-    session = grab_session()
-    if session is None:
-        print("No session found")
-    else:
-        client.jellyfin.remote_playpause(session["Id"])
-    # what makes sense to return, anything?
+# jellyfin command examples
+# client.jellyfin.remote_pause(session["Id"])
+# client.jellyfin.remote_playpause(session["Id"])
+# body = client.jellyfin.get_items([item["jf_id"]])["Items"][0]
+# body["Tags"] = tags
+# # POST with the new information
+# handler = "Items/" + body["Id"]
+# client.jellyfin._post(handler, params=None, json=body)
+# client.jellyfin.post_session(
+# session["Id"],
+# "Playing",
+# {"PlayCommand": "PlayNow", "ItemIds": jellyfin_id, "StartPositionTicks": 10000},
+# )
+#         # ob1 jellyfin id: cdb49ff3e5ab6df7980078bd2562f67d
+#
 
 
-def add_tag_to_item(tag):
-    if tag is None or "":
-        return
+def jellyfin_playpause():
+    # this only works if there is only one session
+    session = grab_sessions()[0]
 
-    item = grab_now_playing()
+    logger.debug(f"Supports Media Control? {session['SupportsMediaControl']}")
+    logger.debug(f"Supports Remote Control? {session['SupportsRemoteControl']}")
+    client.jellyfin.remote_playpause(session["Id"])
 
-    # Get all information from the API
-    body = client.jellyfin.get_items([item["jf_id"]])["Items"][0]
 
-    # Modify properties you want
+def jellyfin_sessions():
+    # if not client.logged_in:
+    #     logger.error("No jellyfin server found")
+    #     return None
+    all_sessions = grab_sessions()
+    return [sess for sess in all_sessions]
 
-    tags = [t for t in body["Tags"]]
-    if tag not in tags:
-        tags.append(tag)
-        body["Tags"] = tags
 
-        # POST with the new information
-        handler = "Items/" + body["Id"]
-        client.jellyfin._post(handler, params=None, json=body)
+def jellyfin_connection_test():
+    try:
+        client.jellyfin.get_system_info()
+        logger.debug("Jellyfin connection test successful")
+
         return True
-    else:
-        logger.error(f"Tag {tag} already exists on item {item['jf_id']}")
+    except Exception as e:
+        logger.error(f"Error connecting to Jellyfin {e}")
         return False
 
 
-if __name__ == "__main__":
-    item = grab_now_playing()
-    add_tag_to_item(item["id"], "star:5")
+def jellyfin_seekto(position):
+    session = grab_sessions()[0]
+    client.jellyfin.remote_pause(session["Id"])
+    client.jellyfin.remote_seek(session["Id"], position * 10_000_000)
+    client.jellyfin.remote_playpause(session["Id"])
+
+
+def jellyfin_loop_2sec(position):
+    # maybe this should be a task?
+    session = grab_sessions()[0]
+    client.jellyfin.remote_pause(session["Id"])
+    client.jellyfin.remote_seek(session["Id"], position * 10_000_000)
+    client.jellyfin.remote_playpause(session["Id"])
+    time.sleep(2)
+    client.jellyfin.remote_pause(session["Id"])
+    client.jellyfin.remote_seek(session["Id"], position * 10_000_000)

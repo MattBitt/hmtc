@@ -6,6 +6,7 @@ from solara.lab.toestand import Ref
 
 from hmtc.components.section.section_graph import SectionGraphComponent
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.shared.jellyfin_panel import JellyfinPanel
 from hmtc.models import Section as SectionTable
 from hmtc.models import Video
 from hmtc.mods.section import Section, SectionManager
@@ -407,17 +408,23 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         with solara.Row():
-            with solara.Card(title="Video Information", elevation=10):
-                VideoInfo(State.video)
-                AlbumInfo(State.video, State.album)
+            with solara.Card():
+                with solara.Card(title="Video Information", elevation=10):
+                    VideoInfo(State.video)
+                    AlbumInfo(State.video, State.album)
 
-            with solara.Card(title="Section Control Panel", elevation=10):
-                SectionControlPanel(
-                    video=State.video,
-                    sections=State.sections,
-                    on_new=State.on_new,
-                    loading=State.loading,
-                    on_delete=State.on_delete,
+                with solara.Card(title="Section Control Panel", elevation=10):
+                    SectionControlPanel(
+                        video=State.video,
+                        sections=State.sections,
+                        on_new=State.on_new,
+                        loading=State.loading,
+                        on_delete=State.on_delete,
+                    )
+            with solara.Card(title="Jellyfin Panel", elevation=10):
+                JellyfinPanel(
+                    current_video_youtube_id=State.video.youtube_id,
+                    current_section=State.selected_section.value,
                 )
 
         with solara.Card(title="Sections", elevation=17):
