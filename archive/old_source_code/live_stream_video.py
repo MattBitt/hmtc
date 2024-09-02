@@ -195,8 +195,6 @@ def extract_clips_from_video(source_folder, target_folder, videos):
 def find_letter_counts(target_folder, csv_file):
     # opening the CSV file
     users = []
-    donations = []
-    text = []
     with open(str(target_folder / csv_file), mode="r") as file:
         # reading the CSV file
         csvFile = csv.reader(file)

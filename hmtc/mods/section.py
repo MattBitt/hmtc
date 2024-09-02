@@ -46,6 +46,18 @@ class Section:
     def get_all():
         return SectionTable.select()
 
+    @staticmethod
+    def get_by_id(id):
+        return SectionTable.get_or_none(SectionTable.id == id)
+
+    @staticmethod
+    def from_video(video):
+        return list(
+            SectionTable.select()
+            .where(SectionTable.video_id == video.id)
+            .order_by(SectionTable.start)
+        )
+
 
 @dataclass
 class SectionManager:
@@ -67,7 +79,9 @@ class SectionManager:
     def from_video(video) -> "SectionManager":
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
-            SectionTable.select().where(SectionTable.video_id == video.id)
+            SectionTable.select()
+            .where(SectionTable.video_id == video.id)
+            .order_by(SectionTable.start)
         )
         return sm
 

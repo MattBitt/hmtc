@@ -93,7 +93,7 @@ class FileManager:
                 audio = FileManager.extract_audio(file)
                 audio_file = File.from_path(audio)
                 audio_file.move_to(output_path)
-                f = FileModel.create(
+                FileModel.create(
                     path=str(output_path),
                     filename=audio_file.filename,
                     file_type="audio",
@@ -101,7 +101,7 @@ class FileManager:
                 )
 
             file.move_to(output_path)
-            f = FileModel.create(
+            FileModel.create(
                 path=str(output_path),
                 filename=file.filename,
                 file_type=filetype,
@@ -121,7 +121,7 @@ class FileManager:
     def get_duration_downloaded_videos(series=None):
         if series:
             duration = Video.select(fn.Sum(Video.duration)).where(
-                (Video.series == series) & (Video.downloaded == True)
+                (Video.series == series) & (Video.downloaded is True)
             )
             return duration.scalar()
 

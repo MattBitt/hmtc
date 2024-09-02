@@ -8,7 +8,7 @@ from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumTable
-from hmtc.models import File, Playlist, Series, Video, Channel, YoutubeSeries
+from hmtc.models import File, Playlist, Series, Video, Channel, YoutubeSeries, Section
 from hmtc.mods.file import FileManager
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
@@ -277,7 +277,7 @@ class VideoItem(BaseItem):
                 Video.title.is_null(False)
                 & Video.episode.is_null()
                 & Video.contains_unique_content
-                == True
+                is True
             )
         )
         return [VideoItem.from_orm(v) for v in vids]
@@ -317,7 +317,7 @@ class VideoItem(BaseItem):
             youtube_series_filter=youtube_series_filter,
         )
 
-        if not query:
+        if query == ([], []):
             return [], []
 
         return [v.id for v in query]

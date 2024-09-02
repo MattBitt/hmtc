@@ -223,7 +223,7 @@ def download_channel_videos():
     logger.warning(
         "To disable these checks, set the 'download_on_init' config to False"
     )
-    channels = Channel.select().where(Channel.enabled == True)
+    channels = Channel.select().where(Channel.enabled is True)
     for channel in channels:
         channel.check_for_new_videos()
 
@@ -233,7 +233,7 @@ def download_playlist_videos():
     logger.warning(
         "To disable these checks, set the 'download_on_init' config to False"
     )
-    playlists = Playlist.select().where(Playlist.enabled == True)
+    playlists = Playlist.select().where(Playlist.enabled is True)
     for playlist in playlists:
         playlist.update_videos_with_playlist_info()
 
@@ -258,14 +258,14 @@ def get_playlist(playlist: dict):
 
 def get_list_yt_playlists():
     playlists = []
-    for p in Playlist.select().where(Playlist.enabled == True).order_by(Playlist.title):
+    for p in Playlist.select().where(Playlist.enabled is True).order_by(Playlist.title):
         playlists.append(p.name)
     return playlists
 
 
 def get_list_videos():
     videos = []
-    for v in Video.select().where(Video.private == False).order_by(Video.title):
+    for v in Video.select().where(Video.private is False).order_by(Video.title):
         videos.append(v.title)
     return videos
 
@@ -289,7 +289,6 @@ def import_existing_video_files_to_db(path):
     f = Path(path)
     for file in f.glob("**/*.*"):
         if file.is_file():
-            file_info = {}
             youtube_id = get_youtube_id(file.stem)
             if youtube_id:
                 vid = Video.get_or_none(Video.youtube_id == youtube_id)
@@ -325,7 +324,7 @@ def update_playlist(playlist, download_path="./downloads", media_path="./media")
 
 def update_playlists(config):
     logger.debug("Updating playlists")
-    playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
+    playlists = Playlist().select().join(Series).where(Playlist.enabled is True)
     download_path = WORKING / "downloads"
     media_path = STORAGE / "media"
 

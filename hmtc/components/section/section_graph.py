@@ -1,7 +1,6 @@
 import pandas as pd
 from hmtc.assets.colors import Colors
 import plotly.express as px
-import plotly.graph_objects as go
 import solara
 from loguru import logger
 
@@ -38,6 +37,7 @@ def format_sections(sections, width=1800):
             section["start_string"] = start_string
             section["end_string"] = end_string
             section["type"] = sect.section_type
+            section["selected"] = False
             graph_sections.append(section)
         else:
             # logger.debug(
@@ -91,17 +91,25 @@ def SectionGraphComponent(
         pass
 
     def handle_click(*args):
-        logger.error(f"Graph Component Clicked args={args}")
+        # logger.error(f"Graph Component Clicked args={args}")
         pindex = args[0]["points"]["point_indexes"][0]
-        logger.debug(f"Point Index: {pindex}")
-        on_click(formatted_sections[pindex])
+        # logger.debug(f"Point Index: {pindex}")
+        on_click(pindex)
 
     # logger.error(f"Current Selection: {current_selection.value}")
 
     formatted_sections = format_sections(sections, width=max_section_width)
+
     if len(formatted_sections) == 0:
-        logger.debug("No formatted sections to display")
-        return solara.Markdown("No Sections to Display")
+        logger.error("No formatted sections to display")
+        # if theres no sections i shouldn't be here, right?
+        raise ValueError("No formatted sections to display")
+
+    for sect in formatted_sections:
+        if sect["id"] == current_selection.value.id:
+            sect["selected"] = True
+        else:
+            sect["selected"] = False
 
     fig = px.timeline(
         formatted_sections,
@@ -123,13 +131,14 @@ def SectionGraphComponent(
             "duration": True,
             "start_ts": False,
             "end_ts": False,
+            "selected": True,
         },
     )
 
     fig.update_layout(
         plot_bgcolor=str(Colors.SURFACE),
         xaxis={"tickformat": "%H:%M"},
-        yaxis={"dtick": 1},
+        yaxis={"showticklabels": False},
         showlegend=False,
         # annotations=list(fig.layout.annotations)
         # + [

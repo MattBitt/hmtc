@@ -23,7 +23,7 @@ def StatsDisplay(stats):
 @solara.component
 def Page():
     def apply_all():
-        playlists = Playlist.select().where(Playlist.enabled == True)
+        playlists = Playlist.select().where(Playlist.enabled is True)
         for playlist in playlists:
             playlist.apply_to_videos()
 

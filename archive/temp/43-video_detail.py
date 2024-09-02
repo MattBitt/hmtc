@@ -40,7 +40,7 @@ def update_videos():
 
 def update_all():
     logger.debug("Updating")
-    for p in Video.select().where(Video.enabled == True):
+    for p in Video.select().where(Video.enabled is True):
         p.check_for_new_videos()
     logger.success("Updated all videos")
 

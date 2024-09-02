@@ -17,9 +17,9 @@ log_tofile_format = (
 
 
 def setup_logging(config):
-    env = config["general"]["environment"]
+    config["general"]["environment"]
     log_level = config["running"]["log_level"]
-    log_file_path = config["paths"]["logs"]
+    config["paths"]["logs"]
 
     logger.remove()  # remove initial loguru logger
 

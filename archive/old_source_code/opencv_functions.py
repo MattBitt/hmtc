@@ -693,7 +693,6 @@ class MessageClip:
         if self.color is None:
             self.color = "NOCOLOR"
         print(self.color)
-        x = 1 + 1  # here for breakpoint
 
     def get_text_from_superchat(self):
         # need to test if either of these works better on which color messages

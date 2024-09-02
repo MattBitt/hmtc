@@ -99,7 +99,7 @@ class PageState:
         # only want to automatically update videos from channels
         # Harry Mack and Harry Mack Clips
         channels = Channel.select().where(
-            (Channel.enabled == True) & (Channel.name.contains("Harry"))
+            (Channel.enabled is True) & (Channel.name.contains("Harry"))
         )
 
         num_new_vids = 0
@@ -117,7 +117,7 @@ class PageState:
                     f"Found a new video. Adding to Database from YouTube  {id}"
                 )
                 VideoItem.create_from_youtube_id(id)
-                logger.debug(f"Finished creating new video.")
+                logger.debug("Finished creating new video.")
                 PageState.i.set(PageState.i.value + 1)
 
         if num_new_vids == 0:
@@ -142,7 +142,7 @@ class PageState:
             status.set(f"Found {len(vids_with_no_channel)} videos with no channel")
 
         channels = Channel.select().where(
-            (Channel.enabled == True) & (Channel.name.contains("Harry"))
+            (Channel.enabled is True) & (Channel.name.contains("Harry"))
         )
 
         for c in channels:
@@ -176,7 +176,6 @@ class PageState:
     @staticmethod
     def import_track_info():
         grouped_tracks = import_tracks()
-        current_id = None
         for id, tracks in grouped_tracks:
 
             video = VideoItem.get_by_youtube_id(id)

@@ -46,7 +46,7 @@ def update_channels():
 
 def update_all():
     logger.debug("Updating")
-    for p in Channel.select().where(Channel.enabled == True):
+    for p in Channel.select().where(Channel.enabled is True):
         p.check_for_new_videos()
     logger.success("Updated all channels")
 
@@ -85,7 +85,7 @@ def write_to_disk(file: FileInfo):
 
 
 def ChannelDetail(channel_id, uploaded_new_file):
-    filename = solara.use_reactive("")
+    solara.use_reactive("")
     size, set_size = solara.use_state(0)
 
     channel = Channel.select().where(Channel.id == channel_id).get()

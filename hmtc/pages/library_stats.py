@@ -127,7 +127,7 @@ def StatsGraphs(on_click: Callable[[dict], None]):
         logger.debug(f"Point Index: {pindex}")
 
     # logger.error(f"Current Selection: {current_selection.value}")
-    my_df = pd.DataFrame({1, 2, 3, 4, 5})
+    pd.DataFrame({1, 2, 3, 4, 5})
     # Create figures in Express
     plists = (
         Playlist.select(

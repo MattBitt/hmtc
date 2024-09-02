@@ -31,7 +31,7 @@ def setup_dash_app(flask_app):
         server=flask_app,
     )
 
-    page_header = dbc.Row(dbc.Col())
+    dbc.Row(dbc.Col())
     # nav_bar = html.Nav(
     #     [
     #         html.H3(

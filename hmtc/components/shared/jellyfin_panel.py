@@ -85,7 +85,7 @@ def JellyfinPanel(current_video_youtube_id: str, current_section):
                 if current_video_youtube_id != vid.youtube_id:
                     with solara.Warning():
                         solara.Markdown(
-                            f"This video that is playing is not the video shown on the page. Disabling controls"
+                            "This video that is playing is not the video shown on the page. Disabling controls"
                         )
                 else:
                     with solara.Success():

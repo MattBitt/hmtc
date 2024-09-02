@@ -12,7 +12,7 @@ end_date = solara.reactive("2024-12-31")
 
 
 def videos_by_series(series):
-    return Video.select().where((Video.series == series) & (Video.enabled == True))
+    return Video.select().where((Video.series == series) & (Video.enabled is True))
 
 
 def add_series():

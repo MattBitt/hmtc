@@ -207,7 +207,6 @@ def FilesToolbar(
         refreshing.set(False)
         refresh_query()
 
-    color = "FFA500"
 
     with solara.Row(justify=justify):
         ToolTipButton(

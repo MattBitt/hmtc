@@ -134,7 +134,7 @@ class Series(BaseModel):
 
     @property
     def enabled_videos(self):
-        return self.videos.where(Video.enabled == True).count()
+        return self.videos.where(Video.enabled is True).count()
 
     @property
     def total_videos(self):
@@ -463,7 +463,7 @@ class Section(BaseModel):
         return f"Section(id={self.id}, start={self.start}, end={self.end},type={self.section_type})"
 
     def find_both_sections(self, timestamp):
-        logger.debug(f"Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         before, after = None, None
         for sect in self.all_sections:
             if sect.start == timestamp:
@@ -475,17 +475,17 @@ class Section(BaseModel):
 
     @property
     def all_sections(self):
-        logger.debug(f"Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         return sorted(self.video.sections, key=lambda x: x.start)
 
     @property
     def num_sections(self):
-        logger.debug(f"Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         return len(self.all_sections)
 
     @property
     def oldbreakpoints(self):
-        logger.debug(f"Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         breaks = set([])
         for sect in self.sections:
             breaks.add(sect.start)

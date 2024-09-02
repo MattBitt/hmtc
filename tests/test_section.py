@@ -29,7 +29,7 @@ def test_section_comparison():
 
 
 def test_section_manager(video):
-    sm = SectionManager.from_video(video).create_section(
+    SectionManager.from_video(video).create_section(
         start=0, end=300, section_type="acapella"
     )
 

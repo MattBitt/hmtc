@@ -6,13 +6,14 @@ from solara.lab.toestand import Ref
 
 from hmtc.components.section.section_graph import SectionGraphComponent
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.album.album_info import AlbumInfo
 from hmtc.components.shared.jellyfin_panel import JellyfinPanel
-from hmtc.models import Section as SectionTable
 from hmtc.models import Video
 from hmtc.mods.section import Section, SectionManager
-from hmtc.mods.album import Album
+from hmtc.schemas.video import VideoItem
 
-title = "Section Editor"
+
+title = "Video Sections"
 MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
 
@@ -244,6 +245,7 @@ def SectionTiming(
 def SectionControlPanel(
     video,
     sections,
+    current_selection: solara.Reactive[Section],
     on_new: Callable[[Section], None],
     loading: solara.Reactive[bool],
     on_delete: Callable[[Section], None],
@@ -253,7 +255,7 @@ def SectionControlPanel(
     section_type = solara.reactive("intro")
 
     # existing sections
-    num_sections = solara.reactive(len(sections.value))
+    num_sections = solara.reactive(len(sections))
 
     # text box for number of sections
     num_sections_input = solara.reactive(num_sections)
@@ -296,6 +298,9 @@ def SectionControlPanel(
 
     with solara.Column():
         if num_sections.value > 0:
+            solara.Markdown(
+                f"Section ID {current_selection.value.id} selected ({num_sections.value } found)"
+            )
             solara.Button(
                 "Clear All Sections", on_click=clear_all_sections, classes=["button"]
             )
@@ -310,46 +315,6 @@ def SectionControlPanel(
                     on_click=split_into,
                     classes=["button"],
                 )
-
-
-@solara.component
-def AlbumInfo(video, album):
-    def delete_album():
-        album.value.delete_album()
-        album.set(None)
-
-    def create_album():
-        Album.create_for_video(video)
-        album.set(Album.grab_for_video(video.id))
-
-    def update_album():
-        logger.debug("Updating Album")
-        Album.update_album(title=album.value.title, video_id=video.id)
-
-    has_album = album.value is not None
-    if has_album:
-        with solara.Row():
-            solara.InputText(
-                label="Album Title",
-                value=album.value.title,
-                on_value=lambda x: album.set(
-                    Album(title=x, video_id=video.id, tracks=[])
-                ),
-            )
-            solara.Button(
-                label="Save Album",
-                on_click=update_album,
-            )
-            solara.Button(
-                "Delete Album",
-                on_click=delete_album,
-            )
-    else:
-        solara.Button(
-            "Create Album",
-            on_click=create_album,
-            disabled=has_album,
-        )
 
 
 @solara.component
@@ -399,40 +364,8 @@ def SectionTopics(current_selection: solara.Reactive[Section]):
 
 
 class State:
-    loading = solara.reactive(False)
-    selected_section = solara.reactive(None)
-    album = solara.reactive(None)
-
-    @staticmethod
-    def load_sections():
-        video_id = parse_url_args()
-
-        State.video = Video.get_by_id(video_id)
-
-        if State.video.duration == 0:
-            solara.Error("Video has no duration. Please Refresh from youtube.")
-            return
-
-        State.album.set(Album.grab_for_video(State.video.id))
-        sm = SectionManager.from_video(State.video)
-        if State.selected_section.value is None:
-            sect = (
-                SectionTable.select().where(SectionTable.id == video_id).get_or_none()
-            )
-            if sect:
-                State.selected_section.value = sect
-            else:
-                logger.debug("No section found🧬🧬🧬")
-                State.selected_section.value = None
-
-        State.sections = solara.use_reactive(sm.sections)
-        State.width, State.height = compute_graph_dimensions(State.video.duration)
-
-        if State.selected_section.value is None and len(State.sections.value) > 0:
-            State.select_section(State.sections.value[0])
-            logger.warning(
-                f"No sections selected. Selecting first section: {State.selected_section.value}"
-            )
+    # sections = solara.reactive([])
+    # section = solara.reactive(None)
 
     @staticmethod
     def on_new(video, start: int, end: int, section_type: str):
@@ -449,94 +382,69 @@ class State:
         SectionManager.delete_from_db(item)
         State.sections.value = new_items
 
-    @staticmethod
-    def select_section(item: Section):
-        State.loading.value = True
-        State.selected_section.value = item
-        State.loading.value = False
-
-    @staticmethod
-    def on_click_graph(*args):
-        logger.debug(f"on_click called with data: {args}")
-        id = args[0]["id"]
-
-        sect = SectionTable.select().where(SectionTable.id == id).get()
-        if sect:
-            State.select_section(sect)
-        else:
-            # Does this actually occur?
-            logger.debug("🚨🚨🚨 8-29-24 Not sure if this does anything 🧬🧬🧬")
-
-    @staticmethod
-    def previous_section(*args):
-        logger.debug("🚨🚨🚨 8-31-24 Not sure if this does anything 🧬🧬🧬")
-        logger.debug(f"Previous Section Called with: {args}")
-        if State.selected_section.value is None:
-            return
-
-        idx = State.sections.value.index(State.selected_section.value)
-        if idx == 0:
-            return
-        State.select_section(State.sections.value[idx - 1])
-
-    @staticmethod
-    def next_section(*args):
-        logger.debug("🚨🚨🚨 8-31-24 Not sure if this does anything 🧬🧬🧬")
-        logger.debug(f"Next Section Called with: {args}")
-        if State.selected_section.value is None:
-            return
-        idx = State.sections.value.index(State.selected_section.value)
-        if idx == len(State.sections.value) - 1:
-            return
-        State.select_section(State.sections.value[idx + 1])
-
 
 @solara.component
 def Page():
 
-    State.load_sections()
+    def change_selected_section(data):
+        logger.debug(f"Changing selected section to {data}")
+        section.value = data
+        # State.section.value = data
 
     MySidebar(router=solara.use_router())
+
+    loading = solara.reactive(False)
+
+    video_id = parse_url_args()
+    video = VideoItem.get_details_for_video(video_id)
+    width, height = compute_graph_dimensions(video.duration)
+    sections = Section.from_video(video)
+
+    if sections == []:
+        section = solara.reactive(None)
+    else:
+        section = solara.reactive(sections[0])
 
     with solara.Column(classes=["main-container"]):
         with solara.Row():
             with solara.Card():
                 with solara.Card(title="Video Information", elevation=10):
-                    VideoInfo(State.video)
-                    AlbumInfo(State.video, State.album)
+                    VideoInfo(video)
+                    AlbumInfo(video)
 
                 with solara.Card(title="Section Control Panel", elevation=10):
                     SectionControlPanel(
-                        video=State.video,
-                        sections=State.sections,
+                        video=video,
+                        sections=sections,
+                        current_selection=Ref(section),
                         on_new=State.on_new,
-                        loading=State.loading,
+                        loading=loading,
                         on_delete=State.on_delete,
                     )
-            with solara.Card(title="Jellyfin Panel", elevation=10):
+            with solara.Card(title="Jellyfin", elevation=10):
                 JellyfinPanel(
-                    current_video_youtube_id=State.video.youtube_id,
-                    current_section=State.selected_section.value,
+                    current_video_youtube_id=video.youtube_id,
+                    current_section=Ref(section),
                 )
 
         with solara.Card():
-            if State.loading.value:
+            if loading.value:
                 solara.SpinnerSolara(size="500px")
-            elif State.video.sections.count() == 0:
+            elif len(sections) == 0:
                 solara.Markdown("## No Sections Found. Please add some.")
             else:
                 SectionGraphComponent(
-                    State.video.sections,
-                    current_selection=Ref(State.selected_section),
-                    on_click=State.on_click_graph,
-                    max_section_width=State.width,
-                    max_section_height=State.height,
+                    sections,
+                    current_selection=Ref(section),
+                    on_click=lambda data: change_selected_section(data),
+                    max_section_width=width,
+                    max_section_height=height,
                 )
 
                 SectionTiming(
-                    current_selection=Ref(State.selected_section),
-                    _video=State.video,
+                    current_selection=Ref(section),
+                    _video=video,
                 )
                 SectionTopics(
-                    current_selection=Ref(State.selected_section),
+                    current_selection=Ref(section),
                 )

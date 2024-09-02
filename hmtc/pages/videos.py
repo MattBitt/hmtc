@@ -161,8 +161,8 @@ class State(BaseState):
 
         if not State.video_ids:
             logger.debug("🐹🐹🐹🐹 8-30-24 Does this ever happen? No Videos Found")
-            num_pages = solara.reactive(1)
-            page_items = solara.reactive([])
+            solara.reactive(1)
+            solara.reactive([])
         else:
             State.num_pages.set(
                 compute_number_of_pages(len(State.video_ids), State.per_page.value)
@@ -171,6 +171,11 @@ class State(BaseState):
                 (State.current_page.value - 1)
                 * State.per_page.value : State.per_page.value
             ]
+            if ids == ([], []):
+                logger.debug("No videos found")
+
+                return
+
             vis = VideoItem.grab_list_of_video_details(ids=ids)
 
             State.page_items.set(vis)
@@ -188,6 +193,11 @@ class State(BaseState):
         per_page = State.per_page.value
 
         ids = State.video_ids[(page - 1) * per_page :][:per_page]
+        if ids == ([], []):
+            logger.debug("No videos found")
+
+            return
+
         vis = VideoItem.grab_list_of_video_details(ids=ids)
         State.page_items.set(vis)
 
@@ -223,7 +233,7 @@ class State(BaseState):
 def Page():
     router = solara.use_router()
     refreshing = solara.use_reactive(False)
-
+    # State.apply_filters()
     MySidebar(
         router=router,
     )

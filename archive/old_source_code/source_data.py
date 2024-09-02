@@ -22,8 +22,7 @@ def parse_yaml(yaml_file):
 
 
 def move_to_already_imported(already_imported):
-    input_file = cnf.APP_CONFIG.individual_videos_input_file
-    output_file = cnf.APP_CONFIG.individual_videos_output_file
+    pass
 
 
 def read_urls_from_db():

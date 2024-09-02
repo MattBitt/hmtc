@@ -28,7 +28,7 @@ def disabled_videos_with_files():
         Video.select()
         .join(VideoFile)
         .where(
-            (Video.enabled == False)
+            (Video.enabled is False)
             & (VideoFile.video_id.is_null(False))
             & (VideoFile.file_type.in_(["video", "audio"]))
         )
@@ -45,7 +45,7 @@ def some_task():
 
 @solara.component
 def Page():
-    counter = solara.use_reactive(0)
+    solara.use_reactive(0)
 
     @task
     def update():

@@ -15,7 +15,6 @@ def About():
 
 
 def sidebar(name="mizzle"):
-    subpages = ["home", "videos", "tracks", "about"]
 
     with solara.Sidebar():
         with solara.Card("I am in the sidebar"):

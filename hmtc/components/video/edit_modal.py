@@ -21,7 +21,7 @@ def VideoEditModal(
     on_delete: Callable[[], None],
     on_close: Callable[[], None],
 ):
-    updating = solara.use_reactive(False)
+    solara.use_reactive(False)
     assert isinstance(video_item.value, VideoItem)
 
     copy = solara.use_reactive(video_item.value)

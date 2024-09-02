@@ -87,8 +87,6 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         with solara.Column(align="center"):
-            current_downloaded = 50
-            total_downloaded = 100
             stats = VideoItem.get_downloaded_stats_by_series()
 
             Logo()

@@ -1,11 +1,9 @@
 import time
 from jellyfin_apiclient_python import JellyfinClient
-from uuid import uuid1
 from hmtc.config import init_config
 from hmtc.utils.my_logging import logger
 
 # from enum import Enum, IntEnum
-from aenum import Enum
 
 config = init_config()
 

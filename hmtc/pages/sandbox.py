@@ -1,6 +1,5 @@
 import solara
 from loguru import logger
-from typing import Callable
 from hmtc.components.shared.sidebar import MySidebar
 
 
@@ -46,15 +45,15 @@ def func1(*args):
 def Page():
     MySidebar(router=solara.use_router())
 
-    editing_start = solara.use_reactive(False)
-    editing_end = solara.use_reactive(True)
+    solara.use_reactive(False)
+    solara.use_reactive(True)
     new_topic = solara.use_reactive("")
     topics = solara.use_reactive(["football", "cats", "dogs"])
     video = dict(id=17, duration=1080)
     section = dict(id=15, start=182, end=687)
-    start = dict(id=15, timestamp=section["start"], hour=1, minute=3, second=5)
-    end = dict(id=37, timestamp=section["end"], hour=2, minute=3, second=4)
-    timestamps = dict(
+    dict(id=15, timestamp=section["start"], hour=1, minute=3, second=5)
+    dict(id=37, timestamp=section["end"], hour=2, minute=3, second=4)
+    dict(
         whole_start=0,
         whole_end=video["duration"],
         part_start=section["start"],

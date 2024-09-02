@@ -182,7 +182,7 @@ class Topic:
 
     def remove_avatar(self, image):
         # don't remove the avatar until its time to read the text
-        new_image = image.copy()
+        image.copy()
         # cropped = new_image[0:80, 0:90]
         # gray_image = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
         # edges = cv2.Canny(gray_image, 100, 200)
@@ -282,11 +282,11 @@ def histogram_plot(data):
     # Set up plot
     fig, ax = plt.subplots(subplot_kw=dict(projection="3d"))
 
-    ls = LightSource(270, 45)
+    LightSource(270, 45)
     # To use a custom hillshading mode, override the built-in shading and pass
     # in the rgb colors of the shaded surface calculated from "shade".
     # rgb = ls.shade(z, cmap=cm.gist_earth, vert_exag=0.1, blend_mode="soft")
-    surf = ax.plot_surface(
+    ax.plot_surface(
         x,
         y,
         z,
@@ -314,9 +314,9 @@ def superchat_colors(color_name):
         palette, color = t.find_superchat_color()
         if color != color_name:
             print(f"{file}: {color}")
-            fname = str(target_folder / (str(file.stem) + ".png"))
+            str(target_folder / (str(file.stem) + ".png"))
         else:
-            fname = str(target_folder / ("match_" + str(file.stem) + ".png"))
+            str(target_folder / ("match_" + str(file.stem) + ".png"))
         # cv2.imwrite(fname, palette)
         colors_found.append(color)
         # print(f"color={color}")

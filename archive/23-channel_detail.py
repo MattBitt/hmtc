@@ -48,7 +48,7 @@ def update_channels():
 
 def update_all():
     logger.debug("Updating")
-    for p in Channel.select().where(Channel.enabled == True):
+    for p in Channel.select().where(Channel.enabled is True):
         p.check_for_new_videos()
     logger.success("Updated all channels")
 

@@ -16,4 +16,4 @@ class DatabaseItem:
 
     @staticmethod
     def get_downloaded_percent_by_series():
-        sql = ""
+        pass
