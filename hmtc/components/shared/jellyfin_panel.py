@@ -34,8 +34,9 @@ def JellyfinSessionInfo(session):
 
 
 @solara.component
-def JellyfinPanel(current_video_youtube_id: str, current_section):
-
+def JellyfinPanel(current_video_youtube_id: str, current_section, status):
+    connected = status["connected"]
+    correct_video = status["correct_video"]
     user_sessions = solara.use_reactive(jellyfin_sessions())
 
     def refresh_jellyfin():
@@ -49,11 +50,16 @@ def JellyfinPanel(current_video_youtube_id: str, current_section):
     with solara.Column():
         solara.Button("Refresh", classes=["button"], on_click=refresh_jellyfin)
     if user_sessions.value is None:
+        status["connected"].set(False)
+
         logger.error("Unable to login to jellyfin")
         return
+    else:
+        status["connected"].set(True)
 
     if len(user_sessions.value) == 0:
         solara.Markdown("### No sessions found")
+
         return
 
     if len(user_sessions.value) > 1:
@@ -83,11 +89,13 @@ def JellyfinPanel(current_video_youtube_id: str, current_section):
                     )
                     return
                 if current_video_youtube_id != vid.youtube_id:
+                    status["correct_video"].set(False)
                     with solara.Warning():
                         solara.Markdown(
                             "This video that is playing is not the video shown on the page. Disabling controls"
                         )
                 else:
+                    status["correct_video"].set(True)
                     with solara.Success():
                         solara.Markdown(f"#### Video Title: {vid.title}")
                     with solara.ColumnsResponsive():

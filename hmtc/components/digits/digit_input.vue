@@ -39,18 +39,11 @@ export default {
         data: () => ({
                 label: "Blank Text",
                 timestamp: {
-                        id: 456,
-                        timestamp: 456,
                         hour: 10,
                         minute: 20,
                         second: 30,
                 },
 
-                number: 0,
-                numberRule: (val) => {
-                        if (val < 0) return "Please enter a positive number";
-                        return true;
-                },
         }),
         methods: {
 

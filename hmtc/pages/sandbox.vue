@@ -2,24 +2,15 @@
   <div id="app">
     <template>
       <v-container fluid class="pa-0">
-        <v-row>
-          <v-col class="pa-12">
-            <v-range-slider
-              :tick-labels="seasons"
-              :value="[0, 1]"
-              min="0"
-              max="3"
-              ticks="always"
-              tick-size="4"
-            >
-              <template v-slot:thumb-label="props">
-                <v-icon dark>
-                  {{ season(props.value) }}
-                </v-icon>
-              </template>
-            </v-range-slider>
-          </v-col>
-        </v-row>
+        <h1>{{ comp1 }}</h1>
+        <v-divider></v-divider>
+        <div style="background:red; padding:15px">
+          Children will appear below:<br>
+          <jupyter-widget v-for="child in children" :key="child" :widget="child"></jupyter-widget>
+        </div>
+        <v-divider></v-divider>
+        <h1>{{ comp2 }}</h1>
+        <v-divider></v-divider>
       </v-container>
     </template>
   </div>
@@ -27,8 +18,8 @@
 <script>
 export default {
   data: () => ({
-    seasons: ["00:00", "07:23", "12:32", "20:00"],
-    icons: ["mdi-snowflake", "mdi-leaf", "mdi-fire", "mdi-water"],
+    comp1: "ASDF",
+    comp2: "QWER",
   }),
 
   methods: {
@@ -38,14 +29,4 @@ export default {
   },
 };
 </script>
-<style>
-.quote-box {
-  background-color: lightgreen;
-  width: 300px;
-  padding: 5px 10px;
-}
-
-.quote-text {
-  font-style: italic;
-}
-</style>
+<style></style>

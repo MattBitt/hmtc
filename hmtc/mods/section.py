@@ -58,6 +58,20 @@ class Section:
             .order_by(SectionTable.start)
         )
 
+    @staticmethod
+    def get_by_start(video_id, start):
+        query = SectionTable.select().where(
+            (SectionTable.start == start) & (SectionTable.video_id == video_id)
+        )
+        return query.get()
+
+    @staticmethod
+    def get_by_end(video_id, end):
+        query = SectionTable.select().where(
+            (SectionTable.end == end) & (SectionTable.video_id == video_id)
+        )
+        return query.get()
+
 
 @dataclass
 class SectionManager:
@@ -175,21 +189,21 @@ class SectionManager:
         return SectionTable.select()
 
     @staticmethod
-    def edit_section_start(section, timestamp):
+    def edit_section_start(section, increment):
         # need to add error checking
         sect = SectionTable.get_or_none(SectionTable.id == section.id)
         if sect is None:
             logger.error("Section not found in DB")
             return
-        sect.start = timestamp
+        sect.start += increment
         sect.save()
 
     @staticmethod
-    def edit_section_end(section, timestamp):
+    def edit_section_end(section, increment):
         # need to add error checking
         sect = SectionTable.get_or_none(SectionTable.id == section.id)
         if sect is None:
             logger.error("Section not found in DB")
             return
-        sect.end = timestamp
+        sect.end += increment
         sect.save()
