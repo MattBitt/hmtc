@@ -1,12 +1,16 @@
 <template>
-  <v-container style="background-color: purple;">
-    <!-- Timer Display -->
+  <v-container style="background-color: pink;">
+    <!-- Timer Input Fields -->
     <v-sheet>
       <v-row class="d-flex justify-center">
         <v-responsive max-width="500" class="mx-2 py-2">{{ section.id }} ({{ section_type }}) start={{ section.start }}
           end={{ section.end }}</v-responsive>
       </v-row>
-      <v-row class="d-flex justify-center">{{ timestamp }} : {{ hour }} : {{ minute }} : {{ second }}</v-row>
+      <v-row class="d-flex justify-center">{{ timestamp.hour }} : {{ timestamp.minute }} : {{ timestamp.second
+        }}</v-row>
+      <v-row class="d-flex justify-center">
+        <v-responsive max-width="500" class="mx-2 py-2">{{ counter }}</v-responsive>
+      </v-row>
       <v-row class="d-flex justify-center">
         <!-- Hours Digit -->
         <v-responsive max-width="50" class="mx-2 py-2">
@@ -63,15 +67,19 @@
 export default {
   data: () => ({
     label: "Blank Text",
-    section: "Blank Section",
+    section: {
+      id: 123,
+      start: 123,
+      end: 456,
+    },
     section_type: "Blank Section Type",
     timestamp: {
       id: 456,
-      timestamp: 456,
       hour: 10,
       minute: 20,
       second: 30,
     },
+    counter: 99,
 
 
   }),
@@ -79,21 +87,8 @@ export default {
     mymethod: () => {
       console.log("mymethod");
     },
-    hour() {
-      console.log(this.timestamp.timestamp);
-      h = Math.floor(this.timestamp.timestamp / 3600);
-      return String(h).padStart(2, "0");
-    },
-    minute() {
-      t = this.timestamp.timestamp - this.hour() * 3600;
-      m = Math.floor(t / 60);
-      return String(m).padStart(2, "0");
-    },
-    second() {
-      t = this.timestamp.timestamp - this.hour() * 3600 - this.minute() * 60;
-
-      s = Math.floor(t);
-      return String(s).padStart(2, "0");
+    hour: () => {
+      return this.section
     },
 
   },

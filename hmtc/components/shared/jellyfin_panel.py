@@ -35,8 +35,7 @@ def JellyfinSessionInfo(session):
 
 @solara.component
 def JellyfinPanel(current_video_youtube_id: str, current_section, status):
-    status["connected"]
-    status["correct_video"]
+    status = "status-red"  # or 'status-green'
     user_sessions = solara.use_reactive(jellyfin_sessions())
 
     def refresh_jellyfin():
@@ -48,10 +47,12 @@ def JellyfinPanel(current_video_youtube_id: str, current_section, status):
         jellyfin_seekto(section.start)
 
     with solara.Column():
-        solara.Button("Refresh", classes=["button"], on_click=refresh_jellyfin)
+        with solara.Row(justify="space-around"):
+            solara.Markdown("### Jellyfin Panel")
+            solara.Button("Refresh", classes=["button"], on_click=refresh_jellyfin)
+
     if user_sessions.value is None:
         # status["connected"].set(False)
-
         logger.error("Unable to login to jellyfin")
         return
     else:
@@ -85,20 +86,22 @@ def JellyfinPanel(current_video_youtube_id: str, current_section, status):
 
                 vid = VideoItem.get_by_youtube_id(youtube_id)
                 if vid is None:
-                    solara.Warning(
+                    solara.Text(f"● Jellyfin", classes=[status])
+                    logger.debug(
                         f"Video with youtube_id {youtube_id} not found in database"
                     )
                     return
                 if current_video_youtube_id != vid.youtube_id:
-                    status["correct_video"].set(False)
-                    with solara.Warning():
-                        solara.Markdown(
-                            "This video that is playing is not the video shown on the page. Disabling controls"
-                        )
+                    with solara.Row():
+                        solara.Text(f"● Jellyfin", classes=[status])
+
+                    logger.debug(
+                        "This video that is playing is not the video shown on the page. Disabling controls"
+                    )
                 else:
-                    status["correct_video"].set(True)
-                    with solara.Success():
-                        solara.Markdown(f"#### Video Title: {vid.title}")
+                    status = "status-green"
+                    solara.Text(f"● Jellyfin", classes=[status])
+                    logger.debug(f"#### Video Title: {vid.title}")
                     with solara.ColumnsResponsive():
                         with solara.Column():
                             solara.Markdown(f"- Video ID: {youtube_id}")

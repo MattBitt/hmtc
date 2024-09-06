@@ -202,57 +202,72 @@ def TimeEditForm(
     event_handle_close: Callable[[dict], None],
     event_handle_save: Callable[[dict], None],
     event_adjust_section: Callable[[dict], None],
+    counter: int=187
 
 ):
     pass
 
 
-def section_modal(section, section_type, model, on_model):
+def section_modal(section, section_type, model, on_model, counter, refresh_sections):
+
     def h_close(*args):
         # logger.debug(f"Closing {args}")
+        refresh_sections()
         on_model(False)
 
     def h_save(*args):
         # logger.debug(f"Saving {args}")
+        refresh_sections()
         on_model(False)
 
     def adjust_section(*args):
         # these should be config values
         # example args[0] = 'large_backward' or 'small_forward'
         if 'large' in args[0]:
-            increment = 5
+            increment = 5000
         elif 'small' in args[0]:
-            increment = 1
+            increment = 1000
         elif 'tiny' in args[0]:
-            increment = 0.25
+            increment = 250
         else:
             raise ValueError("Invalid adjustment")
         
         if 'back' in args[0]:
             increment = -increment
 
-        logger.debug(f"Adjusting the {section_type} of section {section} by {increment} seconds")
+        logger.debug(f"Adjusting the {section_type} of section {section.value} by {increment} seconds")
         if section_type == "start":
-            if section.start + increment < 0:
+            if section.value.start + increment < 0:
                 logger.error("Cannot have negative start time")
                 return
-            if section.start + increment >= section.end:
+            if section.value.start + increment >= section.value.end:
                 logger.error("Start time must be before end time")
                 return
 
-            SectionManager.edit_section_start(section=section, increment=increment)
+            SectionManager.edit_section_start(section=section.value, increment=increment)
+            new_section = SectionManager.get_by_id(id=section.value.id)
+            section.set(new_section)
+
 
         else:
-            if section.end + increment > section.video.duration:
+            if section.value.end + increment > section.value.video.duration:
                 logger.error("Cannot have end time past video duration")
                 return
-            if section.end + increment <= section.start:
+            if section.value.end + increment <= section.value.start:
                 logger.error("End time must be after start time")
                 return
-            SectionManager.edit_section_end(section=section, increment=increment)
-
-
+            SectionManager.edit_section_end(section=section.value, increment=increment)
+            new_section = SectionManager.get_by_id(id=section.value.id)
+            section.set(new_section)
         
+        refresh_sections()
+
+
+
+    if section_type == "start":
+        ts = create_hms_dict(section.value.start // 1000)
+    else:
+        ts = create_hms_dict(section.value.end // 1000)
 
     with v.Dialog(
         v_model=model,
@@ -260,44 +275,46 @@ def section_modal(section, section_type, model, on_model):
         persistent=True,
         max_width="80%",
     ):
-        if section_type == "start":
-            ts = create_hms_dict(section.start // 1000)
-        else:
-            ts = create_hms_dict(section.end // 1000)
-
+        with solara.Row():
+            solara.Button("-1", on_click=lambda: counter.set(counter.value-1), classes=["button"])
+            solara.Markdown(f"### Counter {counter.value}")
+            solara.Button("+1", on_click=lambda: counter.set(counter.value+1), classes=["button"])
         TimeEditForm(
-            section=dict(id=section.id, start=section.start, end=section.end),
+            section=dict(id=section.value.id,start=section.value.start, end=section.value.end),
             timestamp=ts,
             section_type=section_type,
             event_handle_close=h_close,
             event_handle_save=h_save,
-            event_adjust_section=lambda data: adjust_section(data)
+            event_adjust_section=lambda data: adjust_section(data),
+            counter=counter.value
            
         )
 
 
+
+
 @solara.component
-def SectionTimeInfo(video, section):
-    solara.use_reactive(True)
+def SectionTimeInfo(video, section, refresh_sections):
+
     edit_start, set_edit_start = solara.use_state(False)
     edit_end, set_edit_end = solara.use_state(False)
-
-    ts1 = create_hms_dict(section.start // 1000)
-    ts2 = create_hms_dict(section.end // 1000)
+    counter = solara.use_reactive(0)
+    ts1 = solara.use_reactive(create_hms_dict(section.value.start // 1000))
+    ts2 = solara.use_reactive(create_hms_dict(section.value.end // 1000))
 
     # these modals are controlled by the model and on_model reactive variables
     section_modal(
-        section=section, section_type="start", model=edit_start, on_model=set_edit_start
+        section=section, section_type="start", model=edit_start, on_model=set_edit_start, counter=counter, refresh_sections=refresh_sections
     )
     section_modal(
-        section=section, section_type="end", model=edit_end, on_model=set_edit_end
+        section=section, section_type="end", model=edit_end, on_model=set_edit_end, counter=counter,refresh_sections=refresh_sections
     )
 
     with solara.Row(justify="space-around"):
         with solara.Column():
             DigitLabel(
                 label="Start Time",
-                timestamp=ts1,
+                timestamp=ts1.value,
             )
             solara.Button(
                 label="Open Section Modal",
@@ -359,6 +376,7 @@ class State:
         logger.debug(f"Deleting item: {item}")
         SectionManager.delete_from_db(item)
 
+update_page = solara.reactive(False)
 
 @solara.component
 def Page():
@@ -366,45 +384,51 @@ def Page():
     MySidebar(router=solara.use_router())
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
-    sections = Section.from_video(video)
-    width, height = compute_graph_dimensions(video.duration)
+    sections = solara.use_reactive(Section.from_video(video))
+    # width, height = compute_graph_dimensions(video.duration)
 
     model = solara.use_reactive(0)
     topics = solara.use_reactive(["flying", "kangaroo", "flag"])
     def next_slide():
-        if model.value == len(sections) - 1:
+        if model.value == len(sections.value) - 1:
             model.set(0)
         else:
             model.set(model.value + 1)
 
     def prev_slide():
         if model.value == 0:
-            model.set(len(sections) - 1)
+            model.set(len(sections.value) - 1)
         else:
             model.set(model.value - 1)
 
-    with solara.Column(classes=["main-container"]):
-        # with solara.Row():
-        #     with solara.Column():
-        #         with solara.Card(title=f"{model.value}"):
-        #             VideoInfo(video, refreshing=False)
-        #             AlbumInfo(video)
+    def refresh_sections():
+        logger.debug("Refreshing sections")
+        sects = Section.from_video(video)
+        logger.debug("Sections: {sects}")
+        sections.set(sects)
 
-        #         with solara.Card():
-        #             SectionControlPanel(
-        #                 video=video,
-        #                 sections=sections,
-        #                 current_section=None,
-        #                 on_new=State.on_new,
-        #                 loading=False,
-        #                 on_delete=State.on_delete,
-        #             )
-        #     with solara.Card(title="Jellyfin"):
-        #         JellyfinPanel(
-        #             current_video_youtube_id=video.youtube_id,
-        #             current_section=None,
-        #             status=dict(connected=False, correct_video=False),
-        #         )
+    with solara.Column(classes=["main-container"]):
+        with solara.Row():
+            with solara.Column():
+                with solara.Card(title=f"{model.value}"):
+                    VideoInfo(video, refreshing=False)
+                    AlbumInfo(video)
+
+                with solara.Card():
+                    SectionControlPanel(
+                        video=video,
+                        sections=sections.value,
+                        current_section=None,
+                        on_new=State.on_new,
+                        loading=False,
+                        on_delete=State.on_delete,
+                    )
+            with solara.Card(style='width: 30%'):
+                JellyfinPanel(
+                    current_video_youtube_id=video.youtube_id,
+                    current_section=None,
+                    status=dict(connected=False, correct_video=False),
+                )
         # with solara.Card():
         #     SectionGraphComponent(
         #         formatted_sections=format_sections(
@@ -414,31 +438,36 @@ def Page():
         #         max_section_width=width,
         #         max_section_height=height,
         #     )
-        with solara.Card():
-            with solara.Column():
-                with solara.Row(justify="space-between"):
-                    solara.Button("Previous", on_click=prev_slide, classes=["button"])
-                    solara.Markdown(f"## Section {model.value + 1} of {len(sections)}")
-                    solara.Button("Next", on_click=next_slide, classes=["button"])
+        if update_page.value:
+            logger.debug("Updating page")
+            update_page.set(False)
+        else:
+            with solara.Card():
                 with solara.Column():
-                    SectionTimeLine(
-                        timestamps=dict(
-                            whole_start=0,
-                            whole_end=video.duration,
-                            part_start=sections[model.value].start // 1000,
-                            part_end=sections[model.value].end // 1000,
+                    with solara.Row(justify="space-between"):
+                        solara.Button("Previous", on_click=prev_slide, classes=["button"])
+                        solara.Markdown(f"## Section {model.value + 1} of {len(sections.value)}")
+                        solara.Button("Next", on_click=next_slide, classes=["button"])
+                    with solara.Column():
+                        SectionTimeLine(
+                            timestamps=dict(
+                                whole_start=0,
+                                whole_end=video.duration,
+                                part_start=sections.value[model.value].start // 1000,
+                                part_end=sections.value[model.value].end // 1000,
+                            )
                         )
-                    )
-                with Carousel(model=model.value):
-                    for section in sections:
-                        with solara.Column():
-                            # background color is GREEN
-                            SectionTimeInfo(
-                                video=video,
-                                section=section,
-                            )
-                            # background color is RED
-                            SectionTopicsList(
-                                section=dict(id=section.id),
-                                topics=topics.value,
-                            )
+                    with Carousel(model=model.value):
+                        for section in sections.value:
+                            with solara.Column():
+                                # background color is GREEN
+                                SectionTimeInfo(
+                                    video=video,
+                                    section=solara.use_reactive(section),
+                                    refresh_sections=refresh_sections,
+                                )
+                                # background color is RED
+                                SectionTopicsList(
+                                    section=dict(id=section.id),
+                                    topics=topics.value,
+                                )

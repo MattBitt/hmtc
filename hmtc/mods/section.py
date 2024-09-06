@@ -52,11 +52,19 @@ class Section:
 
     @staticmethod
     def from_video(video):
-        return list(
+        logger.debug(f"Grabbing sections for video {video.id}")
+        query = (
             SectionTable.select()
             .where(SectionTable.video_id == video.id)
             .order_by(SectionTable.start)
         )
+        results = list(query)
+        if results:
+            logger.debug(f"Results: {results}")
+        else:
+            logger.debug("No results found")
+
+        return results
 
     @staticmethod
     def get_by_start(video_id, start):
@@ -91,6 +99,7 @@ class SectionManager:
 
     @staticmethod
     def from_video(video) -> "SectionManager":
+        logger.debug("🧬🧬🧬🧬In from_video of SectionManager 9-6-24")
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
             SectionTable.select()
@@ -209,3 +218,7 @@ class SectionManager:
         sect.end += increment
         sect.save()
         return sect
+
+    @staticmethod
+    def get_by_id(id):
+        return SectionTable.get_or_none(SectionTable.id == id)

@@ -53,4 +53,15 @@ a {
   padding: 8px !important;
 }
 
-  
+.status-green {
+  color: green;
+  font-weight: 600;
+  font-size: 45px;
+
+}
+
+.status-red {
+  color: red;
+  font-weight: 600;
+  font-size: 45px;
+}
