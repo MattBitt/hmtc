@@ -218,6 +218,7 @@ def section_modal(section, section_type, model, on_model):
 
     def adjust_section(*args):
         # these should be config values
+        # example args[0] = 'large_backward' or 'small_forward'
         if 'large' in args[0]:
             increment = 5
         elif 'small' in args[0]:
@@ -325,24 +326,24 @@ def TopicInput(new_topic, on_click_func):
         solara.Button(label="Add Topic", on_click=on_click_func),
 
 
-@solara.component_vue("../components/topic/topics_list.vue", vuetify=True)
-def TopicsList(topics=["Topic 1", "Topic 2", "Topic 3"]):
+@solara.component_vue("../components/section/topics_list.vue", vuetify=True)
+def SectionTopicsList(section, topics=["Topic 1", "Topic 2", "Topic 3"]):
     pass
 
 
-@solara.component
-def SectionTopics(section: solara.Reactive[Section]):
-    new_topic = solara.use_reactive("")
-    topics = solara.use_reactive(["football", "cats", "dogs"])
+# @solara.component
+# def SectionTopics(section: solara.Reactive[Section]):
+#     new_topic = solara.use_reactive("")
+#     topics = solara.use_reactive(["football", "cats", "dogs"])
 
-    def add_topic():
-        if new_topic.value:
-            topics.value.append(new_topic.value)
-            new_topic.value = ""
+#     def add_topic():
+#         if new_topic.value:
+#             topics.value.append(new_topic.value)
+#             new_topic.value = ""
 
-    with solara.Card():
-        TopicInput(new_topic=new_topic, on_click_func=add_topic)
-        TopicsList(topics=topics.value)
+#     with solara.Card():
+#         TopicInput(new_topic=new_topic, on_click_func=add_topic)
+#         TopicsList(topics=topics.value)
 
 
 class State:
@@ -369,7 +370,7 @@ def Page():
     width, height = compute_graph_dimensions(video.duration)
 
     model = solara.use_reactive(0)
-
+    topics = solara.use_reactive(["flying", "kangaroo", "flag"])
     def next_slide():
         if model.value == len(sections) - 1:
             model.set(0)
@@ -383,56 +384,61 @@ def Page():
             model.set(model.value - 1)
 
     with solara.Column(classes=["main-container"]):
-        with solara.Row():
-            with solara.Column():
-                with solara.Card(title=f"{model.value}"):
-                    VideoInfo(video, refreshing=False)
-                    AlbumInfo(video)
+        # with solara.Row():
+        #     with solara.Column():
+        #         with solara.Card(title=f"{model.value}"):
+        #             VideoInfo(video, refreshing=False)
+        #             AlbumInfo(video)
 
-                with solara.Card():
-                    SectionControlPanel(
-                        video=video,
-                        sections=sections,
-                        current_section=None,
-                        on_new=State.on_new,
-                        loading=False,
-                        on_delete=State.on_delete,
-                    )
-            with solara.Card(title="Jellyfin"):
-                JellyfinPanel(
-                    current_video_youtube_id=video.youtube_id,
-                    current_section=None,
-                    status=dict(connected=False, correct_video=False),
-                )
-        with solara.Card():
-            SectionGraphComponent(
-                formatted_sections=format_sections(
-                    sections, selected_index=model.value
-                ),
-                on_click=lambda data: model.set(data),
-                max_section_width=width,
-                max_section_height=height,
-            )
+        #         with solara.Card():
+        #             SectionControlPanel(
+        #                 video=video,
+        #                 sections=sections,
+        #                 current_section=None,
+        #                 on_new=State.on_new,
+        #                 loading=False,
+        #                 on_delete=State.on_delete,
+        #             )
+        #     with solara.Card(title="Jellyfin"):
+        #         JellyfinPanel(
+        #             current_video_youtube_id=video.youtube_id,
+        #             current_section=None,
+        #             status=dict(connected=False, correct_video=False),
+        #         )
+        # with solara.Card():
+        #     SectionGraphComponent(
+        #         formatted_sections=format_sections(
+        #             sections, selected_index=model.value
+        #         ),
+        #         on_click=lambda data: model.set(data),
+        #         max_section_width=width,
+        #         max_section_height=height,
+        #     )
         with solara.Card():
             with solara.Column():
-                with solara.Row():
-                    solara.Button("Previous", on_click=prev_slide)
-                    solara.Button("Next", on_click=next_slide)
+                with solara.Row(justify="space-between"):
+                    solara.Button("Previous", on_click=prev_slide, classes=["button"])
+                    solara.Markdown(f"## Section {model.value + 1} of {len(sections)}")
+                    solara.Button("Next", on_click=next_slide, classes=["button"])
+                with solara.Column():
+                    SectionTimeLine(
+                        timestamps=dict(
+                            whole_start=0,
+                            whole_end=video.duration,
+                            part_start=sections[model.value].start // 1000,
+                            part_end=sections[model.value].end // 1000,
+                        )
+                    )
                 with Carousel(model=model.value):
                     for section in sections:
                         with solara.Column():
-                            SectionTimeLine(
-                                timestamps=dict(
-                                    whole_start=0,
-                                    whole_end=video.duration,
-                                    part_start=section.start,
-                                    part_end=section.end,
-                                )
-                            )
+                            # background color is GREEN
                             SectionTimeInfo(
                                 video=video,
                                 section=section,
                             )
-                            SectionTopics(
-                                section=section,
+                            # background color is RED
+                            SectionTopicsList(
+                                section=dict(id=section.id),
+                                topics=topics.value,
                             )
