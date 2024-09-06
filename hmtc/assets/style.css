@@ -49,6 +49,8 @@ a {
   color: var(--on-dark) !important;
   background-color: var(--dark) !important;
   height: 40px !important;
+  margin: 4px !important;
+  padding: 8px !important;
 }
 
   

@@ -8,16 +8,16 @@ import datetime
 
 
 def seconds_to_pd_datetime(ts):
-    pd_dt = pd.to_datetime(ts, unit="s")
+    pd_dt = pd.to_datetime(ts, unit="ms")
     time_string = pd_dt.strftime("%Y-%m-%d %H:%M:%S")
     return time_string
 
 
 def format_string(ts):
-    return f"{str(ts // 3600).zfill(2)}:{str(ts // 60).zfill(2)}:{str(ts % 60).zfill(2)} ({ts})"
+    return f"{str(ts // 3600_000).zfill(2)}:{str(ts // 60_000).zfill(2)}:{str(ts % 60_000).zfill(2)} ({ts})"
 
 
-def format_sections(sections, width=1800000):
+def format_sections(sections, selected_index, width=1800000):
     # width = 1800000 corresponds to 30 minutes
     # for now, that will be the limit
 
@@ -28,7 +28,7 @@ def format_sections(sections, width=1800000):
                 id=sect.id,
                 start_ts=seconds_to_pd_datetime(sect.start),
                 end_ts=seconds_to_pd_datetime(sect.end),
-                # used as row, actuall half an hour (1800)
+                # used as row, actually half an hour (1800)
                 hour=(sect.end - sect.start) // width,
                 duration=sect.end - sect.start,
                 start_string=format_string(sect.start),
@@ -37,13 +37,16 @@ def format_sections(sections, width=1800000):
                 selected=False,
             )
         )
-
+    graph_sections[selected_index]["selected"] = True
     return graph_sections
 
 
 @solara.component
 def SectionGraphComponent(
-    formatted_sections, on_click, max_section_width=1800, max_section_height=24
+    formatted_sections,
+    on_click,
+    max_section_width=1800,
+    max_section_height=24,
 ):
     def handle_hover(*args):
         # logger.error(f"Graph Component Hovered Over")
@@ -55,6 +58,8 @@ def SectionGraphComponent(
         try:
             # return the 'end' time in seconds. won't work for
             # multirow sections
+            on_click(args[0]["points"]["point_indexes"][0])
+            return
             time_string = args[0]["points"]["xs"][0]
             if len(time_string) == 16:
                 # not sure why i need this
@@ -100,8 +105,8 @@ def SectionGraphComponent(
 
     fig.update_layout(
         plot_bgcolor=str(Colors.SURFACE),
-        xaxis={"tickformat": "%H:%M:%S"},
-        yaxis={"showticklabels": False},
+        xaxis={"tickformat": "%H:%M:%S", "autorange": True},
+        yaxis={"showticklabels": False, "autorange": True},
         showlegend=False,
     )
     solara.FigurePlotly(fig, on_click=handle_click, on_hover=handle_hover)

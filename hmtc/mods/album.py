@@ -66,11 +66,11 @@ class Album:
 
         try:
             album = AlbumTable.select().where(AlbumTable.video_id == video_id).first()
-            logger.info(f"Album grabbed {album.title}")
+            # logger.info(f"Album grabbed {album.title}")
         except Exception as e:
             logger.error(e)
             album = None
-            logger.info(f"No album found for video {video_id}")
+            logger.error(f"No album found for video {video_id}")
         if album:
             return Album(video_id=album.video_id, title=album.title, tracks=[])
         else:

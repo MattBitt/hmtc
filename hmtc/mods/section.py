@@ -197,6 +197,7 @@ class SectionManager:
             return
         sect.start += increment
         sect.save()
+        return sect
 
     @staticmethod
     def edit_section_end(section, increment):
@@ -207,3 +208,4 @@ class SectionManager:
             return
         sect.end += increment
         sect.save()
+        return sect

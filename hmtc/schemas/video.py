@@ -8,7 +8,7 @@ from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumTable
-from hmtc.models import File, Playlist, Series, Video, Channel, YoutubeSeries, Section
+from hmtc.models import File, Playlist, Series, Video, Channel, YoutubeSeries
 from hmtc.mods.file import FileManager
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
@@ -114,7 +114,7 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def count_unique():
-        return Video.select().where(Video.contains_unique_content == True).count()
+        return Video.select().where(Video.contains_unique_content is True).count()
 
     @staticmethod
     def get_downloaded_stats_by_series():
@@ -130,7 +130,7 @@ class VideoItem(BaseItem):
                         File.select(File.video_id).where(File.file_type == "video")
                     )
                 )
-                & (Video.contains_unique_content == True)
+                & (Video.contains_unique_content is True)
             )
             .group_by(Series.name)
         )
@@ -141,7 +141,7 @@ class VideoItem(BaseItem):
                 Series.name,
             )
             .join(Series)
-            .where(Video.contains_unique_content == True)
+            .where(Video.contains_unique_content is True)
             .group_by(Series.name)
         )
         downloaded = [(a.series, a.downloaded) for a in query]
@@ -164,7 +164,7 @@ class VideoItem(BaseItem):
         vids = (
             Video.select()
             .where(
-                (Video.contains_unique_content == True)
+                (Video.contains_unique_content is True)
                 & (
                     Video.id.not_in(
                         File.select(File.video_id).where(File.file_type == "video")
@@ -183,7 +183,7 @@ class VideoItem(BaseItem):
         return (
             Video.select()
             .where(
-                (Video.contains_unique_content == True)
+                (Video.contains_unique_content is True)
                 & (
                     Video.id.in_(
                         File.select(File.video_id).where(File.file_type == "video")
@@ -207,7 +207,7 @@ class VideoItem(BaseItem):
     @staticmethod
     def get_unique_with_no_durations():
         return Video.select().where(
-            (Video.duration.is_null() & Video.contains_unique_content == True)
+            (Video.duration.is_null() & Video.contains_unique_content is True)
         )
 
     @staticmethod
@@ -288,7 +288,7 @@ class VideoItem(BaseItem):
             Video.select(Video.id)
             .where(
                 (Video.title.is_null(False))
-                & (Video.contains_unique_content == True)
+                & (Video.contains_unique_content is True)
                 & (Video.duration.is_null(False))
             )
             .order_by(Video.upload_date.desc())
@@ -342,10 +342,10 @@ class VideoItem(BaseItem):
         if include_unique_content and include_nonunique_content:
             query = query
         elif include_unique_content:
-            query = query.where(Video.contains_unique_content == True)
+            query = query.where(Video.contains_unique_content is True)
 
         elif include_nonunique_content:
-            query = query.where(Video.contains_unique_content == False)
+            query = query.where(Video.contains_unique_content is False)
         else:
             logger.error("Tried disabling unique filter but you can't 😃😃😃😃😃")
             query = query

@@ -12,8 +12,6 @@
             </v-col>
             <h1>{{ timestamps.whole_end }}</h1>
           </v-row>
-
-
         </v-container>
       </template>
     </v-sheet>

@@ -1,6 +1,5 @@
 import solara
 from loguru import logger
-from hmtc.models import Album as AlbumTable
 
 from hmtc.mods.album import Album
 

@@ -207,7 +207,6 @@ def FilesToolbar(
         refreshing.set(False)
         refresh_query()
 
-
     with solara.Row(justify=justify):
         ToolTipButton(
             icon_name="mdi-information",

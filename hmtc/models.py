@@ -142,7 +142,7 @@ class Series(BaseModel):
 
     @property
     def unique_videos(self):
-        return self.videos.select().where(Video.contains_unique_content == True).count()
+        return self.videos.select().where(Video.contains_unique_content is True).count()
 
     def __repr__(self):
         return f"Series({self.name})"
