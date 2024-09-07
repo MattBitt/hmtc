@@ -98,9 +98,7 @@ class PageState:
 
         # only want to automatically update videos from channels
         # Harry Mack and Harry Mack Clips
-        channels = Channel.select().where(
-            (Channel.enabled is True) & (Channel.name.contains("Harry"))
-        )
+        channels = Channel.select().where((Channel.name.contains("Harry")))
 
         num_new_vids = 0
 

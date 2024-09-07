@@ -601,6 +601,21 @@ class VideoItem(BaseItem):
             series=db_object.series if db_object.series else None,
         )
 
+    @staticmethod
+    def video_details_query():
+        # in progress 9/7/24
+        return (
+            Video.select(Video, Channel, Series, YoutubeSeries.title, Playlist)
+            .join(Channel, peewee.JOIN.LEFT_OUTER)
+            .switch(Video)
+            .join(Series)
+            .switch(Video)
+            .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
+            .switch(Video)
+            .join(Playlist, peewee.JOIN.LEFT_OUTER)
+            .where(Video.contains_unique_content == True)
+        )
+
     ### 🟣🟣🟣 Temporary Methods
 
     # this is a temporary function to update the episode numbers for videos

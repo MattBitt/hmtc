@@ -11,6 +11,7 @@ from hmtc.components.shared.jellyfin_panel import JellyfinPanel
 from hmtc.mods.section import Section, SectionManager
 from hmtc.schemas.video import VideoItem
 
+update_page = solara.reactive(False)
 
 title = "Video Sections"
 MIN_SECTION_LENGTH = 60
@@ -208,16 +209,16 @@ def TimeEditForm(
     pass
 
 
-def section_modal(section, section_type, model, on_model, counter, refresh_sections):
+def section_modal(section, section_type, model, on_model, video_duration):
 
     def h_close(*args):
         # logger.debug(f"Closing {args}")
-        refresh_sections()
         on_model(False)
+        
+        
 
     def h_save(*args):
         # logger.debug(f"Saving {args}")
-        refresh_sections()
         on_model(False)
 
     def adjust_section(*args):
@@ -235,7 +236,8 @@ def section_modal(section, section_type, model, on_model, counter, refresh_secti
         if 'back' in args[0]:
             increment = -increment
 
-        logger.debug(f"Adjusting the {section_type} of section {section.value} by {increment} seconds")
+        logger.debug(f"Adjusting the {section_type} of section {section} by {increment} seconds")
+        
         if section_type == "start":
             if section.value.start + increment < 0:
                 logger.error("Cannot have negative start time")
@@ -245,22 +247,17 @@ def section_modal(section, section_type, model, on_model, counter, refresh_secti
                 return
 
             SectionManager.edit_section_start(section=section.value, increment=increment)
-            new_section = SectionManager.get_by_id(id=section.value.id)
-            section.set(new_section)
-
 
         else:
-            if section.value.end + increment > section.value.video.duration:
+            if section.value.end + increment > video_duration:
                 logger.error("Cannot have end time past video duration")
                 return
             if section.value.end + increment <= section.value.start:
                 logger.error("End time must be after start time")
                 return
             SectionManager.edit_section_end(section=section.value, increment=increment)
-            new_section = SectionManager.get_by_id(id=section.value.id)
-            section.set(new_section)
-        
-        refresh_sections()
+
+        logger.debug("Adjustment complete. About to refresh the sections")
 
 
 
@@ -275,18 +272,15 @@ def section_modal(section, section_type, model, on_model, counter, refresh_secti
         persistent=True,
         max_width="80%",
     ):
-        with solara.Row():
-            solara.Button("-1", on_click=lambda: counter.set(counter.value-1), classes=["button"])
-            solara.Markdown(f"### Counter {counter.value}")
-            solara.Button("+1", on_click=lambda: counter.set(counter.value+1), classes=["button"])
+
         TimeEditForm(
             section=dict(id=section.value.id,start=section.value.start, end=section.value.end),
             timestamp=ts,
             section_type=section_type,
-            event_handle_close=h_close,
-            event_handle_save=h_save,
+            event_handle_close=lambda data: h_close(data),
+            event_handle_save=lambda data: h_save(data),
             event_adjust_section=lambda data: adjust_section(data),
-            counter=counter.value
+            
            
         )
 
@@ -304,17 +298,17 @@ def SectionTimeInfo(video, section, refresh_sections):
 
     # these modals are controlled by the model and on_model reactive variables
     section_modal(
-        section=section, section_type="start", model=edit_start, on_model=set_edit_start, counter=counter, refresh_sections=refresh_sections
+        section=section, section_type="start", model=edit_start, on_model=set_edit_start, video_duration=video.duration
     )
     section_modal(
-        section=section, section_type="end", model=edit_end, on_model=set_edit_end, counter=counter,refresh_sections=refresh_sections
+        section=section, section_type="end", model=edit_end, on_model=set_edit_end,  video_duration=video.duration
     )
 
     with solara.Row(justify="space-around"):
         with solara.Column():
             DigitLabel(
                 label="Start Time",
-                timestamp=ts1.value,
+                timestamp=create_hms_dict(section.value.start // 1000),
             )
             solara.Button(
                 label="Open Section Modal",
@@ -323,10 +317,11 @@ def SectionTimeInfo(video, section, refresh_sections):
                 classes=["button"],
             )
         with solara.Column():
-
+            solara.Markdown(f"### Section {section.value.id}")
+            solara.Markdown(f"### Start {section.value.start} End {section.value.end}")
             DigitLabel(
                 label="End Time",
-                timestamp=ts2,
+                timestamp=create_hms_dict(section.value.end // 1000),
             )
             solara.Button(
                 label="Open Section Modal",
@@ -376,7 +371,7 @@ class State:
         logger.debug(f"Deleting item: {item}")
         SectionManager.delete_from_db(item)
 
-update_page = solara.reactive(False)
+
 
 @solara.component
 def Page():
@@ -457,17 +452,19 @@ def Page():
                                 part_end=sections.value[model.value].end // 1000,
                             )
                         )
+                        
                     with Carousel(model=model.value):
                         for section in sections.value:
+                            s = solara.use_reactive(section)
                             with solara.Column():
                                 # background color is GREEN
                                 SectionTimeInfo(
                                     video=video,
-                                    section=solara.use_reactive(section),
+                                    section=s,
                                     refresh_sections=refresh_sections,
                                 )
-                                # background color is RED
-                                SectionTopicsList(
-                                    section=dict(id=section.id),
-                                    topics=topics.value,
-                                )
+                                # # background color is RED
+                                # SectionTopicsList(
+                                #     section=dict(id=section.id),
+                                #     topics=topics.value,
+                                # )

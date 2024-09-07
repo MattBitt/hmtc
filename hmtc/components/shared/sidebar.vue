@@ -14,8 +14,7 @@
     <v-list class="top-list">
       <v-list-item v-for="(item, i) in items" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
-          <v-icon class="px-4">{{ item.icon }}</v-icon
-          >{{ item.text }}
+          <v-icon class="px-4">{{ item.icon }}</v-icon>{{ item.text }}
         </v-btn>
       </v-list-item>
     </v-list>
@@ -23,8 +22,7 @@
     <v-list class="bottom-list">
       <v-list-item v-for="(item, i) in other_items" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
-          <v-icon class="px-4">{{ item.icon }}</v-icon
-          >{{ item.text }}
+          <v-icon class="px-4">{{ item.icon }}</v-icon>{{ item.text }}
         </v-btn>
       </v-list-item>
     </v-list>
@@ -40,6 +38,7 @@ export default {
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Series", icon: "mdi-television", url: "/series" },
       { text: "Videos", icon: "mdi-video", url: "/videos" },
+      { text: "Videos", icon: "mdi-table", url: "/video-table" },
 
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
       {
