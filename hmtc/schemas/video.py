@@ -114,7 +114,7 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def count_unique():
-        return Video.select().where(Video.contains_unique_content is True).count()
+        return Video.select().where(Video.contains_unique_content == True).count()
 
     @staticmethod
     def get_downloaded_stats_by_series():
@@ -130,7 +130,7 @@ class VideoItem(BaseItem):
                         File.select(File.video_id).where(File.file_type == "video")
                     )
                 )
-                & (Video.contains_unique_content is True)
+                & (Video.contains_unique_content == True)
             )
             .group_by(Series.name)
         )
@@ -141,7 +141,7 @@ class VideoItem(BaseItem):
                 Series.name,
             )
             .join(Series)
-            .where(Video.contains_unique_content is True)
+            .where(Video.contains_unique_content == True)
             .group_by(Series.name)
         )
         downloaded = [(a.series, a.downloaded) for a in query]
@@ -164,7 +164,7 @@ class VideoItem(BaseItem):
         vids = (
             Video.select()
             .where(
-                (Video.contains_unique_content is True)
+                (Video.contains_unique_content == True)
                 & (
                     Video.id.not_in(
                         File.select(File.video_id).where(File.file_type == "video")
@@ -183,7 +183,7 @@ class VideoItem(BaseItem):
         return (
             Video.select()
             .where(
-                (Video.contains_unique_content is True)
+                (Video.contains_unique_content == True)
                 & (
                     Video.id.in_(
                         File.select(File.video_id).where(File.file_type == "video")
@@ -207,7 +207,7 @@ class VideoItem(BaseItem):
     @staticmethod
     def get_unique_with_no_durations():
         return Video.select().where(
-            (Video.duration.is_null() & Video.contains_unique_content is True)
+            (Video.duration.is_null() & Video.contains_unique_content == True)
         )
 
     @staticmethod
@@ -277,7 +277,7 @@ class VideoItem(BaseItem):
                 Video.title.is_null(False)
                 & Video.episode.is_null()
                 & Video.contains_unique_content
-                is True
+                == True
             )
         )
         return [VideoItem.from_orm(v) for v in vids]
@@ -288,7 +288,7 @@ class VideoItem(BaseItem):
             Video.select(Video.id)
             .where(
                 (Video.title.is_null(False))
-                & (Video.contains_unique_content is True)
+                & (Video.contains_unique_content == True)
                 & (Video.duration.is_null(False))
             )
             .order_by(Video.upload_date.desc())
@@ -342,7 +342,7 @@ class VideoItem(BaseItem):
         if include_unique_content and include_nonunique_content:
             query = query
         elif include_unique_content:
-            query = query.where(Video.contains_unique_content is True)
+            query = query.where(Video.contains_unique_content == True)
 
         elif include_nonunique_content:
             query = query.where(Video.contains_unique_content is False)

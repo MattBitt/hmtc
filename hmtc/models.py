@@ -134,7 +134,7 @@ class Series(BaseModel):
 
     @property
     def enabled_videos(self):
-        return self.videos.where(Video.enabled is True).count()
+        return self.videos.where(Video.enabled == True).count()
 
     @property
     def total_videos(self):
@@ -142,7 +142,7 @@ class Series(BaseModel):
 
     @property
     def unique_videos(self):
-        return self.videos.select().where(Video.contains_unique_content is True).count()
+        return self.videos.select().where(Video.contains_unique_content == True).count()
 
     def __repr__(self):
         return f"Series({self.name})"
@@ -411,6 +411,31 @@ class Video(BaseModel):
 
     def __repr__(self):
         return f"VideoModel({self.title=})"
+
+    # used to serialize model to dict for vue
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "youtube_id": self.youtube_id,
+            "url": self.url,
+            "title": self.title,
+            "episode": self.episode,
+            "upload_date": self.upload_date.isoformat(),
+            "duration": self.duration,
+            "description": self.description,
+            "enabled": self.enabled,
+            "private": self.private,
+            "contains_unique_content": self.contains_unique_content,
+            "has_chapters": self.has_chapters,
+            "manually_edited": self.manually_edited,
+            "channel_name": self.channel.name if self.channel else None,
+            "series_name": self.series.name if self.series else None,
+            "playlist_title": self.playlist.title if self.playlist else None,
+            "youtube_series_title": (
+                self.youtube_series.title if self.youtube_series else None
+            ),
+        }
+        return new_dict
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

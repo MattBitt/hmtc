@@ -120,6 +120,7 @@ def CrossFilterSelect(
     column, set_column = solara.use_state_or_update(column)
     invert, set_invert = solara.use_state_or_update(invert)
     multiple, set_multiple = solara.use_state_or_update(multiple)
+    
 
     dff = df
     if filter is not None:
@@ -186,7 +187,7 @@ def CrossFilterSelect(
     with solara.VBox(classes=classes) as main:
         solara.Style(css_message)
         with solara.HBox(align_items="baseline"):
-            label = f"Include in {column}" if not invert else f"Exclude in {column}"
+            label = f"{column}" if not invert else f"{column}"
             Select.element(
                 value=value,
                 items=items,

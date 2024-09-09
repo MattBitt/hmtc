@@ -101,7 +101,7 @@ def DBversusFileCards(db_files, folder_files):
 
 
 def download_missing_videos():
-    videos = Video.select().where(Video.enabled is True)
+    videos = Video.select().where(Video.enabled == True)
     for video in videos:
         if not video.has_video:
             video.download_video()
@@ -111,7 +111,7 @@ def download_missing_videos():
 
 
 def extract_missing_audio():
-    videos = Video.select().where(Video.enabled is True)
+    videos = Video.select().where(Video.enabled == True)
     for video in videos:
         if video.has_video and not video.has_audio:
             video.extract_audio()

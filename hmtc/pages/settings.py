@@ -140,7 +140,7 @@ class PageState:
             status.set(f"Found {len(vids_with_no_channel)} videos with no channel")
 
         channels = Channel.select().where(
-            (Channel.enabled is True) & (Channel.name.contains("Harry"))
+            (Channel.enabled == True) & (Channel.name.contains("Harry"))
         )
 
         for c in channels:

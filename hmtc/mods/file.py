@@ -121,7 +121,7 @@ class FileManager:
     def get_duration_downloaded_videos(series=None):
         if series:
             duration = Video.select(fn.Sum(Video.duration)).where(
-                (Video.series == series) & (Video.downloaded is True)
+                (Video.series == series) & (Video.downloaded == True)
             )
             return duration.scalar()
 

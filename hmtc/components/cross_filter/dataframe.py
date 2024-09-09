@@ -10,6 +10,7 @@ def FilteredDataFrame(
     column_actions: List[ColumnAction] = [],
     cell_actions: List[CellAction] = [],
     scrollable=False,
+
 ):
     """Display a DataFrame with filters applied from the cross filter.
 
@@ -22,12 +23,16 @@ def FilteredDataFrame(
      * `df` - a Pandas dataframe.
      * `column_actions` - Triggered via clicking on the triple dot icon on the headers (visible when hovering).
      * `cell_actions` -  Triggered via clicking on the triple dot icon in the cell (visible when hovering).
+     * `search_column` - the column to search for filtering.
+
 
     """
     dff = df
     filter, set_filter = solara.use_cross_filter(id(df), "dataframe")
     if filter is not None:
         dff = df[filter]
+
+
     return solara.DataFrame(
         dff,
         items_per_page=items_per_page,
@@ -35,3 +40,7 @@ def FilteredDataFrame(
         column_actions=column_actions,
         cell_actions=cell_actions,
     )
+    # Usage:
+    # sort_order = 'asc' or 'desc'
+    # df = your dataframe
+    # dff = sort_dataframe(df, sort_order)

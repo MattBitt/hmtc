@@ -11,17 +11,17 @@ from hmtc.models import Video
 def Page():
     router = solara.use_router()
     videos = Video.select().where(
-        (Video.duration > 0) & (Video.contains_unique_content is True)
+        (Video.duration > 0) & (Video.contains_unique_content == True)
     )
     recent = (
         Video.select()
-        .where((Video.title.is_null(False)) & (Video.contains_unique_content is True))
+        .where((Video.title.is_null(False)) & (Video.contains_unique_content == True))
         .order_by(Video.upload_date.desc())
         .limit(10)
     )
     recent_updated = (
         Video.select()
-        .where(Video.title.is_null(False) & (Video.contains_unique_content is True))
+        .where(Video.title.is_null(False) & (Video.contains_unique_content == True))
         .order_by(Video.updated_at.desc())
         .limit(10)
     )

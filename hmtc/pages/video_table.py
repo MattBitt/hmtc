@@ -13,6 +13,16 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.cross_filter.filter_report import FilterReport
 from hmtc.components.cross_filter.select import CrossFilterSelect
 from hmtc.components.cross_filter.dataframe import FilteredDataFrame
+from functools import lru_cache
+
+
+# Memoized sorting function
+# @lru_cache(maxsize=None)
+def memoized_sort(data, column, ascending):
+    data_list = [d for d in data if d[column] is not None]
+    _sorted = sorted(data_list, key=lambda x: x[column], reverse=(not ascending))
+    return _sorted
+
 
 base_query = (
     Video.select(
@@ -43,8 +53,6 @@ base_query = (
 
 @solara.component
 def Page():
-    sort_by_name = solara.use_reactive(False)
-    sort_by_duration = solara.use_reactive(False)
 
     MySidebar(router=solara.use_router())
 
@@ -63,36 +71,36 @@ def Page():
         list(base_query.order_by(Video.upload_date.desc()).dicts())
     )
 
-    def sort_name():
-        nonlocal mydata
-        if sort_by_name.value:
-            mydata.value = sorted(
-                mydata.value,
-                key=lambda x: x["name"],
-                reverse=True,
-            )
+    column, set_column = solara.use_state(cast(Optional[str], None))
+    ascending, set_ascending = solara.use_state(cast(bool, True))
+    cell, set_cell = solara.use_state(cast(Dict[str, Any], {}))
 
-        else:
-            mydata.value = sorted(
-                mydata.value,
-                key=lambda x: x["name"],
-                reverse=False,
-            )
+    def on_action_column(column):
+        set_column(column)
 
-        sort_by_name.set(not sort_by_name.value)
+    def on_action_cell(column, row_index):
+        set_cell(dict(column=column, row_index=row_index))
 
-    def sort_duration():
-        nonlocal mydata2
-        mydata2.value = sorted(
-            mydata2.value,
-            key=lambda x: x["duration"],
-            reverse=not sort_by_duration.value,
+    column_actions = [
+        solara.ColumnAction(
+            icon="mdi-sunglasses", name="User column action", on_click=on_action_column
         )
-        sort_by_duration.set(not sort_by_duration.value)
+    ]
+    cell_actions = [
+        solara.CellAction(
+            icon="mdi-white-balance-sunny",
+            name="User cell action",
+            on_click=on_action_cell,
+        )
+    ]
+    if column is not None:
 
-    # query = solara.use_reactive(base_query.order_by(Video.duration.desc()).dicts())
+        sorted_data = memoized_sort(mydata2.value, column, ascending)
+        # Convert back to list of dictionaries
+        mydata2.value = [dict(d) for d in sorted_data]
+
     df = pd.DataFrame(mydata2.value)
-    solara.provide_cross_filter()
+    cross_filter = solara.provide_cross_filter()
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Row(gap=16):
@@ -105,8 +113,4 @@ def Page():
                 )
                 FilterReport(df)
 
-        FilteredDataFrame(df)
-
-        with solara.Column():
-            solara.Markdown(f"Sort By Duration: {sort_by_duration.value}")
-            solara.Button("Sort", on_click=sort_duration)
+        FilteredDataFrame(df, column_actions=column_actions, cell_actions=cell_actions)

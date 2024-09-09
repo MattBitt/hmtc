@@ -38,7 +38,8 @@ export default {
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Series", icon: "mdi-television", url: "/series" },
       { text: "Videos", icon: "mdi-video", url: "/videos" },
-      { text: "Videos", icon: "mdi-table", url: "/video-table" },
+      { text: "Videos (solara)", icon: "mdi-table", url: "/video-table" },
+      { text: "Videos (vue)", icon: "mdi-table-plus", url: "/video-table2" },
 
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
       {

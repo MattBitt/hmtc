@@ -136,7 +136,7 @@ def StatsGraphs(on_click: Callable[[dict], None]):
         )
         .join(Video)
         .where(
-            (Video.duration.is_null(False) & (Video.contains_unique_content is True))
+            (Video.duration.is_null(False) & (Video.contains_unique_content == True))
         )
         .group_by(Playlist)
     )
@@ -148,7 +148,7 @@ def StatsGraphs(on_click: Callable[[dict], None]):
         )
         .join(Video)
         .where(
-            (Video.duration.is_null(False) & (Video.contains_unique_content is True))
+            (Video.duration.is_null(False) & (Video.contains_unique_content == True))
         )
         .group_by(Series)
     )
