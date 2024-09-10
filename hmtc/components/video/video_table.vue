@@ -1,10 +1,27 @@
 <template>
   <v-card>
     <v-card-title>
-      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
     </v-card-title>
-    <v-data-table :headers="headers" :items="items" :sort-by.sync="sortBy" :sort-desc.sync="sortDesc" :search="search"
-      items-per-page="30" class="elevation-1">
+    <v-data-table
+      :headers="headers"
+      :items="items"
+      sort-by.sync="sortBy"
+      :sort-desc.sync="sortDesc"
+      :search="search"
+      :items-per-page="30"
+      class="elevation-1"
+      :single-expand="true"
+      expanded.sync="expanded"
+      item-key="title"
+      show-expand
+    >
       <template v-slot:top>
         <v-toolbar flat>
           <v-toolbar-title>Videos</v-toolbar-title>
@@ -25,44 +42,85 @@
                 <v-container>
                   <v-row>
                     <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.title" label="Title"></v-text-field>
+                      <v-text-field
+                        v-model="editedItem.title"
+                        label="Title"
+                      ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.duration" label="Duration"></v-text-field>
+                      <v-text-field
+                        v-model="editedItem.duration"
+                        label="Duration"
+                      ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.series_name" label="Series Name"></v-text-field>
+                      <v-text-field
+                        v-model="editedItem.episode"
+                        label="Episode Number"
+                      ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.youtube_series_title" label="Youtube Series"></v-text-field>
-                    </v-col>
-
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.channel_name" label="Channel Name"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.playlist_title" label="Playlist Title"></v-text-field>
+                      <v-text-field
+                        v-model="editedItem.youtube_id"
+                        label="Youtube ID"
+                      ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
-                      <v-checkbox v-model="editedItem.contains_unique_content"
-                        label="Contains Unique Content"></v-checkbox>
+                      <v-text-field
+                        v-model="editedItem.upload_date"
+                        label="Upload Date"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-checkbox
+                        v-model="editedItem.contains_unique_content"
+                        label="Unique Content"
+                      ></v-checkbox>
                     </v-col>
                   </v-row>
                   <v-row>
                     <v-col cols="12" sm="6" md="4">
-                      <v-select v-model="selected_channel" :hint="`${selected_channel.name}`" :items="channels"
-                        item-text="name" item-value="id" label="Channel" return-object single-line></v-select></v-col>
+                      <v-select
+                        v-model="selected_channel"
+                        :items="channels"
+                        item-text="name"
+                        item-value="id"
+                        label="Channel"
+                        return-object
+                      ></v-select
+                    ></v-col>
 
                     <v-col cols="12" sm="6" md="4">
-                      <v-select v-model="selected_series" :hint="`${selected_series.name}, ${selected_series.id}`"
-                        :items="serieses" item-text="name" item-value="id" label="Series" return-object
-                        single-line></v-select></v-col>
+                      <v-select
+                        v-model="selected_series"
+                        :items="serieses"
+                        item-text="name"
+                        item-value="id"
+                        label="Series"
+                        return-object
+                      ></v-select
+                    ></v-col>
 
                     <v-col cols="12" sm="6" md="4">
-                      <v-select v-model="selected_youtube_series"
-                        :hint="`${selected_youtube_series.title}, ${selected_youtube_series.id}`"
-                        :items="youtube_serieses" item-text="title" item-value="id" label="YouTube Series" return-object
-                        single-line></v-select></v-col>
+                      <v-select
+                        v-model="selected_youtube_series"
+                        :items="youtube_serieses"
+                        item-text="title"
+                        item-value="id"
+                        label="YouTube Series"
+                        return-object
+                      ></v-select
+                    ></v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-select
+                        v-model="selected_playlist"
+                        :items="playlists"
+                        item-text="title"
+                        item-value="id"
+                        label="YouTube Playlist"
+                        return-object
+                      ></v-select
+                    ></v-col>
                   </v-row>
                 </v-container>
               </v-card-text>
@@ -72,7 +130,11 @@
                 <v-btn color="blue darken-1" text @click="close">
                   Cancel
                 </v-btn>
-                <v-btn color="blue darken-1" text @click="saveItem(editedItem)">
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  @click="saveItemToDB(editedItem)"
+                >
                   Save
                 </v-btn>
               </v-card-actions>
@@ -80,11 +142,17 @@
           </v-dialog>
           <v-dialog v-model="dialogDelete" max-width="500px">
             <v-card>
-              <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
+              <v-card-title class="text-h5"
+                >Are you sure you want to delete this item?</v-card-title
+              >
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
-                <v-btn color="blue darken-1" text @click="deleteItemConfirm">OK</v-btn>
+                <v-btn color="blue darken-1" text @click="closeDelete"
+                  >Cancel</v-btn
+                >
+                <v-btn color="blue darken-1" text @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-card>
@@ -97,35 +165,37 @@
         </v-chip>
       </template>
       <template v-slot:item.contains_unique_content="{ item }">
-        <v-simple-checkbox v-model="item.contains_unique_content" disabled></v-simple-checkbox>
+        <v-simple-checkbox
+          color="orange"
+          v-model="item.contains_unique_content"
+          disabled
+        ></v-simple-checkbox>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon small class="mr-2" @click="editItem(item)">
+        <v-icon medium class="mr-2" @click="link_clicked(item)">
+          mdi-rhombus-split
+        </v-icon>
+        <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <v-icon small @click="deleteItem(item)">
+        <v-icon medium color="red" @click="deleteItem(item)">
           mdi-delete
         </v-icon>
       </template>
-      <template v-slot:bottom> </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click="">
-          Reset
-        </v-btn>
+        <v-btn color="primary" @click=""> Reset </v-btn>
+      </template>
+      <template v-slot:expanded-item="{ headers, item }">
+        <td :colspan="headers.length">
+          Series: {{ item.series_name }} <br />
+          Youtube Series: {{ item.youtube_series_title }}<br />
+          Channel Name: {{ item.channel_name }}<br />
+          Playlist Title: {{ item.playlist_title }}<br />
+          Unique: {{ item.contains_unique_content }}<br />
+        </td>
       </template>
     </v-data-table>
-    <div class="text-center pt-2">
-
-      <v-btn color="primary" class="mr-2" @click="toggleOrder">
-        Toggle sort order
-      </v-btn>
-      <v-btn color="primary" @click="nextSort">
-        Sort next column
-      </v-btn>
-    </div>
   </v-card>
-
-
 </template>
 
 <script>
@@ -133,255 +203,259 @@ export default {
   data: () => ({
     dialog: false,
     dialogDelete: false,
-    sortBy: 'upload_date',
+    sortBy: "upload_date",
     sortDesc: true,
-    search: '',
+    search: "",
     headers: [
-      { text: 'Upload Date', value: 'upload_date', filterable: false },
+      { text: "Upload Date", value: "upload_date", filterable: false },
 
       {
-        text: 'Title',
-        align: 'start',
-        value: 'title',
-        width: '20%',
+        text: "Title",
+        value: "title",
+        align: "start",
+        width: "20%",
       },
-      { text: 'Duration (s)', value: 'duration', filterable: false },
-      { text: 'Series Name', value: 'series_name', filterable: false },
-      { text: 'Youtube Series', value: 'youtube_series_title', filterable: false },
-      { text: 'Episode', value: 'episode', filterable: false, },
-      // { text: 'Channel Name', value: 'channel_name', filterable: false },
-      // { text: 'Playlist Title', value: 'playlist_title', filterable: false, width: '10%', },
+      { text: "Duration (s)", value: "duration", filterable: false },
+      { text: "Series Name", value: "series_name", filterable: true },
+      {
+        text: "Youtube Series",
+        value: "youtube_series_title",
+        filterable: true,
+      },
+      { text: "Episode", value: "episode", filterable: true },
+      { text: "Channel Name", value: "channel_name", filterable: false },
+      {
+        text: "Playlist Title",
+        value: "playlist_title",
+        filterable: false,
+      },
       // { text: 'Unique', value: 'contains_unique_content', filterable: false },
-      { text: 'Actions', value: 'actions', sortable: false },
+      { text: "Actions", value: "actions", sortable: false },
     ],
 
     selected_channel: {
-      name: 'Channel 1',
       id: 1,
+      name: "Channel 1",
     },
     channels: [
       {
         id: 1,
-        name: 'Channel 1',
-      },
-      {
-        id: 2,
-        name: 'Channel 2',
-      },
-      {
-        id: 3,
-        name: 'Channel 3',
+        name: "Channel 1",
       },
     ],
 
     selected_series: {
-      name: 'series 1',
       id: 1,
+      name: "series 1",
     },
     serieses: [
       {
         id: 1,
-        name: 'series 1',
-      },
-      {
-        id: 2,
-        name: 'series 2',
-      },
-      {
-        id: 3,
-        name: 'series 3',
+        name: "series 1",
       },
     ],
 
     selected_youtube_series: {
-      title: 'youtube_series 1',
       id: 1,
+      title: "youtube_series 1",
     },
+
     youtube_serieses: [
       {
         id: 1,
-        title: 'youtube_series 1',
-      },
-      {
-        id: 2,
-        title: 'youtube_series 2',
-      },
-      {
-        id: 3,
-        title: 'youtube_series 3',
+        title: "youtube_series 1",
       },
     ],
 
+    selected_playlist: {
+      id: 1,
+      title: "youtube_playlist 1",
+    },
+
+    playlists: [
+      {
+        id: 1,
+        title: "youtube_playlist 1",
+      },
+    ],
 
     items: [
       {
-        title: 'Title 1',
-        youtube_series_title: 'Frozen Yogurt',
-        episode: 159,
-        duration: 6.0,
-        series_name: "omegle",
-        playlist_title: 4.0,
-        channel_name: 1,
+        title: "Title 1",
+        youtube_series_title: "Frozen Yogurt",
+        episode: "",
+        duration: 0,
+        series: "",
+        playlist: "",
+        youtube_series: "",
+        channel: "",
+        series_name: "",
+        playlist_title: "",
+        channel_name: "",
         contains_unique_content: true,
-        upload_date: '2021-01-01',
+        upload_date: "2021-01-01",
         id: 1,
       },
-      {
-        title: 'Title 2',
-        youtube_series_title: 'Ice cream sandwich',
-        episode: 237,
-        duration: 9.0,
-        series_name: "omegle",
-        playlist_title: 4.3,
-
-        youtube_series_title: 'qwerty',
-        channel_name: 1,
-        contains_unique_content: true,
-        id: 2,
-      },
-      {
-        title: 'Title 3',
-        youtube_series_title: 'Eclair',
-        episode: 262,
-        duration: 16.0,
-        series_name: "guerrilla",
-        playlist_title: 6.0,
-        channel_name: 7,
-        contains_unique_content: false,
-        id: 3,
-      },
-
     ],
 
     editedIndex: -1,
     editedItem: {
-      title: 'Title 2',
-      episode: 237,
-      duration: 9.0,
-      series_name: 37,
-      playlist_title: 4.3,
-      youtube_series_title: 'asdf',
-      channel_name: 1,
+      title: "Video Title",
+      episode: "",
+      duration: 0,
+      series: "",
+      playlist: "",
+      youtube_series: "",
+      channel: "",
+      series_name: "",
+      playlist_title: "",
+      youtube_series_title: "",
+      channel_name: "",
       contains_unique_content: true,
-      id: 2,
+      upload_date: "",
+      youtube_id: "",
+      id: 0,
     },
     defaultItem: {
-      title: 'Title 99',
-      episode: 237,
-      duration: 9.0,
-      series_name: "omegle",
-      playlist_title: 4.3,
-      youtube_series_title: 'asdf',
-      channel_name: 1,
-      contains_unique_content: true,
-      id: 15,
+      title: "",
+      episode: "",
+      duration: 0,
+      series: "",
+      playlist: "",
+      youtube_series: "",
+      channel: "",
+      series_name: "",
+      playlist_title: "",
+      youtube_series_title: "",
+      channel_name: "",
+      contains_unique_content: false,
+      upload_date: "",
+      youtube_id: "",
+      id: 0,
     },
-
-
-
-
-
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+      return this.editedIndex === -1 ? "New Item" : "Edit Item";
     },
   },
 
   watch: {
     dialog(val) {
-      val || this.close()
+      val || this.close();
     },
     dialogDelete(val) {
-      val || this.closeDelete()
+      val || this.closeDelete();
     },
   },
 
-
-
   methods: {
     toggleOrder() {
-      this.sortDesc = !this.sortDesc
+      this.sortDesc = !this.sortDesc;
     },
     nextSort() {
-      let index = this.headers.findIndex(h => h.value === this.sortBy)
-      index = (index + 1) % this.headers.length
-      this.sortBy = this.headers[index].value
+      let index = this.headers.findIndex((h) => h.value === this.sortBy);
+      index = (index + 1) % this.headers.length;
+      this.sortBy = this.headers[index].value;
     },
     getColor(duration) {
-      if (duration < 60) return 'red'
-      else if (duration < 900) return 'orange'
-      else return 'green'
+      if (duration < 60) return "red";
+      else if (duration < 900) return "orange";
+      else return "green";
     },
     editItem(item) {
-      console.log("Edit Item arg passed: ", item)
-      this.editedIndex = this.items.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.editedItem.channel = this.channels.find((channel) => channel.name === item.channel_name)
-      this.editedItem.series = this.serieses.find((series) => series.name === item.series_name)
-      console.log(this.youtube_serieses)
-      this.editedItem.youtube_series = this.youtube_serieses.find((youtube_series) => youtube_series.title === item.youtube_series)
-      console.log("Edited Item after additions: ", this.editedItem)
-      this.dialog = true
+      this.editedIndex = this.items.indexOf(item);
+      this.editedItem = Object.assign({}, item);
 
+      this.editedItem.channel = this.channels.find(
+        (channel) => channel.name === item.channel_name
+      );
+
+      this.editedItem.series = this.serieses.find(
+        (series) => series.name === item.series_name
+      );
+
+      this.editedItem.youtube_series = this.youtube_serieses.find(
+        (youtube_series) => youtube_series.title === item.youtube_series_title
+      );
+
+      this.editedItem.playlist = this.playlists.find(
+        (playlist) => playlist.title === item.playlist_title
+      );
+
+      this.selected_channel = this.editedItem.channel || this.selected_channel;
+
+      this.selected_series = this.editedItem.series || this.selected_series;
+
+      this.selected_youtube_series =
+        this.editedItem.youtube_series || this.selected_youtube_series;
+
+      this.selected_playlist =
+        this.editedItem.playlist || this.selected_playlist;
+
+      this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.items.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.dialogDelete = true
+      this.editedIndex = this.items.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialogDelete = true;
     },
 
     deleteItemConfirm() {
-      this.items.splice(this.editedIndex, 1)
-      this.closeDelete()
+      this.items.splice(this.editedIndex, 1);
+      this.delete_video_item(this.editedItem);
+      this.closeDelete();
     },
 
-    saveItem(item) {
-      // function called from python
-
+    saveItemToDB(item) {
+      // the function below is 'run' from python
+      // actually saves the item in the db
       this.save_video_item({
-        item: item, editedItem: this.editedItem,
+        item: item,
+        editedItem: this.editedItem,
         selectedChannel: this.selected_channel,
         selectedSeries: this.selected_series,
-        selectedYoutubeSeries: this.selected_youtube_series
-      })
-      this.close()
+        selectedYoutubeSeries: this.selected_youtube_series,
+        selectedPlaylist: this.selected_playlist,
+      });
+
+      // update the array in the front end and close the dialog box
+      this.save();
+      this.close();
     },
 
     close() {
-      this.dialog = false
+      this.dialog = false;
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
 
     closeDelete() {
-      this.dialogDelete = false
+      this.dialogDelete = false;
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
 
     save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.items[this.editedIndex], this.editedItem)
+        Object.assign(this.items[this.editedIndex], this.editedItem);
       } else {
-        this.items.push(this.editedItem)
+        this.items.push(this.editedItem);
       }
-      this.close()
+      this.close();
     },
   },
-}
-
+};
 </script>
 <style>
-/* removes the items per page selector */
+/* removes the items per page selector (doesn't work to display none)*/
 .v-application--is-ltr .v-data-footer__pagination {
   margin-left: auto;
-
 }
 </style>

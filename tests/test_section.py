@@ -40,7 +40,7 @@ def test_section_manager_edit_start(video):
         start=0, end=300, section_type="acapella"
     )
     sect = SectionManager.from_video(video).sections[0]
-    SectionManager.edit_section_start(sect, timestamp=150)
+    SectionManager.edit_section_start(sect, increment=150)
     assert SectionManager.from_video(video).sections[0].start == 150
 
 
@@ -50,7 +50,7 @@ def test_section_manager_edit_end(video):
         start=0, end=300, section_type="acapella"
     )
     sect = SectionManager.from_video(video).sections[0]
-    SectionManager.edit_section_end(sect, timestamp=390)
+    SectionManager.edit_section_end(sect, increment=390)
     assert SectionManager.from_video(video).sections[0].end == 390
 
 

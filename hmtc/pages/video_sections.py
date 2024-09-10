@@ -444,14 +444,17 @@ def Page():
                         solara.Markdown(f"## Section {model.value + 1} of {len(sections.value)}")
                         solara.Button("Next", on_click=next_slide, classes=["button"])
                     with solara.Column():
-                        SectionTimeLine(
-                            timestamps=dict(
-                                whole_start=0,
-                                whole_end=video.duration,
-                                part_start=sections.value[model.value].start // 1000,
-                                part_end=sections.value[model.value].end // 1000,
+                        if len(sections.value) > 0:
+                            SectionTimeLine(
+                                timestamps=dict(
+                                    whole_start=0,
+                                    whole_end=video.duration,
+                                    part_start=sections.value[model.value].start // 1000,
+                                    part_end=sections.value[model.value].end // 1000,
+                                )
                             )
-                        )
+                        else:
+                            solara.Markdown("No Sections Found")
                         
                     with Carousel(model=model.value):
                         for section in sections.value:

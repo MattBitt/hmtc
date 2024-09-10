@@ -14,7 +14,8 @@
     <v-list class="top-list">
       <v-list-item v-for="(item, i) in items" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
-          <v-icon class="px-4">{{ item.icon }}</v-icon>{{ item.text }}
+          <v-icon class="px-4">{{ item.icon }}</v-icon
+          >{{ item.text }}
         </v-btn>
       </v-list-item>
     </v-list>
@@ -22,7 +23,8 @@
     <v-list class="bottom-list">
       <v-list-item v-for="(item, i) in other_items" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
-          <v-icon class="px-4">{{ item.icon }}</v-icon>{{ item.text }}
+          <v-icon class="px-4">{{ item.icon }}</v-icon
+          >{{ item.text }}
         </v-btn>
       </v-list-item>
     </v-list>
@@ -37,9 +39,9 @@ export default {
       { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Series", icon: "mdi-television", url: "/series" },
-      { text: "Videos", icon: "mdi-video", url: "/videos" },
-      { text: "Videos (solara)", icon: "mdi-table", url: "/video-table" },
-      { text: "Videos (vue)", icon: "mdi-table-plus", url: "/video-table2" },
+      { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
+
+      { text: "Videos", icon: "mdi-video", url: "/video-table2" },
 
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
       {
@@ -54,6 +56,7 @@ export default {
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },
       { text: "Videos Old", icon: "mdi-video", url: "/videos-old" },
+      { text: "Videos Old (again)", icon: "mdi-video", url: "/videos" },
       { text: "Files", icon: "mdi-folder", url: "/files" },
       { text: "About", icon: "mdi-information", url: "/about" },
       { text: "Logout", icon: "mdi-logout", url: "/logout" },

@@ -118,6 +118,9 @@ class SectionManager:
         return self._sections
 
     def save_to_db(self, section) -> None:
+        # is this deprecated?
+        # i think it should be ms not s
+        logger.debug(f"🤠🤠🤠🤠🤠 9-9-24 Not used")
         new_sect = SectionTable.create(
             start=section.start,
             end=section.end,
@@ -159,8 +162,8 @@ class SectionManager:
         logger.debug(f"Creating section from args {start} {end} {section_type}")
         section = Section(
             section_type=section_type,
-            start=start,
-            end=end,
+            start=start * 1000,  # convert to milliseconds
+            end=end * 1000,  # convert to milliseconds
             video_id=self.video_id,
         )
         new_sect = self.save_to_db(section)

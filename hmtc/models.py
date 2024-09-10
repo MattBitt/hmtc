@@ -150,6 +150,16 @@ class Series(BaseModel):
     def __str__(self):
         return f"Series({self.name})"
 
+    # used to serialize model to dict for vue
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "name": self.name,
+            "start_date": (self.start_date.isoformat() if self.start_date else None),
+            "end_date": (self.end_date.isoformat() if self.end_date else None),
+        }
+        return new_dict
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Channel(BaseModel):
@@ -233,6 +243,22 @@ class Channel(BaseModel):
         if i:
             return i
         return None
+
+    # used to serialize model to dict for vue
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "youtube_id": self.youtube_id,
+            "url": self.url,
+            "name": self.name,
+            "enabled": self.enabled,
+            "last_update_completed": (
+                self.last_update_completed.isoformat()
+                if self.last_update_completed
+                else None
+            ),
+        }
+        return new_dict
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -380,6 +406,22 @@ class Playlist(BaseModel):
     def __repr__(self):
         return f"Playlist({self.title})"
 
+    # used to serialize model to dict for vue
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "youtube_id": self.youtube_id,
+            "url": self.url,
+            "title": self.title,
+            "enabled": self.enabled,
+            "last_update_completed": (
+                self.last_update_completed.isoformat()
+                if self.last_update_completed
+                else None
+            ),
+        }
+        return new_dict
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class YoutubeSeries(BaseModel):
@@ -388,6 +430,14 @@ class YoutubeSeries(BaseModel):
 
     def __repr__(self):
         return f"YoutubeSeriesModel({self.title=})"
+
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "title": self.title,
+            "series": self.series.name if self.series else None,
+        }
+        return new_dict
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

@@ -1,59 +1,64 @@
+from typing import cast, Callable
 import solara
-from solara.lab.toestand import Ref
-
-from hmtc.components.pagination_controls import PaginationControls
-from hmtc.components.playlist.cards_list import PlaylistCards
-from hmtc.components.playlist.new_text_box import PlaylistNewTextBox
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.components.shared.sort_controls import SortControls
-from hmtc.components.shared.stats_display import StatsDisplay
-from hmtc.models import Playlist
-from hmtc.states.playlists_state import PlaylistsState as State
+from hmtc.models import Video, Playlist, Series, YoutubeSeries, Playlist
+from hmtc.schemas.video import VideoItem
+import peewee
+import pandas as pd
+from loguru import logger
+
+force_update_counter = solara.reactive(0)
 
 
-@solara.component
-def StatsDisplay(stats):
-    # with solara.Row():
-    #     solara.Text(f"Unique Content: ({stats['unique']})")
+@solara.component_vue("../components/playlist/playlist_table.vue", vuetify=True)
+def PlaylistTable(
+    items: list = [],
+    event_save_playlist=None,
+    event_delete_playlist: Callable = None,
+):
+    pass
 
-    solara.Markdown(f"#### Total: **({stats['total']})**")
-    solara.Markdown(f"#### Enabled: **({stats['enabled']})**")
+
+def delete_playlist(item):
+    logger.debug(f"Deleting Item received from Vue: {item}")
+
+
+def save_playlist(dict_of_items):
+    item = dict_of_items["item"]
+    edited_item = dict_of_items["editedItem"]
+    logger.debug(f"Item received from Vue: {item}")
+
+    try:
+        playlist = Playlist.get_by_id(item["id"])
+    except Exception as e:
+        ## this should probably check item for id instead of edited_item
+        logger.debug(f"Playlist ID not found. Creating {edited_item}")
+        edited_item["id"] = None  # db should assign id
+        Playlist.create(**edited_item)
+        return
+
+    playlist.title = edited_item["title"]
+    playlist.url = edited_item["url"]
+    playlist.youtube_id = edited_item["youtube_id"]
+    playlist.enabled = edited_item["enabled"]
+    playlist.save()
+    force_update_counter.set(force_update_counter.value + 1)
 
 
 @solara.component
 def Page():
-    def apply_all():
-        playlists = Playlist.select().where(Playlist.enabled == True)
-        for playlist in playlists:
-            playlist.apply_to_videos()
+    base_query = Playlist.select()
+    router = solara.use_router()
+    MySidebar(router)
 
-    MySidebar(
-        router=solara.use_router(),
-    )
+    df = pd.DataFrame([item.model_to_dict() for item in base_query])
+
+    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
+    items = df.to_dict("records")
     with solara.Column(classes=["main-container"]):
-        # searchable text box
-        PlaylistNewTextBox(on_change=State.on_change_text_search, on_new=State.on_new)
-        SortControls(State)
-        PaginationControls(
-            current_page=State.current_page,
-            num_pages=State.num_pages,
-            on_page_change=State.on_page_change,
+        # solara.Markdown(f"{force_update_counter.value}")
+        PlaylistTable(
+            items=items,
+            event_save_playlist=save_playlist,
+            event_delete_video_item=delete_playlist,
         )
-        solara.Button("Apply all playlists to their videos", on_click=apply_all)
-        StatsDisplay(State.stats())
-
-        if State.playlists.value:
-            PlaylistCards(
-                Ref(State.playlists),
-                on_update=State.on_update,
-                on_delete=State.on_delete,
-            )
-        else:
-            if State.text_query.value != "":
-                solara.Error(
-                    f"No playlists found for {State.text_query.value}",
-                    icon="mdi-alert-circle-outline",
-                )
-            else:
-                solara.Button("Refresh", on_click=State.refresh_query)
-                solara.Error("No playlists found", icon="mdi-alert-circle-outline")
