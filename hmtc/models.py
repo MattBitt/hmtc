@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import total_ordering
 from pathlib import Path
 
@@ -30,6 +30,20 @@ STORAGE = Path(config["paths"]["storage"])
 VIDEO_MEDIA_PATH = STORAGE / "videos"
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
+
+
+def create_hms_dict(seconds):
+    # created on 9/10/24
+    # used by sections page for input and
+    # label (seconds in milliseconds)
+
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return dict(
+        hour=h,
+        minute=m,
+        second=s,
+    )
 
 
 def get_file_type(file: str, override=None):
@@ -508,6 +522,7 @@ class Section(BaseModel):
 
     @classmethod
     def create_initial_section(cls, video):
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 09-10-24")
         return Section.create(
             start=0,
             end=video.duration,
@@ -520,6 +535,7 @@ class Section(BaseModel):
 
     @classmethod
     def create_from_item(cls, item):
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 09-10-24")
         return cls.create(
             start=item.start,
             end=item.end,
@@ -529,6 +545,7 @@ class Section(BaseModel):
         )
 
     def is_timestamp_in_this_section(self, timestamp):
+        logger.debug("Is this used 🧪🧪🧪🧪🧪 09-10-24")
         return timestamp > self.start and timestamp < self.end
 
     def __repr__(self):
@@ -566,6 +583,21 @@ class Section(BaseModel):
             breaks.add(sect.start)
             breaks.add(sect.end)
         return breaks
+
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "start": self.start,
+            "end": self.end,
+            "start_dict": create_hms_dict(self.start / 1000),
+            "end_dict": create_hms_dict(self.end / 1000),
+            "start_string": str(timedelta(seconds=self.start / 1000)),
+            "end_string": str(timedelta(seconds=self.end / 1000)),
+            "duration": (self.end - self.start) / 1000,
+            "section_type": self.section_type,
+            "video_id": self.video.id if self.video else None,
+        }
+        return new_dict
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

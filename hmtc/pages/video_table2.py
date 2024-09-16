@@ -59,7 +59,12 @@ def save_video_item(dict_of_items):
             )
 
     if selected_series["id"] is not None:
-        logger.debug(f"Selected series: {selected_series}")
+        if selected_series["id"] != video_item.series.id:
+            series = Series.get_by_id(selected_series["id"])
+
+            logger.debug(
+                f"selected_series id is different. Need to update to {selected_series['name']} from {video_item.series.name}"
+            )
 
     if selected_youtube_series["id"] is not None:
         logger.debug(f"Selected youtube series: {selected_youtube_series}")
@@ -102,7 +107,7 @@ def save_video_item(dict_of_items):
 
 def view_sections(router, item):
 
-    router.push(f"/video-sections/{item['id']}")
+    router.push(f"/sections/{item['id']}")
 
 
 @solara.component

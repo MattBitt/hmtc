@@ -6,9 +6,6 @@ from loguru import logger
 
 from hmtc.models import Section as SectionTable
 
-####
-### section manager class should be the one that knows about the "type"
-
 
 @dataclass(frozen=True, order=True)
 class Section:
@@ -97,9 +94,15 @@ class SectionManager:
             logger.error("Duration must be greater than 0")
             raise ValueError("Duration must be greater than 0")
 
+    ##### definitely used functions (9/13/24)
+    @property
+    def sections(self):
+
+        return self._sections
+
     @staticmethod
     def from_video(video) -> "SectionManager":
-        logger.debug("🧬🧬🧬🧬In from_video of SectionManager 9-6-24")
+
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
             SectionTable.select()
@@ -108,19 +111,7 @@ class SectionManager:
         )
         return sm
 
-    @staticmethod
-    def load_sections2(video_id: int) -> List[Section]:
-        logger.debug("In load_sections of SectionManager")
-        return list(SectionTable.select().where(SectionTable.video_id == video_id))
-
-    @property
-    def sections(self):
-        return self._sections
-
     def save_to_db(self, section) -> None:
-        # is this deprecated?
-        # i think it should be ms not s
-        logger.debug(f"🤠🤠🤠🤠🤠 9-9-24 Not used")
         new_sect = SectionTable.create(
             start=section.start,
             end=section.end,
@@ -129,8 +120,15 @@ class SectionManager:
         )
         return new_sect
 
+    ##### may not be used functions (9/13/24)
+    @staticmethod
+    def load_sections2(video_id: int) -> List[Section]:
+        logger.debug("🧬🧬🧬🧬 Is this is being used? load_sections2 9/13/24")
+        return list(SectionTable.select().where(SectionTable.video_id == video_id))
+
     @staticmethod
     def delete_from_db(section) -> None:
+        logger.debug("🧬🧬🧬🧬 Is this is being used? 9/13/24")
         SectionTable.delete().where(SectionTable.id == section.id).execute()
 
     @staticmethod
@@ -143,6 +141,7 @@ class SectionManager:
 
     @staticmethod
     def get_sections_with_spaces(video):
+        logger.debug("🧬🧬🧬🧬 Is this is being used? get_sections_with_spaces 9/13/24")
         sm = SectionManager.from_video(video)
         sections = sm.sections
         timespan = []
@@ -153,6 +152,7 @@ class SectionManager:
         return timespan
 
     def create_section(self, start: int, end: int, section_type: str) -> None:
+        logger.debug("🧬🧬🧬🧬 Is this is being used? create_section 9/13/24")
         logger.debug("Using instance of SectionManager (self) - create_section")
         if end > self.duration:
             raise ValueError("End time must be less than duration")
@@ -171,14 +171,17 @@ class SectionManager:
         return new_sect.id
 
     def add_section(self, section: Section) -> None:
+        logger.debug("🧬🧬🧬🧬 Is this is being used? add_section 9/13/24")
         logger.error("Using instance of SectionManager (self) - add_section")
         self._sections.append(section)
 
     def remove_section(self, section: Section) -> None:
+        logger.debug("🧬🧬🧬🧬 Is this is being used? remove_section 9/13/24")
         logger.error("Using instance of SectionManager (self) - remove_section")
         self._sections.remove(section)
 
     def split_section_at(self, timestamp: int) -> None:
+        logger.debug("🧬🧬🧬🧬 Is this is being used? split_section_at 9/13/24")
         logger.error("Using instance of SectionManager (self) - split_section_at")
         for section in self._sections:
             if section.start < timestamp < section.end:
@@ -198,11 +201,13 @@ class SectionManager:
                 self.remove_section(section)
 
     def grab_all_sections(self):
+        logger.debug("🧬🧬🧬🧬 Is this is being used? grab_all_sections 9/13/24")
         return SectionTable.select()
 
     @staticmethod
     def edit_section_start(section, increment):
         # need to add error checking
+        logger.debug("🧬🧬🧬🧬 Is this is being used? edit_section_start 9/13/24")
         sect = SectionTable.get_or_none(SectionTable.id == section.id)
         if sect is None:
             logger.error("Section not found in DB")
@@ -214,6 +219,7 @@ class SectionManager:
     @staticmethod
     def edit_section_end(section, increment):
         # need to add error checking
+        logger.debug("🧬🧬🧬🧬 Is this is being used? edit_section_end 9/13/24")
         sect = SectionTable.get_or_none(SectionTable.id == section.id)
         if sect is None:
             logger.error("Section not found in DB")

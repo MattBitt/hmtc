@@ -7,16 +7,18 @@ html, body {
     background-color: #FFFFFF !important;
 }
 
+/* need to make sure to keep these in sync with colors.py */
 :root {
   --light:  #FFAB91;
   --primary: #FF5722;
   --dark: #BF360C;
+  --surface: #808080;
+  --background: #F0FF0F;
+  --error: #00B020;
+  --warning: #FFC107;
   --on-light: #000000;
   --on-primary: #000000;
   --on-dark: #FFFFFF;
-  --surface: #808080;
-  --background: #F0FF0F;
-  --error: #B00020;
   }
 
   @font-face {
@@ -24,6 +26,10 @@ html, body {
     src: local("Sixtyfour-Regular"), url("./Sixtyfour-Regular.ttf"), 
   }
 
+  @font-face {
+    font-family: mySevenSegDisplay;
+    src: local("Gameplay"), url("./Gameplay.ttf"), 
+  }
 a {
     text-decoration: none;
   }
@@ -31,6 +37,12 @@ a {
 /* remove solara watermark */
 .v-application--wrap > :nth-child(2) > :nth-child(2) {
     visibility: hidden;
+}
+
+/* removes the items per page selector (doesn't seem to work?)*/
+.v-application--is-ltr .v-data-footer__pagination {
+  margin-left: auto;
+  visibility: hidden;
 }
 
 .mizzle
@@ -51,6 +63,37 @@ a {
   height: 40px !important;
   margin: 4px !important;
   padding: 8px !important;
+}
+
+
+
+.my_danger {
+  color: var(--on-dark) !important;
+  background-color: var(--error) !important;
+
+}
+
+.my_primary {
+  color: var(--on-dark) !important;
+  background-color: var(--primary) !important;
+
+}
+
+.my_success {
+  color: var(--on-dark) !important;
+  background-color: var(--light) !important;
+
+}
+
+.my_cta {
+  color: var(--on-dark) !important;
+  background-color: var(--primary) !important;
+
+}
+.my_warning {
+  color: var(--on-dark) !important;
+  background-color: var(--dark) !important;
+
 }
 
 .status-green {

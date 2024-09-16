@@ -58,7 +58,7 @@ def grab_sessions():
 
         return sessions_list
     else:
-        print("login failed")
+        logger.error("login failed")
         logger.error("Error Connecting to Jellyfin")
         return None
 
@@ -127,6 +127,18 @@ def jellyfin_playpause():
     client.jellyfin.remote_playpause(session["Id"])
 
 
+def get_current_session():
+    all_sessions = grab_sessions()
+    if len(all_sessions) == 1:
+        return all_sessions[0]
+    elif len(all_sessions) > 1:
+        logger.debug("Multiple sessions found. Returning the first one")
+        return all_sessions[0]
+    else:
+        logger.debug("No sessions found")
+        return None
+
+
 def jellyfin_sessions():
     # if not client.logged_in:
     #     logger.error("No jellyfin server found")
@@ -149,16 +161,16 @@ def jellyfin_connection_test():
 def jellyfin_seekto(position):
     session = grab_sessions()[0]
     client.jellyfin.remote_pause(session["Id"])
-    client.jellyfin.remote_seek(session["Id"], position * 10_000_000)
+    client.jellyfin.remote_seek(session["Id"], position * 10_000)
     client.jellyfin.remote_playpause(session["Id"])
 
 
-def jellyfin_loop_2sec(position):
-    # maybe this should be a task?
-    session = grab_sessions()[0]
-    client.jellyfin.remote_pause(session["Id"])
-    client.jellyfin.remote_seek(session["Id"], position * 10_000_000)
-    client.jellyfin.remote_playpause(session["Id"])
-    time.sleep(2)
-    client.jellyfin.remote_pause(session["Id"])
-    client.jellyfin.remote_seek(session["Id"], position * 10_000_000)
+def jellyfin_loop_2sec(session_id, position):
+
+    client.jellyfin.remote_pause(session_id)
+    client.jellyfin.remote_seek(session_id, position * 10_000)
+    client.jellyfin.remote_playpause(session_id)
+    # Jellyfin Looping delay defined below
+    time.sleep(1)
+    client.jellyfin.remote_pause(session_id)
+    client.jellyfin.remote_seek(session_id, position * 10_000)

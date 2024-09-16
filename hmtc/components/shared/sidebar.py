@@ -1,6 +1,9 @@
 import solara
 from loguru import logger
 
+# program version
+VERSION = "0.0.12"
+
 
 @solara.component_vue("./sidebar.vue")
 def _Sidebar(
@@ -31,7 +34,6 @@ class State:
 def MySidebar(
     router,
 ):
-    VERSION = "0.0.11"
 
     def sidebar_clicked(item):
         # need to add a check to make sure the route is existing

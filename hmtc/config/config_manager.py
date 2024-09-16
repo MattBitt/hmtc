@@ -56,7 +56,7 @@ def init_config():
         else:
             file = "config.toml"
         config = get_config_file(file)
-        logger.debug(f"Loading {env} config from {config}")
+        # logger.debug(f"Loading {env} config from {config}")
         return ConfigManager.from_toml(env=env, config_path=config)
     except:
         raise

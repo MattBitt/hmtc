@@ -6,6 +6,7 @@ import peewee
 import pandas as pd
 from hmtc.components.cross_filter.filter_report import FilterReport
 from hmtc.components.cross_filter.select import CrossFilterSelect
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 
 @solara.component_vue("sandbox.vue", vuetify=True)
@@ -38,11 +39,9 @@ def Page():
         .join(Playlist, peewee.JOIN.LEFT_OUTER)
     )
     MySidebar(router=solara.use_router())
-    solara.provide_cross_filter()
-
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-    # the 'records' key is necessary for some reason (ai thinks its a Vue)
 
     with solara.Column(classes=["main-container"]):
-        items = df.to_dict("records")
-        Sandbox(items=items)
+        jf = MyJellyfinClient()
+        jf.connect()
+        solara.Markdown("### Jellyfin Panel")
+        solara.Markdown(f"{jf.now_playing()}")
