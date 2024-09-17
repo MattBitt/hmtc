@@ -716,6 +716,17 @@ class Album(BaseModel):
     series = ForeignKeyField(Series, backref="albums", null=True)
     video = ForeignKeyField(Video, backref="album", null=True)
 
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "title": self.title,
+            "release_date": (
+                self.release_date.isoformat() if self.release_date else None
+            ),
+            "video_id": self.video.id if self.video else None,
+        }
+        return new_dict
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Track(BaseModel):
@@ -724,14 +735,26 @@ class Track(BaseModel):
     album = ForeignKeyField(Album, backref="tracks", null=True)
     video = ForeignKeyField(Video, backref="tracks", null=True)
 
+    # this shouldn't be a property of the track. it should be the property of the section
+    # that thte track is created for.
     start_time = IntegerField(null=True)
     end_time = IntegerField(null=True)
-
     length = IntegerField(null=True)
 
     words = CharField(null=True)
     notes = CharField(null=True)
-    jf_id = CharField(null=True)
+
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "title": self.title,
+            "track_number": self.track_number,
+            "album_id": self.album.id if self.album else None,
+            "album_title": self.album.title if self.album else None,
+            "video_id": self.video.id if self.video else None,
+            "video_title": self.video.title if self.video else None,
+        }
+        return new_dict
 
 
 @total_ordering

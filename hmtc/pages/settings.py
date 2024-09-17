@@ -171,6 +171,24 @@ class PageState:
             PageState.i.set(PageState.i.value + 1)
         PageState.updating.set(False)
 
+    # this is a temporary function to create albums for videos that are part of a youtube series
+    def create_yts_albums():
+        logger.debug("Creating Albums for YT Series")
+        vids = VideoItem.get_vids_with_no_album()
+        logger.debug(f"Found {len(vids)} videos with no album")
+        for v in vids:
+            if v.youtube_series is not None and v.episode is not None:
+                album_info = dict(
+                    title=v.youtube_series.title + " " + str(v.episode),
+                    release_date=v.upload_date,
+                    video_id=v.id,
+                    tracks=[],
+                )
+                album = Album(**album_info)
+                album.create_album()
+
+                logger.debug(f"Created Album {album} for {v}")
+
     @staticmethod
     def import_track_info():
         grouped_tracks = import_tracks()
@@ -299,8 +317,13 @@ def Page():
                         on_click=PageState.refresh_videos_from_youtube,
                         classes=["button"],
                     )
+                    solara.Button(
+                        label="Create Albums for YT Series",
+                        on_click=PageState.create_yts_albums,
+                        classes=["button"],
+                    )
 
-            with solara.Card("Reusuable Functions"):
+            with solara.Card("Non-Reusuable Functions"):
                 with solara.ColumnsResponsive():
                     solara.Button(
                         label="Sync Channel IDs to Existing Videos",

@@ -55,16 +55,19 @@
 export default {
   data: () => ({
     items: [
+      { text: "Videos", icon: "mdi-video", url: "/video-table" },
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
+      { text: "Albums", icon: "mdi-album", url: "/albums" },
+      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
       { text: "Series", icon: "mdi-television", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
-      { text: "Videos", icon: "mdi-video", url: "/video-table" },
+      { text: "Channels", icon: "mdi-view-list", url: "/channels" },
       {
         text: "Playlists",
         icon: "mdi-playlist-music",
         url: "/playlists",
       },
-      { text: "Channels", icon: "mdi-view-list", url: "/channels" },
+
       { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },
     ],
     old_items: [

@@ -8,8 +8,10 @@ from hmtc.mods.section import Section
 from hmtc.schemas.video import VideoItem
 
 
+# not sure what this is for
+# don't think it's used
 @dataclass
-class Track:
+class TrackItem:
     title: str
     track_number: int
     duration: int
@@ -21,7 +23,19 @@ class Track:
 class Album:
     video_id: int
     title: str
-    tracks: List[Track]
+    tracks: List[TrackItem]
+    release_date: str = None
+
+    def create_album(self):
+        logger.info(f"Creating {self.title}")
+        try:
+            AlbumTable.create(
+                video_id=self.video_id, title=self.title, release_date=self.release_date
+            )
+            logger.info("Album created")
+        except Exception as e:
+            logger.error(e)
+            # raise
 
     def delete_album(self):
         logger.info(f"Deleting {self.title}")

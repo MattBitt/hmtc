@@ -272,6 +272,15 @@ class VideoItem(BaseItem):
         return Video.select().where(Video.channel.is_null())
 
     @staticmethod
+    def get_vids_with_no_album():
+        all_vids = Video.select().where(Video.contains_unique_content == True)
+        vids_with_albums = (
+            Video.select().join(AlbumTable).where(Video.contains_unique_content == True)
+        )
+        vids_missing_albums = all_vids - vids_with_albums
+        return vids_missing_albums
+
+    @staticmethod
     def get_vids_with_no_episode_number():
         vids = Video.select().where(
             (
