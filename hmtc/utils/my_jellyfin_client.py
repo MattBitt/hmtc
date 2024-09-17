@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import time
 from jellyfin_apiclient_python import JellyfinClient
 from hmtc.config import init_config
 from hmtc.components.shared.sidebar import VERSION
@@ -6,19 +7,23 @@ from loguru import logger
 
 
 config = init_config()
+# not sure why but this seems to work better if its a global
+client = JellyfinClient()
 
 
 @dataclass
 class MyJellyfinClient:
-    client: JellyfinClient = None
     session: str = None
-    supports_media_control: bool = False
-    supports_remote_control: bool = False
-    is_playing: bool = False
+    session_id: str = None
     position: int = 0
     play_status: str = None
     user: str = None
     media_item: dict = None
+    supports_media_control: bool = False
+    supports_remote_control: bool = False
+    is_playing: bool = False
+    is_connected: bool = False
+    is_logged_in: bool = False
 
     def connect(self):
 
@@ -26,64 +31,60 @@ class MyJellyfinClient:
         self.user = config["jellyfin"]["user"]
         password = config["jellyfin"]["password"]
 
-        self.client = JellyfinClient()
+        client.config.app("hmtc", VERSION, "zeus", VERSION)
+        client.config.data["auth.ssl"] = True
+        client.auth.connect_to_address(url)
+        client.auth.login(url, self.user, password)
+        credentials = client.auth.credentials.get_credentials()
+        try:
+            s = credentials["Servers"]
+        except:
+            logger.error(f"Credential Error: {credentials}")
+            return self
 
-        self.client.config.app("hmtc", VERSION, "zeus", VERSION)
-        self.client.config.data["auth.ssl"] = True
-
-        self.client.auth.connect_to_address(url)
-        self.client.auth.login(url, self.user, password)
-        credentials = self.client.auth.credentials.get_credentials()
-        # need to check for empty credentials
-        s = credentials["Servers"]
-        # logger.debug(f"Found {len(s)} Jellyfin Servers")
         if s == []:
             logger.error("No Jellyfin Servers found")
-            return None
+            return self
 
-        # not sure what this does 8-30-24
-        # server = credentials["Servers"][0]
-        # server["username"] = "matt"
+        self.is_connected = True
 
-        self.client.authenticate(credentials, discover=False)
+        client.authenticate(credentials, discover=False)
+        if client.logged_in:
+            self.session = self.get_current_session()
+            self.session_id = self.session["Id"]
 
-        if self.client.logged_in:
-            sessions_list = []
+            self.supports_media_control = self.session["SupportsMediaControl"]
+            self.supports_remote_control = self.session["SupportsRemoteControl"]
 
-            total_sessions = len(self.client.jellyfin.sessions())
+            self.is_logged_in = True
 
-            for sess in self.client.jellyfin.sessions():
-                if sess["UserName"] == self.user and sess["Client"] != "hmtc":
-                    sessions_list.append(sess)
-                    self.supports_media_control = sess["SupportsMediaControl"]
-                    self.is_playing = sess["PlayState"]["CanSeek"]
-                    self.supports_remote_control = sess["SupportsRemoteControl"]
-                    if "NowPlayingItem" in sess.keys():
-                        self.media_item = sess["NowPlayingItem"]
-                        self.position = (
-                            int(sess["PlayState"]["PositionTicks"]) / 10_000_000
-                        )
-                        self.play_status = (
-                            "paused"
-                            if sess["PlayState"]["IsPaused"] is True
-                            else "playing"
-                        )
-            logger.debug(
-                f"Current {self.user} sessions: {len(sessions_list)} of {total_sessions} total"
-            )
-
-            if len(sessions_list) == 1:
-                logger.debug("One session found!")
-                self.session = sessions_list[0]
-            elif len(sessions_list) > 1:
-                logger.debug("Multiple sessions found. Returning the first one")
-                self.session = sessions_list[0]
+            if "NowPlayingItem" in self.session.keys():
+                self.media_item = self.session["NowPlayingItem"]
+                self.is_playing = True
+                self.position = (
+                    int(self.session["PlayState"]["PositionTicks"]) / 10_000_000
+                )
+                self.play_status = (
+                    "paused"
+                    if self.session["PlayState"]["IsPaused"] is True
+                    else "playing"
+                )
             else:
-                logger.debug("No sessions found")
-                self.session = None
-        else:
-            logger.error("login failed")
-            logger.error("Error Connecting to Jellyfin")
+                self.media_item = None
+                self.is_playing = False
+                self.position = 0
+                self.play_status = "stopped"
+
+        return self
+
+    def get_current_session(self):
+        for sess in client.jellyfin.sessions():
+            if (
+                sess["UserName"] == self.user
+                and sess["Client"] != "hmtc"
+                and sess["SupportsMediaControl"] == True
+            ):
+                return sess
 
     def now_playing(self):
         if self.is_playing:
@@ -96,7 +97,8 @@ class MyJellyfinClient:
 
             # i think this was my attempt at a 'tag' solution for jellyfin 9/15/24
             try:
-                item = self.session["NowPlayingQueueFullItems"][0]
+                logger.debug("(WTF?)")
+                # item = self.session["NowPlayingQueueFullItems"][0]
             except:
                 logger.debug("No item found in NowPlayingQueueFullItems")
                 return None
@@ -107,15 +109,54 @@ class MyJellyfinClient:
                 "path": self.media_item["Path"],
                 "status": self.play_status,
                 "position": self.position,
-                "tags": item["Tags"],
+                "tags": [],
                 "type": item_type,
             }
         else:
             logger.debug("Nothing is playing right now.")
             return None
 
+    def load_media_item(self, jellyfin_id):
+        client.jellyfin.remote_play_media(
+            id=self.session_id, item_ids=[jellyfin_id], command="PlayNow"
+        )
+        time.sleep(
+            0.1
+        )  # i think this is necessary to give jellyfin time to load the media
+        self.pause()
+
+    def pause(self):
+        client.jellyfin.remote_pause(self.session_id)
+
+    def play_pause(self):
+        client.jellyfin.remote_playpause(self.session_id)
+
+    def stop(self):
+        client.jellyfin.remote_stop(self.session_id)
+
 
 if __name__ == "__main__":
-    jf = MyJellyfinClient()
-    jf.connect()
+    jf = MyJellyfinClient().connect()
+    print(f"connected: {jf.is_connected}")
+    # if jf.is_connected and jf.supports_media_control:
+    #     jf.load_media_item(jellyfin_id="6f6baa6a3bf619d667d5b1edb3677205")
+    #     jf.pause()
+    logger.debug("Initial Pause")
+    jf.play_pause()
+    time.sleep(2)
+
+    logger.debug("Playing")
+    jf.play_pause()
+    time.sleep(2)
+
+    logger.debug("Pausing")
+    jf.pause()
+    time.sleep(2)
+
+    logger.debug("Playing")
+    jf.play_pause()
+    time.sleep(2)
+
+    logger.debug("Stopping")
+    jf.stop()
     print(jf.now_playing())

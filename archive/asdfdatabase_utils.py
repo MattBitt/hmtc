@@ -3,6 +3,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 
+# 9/16/24 - I have no idea if this is used anywhere
 config = init_config()
 
 

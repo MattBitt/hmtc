@@ -1,3 +1,4 @@
+import time
 from typing import cast, Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
@@ -8,8 +9,14 @@ import peewee
 import pandas as pd
 from loguru import logger
 from hmtc.components.shared.jellyfin_panel import JellyfinPanel, JellyfinSessionInfo
-from hmtc.utils.jf import jellyfin_loop_2sec, jellyfin_sessions, get_current_session, grab_now_playing
-
+from hmtc.utils.jf import (
+    jellyfin_loop_2sec,
+    jellyfin_sessions,
+    get_current_session,
+    grab_now_playing,
+)
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+from pathlib import Path
 force_update_counter = solara.reactive(0)
 
 
@@ -30,14 +37,11 @@ def parse_url_args():
 def SectionTable(
     items: list = [],
     current_position: int = 0,
-    event_save_section=None,
+    event_save_section: Callable = None,
     event_delete_section: Callable = None,
     event_loop_jellyfin: Callable = None,
 ):
     pass
-
-
-
 
 
 def delete_section(section):
@@ -76,6 +80,41 @@ def create_single_section(video_id, duration, section_type="INITIAL"):
 
 
 @solara.component
+def NewJellyfinPanel(jf, video):
+    # logger.debug(f"NewJellyfinPanel {jfc}")
+    def local_load_item():
+        if video.jellyfin_id is None:
+            logger.error("No Jellyfin ID for this video")
+            return
+
+        jf.load_media_item(jellyfin_id=video.jellyfin_id)
+
+    is_video_id_playing_in_jellyfin = (jf.media_item["Id"] == video.jellyfin_id) if jf.is_playing else False
+    pth = Path('./hmtc/assets/icons/jellyfin.1024x1023.png')
+    solara.Image(pth, width="80px")
+    solara.Markdown(f"is_connected: {jf.is_connected}")
+    if jf.is_connected:
+        solara.Markdown(f"Video: {video.title if video else 'None'}")
+        solara.Markdown(f"Jellyfin Session ID: {jf.session_id}")
+        solara.Markdown(f"is_video_id_playing_in_jellyfin: {is_video_id_playing_in_jellyfin}")
+        solara.Markdown(f"Playing status: {jf.play_status}")
+        solara.Markdown(f"Jellyfin User: {jf.user}")
+        with solara.Row():
+            if is_video_id_playing_in_jellyfin:
+                solara.Markdown(f"Title: {jf.media_item['Name']}")
+                solara.Markdown(f"Position: {jf.position}")
+                if jf.is_playing:
+                    solara.Button(f"Play/Pause Jellyfin", on_click=jf.play_pause, classes=["button"])
+                    solara.Button(f"Pause Jellyfin", on_click=jf.pause, classes=["button"])
+                    solara.Button(f"Stop Jellyfin", on_click=jf.stop, classes=["button"])
+        solara.Button(f"Load 'This' Video", on_click=local_load_item, disabled=is_video_id_playing_in_jellyfin , classes=["button"])
+
+    else:
+
+        solara.Markdown("Jellyfin not connected")
+
+
+@solara.component
 def SectionControlPanel(
     video,
 ):
@@ -97,9 +136,9 @@ def SectionControlPanel(
         for section in sm.sections:
             logger.error(f"Deleting section {section}")
             delete_section(section.model_to_dict())
-        
+
         force_update_counter.set(force_update_counter.value + 1)
-    
+
     def create_1_section():
 
         sm = SectionManager.from_video(video)
@@ -125,8 +164,12 @@ def SectionControlPanel(
         sm = SectionManager.from_video(video)
         for i in range(num_new_sections):
             logger.error("Creating section")
-            sm.create_section(start=i * (video.duration / num_new_sections), end=(i + 1) * (video.duration / num_new_sections), section_type=section_type.value)
-        
+            sm.create_section(
+                start=i * (video.duration / num_new_sections),
+                end=(i + 1) * (video.duration / num_new_sections),
+                section_type=section_type.value,
+            )
+
         force_update_counter.set(force_update_counter.value + 1)
 
     with solara.Column():
@@ -158,21 +201,12 @@ def Page():
         video = VideoItem.get_details_for_video(video_id)
         base_query = Section.select().where(Section.video_id == video_id)
     else:
+        # the plan for this would be a sections table (regardless of video)
+        # didn't seem to work, but didn't mess with it much
         video = None
         base_query = Section.select()
 
-    current_session = get_current_session()
-    
-    if current_session is None:
-        logger.error(f"No Jellyfin session found")
-        user_session = solara.reactive(None)
-    else:
-        user_session = solara.use_reactive(current_session)
-
-    def loop_jellyfin(timestamp):
-        logger.debug(f"Looping Jellyfin at timestamp: {timestamp}")
-        # need to rework this function to take a session maybe?
-        jellyfin_loop_2sec(session_id=user_session.value['Id'], position=timestamp)
+    jf = MyJellyfinClient().connect()
 
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 
@@ -183,14 +217,16 @@ def Page():
         if video is not None:
             solara.Markdown(f"Video: {video.title}")
             SectionControlPanel(video=video)
-            if user_session.value is not None:
-                now_playing = grab_now_playing(session=user_session.value)
-                JellyfinPanel(current_video_youtube_id=video.youtube_id, current_section=None, status=None, jf_session=user_session)
+        with solara.Card():
+            NewJellyfinPanel(jf, video=video)
+
+        
         SectionTable(
             items=items,
-            current_position=now_playing['position']*1000 if user_session.value is not None else 0,
+            current_position=jf.position,
             event_save_section=save_section,
             event_delete_section=delete_section,
-            event_loop_jellyfin = loop_jellyfin,
-
+            event_loop_jellyfin=lambda timestamp: logger.debug(
+                f"Looping Jellyfin at timestamp: {timestamp}"
+            ),
         )

@@ -5,7 +5,6 @@ from loguru import logger
 from hmtc.models import Channel
 
 
-# our model for a todo item, immutable/frozen avoids common bugs
 @dataclasses.dataclass(frozen=True)
 class ChannelItem:
     name: str

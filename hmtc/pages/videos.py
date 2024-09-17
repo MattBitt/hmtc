@@ -11,7 +11,7 @@ from hmtc.components.shared.sort_controls import SortControls
 from hmtc.components.video.cards_list import VideoCards
 from hmtc.config import init_config
 from hmtc.schemas.video import VideoItem
-from hmtc.states.base import State as BaseState
+
 
 config = init_config()
 
@@ -98,7 +98,7 @@ def PageHeader():
         )
 
 
-class State(BaseState):
+class State:
     logger.debug("Initializing State object on Videos New Page")
     per_page = solara.reactive(config["general"]["items_per_page"])
 
@@ -227,6 +227,9 @@ class State(BaseState):
         State.series_filter.value = None
         State.youtube_series_filter.value = None
         State.apply_filters()
+
+    def on_delete(video):
+        logger.debug(f"Deleting video: {video.title}")
 
 
 @solara.component

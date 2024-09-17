@@ -80,8 +80,8 @@ class Section:
 
 @dataclass
 class SectionManager:
-    ALLOWED_TYPES = ["intro", "instrumental", "acapella", "outro", "INITIAL"]
-    duration: int
+    ALLOWED_TYPES = ["intro", "instrumental", "acapella", "outro", "INITIAL", "track"]
+    duration: int  # this is in seconds, the section start and end are in milliseconds
     video_id: int = 1  # probably shouldn't be a default
     _sections: Section = field(init=False, default_factory=list)
     section_types: Optional[List[str]] = field(default_factory=list)
@@ -120,39 +120,7 @@ class SectionManager:
         )
         return new_sect
 
-    ##### may not be used functions (9/13/24)
-    @staticmethod
-    def load_sections2(video_id: int) -> List[Section]:
-        logger.debug("🧬🧬🧬🧬 Is this is being used? load_sections2 9/13/24")
-        return list(SectionTable.select().where(SectionTable.video_id == video_id))
-
-    @staticmethod
-    def delete_from_db(section) -> None:
-        logger.debug("🧬🧬🧬🧬 Is this is being used? 9/13/24")
-        SectionTable.delete().where(SectionTable.id == section.id).execute()
-
-    @staticmethod
-    def load_from_db():
-        pass
-
-    @staticmethod
-    def get_new_id() -> int:
-        return uuid4().int
-
-    @staticmethod
-    def get_sections_with_spaces(video):
-        logger.debug("🧬🧬🧬🧬 Is this is being used? get_sections_with_spaces 9/13/24")
-        sm = SectionManager.from_video(video)
-        sections = sm.sections
-        timespan = []
-        for sect in sections:
-            timespan.append([sect.start, sect.end])
-
-        logger.debug(f"Timespan: {timespan}")
-        return timespan
-
     def create_section(self, start: int, end: int, section_type: str) -> None:
-        logger.debug("🧬🧬🧬🧬 Is this is being used? create_section 9/13/24")
         logger.debug("Using instance of SectionManager (self) - create_section")
         if end > self.duration:
             raise ValueError("End time must be less than duration")
@@ -170,64 +138,13 @@ class SectionManager:
         self._sections.append(section)
         return new_sect.id
 
-    def add_section(self, section: Section) -> None:
-        logger.debug("🧬🧬🧬🧬 Is this is being used? add_section 9/13/24")
-        logger.error("Using instance of SectionManager (self) - add_section")
-        self._sections.append(section)
-
-    def remove_section(self, section: Section) -> None:
-        logger.debug("🧬🧬🧬🧬 Is this is being used? remove_section 9/13/24")
-        logger.error("Using instance of SectionManager (self) - remove_section")
-        self._sections.remove(section)
-
-    def split_section_at(self, timestamp: int) -> None:
-        logger.debug("🧬🧬🧬🧬 Is this is being used? split_section_at 9/13/24")
-        logger.error("Using instance of SectionManager (self) - split_section_at")
-        for section in self._sections:
-            if section.start < timestamp < section.end:
-                s1 = self.create_section(
-                    start=section.start,
-                    end=timestamp,
-                    section_type=section.section_type,
-                )
-
-                s2 = self.create_section(
-                    start=timestamp,
-                    end=section.end,
-                    section_type=section.section_type,
-                )
-                self.add_section(s1)
-                self.add_section(s2)
-                self.remove_section(section)
-
-    def grab_all_sections(self):
-        logger.debug("🧬🧬🧬🧬 Is this is being used? grab_all_sections 9/13/24")
-        return SectionTable.select()
-
+    ##### may not be used functions (9/13/24)
     @staticmethod
-    def edit_section_start(section, increment):
-        # need to add error checking
-        logger.debug("🧬🧬🧬🧬 Is this is being used? edit_section_start 9/13/24")
-        sect = SectionTable.get_or_none(SectionTable.id == section.id)
-        if sect is None:
-            logger.error("Section not found in DB")
-            return
-        sect.start += increment
-        sect.save()
-        return sect
-
-    @staticmethod
-    def edit_section_end(section, increment):
-        # need to add error checking
-        logger.debug("🧬🧬🧬🧬 Is this is being used? edit_section_end 9/13/24")
-        sect = SectionTable.get_or_none(SectionTable.id == section.id)
-        if sect is None:
-            logger.error("Section not found in DB")
-            return
-        sect.end += increment
-        sect.save()
-        return sect
+    def delete_from_db(section) -> None:
+        logger.debug("🧪🧪🧪🧪 Is this is being used? 9/13/24 🧪🧪🧪🧪")
+        SectionTable.delete().where(SectionTable.id == section.id).execute()
 
     @staticmethod
     def get_by_id(id):
+        logger.debug("🧪🧪🧪🧪 get_by_id Is this is being used? 9/13/24🧪🧪🧪🧪")
         return SectionTable.get_or_none(SectionTable.id == id)

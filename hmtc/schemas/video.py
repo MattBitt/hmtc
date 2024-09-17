@@ -44,6 +44,7 @@ class VideoItem(BaseItem):
     channel: Channel = None
     playlist: Playlist = None
     youtube_series: YoutubeSeries = None
+    jellyfin_id: str = None
 
     # has_video_file: bool = False
     # has_audio_file: bool = False
@@ -578,7 +579,7 @@ class VideoItem(BaseItem):
     @staticmethod
     def from_orm(db_object):
         # logger.debug("Creating VideoItem from ORM DB Object: {db_object}")
-
+        # I'm pretty sure this is the WRONG to do this... 9/16/24
         return VideoItem(
             title=db_object.title,
             url=db_object.url,
@@ -592,6 +593,7 @@ class VideoItem(BaseItem):
             description=db_object.description,
             contains_unique_content=db_object.contains_unique_content,
             has_chapters=db_object.has_chapters,
+            jellyfin_id=db_object.jellyfin_id,
             # youtube_series_id=db_object.youtube_series_id,
             channel=db_object.channel if db_object.channel else None,
             youtube_series=(

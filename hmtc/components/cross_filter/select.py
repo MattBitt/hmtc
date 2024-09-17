@@ -120,7 +120,6 @@ def CrossFilterSelect(
     column, set_column = solara.use_state_or_update(column)
     invert, set_invert = solara.use_state_or_update(invert)
     multiple, set_multiple = solara.use_state_or_update(multiple)
-    
 
     dff = df
     if filter is not None:

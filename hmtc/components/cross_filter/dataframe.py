@@ -10,7 +10,6 @@ def FilteredDataFrame(
     column_actions: List[ColumnAction] = [],
     cell_actions: List[CellAction] = [],
     scrollable=False,
-
 ):
     """Display a DataFrame with filters applied from the cross filter.
 
@@ -31,7 +30,6 @@ def FilteredDataFrame(
     filter, set_filter = solara.use_cross_filter(id(df), "dataframe")
     if filter is not None:
         dff = df[filter]
-
 
     return solara.DataFrame(
         dff,

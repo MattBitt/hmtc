@@ -56,6 +56,11 @@ def migration1(db, migrator):
         import_youtube_series()
 
 
+# 9/16/24
+# doing a 'manual' migration. adding the following to the databases:
+# jellyfin_id text(255) to video table
+
+
 def run_migrations(db):
     migrator = PostgresqlMigrator(db)
 

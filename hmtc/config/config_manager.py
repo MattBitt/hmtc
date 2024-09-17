@@ -2,8 +2,6 @@ import os
 import tomllib
 from pathlib import Path
 
-from loguru import logger
-
 CONFIG = os.environ.get("HMTC_CONFIG_PATH", "/workspace/working")
 assert CONFIG is not None, "HMTC_CONFIG_PATH not set"
 

@@ -468,6 +468,7 @@ class Video(BaseModel):
     contains_unique_content = BooleanField(default=True)
     has_chapters = BooleanField(default=False)
     manually_edited = BooleanField(default=False)
+    jellyfin_id = CharField(null=True, max_length=255)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
@@ -492,6 +493,7 @@ class Video(BaseModel):
             "contains_unique_content": self.contains_unique_content,
             "has_chapters": self.has_chapters,
             "manually_edited": self.manually_edited,
+            "jellyfin_id": self.jellyfin_id,
             "channel_name": self.channel.name if self.channel else None,
             "series_name": self.series.name if self.series else None,
             "playlist_title": self.playlist.title if self.playlist else None,
@@ -721,9 +723,12 @@ class Track(BaseModel):
     track_number = CharField(null=True)
     album = ForeignKeyField(Album, backref="tracks", null=True)
     video = ForeignKeyField(Video, backref="tracks", null=True)
+
     start_time = IntegerField(null=True)
-    length = IntegerField(null=True)
     end_time = IntegerField(null=True)
+
+    length = IntegerField(null=True)
+
     words = CharField(null=True)
     notes = CharField(null=True)
     jf_id = CharField(null=True)
@@ -731,9 +736,10 @@ class Track(BaseModel):
 
 @total_ordering
 class Breakpoint(BaseModel):
+    # i believe this should all be deleted
     video = ForeignKeyField(Video, backref="breakpoints")
     timestamp = IntegerField()
-    logger.error("DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
+    # logger.error("DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp

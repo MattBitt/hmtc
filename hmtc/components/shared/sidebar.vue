@@ -58,7 +58,7 @@ export default {
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
       { text: "Series", icon: "mdi-television", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
-      { text: "Videos", icon: "mdi-video", url: "/video-table2" },
+      { text: "Videos", icon: "mdi-video", url: "/video-table" },
       {
         text: "Playlists",
         icon: "mdi-playlist-music",
@@ -71,14 +71,6 @@ export default {
       { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
-      { text: "Videos Old", icon: "mdi-video", url: "/videos" },
-      {
-        text: "Videos Solara Table",
-        icon: "mdi-video",
-        url: "/video-table",
-      },
-      { text: "About", icon: "mdi-information", url: "/about" },
-      { text: "Logout", icon: "mdi-logout", url: "/logout" },
     ],
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },

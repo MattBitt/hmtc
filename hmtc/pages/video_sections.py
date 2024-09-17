@@ -10,7 +10,11 @@ from hmtc.components.album.album_info import AlbumInfo
 from hmtc.components.shared.jellyfin_panel import JellyfinPanel
 from hmtc.mods.section import Section, SectionManager
 from hmtc.schemas.video import VideoItem
+"""
+This was my original attempt at a Section Editor Page. It has been replaced by the
+newer version in sections.py. I am keeping this here for reference.
 
+"""
 update_page = solara.reactive(False)
 
 title = "Video Sections"
@@ -203,8 +207,7 @@ def TimeEditForm(
     event_handle_close: Callable[[dict], None],
     event_handle_save: Callable[[dict], None],
     event_adjust_section: Callable[[dict], None],
-    counter: int=187
-
+    counter: int = 187,
 ):
     pass
 
@@ -214,8 +217,6 @@ def section_modal(section, section_type, model, on_model, video_duration):
     def h_close(*args):
         # logger.debug(f"Closing {args}")
         on_model(False)
-        
-        
 
     def h_save(*args):
         # logger.debug(f"Saving {args}")
@@ -224,20 +225,22 @@ def section_modal(section, section_type, model, on_model, video_duration):
     def adjust_section(*args):
         # these should be config values
         # example args[0] = 'large_backward' or 'small_forward'
-        if 'large' in args[0]:
+        if "large" in args[0]:
             increment = 5000
-        elif 'small' in args[0]:
+        elif "small" in args[0]:
             increment = 1000
-        elif 'tiny' in args[0]:
+        elif "tiny" in args[0]:
             increment = 250
         else:
             raise ValueError("Invalid adjustment")
-        
-        if 'back' in args[0]:
+
+        if "back" in args[0]:
             increment = -increment
 
-        logger.debug(f"Adjusting the {section_type} of section {section} by {increment} seconds")
-        
+        logger.debug(
+            f"Adjusting the {section_type} of section {section} by {increment} seconds"
+        )
+
         if section_type == "start":
             if section.value.start + increment < 0:
                 logger.error("Cannot have negative start time")
@@ -246,7 +249,9 @@ def section_modal(section, section_type, model, on_model, video_duration):
                 logger.error("Start time must be before end time")
                 return
 
-            SectionManager.edit_section_start(section=section.value, increment=increment)
+            SectionManager.edit_section_start(
+                section=section.value, increment=increment
+            )
 
         else:
             if section.value.end + increment > video_duration:
@@ -258,8 +263,6 @@ def section_modal(section, section_type, model, on_model, video_duration):
             SectionManager.edit_section_end(section=section.value, increment=increment)
 
         logger.debug("Adjustment complete. About to refresh the sections")
-
-
 
     if section_type == "start":
         ts = create_hms_dict(section.value.start // 1000)
@@ -274,17 +277,15 @@ def section_modal(section, section_type, model, on_model, video_duration):
     ):
 
         TimeEditForm(
-            section=dict(id=section.value.id,start=section.value.start, end=section.value.end),
+            section=dict(
+                id=section.value.id, start=section.value.start, end=section.value.end
+            ),
             timestamp=ts,
             section_type=section_type,
             event_handle_close=lambda data: h_close(data),
             event_handle_save=lambda data: h_save(data),
             event_adjust_section=lambda data: adjust_section(data),
-            
-           
         )
-
-
 
 
 @solara.component
@@ -298,10 +299,18 @@ def SectionTimeInfo(video, section, refresh_sections):
 
     # these modals are controlled by the model and on_model reactive variables
     section_modal(
-        section=section, section_type="start", model=edit_start, on_model=set_edit_start, video_duration=video.duration
+        section=section,
+        section_type="start",
+        model=edit_start,
+        on_model=set_edit_start,
+        video_duration=video.duration,
     )
     section_modal(
-        section=section, section_type="end", model=edit_end, on_model=set_edit_end,  video_duration=video.duration
+        section=section,
+        section_type="end",
+        model=edit_end,
+        on_model=set_edit_end,
+        video_duration=video.duration,
     )
 
     with solara.Row(justify="space-around"):
@@ -372,7 +381,6 @@ class State:
         SectionManager.delete_from_db(item)
 
 
-
 @solara.component
 def Page():
 
@@ -384,6 +392,7 @@ def Page():
 
     model = solara.use_reactive(0)
     topics = solara.use_reactive(["flying", "kangaroo", "flag"])
+
     def next_slide():
         if model.value == len(sections.value) - 1:
             model.set(0)
@@ -418,7 +427,7 @@ def Page():
                         loading=False,
                         on_delete=State.on_delete,
                     )
-            with solara.Card(style='width: 30%'):
+            with solara.Card(style="width: 30%"):
                 JellyfinPanel(
                     current_video_youtube_id=video.youtube_id,
                     current_section=None,
@@ -440,8 +449,12 @@ def Page():
             with solara.Card():
                 with solara.Column():
                     with solara.Row(justify="space-between"):
-                        solara.Button("Previous", on_click=prev_slide, classes=["button"])
-                        solara.Markdown(f"## Section {model.value + 1} of {len(sections.value)}")
+                        solara.Button(
+                            "Previous", on_click=prev_slide, classes=["button"]
+                        )
+                        solara.Markdown(
+                            f"## Section {model.value + 1} of {len(sections.value)}"
+                        )
                         solara.Button("Next", on_click=next_slide, classes=["button"])
                     with solara.Column():
                         if len(sections.value) > 0:
@@ -449,13 +462,14 @@ def Page():
                                 timestamps=dict(
                                     whole_start=0,
                                     whole_end=video.duration,
-                                    part_start=sections.value[model.value].start // 1000,
+                                    part_start=sections.value[model.value].start
+                                    // 1000,
                                     part_end=sections.value[model.value].end // 1000,
                                 )
                             )
                         else:
                             solara.Markdown("No Sections Found")
-                        
+
                     with Carousel(model=model.value):
                         for section in sections.value:
                             s = solara.use_reactive(section)

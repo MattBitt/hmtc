@@ -67,6 +67,12 @@
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
+                        v-model="editedItem.jellyfin_id"
+                        label="Jellyfin ID"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
                         v-model="editedItem.upload_date"
                         label="Upload Date"
                       ></v-text-field>
@@ -207,6 +213,7 @@ export default {
     sortDesc: true,
     search: "",
     headers: [
+      { text: "id", value: "id", filterable: true },
       { text: "Upload Date", value: "upload_date", filterable: false },
 
       {
@@ -223,12 +230,13 @@ export default {
         filterable: true,
       },
       { text: "Episode", value: "episode", filterable: true },
-      { text: "Channel Name", value: "channel_name", filterable: false },
-      {
-        text: "Playlist Title",
-        value: "playlist_title",
-        filterable: false,
-      },
+      { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
+      // { text: "Channel Name", value: "channel_name", filterable: false },
+      // {
+      //   text: "Playlist Title",
+      //   value: "playlist_title",
+      //   filterable: false,
+      // },
       // { text: 'Unique', value: 'contains_unique_content', filterable: false },
       { text: "Actions", value: "actions", sortable: false },
     ],
@@ -295,6 +303,7 @@ export default {
         contains_unique_content: true,
         upload_date: "2021-01-01",
         id: 1,
+        jellyfin_id: "",
       },
     ],
 
@@ -315,6 +324,7 @@ export default {
       upload_date: "",
       youtube_id: "",
       id: 0,
+      jellyfin_id: "",
     },
     defaultItem: {
       title: "",
@@ -332,6 +342,7 @@ export default {
       upload_date: "",
       youtube_id: "",
       id: 0,
+      jellyfin_id: "",
     },
   }),
 

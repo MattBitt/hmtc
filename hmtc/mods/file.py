@@ -5,7 +5,6 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.config import init_config
-from hmtc.dtos.track import TrackDTO
 from hmtc.models import File as FileModel
 from hmtc.models import Video, get_file_type
 from hmtc.utils.ffmpeg_utils import extract_audio
@@ -164,61 +163,3 @@ class FileManager:
         except Exception as e:
             logger.error(e)
             raise
-
-    @staticmethod
-    def add_file_to_track(file: File, track: TrackDTO):
-        pass
-        # filetype = get_file_type(file.filename)
-        # try:
-        #     if not video:
-        #         raise ValueError("Video object is required")
-        #     if not file:
-        #         raise ValueError("File object is required")
-
-        #     logger.info(f"Adding {filetype} file ({file}) to {video}")
-        #     # video.files.append(file)
-        #     # video.save()
-        #     logger.info(f"File added to {video}")
-
-        # except ValueError as e:
-        #     logger.error(e)
-        #     raise
-
-    @staticmethod
-    def add_path_to_track(path: Path, track: TrackDTO):
-        pass
-        # output_path = Path(STORAGE) / f"tracks/{track.youtube_id}/"
-        # try:
-        #     if not track:
-        #         raise ValueError("Track object is required")
-        #     if not path:
-        #         raise ValueError("path object is required")
-        #     file = File.from_path(path)
-        #     filetype = get_file_type(file.filename)
-        #     if filetype == "track":
-        #         audio = FileManager.extract_audio(file)
-        #         audio_file = File.from_path(audio)
-        #         audio_file.move_to(output_path)
-        #         f = FileModel.create(
-        #             path=str(output_path),
-        #             filename=audio_file.filename,
-        #             file_type="audio",
-        #             track_id=track.id,
-        #         )
-
-        #     file.move_to(output_path)
-        #     f = FileModel.create(
-        #         path=str(output_path),
-        #         filename=file.filename,
-        #         file_type=filetype,
-        #         track_id=track.id,
-        #     )
-
-        #     logger.info(f"Adding {file} to {track}")
-        #     # track.files.append(file)
-        #     # track.save()
-        #     logger.info(f"File added to {track}")
-
-        # except Exception as e:
-        #     logger.error(e)
-        #     raise
