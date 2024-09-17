@@ -53,7 +53,7 @@
                     <v-col cols="6">
                       <v-row justify="center" class="mb-6">
                         <v-btn class="button" @click="adjustStartToCurrent()">
-                          Use Current Time
+                          Sync Start to Jellyfin
                         </v-btn>
                       </v-row>
                       <v-row justify="center" class="mb-6">
@@ -167,6 +167,10 @@
 <script>
 export default {
   data: () => ({
+    is_connected: false,
+    has_active_user_session: false,
+    current_position: 0,
+    play_status: "STOPPED",
     dialog: false,
     dialogDelete: false,
     sortBy: "start",

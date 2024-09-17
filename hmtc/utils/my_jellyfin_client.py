@@ -16,14 +16,14 @@ class MyJellyfinClient:
     session: str = None
     session_id: str = None
     position: int = 0
-    play_status: str = None
     user: str = None
     media_item: dict = None
     supports_media_control: bool = False
     supports_remote_control: bool = False
     is_playing: bool = False
     is_connected: bool = False
-    is_logged_in: bool = False
+    has_active_user_session: bool = False
+    play_status: str = "stopped"
 
     def connect(self):
 
@@ -51,29 +51,28 @@ class MyJellyfinClient:
         client.authenticate(credentials, discover=False)
         if client.logged_in:
             self.session = self.get_current_session()
-            self.session_id = self.session["Id"]
-
-            self.supports_media_control = self.session["SupportsMediaControl"]
-            self.supports_remote_control = self.session["SupportsRemoteControl"]
-
-            self.is_logged_in = True
-
-            if "NowPlayingItem" in self.session.keys():
-                self.media_item = self.session["NowPlayingItem"]
-                self.is_playing = True
-                self.position = (
-                    int(self.session["PlayState"]["PositionTicks"]) / 10_000_000
-                )
-                self.play_status = (
-                    "paused"
-                    if self.session["PlayState"]["IsPaused"] is True
-                    else "playing"
-                )
+            if self.session is None:
+                logger.debug("No active session found.")
             else:
-                self.media_item = None
-                self.is_playing = False
-                self.position = 0
-                self.play_status = "stopped"
+                self.session_id = self.session["Id"]
+                self.has_active_user_session = True
+                self.supports_media_control = self.session["SupportsMediaControl"]
+                self.supports_remote_control = self.session["SupportsRemoteControl"]
+
+                if "NowPlayingItem" in self.session.keys():
+                    self.media_item = self.session["NowPlayingItem"]
+                    self.position = (
+                        int(self.session["PlayState"]["PositionTicks"]) / 10_000_000
+                    )
+                    self.play_status = (
+                        "paused"
+                        if self.session["PlayState"]["IsPaused"] is True
+                        else "playing"
+                    )
+                else:
+                    self.media_item = None
+                    self.position = 0
+                    self.play_status = "stopped"
 
         return self
 

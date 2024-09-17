@@ -7,8 +7,15 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.config import init_config
-from hmtc.models import Album as AlbumTable
-from hmtc.models import File, Playlist, Series, Video, Channel, YoutubeSeries
+from hmtc.models import (
+    File,
+    Playlist,
+    Series,
+    Video,
+    Channel,
+    YoutubeSeries,
+    Album as AlbumModel,
+)
 from hmtc.mods.file import FileManager
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
@@ -45,6 +52,7 @@ class VideoItem(BaseItem):
     playlist: Playlist = None
     youtube_series: YoutubeSeries = None
     jellyfin_id: str = None
+    album: AlbumModel = None
 
     # has_video_file: bool = False
     # has_audio_file: bool = False
@@ -196,7 +204,7 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def get_album(video_id):
-        vid = Video.select().join(AlbumTable).where(Video.id == video_id).get_or_none()
+        vid = Video.select().join(AlbumModel).where(Video.id == video_id).get_or_none()
         if vid:
             return vid.album.get_or_none()
         return None
@@ -275,7 +283,7 @@ class VideoItem(BaseItem):
     def get_vids_with_no_album():
         all_vids = Video.select().where(Video.contains_unique_content == True)
         vids_with_albums = (
-            Video.select().join(AlbumTable).where(Video.contains_unique_content == True)
+            Video.select().join(AlbumModel).where(Video.contains_unique_content == True)
         )
         vids_missing_albums = all_vids - vids_with_albums
         return vids_missing_albums

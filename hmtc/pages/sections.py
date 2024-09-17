@@ -36,6 +36,9 @@ def parse_url_args():
 @solara.component_vue("../components/section/section_table.vue", vuetify=True)
 def SectionTable(
     items: list = [],
+    is_connected: bool = False,
+    has_active_user_session: bool = False,
+    play_status: bool = False,
     current_position: int = 0,
     event_save_section: Callable = None,
     event_delete_section: Callable = None,
@@ -81,7 +84,8 @@ def create_single_section(video_id, duration, section_type="INITIAL"):
 
 @solara.component
 def NewJellyfinPanel(jf, video):
-    # logger.debug(f"NewJellyfinPanel {jfc}")
+   
+    
     def local_load_item():
         if video.jellyfin_id is None:
             logger.error("No Jellyfin ID for this video")
@@ -89,29 +93,37 @@ def NewJellyfinPanel(jf, video):
 
         jf.load_media_item(jellyfin_id=video.jellyfin_id)
 
-    is_video_id_playing_in_jellyfin = (jf.media_item["Id"] == video.jellyfin_id) if jf.is_playing else False
-    pth = Path('./hmtc/assets/icons/jellyfin.1024x1023.png')
-    solara.Image(pth, width="80px")
-    solara.Markdown(f"is_connected: {jf.is_connected}")
-    if jf.is_connected:
-        solara.Markdown(f"Video: {video.title if video else 'None'}")
-        solara.Markdown(f"Jellyfin Session ID: {jf.session_id}")
-        solara.Markdown(f"is_video_id_playing_in_jellyfin: {is_video_id_playing_in_jellyfin}")
-        solara.Markdown(f"Playing status: {jf.play_status}")
-        solara.Markdown(f"Jellyfin User: {jf.user}")
-        with solara.Row():
-            if is_video_id_playing_in_jellyfin:
-                solara.Markdown(f"Title: {jf.media_item['Name']}")
-                solara.Markdown(f"Position: {jf.position}")
-                if jf.is_playing:
-                    solara.Button(f"Play/Pause Jellyfin", on_click=jf.play_pause, classes=["button"])
-                    solara.Button(f"Pause Jellyfin", on_click=jf.pause, classes=["button"])
-                    solara.Button(f"Stop Jellyfin", on_click=jf.stop, classes=["button"])
-        solara.Button(f"Load 'This' Video", on_click=local_load_item, disabled=is_video_id_playing_in_jellyfin , classes=["button"])
-
+    if jf.play_status == "stopped":
+        # no media item loaded
+        is_video_id_playing_in_jellyfin = False
     else:
+        is_video_id_playing_in_jellyfin = (jf.media_item["Id"] == video.jellyfin_id)
+    
+    pth = Path('./hmtc/assets/icons/jellyfin.1024x1023.png')
+    
+    with solara.Card():
+        solara.Image(pth, width="80px")
+        solara.Markdown(f"Jellyfin Connected: {jf.is_connected}")
+        if jf.is_connected:
+            if jf.has_active_user_session:
+                solara.Markdown(f"Jellyfin Session ID: {jf.session_id}")
+                solara.Markdown(f"Jellyfin User: {jf.user}")
+            
 
-        solara.Markdown("Jellyfin not connected")
+                with solara.Row():
+                    if is_video_id_playing_in_jellyfin:
+                        solara.Markdown(f"Title: {jf.media_item['Name']}")
+                        solara.Markdown(f"Position: {jf.position}")
+                        solara.Button(f"Play/Pause Jellyfin", on_click=jf.play_pause, classes=["button"])
+                        solara.Button(f"Pause Jellyfin", on_click=jf.pause, classes=["button"])
+                        solara.Button(f"Stop Jellyfin", on_click=jf.stop, classes=["button"])
+                solara.Button(f"Load 'This' Video", on_click=local_load_item, disabled=is_video_id_playing_in_jellyfin , classes=["button"])
+            else:
+                logger.debug("No active Jellyfin session found")
+                solara.Markdown("No active Jellyfin session found")
+        else:
+            logger.debug("Jellyfin not connected")
+            solara.Markdown("Jellyfin not connected")
 
 
 @solara.component
@@ -223,6 +235,9 @@ def Page():
         
         SectionTable(
             items=items,
+            is_connected=jf.is_connected,
+            has_active_user_session=jf.has_active_user_session,
+            play_status=jf.play_status,
             current_position=jf.position,
             event_save_section=save_section,
             event_delete_section=delete_section,

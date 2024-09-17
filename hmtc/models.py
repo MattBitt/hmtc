@@ -500,6 +500,7 @@ class Video(BaseModel):
             "youtube_series_title": (
                 self.youtube_series.title if self.youtube_series else None
             ),
+            "album_title": self.album.title if self.album else None,
         }
         return new_dict
 

@@ -231,6 +231,8 @@ export default {
       },
       { text: "Episode", value: "episode", filterable: true },
       { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
+      { text: "Album Title", value: "album_title", filterable: true },
+
       // { text: "Channel Name", value: "channel_name", filterable: false },
       // {
       //   text: "Playlist Title",

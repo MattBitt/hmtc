@@ -1,7 +1,14 @@
 from typing import cast, Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video, Channel, Series, YoutubeSeries, Playlist
+from hmtc.models import (
+    Video,
+    Channel,
+    Series,
+    YoutubeSeries,
+    Playlist,
+    Album as AlbumModel,
+)
 from hmtc.schemas.video import VideoItem
 import peewee
 import pandas as pd
@@ -127,6 +134,7 @@ def Page():
             Series,
             Playlist,
             YoutubeSeries,
+            AlbumModel,
         )
         .join(Channel, peewee.JOIN.LEFT_OUTER)
         .switch(Video)
@@ -135,6 +143,8 @@ def Page():
         .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
         .switch(Video)
         .join(Playlist, peewee.JOIN.LEFT_OUTER)
+        .switch(Video)
+        .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
         .where(Video.contains_unique_content == True)
     )
     router = solara.use_router()
