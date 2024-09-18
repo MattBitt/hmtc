@@ -18,7 +18,6 @@ def VideoCards(
 ):
     with solara.ColumnsResponsive(12, large=6):
         for index, item in enumerate(videos.value):
-
             with solara.Card(style={"min-height": "250px"}):
                 if refreshing.value:
                     solara.SpinnerSolara()

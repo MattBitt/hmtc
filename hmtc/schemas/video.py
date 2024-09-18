@@ -11,12 +11,12 @@ from hmtc.models import (
     File,
     Playlist,
     Series,
-    Video,
+    Video as VideoModel,
     Channel,
     YoutubeSeries,
     Album as AlbumModel,
 )
-from hmtc.mods.file import FileManager
+from hmtc.schemas.file import FileManager
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
@@ -30,7 +30,7 @@ STORAGE = Path(config["paths"]["storage"])
 
 @dataclass(frozen=True, kw_only=True)
 class VideoItem(BaseItem):
-    db_model = Video
+    db_model = VideoModel
     title: str = None
     youtube_id: str = None
     url: str = None
@@ -52,6 +52,7 @@ class VideoItem(BaseItem):
     playlist: Playlist = None
     youtube_series: YoutubeSeries = None
     jellyfin_id: str = None
+    album_id: int = None
     album: AlbumModel = None
 
     # has_video_file: bool = False
@@ -115,42 +116,46 @@ class VideoItem(BaseItem):
 
     @classmethod
     def count_videos(cls, enabled: bool = True):
-        return Video.select().where(cls.enabled == enabled).count()
+        return VideoModel.select().where(cls.enabled == enabled).count()
 
     @classmethod
     def count_no_duration(cls):
-        return Video.select().where(Video.duration.is_null()).count()
+        return VideoModel.select().where(VideoModel.duration.is_null()).count()
 
     @staticmethod
     def count_unique():
-        return Video.select().where(Video.contains_unique_content == True).count()
+        return (
+            VideoModel.select()
+            .where(VideoModel.contains_unique_content == True)
+            .count()
+        )
 
     @staticmethod
     def get_downloaded_stats_by_series():
         query = (
-            Video.select(
-                fn.SUM(Video.duration).alias("downloaded"),
+            VideoModel.select(
+                fn.SUM(VideoModel.duration).alias("downloaded"),
                 Series.name,
             )
             .join(Series, peewee.JOIN.RIGHT_OUTER)
             .where(
                 (
-                    Video.id.in_(
+                    VideoModel.id.in_(
                         File.select(File.video_id).where(File.file_type == "video")
                     )
                 )
-                & (Video.contains_unique_content == True)
+                & (VideoModel.contains_unique_content == True)
             )
             .group_by(Series.name)
         )
 
         query2 = (
-            Video.select(
-                fn.SUM(Video.duration).alias("total"),
+            VideoModel.select(
+                fn.SUM(VideoModel.duration).alias("total"),
                 Series.name,
             )
             .join(Series)
-            .where(Video.contains_unique_content == True)
+            .where(VideoModel.contains_unique_content == True)
             .group_by(Series.name)
         )
         downloaded = [(a.series, a.downloaded) for a in query]
@@ -171,16 +176,16 @@ class VideoItem(BaseItem):
     @staticmethod
     def get_vids_with_no_media_files(limit=10):
         vids = (
-            Video.select()
+            VideoModel.select()
             .where(
-                (Video.contains_unique_content == True)
+                (VideoModel.contains_unique_content == True)
                 & (
-                    Video.id.not_in(
+                    VideoModel.id.not_in(
                         File.select(File.video_id).where(File.file_type == "video")
                     )
                 )
             )
-            .order_by(Video.duration.asc())
+            .order_by(VideoModel.duration.asc())
             .limit(limit)
         )
 
@@ -190,11 +195,11 @@ class VideoItem(BaseItem):
     @staticmethod
     def count_vids_with_media_files():
         return (
-            Video.select()
+            VideoModel.select()
             .where(
-                (Video.contains_unique_content == True)
+                (VideoModel.contains_unique_content == True)
                 & (
-                    Video.id.in_(
+                    VideoModel.id.in_(
                         File.select(File.video_id).where(File.file_type == "video")
                     )
                 )
@@ -204,29 +209,35 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def get_album(video_id):
-        vid = Video.select().join(AlbumModel).where(Video.id == video_id).get_or_none()
+        vid = (
+            VideoModel.select()
+            .join(AlbumModel)
+            .where(VideoModel.id == video_id)
+            .get_or_none()
+        )
         if vid:
             return vid.album.get_or_none()
         return None
 
     @staticmethod
     def get_by_youtube_id(youtube_id):
-        return Video.select().where(Video.youtube_id == youtube_id).get_or_none()
+        return (
+            VideoModel.select().where(VideoModel.youtube_id == youtube_id).get_or_none()
+        )
 
     @staticmethod
     def get_unique_with_no_durations():
-        return Video.select().where(
-            (Video.duration.is_null() & Video.contains_unique_content == True)
+        return VideoModel.select().where(
+            (VideoModel.duration.is_null() & VideoModel.contains_unique_content == True)
         )
 
     @staticmethod
     def get_by_id(video_id):
-        return Video.select().where(Video.id == video_id).get_or_none()
+        return VideoModel.select().where(VideoModel.id == video_id).get_or_none()
 
     @staticmethod
     def get_youtube_ids():
-
-        return Video.select(Video.youtube_id)
+        return VideoModel.select(VideoModel.youtube_id)
 
     @staticmethod
     def create_from_youtube_id(youtube_id):
@@ -234,13 +245,13 @@ class VideoItem(BaseItem):
         info, files = get_video_info(youtube_id=youtube_id, output_folder=WORKING)
         try:
             series = Series.get(Series.name.contains("UNSORTED"))
-        except:
-            logger.error("Series Doesn't Exist!")
+        except Exception as e:
+            logger.error(f"Series Doesn't Exist! {e}")
             return
         try:
             channel = Channel.get(Channel.youtube_id == info["channel_id"])
-        except:
-            logger.error("Channel Doesn't Exist!")
+        except Exception as e:
+            logger.error(f"Channel Doesn't Exist! {e}")
             return
 
         # he posts 'shorts' on his main channel that arent unique
@@ -249,7 +260,7 @@ class VideoItem(BaseItem):
         else:
             unique = False
 
-        vid = Video.create(
+        vid = VideoModel.create(
             title=info["title"],
             url=info["webpage_url"],
             youtube_id=info["id"],
@@ -277,24 +288,23 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def get_vids_with_no_channel():
-        return Video.select().where(Video.channel.is_null())
+        return VideoModel.select().where(VideoModel.channel.is_null())
 
     @staticmethod
     def get_vids_with_no_album():
-        all_vids = Video.select().where(Video.contains_unique_content == True)
-        vids_with_albums = (
-            Video.select().join(AlbumModel).where(Video.contains_unique_content == True)
-        )
-        vids_missing_albums = all_vids - vids_with_albums
+        vids = VideoModel.select().where(VideoModel.contains_unique_content == True)
+        # logger.debug(f"Vids: {len(vids)}")
+        vids_missing_albums = vids.where(VideoModel.album.is_null())
+        # logger.debug(f"vids_missing_albums: {len(vids_missing_albums)}")
         return vids_missing_albums
 
     @staticmethod
     def get_vids_with_no_episode_number():
-        vids = Video.select().where(
+        vids = VideoModel.select().where(
             (
-                Video.title.is_null(False)
-                & Video.episode.is_null()
-                & Video.contains_unique_content
+                VideoModel.title.is_null(False)
+                & VideoModel.episode.is_null()
+                & VideoModel.contains_unique_content
                 == True
             )
         )
@@ -303,13 +313,13 @@ class VideoItem(BaseItem):
     @staticmethod
     def get_base_video_ids():
         vid_ids = (
-            Video.select(Video.id)
+            VideoModel.select(VideoModel.id)
             .where(
-                (Video.title.is_null(False))
-                & (Video.contains_unique_content == True)
-                & (Video.duration.is_null(False))
+                (VideoModel.title.is_null(False))
+                & (VideoModel.contains_unique_content == True)
+                & (VideoModel.duration.is_null(False))
             )
-            .order_by(Video.upload_date.desc())
+            .order_by(VideoModel.upload_date.desc())
         )
         return [v.id for v in vid_ids]
 
@@ -351,7 +361,9 @@ class VideoItem(BaseItem):
         include_unique_content=True,
         include_nonunique_content=False,
     ):
-        query = Video.select(Video.id).where((Video.title.is_null(False)))
+        query = VideoModel.select(VideoModel.id).where(
+            (VideoModel.title.is_null(False))
+        )
 
         # and = all
         # 1 and 0 = unique
@@ -360,16 +372,16 @@ class VideoItem(BaseItem):
         if include_unique_content and include_nonunique_content:
             query = query
         elif include_unique_content:
-            query = query.where(Video.contains_unique_content == True)
+            query = query.where(VideoModel.contains_unique_content == True)
 
         elif include_nonunique_content:
-            query = query.where(Video.contains_unique_content is False)
+            query = query.where(VideoModel.contains_unique_content is False)
         else:
             logger.error("Tried disabling unique filter but you can't 😃😃😃😃😃")
             query = query
 
         if not include_no_durations:
-            query = query.where(Video.duration > 0)
+            query = query.where(VideoModel.duration > 0)
 
         if series_filter:
             if series_filter["title"] == "All Series":
@@ -379,7 +391,7 @@ class VideoItem(BaseItem):
 
         if youtube_series_filter:
             if youtube_series_filter["title"] == "No youtube_series":
-                query = query.where(Video.youtube_series.is_null())
+                query = query.where(VideoModel.youtube_series.is_null())
             else:
                 query = query.join(YoutubeSeries).where(
                     YoutubeSeries.title == youtube_series_filter["title"]
@@ -387,9 +399,9 @@ class VideoItem(BaseItem):
 
         if text_search:
             query = query.where(
-                (Video.title.contains(text_search))
-                | (Video.url.contains(text_search))
-                | (Video.youtube_id.contains(text_search))
+                (VideoModel.title.contains(text_search))
+                | (VideoModel.url.contains(text_search))
+                | (VideoModel.youtube_id.contains(text_search))
             )
 
         # not really sure how this actually works
@@ -397,14 +409,13 @@ class VideoItem(BaseItem):
         sort_field = None
 
         if sort_by is not None:
-
             sort_field = VideoItem.get_sort_field(sort_by, sort_order)
             if sort_order == "asc":
                 sort_field = sort_field.asc()
             else:
                 sort_field = sort_field.desc()
         else:
-            sort_field = Video.upload_date.desc()
+            sort_field = VideoModel.upload_date.desc()
 
         q = query.order_by(sort_field)
 
@@ -416,7 +427,6 @@ class VideoItem(BaseItem):
 
     @staticmethod
     def grab_list_of_video_details(ids):
-
         vids = [VideoItem.get_details_for_video(id=vid_id) for vid_id in ids]
 
         return vids
@@ -424,26 +434,30 @@ class VideoItem(BaseItem):
     @staticmethod
     def get_details_for_video(id: int):
         vid = (
-            Video.select(
-                Video,
+            VideoModel.select(
+                VideoModel,
                 YoutubeSeries.title,
                 Channel.name,
             )
             .join(
                 YoutubeSeries,
                 peewee.JOIN.LEFT_OUTER,
-                on=(Video.youtube_series_id == YoutubeSeries.id),
+                on=(VideoModel.youtube_series_id == YoutubeSeries.id),
             )
-            .switch(Video)
+            .switch(VideoModel)
             .join(Channel)
-            .where(Video.id == id)
+            .switch(VideoModel)
+            .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
+            .switch(VideoModel)
+            .join(Series, peewee.JOIN.LEFT_OUTER)
+            .where(VideoModel.id == id)
         ).get()
 
         return VideoItem.from_orm(vid)
 
     ### 🟣🟣🟣 Instance Methods
     def set_episode_number(self, episode_number: int):
-        vid = Video.get(Video.id == self.id)
+        vid = VideoModel.get(VideoModel.id == self.id)
         vid.episode = episode_number
         vid.save()
 
@@ -461,7 +475,7 @@ class VideoItem(BaseItem):
         final_name2 = str(final_name.name).replace(".info.info", ".info")
         if ".info" in str(file):
             data = read_json_file(file)
-            vid = Video.get(Video.id == self.id)
+            vid = VideoModel.get(VideoModel.id == self.id)
             vid.title = data["title"]
             vid.url = data["webpage_url"]
             vid.upload_date = data["upload_date"]
@@ -482,7 +496,7 @@ class VideoItem(BaseItem):
         return extract_frames(self.get_video_file_path(self.id), self.youtube_id)
 
     def add_frame(self, file):
-        Video.add_file(self.youtube_id, file, move_file=False, override="frame")
+        VideoModel.add_file(self.youtube_id, file, move_file=False, override="frame")
         self.save_to_db()
 
     def update_from_youtube(self):
@@ -491,7 +505,7 @@ class VideoItem(BaseItem):
 
         # logger.debug(f"Info: {info}")
         # logger.debug(f"Files: {files}")
-        vid = Video.select().where(Video.id == self.id).get()
+        vid = VideoModel.select().where(VideoModel.id == self.id).get()
         for file in files:
             logger.debug(f"Processing files in VideoItem.update_from_youtube: {file}")
             FileManager.add_path_to_video(file, vid)
@@ -508,12 +522,12 @@ class VideoItem(BaseItem):
 
     def update_series(self, series_name):
         series = Series.select().where(Series.name == series_name).get()
-        vid = Video.select().where(Video.id == self.id).get()
+        vid = VideoModel.select().where(VideoModel.id == self.id).get()
         vid.series = series
         vid.save()
 
     def update_database_object(self):
-        vid = Video.select().where(Video.id == self.id).get()
+        vid = VideoModel.select().where(VideoModel.id == self.id).get()
         vid.title = self.title
         vid.url = self.url
         vid.youtube_id = self.youtube_id
@@ -550,14 +564,10 @@ class VideoItem(BaseItem):
             self.youtube_id, WORKING, progress_hook=my_hook
         )
 
-        vid = Video.select().where(Video.id == self.id).get()
+        vid = VideoModel.select().where(VideoModel.id == self.id).get()
         for file in files:
             logger.debug(f"Processing files in download_video of the list item {file}")
             FileManager.add_path_to_video(file, vid)
-
-    def db_object(self):
-        logger.debug("🚨🚨🚨🚨 I want to deprecate this 8-21-24 🚨🚨🚨🚨")
-        return self.db_model.get_or_none(self.db_model.id == self.id)
 
     @classmethod
     def grab_page_from_db(
@@ -576,7 +586,6 @@ class VideoItem(BaseItem):
         include_manually_edited=False,
         youtube_series_filter=None,
     ):
-
         query = VideoItem.create_filtered_video_ids_query(
             text_search=text_search,
             sort_by=sort_by,
@@ -618,21 +627,24 @@ class VideoItem(BaseItem):
             ),
             playlist=db_object.playlist if db_object.playlist else None,
             series=db_object.series if db_object.series else None,
+            album=db_object.album if db_object.album else None,
         )
 
     @staticmethod
     def video_details_query():
         # in progress 9/7/24
         return (
-            Video.select(Video, Channel, Series, YoutubeSeries.title, Playlist)
+            VideoModel.select(
+                VideoModel, Channel, Series, YoutubeSeries.title, Playlist
+            )
             .join(Channel, peewee.JOIN.LEFT_OUTER)
-            .switch(Video)
+            .switch(VideoModel)
             .join(Series)
-            .switch(Video)
+            .switch(VideoModel)
             .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
-            .switch(Video)
+            .switch(VideoModel)
             .join(Playlist, peewee.JOIN.LEFT_OUTER)
-            .where(Video.contains_unique_content == True)
+            .where(VideoModel.contains_unique_content == True)
         )
 
     ### 🟣🟣🟣 Temporary Methods
@@ -661,7 +673,7 @@ class VideoItem(BaseItem):
             for o in omegle:
                 match = re.search(o, self.title)
                 if match:
-                    v = Video.get(Video.id == self.id)
+                    v = VideoModel.get(VideoModel.id == self.id)
                     v.episode = match.group(1)
                     v.save()
                     return
@@ -670,7 +682,7 @@ class VideoItem(BaseItem):
             for w in ww:
                 match = re.search(w, self.title)
                 if match:
-                    v = Video.get(Video.id == self.id)
+                    v = VideoModel.get(VideoModel.id == self.id)
                     v.episode = match.group(1)
                     v.save()
                     return
@@ -678,7 +690,7 @@ class VideoItem(BaseItem):
             for g in guerrilla:
                 match = re.search(g, self.title)
                 if match:
-                    v = Video.get(Video.id == self.id)
+                    v = VideoModel.get(VideoModel.id == self.id)
                     v.episode = match.group(1)
                     v.save()
                     return

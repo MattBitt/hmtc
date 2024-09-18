@@ -3,13 +3,13 @@ import solara
 import solara.lab
 import reacton.ipyvuetify as v
 from loguru import logger
-from hmtc.components.section.section_graph import SectionGraphComponent, format_sections
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.album.album_info import AlbumInfo
 from hmtc.components.shared.jellyfin_panel import JellyfinPanel
-from hmtc.mods.section import Section, SectionManager
+from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.video import VideoItem
+
 """
 This was my original attempt at a Section Editor Page. It has been replaced by the
 newer version in sections.py. I am keeping this here for reference.
@@ -108,16 +108,13 @@ def SectionControlPanel(
     num_sections_input = solara.use_reactive(4)
 
     def delete_sections():
-
         for section in sections:
             on_delete(section)
 
     def clear_all_sections():
-
         delete_sections()
 
     def create_1_section():
-
         sm = SectionManager.from_video(video)
         sm.create_section(start=0, end=video.duration, section_type=section_type.value)
 
@@ -146,7 +143,6 @@ def SectionControlPanel(
             )
 
     with solara.Column():
-
         if num_sections.value > 0:
             solara.Markdown(
                 f"Section ID {current_section.value.id if current_section is not None else "asdf"} selected ({num_sections.value } found)"
@@ -194,7 +190,7 @@ def SectionTimeLine(
         whole_end=2447,
         part_start=600,
         part_end=1200,
-    )
+    ),
 ):
     pass
 
@@ -213,7 +209,6 @@ def TimeEditForm(
 
 
 def section_modal(section, section_type, model, on_model, video_duration):
-
     def h_close(*args):
         # logger.debug(f"Closing {args}")
         on_model(False)
@@ -275,7 +270,6 @@ def section_modal(section, section_type, model, on_model, video_duration):
         persistent=True,
         max_width="80%",
     ):
-
         TimeEditForm(
             section=dict(
                 id=section.value.id, start=section.value.start, end=section.value.end
@@ -290,12 +284,11 @@ def section_modal(section, section_type, model, on_model, video_duration):
 
 @solara.component
 def SectionTimeInfo(video, section, refresh_sections):
-
     edit_start, set_edit_start = solara.use_state(False)
     edit_end, set_edit_end = solara.use_state(False)
-    counter = solara.use_reactive(0)
-    ts1 = solara.use_reactive(create_hms_dict(section.value.start // 1000))
-    ts2 = solara.use_reactive(create_hms_dict(section.value.end // 1000))
+    solara.use_reactive(0)
+    solara.use_reactive(create_hms_dict(section.value.start // 1000))
+    solara.use_reactive(create_hms_dict(section.value.end // 1000))
 
     # these modals are controlled by the model and on_model reactive variables
     section_modal(
@@ -344,7 +337,7 @@ def SectionTimeInfo(video, section, refresh_sections):
 def TopicInput(new_topic, on_click_func):
     with solara.Row():
         solara.InputText(label="Topic", value=new_topic)
-        solara.Button(label="Add Topic", on_click=on_click_func),
+        (solara.Button(label="Add Topic", on_click=on_click_func),)
 
 
 @solara.component_vue("../components/section/topics_list.vue", vuetify=True)
@@ -368,7 +361,6 @@ def SectionTopicsList(section, topics=["Topic 1", "Topic 2", "Topic 3"]):
 
 
 class State:
-
     @staticmethod
     def on_new(video, start: int, end: int, section_type: str):
         logger.debug(f"Adding new item: {start}, {end}, {section_type}")
@@ -383,7 +375,6 @@ class State:
 
 @solara.component
 def Page():
-
     MySidebar(router=solara.use_router())
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
@@ -391,7 +382,7 @@ def Page():
     # width, height = compute_graph_dimensions(video.duration)
 
     model = solara.use_reactive(0)
-    topics = solara.use_reactive(["flying", "kangaroo", "flag"])
+    solara.use_reactive(["flying", "kangaroo", "flag"])
 
     def next_slide():
         if model.value == len(sections.value) - 1:
@@ -416,7 +407,7 @@ def Page():
             with solara.Column():
                 with solara.Card(title=f"{model.value}"):
                     VideoInfo(video, refreshing=False)
-                    AlbumInfo(video)
+                    # AlbumInfo(video)
 
                 with solara.Card():
                     SectionControlPanel(

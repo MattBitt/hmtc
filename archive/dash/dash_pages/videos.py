@@ -2,13 +2,13 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import dash_table, html
 
-from hmtc.models import Video
+from hmtc.models import VideoModel
 
 dash.register_page(__name__)
 
 COLUMNS = ["youtube_id", "title", "upload_date"]
 
-table_data = [d for d in Video.select().dicts()]
+table_data = [d for d in VideoModel.select().dicts()]
 table = html.Div(
     dash_table.DataTable(
         table_data,

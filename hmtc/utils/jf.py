@@ -22,7 +22,6 @@ client.auth.login(url, user, password)
 
 
 def grab_sessions():
-
     credentials = client.auth.credentials.get_credentials()
     # need to check for empty credentials
     s = credentials["Servers"]
@@ -44,11 +43,9 @@ def grab_sessions():
 
         for sess in client.jellyfin.sessions():
             if sess["UserName"] == user and sess["Client"] != "hmtc":
-
-                if sess["SupportsMediaControl"] is True:
+                if sess["SupportsMediaControl"] == True:
                     sessions_list.append(sess)
                 else:
-
                     logger.debug(
                         f"This session doesn't support media control: {sess['Client']}"
                     )
@@ -64,13 +61,12 @@ def grab_sessions():
 
 
 def grab_now_playing(session=None):
-
     if session["PlayState"]["CanSeek"] is False:
         logger.error("Cannot seek")
         now_playing = None
     else:
         position = int(session["PlayState"]["PositionTicks"]) / 10_000_000
-        status = "paused" if session["PlayState"]["IsPaused"] is True else "playing"
+        status = "paused" if session["PlayState"]["IsPaused"] == True else "playing"
         now_playing = session["NowPlayingItem"]
         path_str = session["NowPlayingItem"]["Path"]
         if "inputs" in path_str:
@@ -79,8 +75,8 @@ def grab_now_playing(session=None):
             item_type = "track"
         try:
             item = session["NowPlayingQueueFullItems"][0]
-        except:
-            logger.debug("No item found in NowPlayingQueueFullItems")
+        except Exception as e:
+            logger.debug(f"No item found in NowPlayingQueueFullItems {e}")
             return None
 
         # logger.debug(f"Current status: {status}")
@@ -166,7 +162,6 @@ def jellyfin_seekto(position):
 
 
 def jellyfin_loop_2sec(session_id, position):
-
     client.jellyfin.remote_pause(session_id)
     client.jellyfin.remote_seek(session_id, position * 10_000)
     client.jellyfin.remote_playpause(session_id)

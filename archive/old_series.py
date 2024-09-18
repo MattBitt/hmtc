@@ -4,7 +4,7 @@ import solara.lab
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Series, Video
+from hmtc.models import Series, VideoModel
 
 name = solara.reactive("")
 start_date = solara.reactive("2001-01-01")
@@ -12,7 +12,9 @@ end_date = solara.reactive("2024-12-31")
 
 
 def videos_by_series(series):
-    return Video.select().where((Video.series == series) & (Video.enabled == True))
+    return VideoModel.select().where(
+        (VideoModel.series == series) & (VideoModel.enabled is True)
+    )
 
 
 def add_series():

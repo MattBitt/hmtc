@@ -1,13 +1,10 @@
-import plotly
 import solara
 import solara.lab
-import peewee
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, cast
 import ipyvuetify
 import pandas as pd
 import traitlets
 import reacton.ipyvuetify as v
-from loguru import logger
 
 # to avoid confusing vuetify about selecting 'None' and nothing
 magic_value_missing = "__missing_value__"

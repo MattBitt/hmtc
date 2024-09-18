@@ -1,9 +1,7 @@
-from typing import cast, Callable
+from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video, Album as AlbumModel, Series, YoutubeSeries
-from hmtc.schemas.video import VideoItem
-import peewee
+from hmtc.models import Video as VideoModel, Album as AlbumModel
 import pandas as pd
 from loguru import logger
 
@@ -33,13 +31,13 @@ def save_album(dict_of_items):
 
     try:
         album = AlbumModel.get_by_id(item["id"])
-    except Exception as e:
+    except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Album ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
         AlbumModel.create(**edited_item)
         return
-    vid = Video.get_or_none(id=edited_item["video_id"])
+    vid = VideoModel.get_or_none(id=edited_item["video_id"])
     if vid is None:
         logger.error("Video Not Found. Cannot save Album")
         return

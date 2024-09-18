@@ -4,25 +4,31 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video
+from hmtc.models import Video as VideoModel
 
 
 @solara.component
 def Page():
     router = solara.use_router()
-    videos = Video.select().where(
-        (Video.duration > 0) & (Video.contains_unique_content == True)
+    videos = VideoModel.select().where(
+        (VideoModel.duration > 0) & (VideoModel.contains_unique_content == True)
     )
     recent = (
-        Video.select()
-        .where((Video.title.is_null(False)) & (Video.contains_unique_content == True))
-        .order_by(Video.upload_date.desc())
+        VideoModel.select()
+        .where(
+            (VideoModel.title.is_null(False))
+            & (VideoModel.contains_unique_content == True)
+        )
+        .order_by(VideoModel.upload_date.desc())
         .limit(10)
     )
     recent_updated = (
-        Video.select()
-        .where(Video.title.is_null(False) & (Video.contains_unique_content == True))
-        .order_by(Video.updated_at.desc())
+        VideoModel.select()
+        .where(
+            VideoModel.title.is_null(False)
+            & (VideoModel.contains_unique_content == True)
+        )
+        .order_by(VideoModel.updated_at.desc())
         .limit(10)
     )
 

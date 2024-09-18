@@ -7,9 +7,9 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import Channel, File, Playlist, Series, Video
-from hmtc.mods.file import File as FileObject
-from hmtc.mods.file import FileManager
+from hmtc.models import Channel, File, Playlist, Series, Video as VideoModel
+from hmtc.schemas.file import File as FileObject
+from hmtc.schemas.file import FileManager
 
 config = init_config()
 
@@ -101,7 +101,7 @@ def DBversusFileCards(db_files, folder_files):
 
 
 def download_missing_videos():
-    videos = Video.select().where(Video.enabled == True)
+    videos = VideoModel.select().where(VideoModel.enabled == True)
     for video in videos:
         if not video.has_video:
             video.download_video()
@@ -111,7 +111,7 @@ def download_missing_videos():
 
 
 def extract_missing_audio():
-    videos = Video.select().where(Video.enabled == True)
+    videos = VideoModel.select().where(VideoModel.enabled == True)
     for video in videos:
         if video.has_video and not video.has_audio:
             video.extract_audio()
@@ -142,7 +142,7 @@ def get_channel_files():
 
 
 def get_video_files():
-    db_files = Video.select().join(File).where(File.video_id.is_null(False))
+    db_files = VideoModel.select().join(File).where(File.video_id.is_null(False))
     folder_files = get_folder_files(STORAGE / "videos")
     return db_files, folder_files
 
@@ -182,7 +182,7 @@ def Page():
         logger.debug(f"This is only for testing 🤠🤠🤠🤠🤠Adding file to video {args}")
         file = STORAGE / "videos" / "test.info.json"
         f = FileObject.from_path(file)
-        video = Video.get(Video.id == 1)
+        video = VideoModel.get(VideoModel.id == 1)
         FileManager.add_file_to_video(f, video)
 
     MySidebar(router=solara.use_router())

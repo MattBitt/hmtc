@@ -8,10 +8,10 @@ from solara.lab import task
 
 from hmtc.components.file_drop_card import FileInfo
 from hmtc.config import init_config
-from hmtc.models import Section, Video
+from hmtc.models import Section, VideoModel
 from hmtc.utils.fdsasection_manager import SectionManager
 
-all_videos = [c.title for c in Video.select()]
+all_videos = [c.title for c in VideoModel.select()]
 if all_videos == []:
     all_videos = ["No Videos"]
 time_cursor = solara.reactive(0)
@@ -32,7 +32,7 @@ UPLOAD_PATH = Path(config["paths"]["working"]) / "uploads"
 
 
 def update_videos():
-    videos = Video.select()
+    videos = VideoModel.select()
     for video in videos:
         logger.debug("Checking for new videos in video: {}", video.title)
         video.check_for_new_videos()
@@ -40,14 +40,14 @@ def update_videos():
 
 def update_all():
     logger.debug("Updating")
-    for p in Video.select().where(Video.enabled is True):
+    for p in VideoModel.select().where(VideoModel.enabled is True):
         p.check_for_new_videos()
     logger.success("Updated all videos")
 
 
 def add_new_video():
     try:
-        video = Video.create(
+        video = VideoModel.create(
             title="New Video",
             url="http://www.youtube.com",
             youtube_id="adsuoibgvpfrjdlk;af",
@@ -79,7 +79,9 @@ def write_to_disk(file: FileInfo):
 
 
 def VideoDetail(video_id):
-    video = Video.select().join(Section).where(Video.id == video_id).get_or_none()
+    video = (
+        VideoModel.select().join(Section).where(VideoModel.id == video_id).get_or_none()
+    )
     if video is None:
         return solara.Markdown("No Video Found")
     sm = SectionManager(video)

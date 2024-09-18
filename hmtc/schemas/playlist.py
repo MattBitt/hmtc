@@ -2,7 +2,7 @@ import dataclasses
 
 from loguru import logger
 
-from hmtc.models import Playlist, Video
+from hmtc.models import Playlist, Video as VideoModel
 from hmtc.schemas.base import BaseItem
 
 
@@ -93,9 +93,11 @@ class PlaylistItem(BaseItem):
             ).where(Playlist.id == self.id).execute()
 
     def count_videos(self, no_duration=False):
-        query = Video.select().join(Playlist).where(Video.playlist_id == self.id)
+        query = (
+            VideoModel.select().join(Playlist).where(VideoModel.playlist_id == self.id)
+        )
         if no_duration:
-            query = query.where(Video.duration.is_null())
+            query = query.where(VideoModel.duration.is_null())
         return len(list(query))
 
     @staticmethod
@@ -106,9 +108,13 @@ class PlaylistItem(BaseItem):
         raise DeprecationWarning("Can't create playlist from youtube_id automatically")
 
     def update_from_youtube(self):
-        vids = Video.select().join(Playlist).where(Video.playlist_id == self.id)
+        vids = (
+            VideoModel.select().join(Playlist).where(VideoModel.playlist_id == self.id)
+        )
         for vid in vids:
             vid.update_from_yt()
 
     def videos(self):
-        return Video.select().join(Playlist).where(Video.playlist_id == self.id)
+        return (
+            VideoModel.select().join(Playlist).where(VideoModel.playlist_id == self.id)
+        )

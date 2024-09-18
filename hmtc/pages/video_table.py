@@ -1,8 +1,8 @@
-from typing import cast, Callable
+from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import (
-    Video,
+    Video as VideoModel,
     Channel,
     Series,
     YoutubeSeries,
@@ -29,6 +29,8 @@ def VideoTable(
     selected_youtube_series: dict = None,
     playlists: list = [],
     selected_playlist: dict = None,
+    albums: list = [],
+    selected_album: dict = None,
     event_link_clicked: Callable = None,
     event_delete_video_item: Callable = None,
 ):
@@ -46,6 +48,7 @@ def save_video_item(dict_of_items):
     selected_series = dict_of_items["selectedSeries"]
     selected_youtube_series = dict_of_items["selectedYoutubeSeries"]
     selected_playlist = dict_of_items["selectedPlaylist"]
+    selected_album = dict_of_items["selectedAlbum"]
 
     channel = None
     playlist = None
@@ -94,7 +97,19 @@ def save_video_item(dict_of_items):
             logger.debug(
                 f"Playlist id is different. Need to update to {selected_playlist['title']} from {video_item.playlist.title}"
             )
-    new_vid = Video.get_by_id(item["id"])
+
+    if selected_album["id"] is not None:
+        logger.debug(f"Selected album: {selected_album}")
+        if video_item.album is None:
+            logger.debug(
+                f"Album is None. Need to update it to {selected_album['title']}"
+            )
+            album = AlbumModel.get_by_id(selected_album["id"])
+        elif selected_album["id"] != video_item.album.id:
+            logger.debug(
+                f"Album id is different. Need to update to {selected_album['title']} from {video_item.album.title}"
+            )
+    new_vid = VideoModel.get_by_id(item["id"])
     new_vid.duration = edited_item["duration"]
     new_vid.jellyfin_id = edited_item["jellyfin_id"]
     if edited_item["episode"] is not None:
@@ -108,28 +123,29 @@ def save_video_item(dict_of_items):
         new_vid.playlist = playlist
     if series is not None:
         new_vid.series = series
+    if album is not None:
+        new_vid.album = album
 
     new_vid.save()
     force_update_counter.set(force_update_counter.value + 1)
 
 
 def view_sections(router, item):
-
     router.push(f"/sections/{item['id']}")
 
 
 @solara.component
 def Page():
     base_query = (
-        Video.select(
-            Video.id,
-            Video.contains_unique_content,
-            Video.upload_date,
-            Video.episode,
-            Video.title,
-            Video.youtube_id,
-            Video.duration,
-            Video.jellyfin_id,
+        VideoModel.select(
+            VideoModel.id,
+            VideoModel.contains_unique_content,
+            VideoModel.upload_date,
+            VideoModel.episode,
+            VideoModel.title,
+            VideoModel.youtube_id,
+            VideoModel.duration,
+            VideoModel.jellyfin_id,
             Channel,
             Series,
             Playlist,
@@ -137,15 +153,15 @@ def Page():
             AlbumModel,
         )
         .join(Channel, peewee.JOIN.LEFT_OUTER)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Series)
-        .switch(Video)
+        .switch(VideoModel)
         .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Playlist, peewee.JOIN.LEFT_OUTER)
-        .switch(Video)
+        .switch(VideoModel)
         .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
-        .where(Video.contains_unique_content == True)
+        .where(VideoModel.contains_unique_content == True)
     )
     router = solara.use_router()
     MySidebar(router)
@@ -169,6 +185,11 @@ def Page():
         for playlist in Playlist.select().order_by(Playlist.title)
     ]
 
+    albums = [
+        {"id": album.id, "title": album.title}
+        for album in AlbumModel.select().order_by(AlbumModel.title)
+    ]
+
     # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
     items = df.to_dict("records")
     with solara.Column(classes=["main-container"]):
@@ -182,6 +203,8 @@ def Page():
             selected_series={"id": None, "name": None},
             youtube_serieses=youtube_serieses,
             selected_youtube_series={"id": None, "title": None},
+            albums=albums,
+            selected_album={"id": None, "title": None},
             playlists=playlists,
             selected_playlist={"id": None, "title": None},
             event_link_clicked=lambda x: view_sections(router, x),

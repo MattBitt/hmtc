@@ -13,7 +13,7 @@ from hmtc.models import (
     Section,
     Series,
     TodoTable,
-    Video,
+    Video as VideoModel,
     get_file_type,
 )
 
@@ -24,7 +24,7 @@ def test_empty_db():
     assert len(Playlist.select()) == 0
     assert len(Channel.select()) == 0
     assert len(Series.select()) == 0
-    assert len(Video.select()) == 0
+    assert len(VideoModel.select()) == 0
     assert len(File.select()) == 0
     assert len(Section.select()) == 0
 
@@ -41,7 +41,7 @@ def test_series():
     s, created = Series.get_or_create(
         name="test", start_date="2020-01-01", end_date="2020-12-31"
     )
-    assert created is True
+    assert created == True
     assert s.name == "test"
 
     all_series = Series.select()
@@ -67,7 +67,7 @@ def test_channel():
         name="test", url="www.yahoo.com", youtube_id="asbsdrjgkdlsa;"
     )
     assert c.name == "test"
-    assert created is True
+    assert created == True
 
     c.delete_instance()
 
@@ -77,7 +77,7 @@ def test_playlist():
     p, created = Playlist.get_or_create(
         title="test", url="www.yahoo.com/playlists", youtube_id="PLTvadsfadghas"
     )
-    assert created is True
+    assert created == True
     assert p.title == "test"
 
     all_playlist = Playlist.select()
@@ -87,7 +87,7 @@ def test_playlist():
 
 
 def test_video():
-    v = Video.create(
+    v = VideoModel.create(
         youtube_id="asbsdrjgkdlsa;",
         title="test",
         episode="",
@@ -99,15 +99,15 @@ def test_video():
     )
     assert v.title == "test"
     try:
-        Video.create(title="test")
+        VideoModel.create(title="test")
 
     except peewee.IntegrityError:
-        assert len(Video.select()) == 1
+        assert len(VideoModel.select()) == 1
 
-    v3, created3 = Video.get_or_create(title="test")
+    v3, created3 = VideoModel.get_or_create(title="test")
     assert v3.title == "test"
     assert created3 is False
-    assert len(Video.select()) == 1
+    assert len(VideoModel.select()) == 1
     v.my_delete_instance()
 
 
@@ -228,7 +228,7 @@ def test_add_poster_to_playlist(test_image_filename):
 
 @pytest.mark.xfail
 def test_add_poster_to_video(test_image_filename):
-    v = Video.create(youtube_id="asdfasdfewr", title="test")
+    v = VideoModel.create(youtube_id="asdfasdfewr", title="test")
     logger.debug(f"Video: {v.title}")
     logger.debug(f"{test_image_filename}")
     v.add_file(filename=test_image_filename, youtube_id="asdfasdfewr")
@@ -238,7 +238,7 @@ def test_add_poster_to_video(test_image_filename):
 
 @pytest.mark.xfail
 def test_add_file(test_video_filename):
-    vid = Video.create(youtube_id="asdfasdfewr")
+    vid = VideoModel.create(youtube_id="asdfasdfewr")
     vid.add_file(filename=test_video_filename, youtube_id="asdfasdfewr")
 
     assert vid is not None

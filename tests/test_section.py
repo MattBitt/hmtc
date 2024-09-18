@@ -1,6 +1,4 @@
-import pytest
-
-from hmtc.mods.section import Section, SectionManager
+from hmtc.schemas.section import Section, SectionManager
 
 # class Video:
 #     def __init__(self, id, duration):

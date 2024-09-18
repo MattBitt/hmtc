@@ -26,7 +26,6 @@ def ScoreCard(label, value):
 
 @solara.component
 def FilteredVideosStats(label="Video Stats....", items=[]):
-
     total = len(items)
     if total == 0:
         with solara.Card(title=label):
@@ -234,7 +233,6 @@ def Page():
     )
 
     with solara.Column(classes=["main-container", "mb-10"]):
-
         PageHeader()
         if refreshing.value:
             solara.SpinnerSolara()

@@ -1,6 +1,6 @@
 import solara
 import solara.lab
-from typing import Any, Dict, List, Optional, cast
+from typing import List
 import reacton.ipyvuetify as v
 
 

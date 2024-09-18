@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
-from uuid import uuid4
 
 from loguru import logger
 
@@ -97,12 +96,10 @@ class SectionManager:
     ##### definitely used functions (9/13/24)
     @property
     def sections(self):
-
         return self._sections
 
     @staticmethod
     def from_video(video) -> "SectionManager":
-
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
             SectionTable.select()

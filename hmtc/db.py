@@ -16,7 +16,6 @@ from hmtc.models import (
     EpisodeNumberTemplate,
     File,
     Playlist,
-    PlaylistAlbum,
     Post,
     Section,
     Series,
@@ -56,7 +55,6 @@ def create_tables(db, download_info=False):
             User,
             UserInfo,
             Post,
-            PlaylistAlbum,
             Channel,
             TodoTable,
             YoutubeSeries,
@@ -87,7 +85,6 @@ def drop_tables(db):
             User,
             UserInfo,
             Post,
-            PlaylistAlbum,
             Channel,
             TodoTable,
             YoutubeSeries,
@@ -239,7 +236,6 @@ def download_playlist_videos():
 
 
 def is_db_empty():
-
     vids = Video.select().count()
     logger.debug(f"DB currently has: {vids} Videos")
     return vids < 10

@@ -12,3 +12,7 @@ docker_save:
 deploy:
 	docker image tag hmtc-app:latest mattsbitt/hmtc:latest
 	docker save mattsbitt/hmtc:latest | ssh -C root@192.168.0.202 docker load
+cleanup:
+	ruff check --config hmtc/config/ruff.toml . --fix
+	black .
+

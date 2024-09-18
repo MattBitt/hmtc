@@ -1,19 +1,13 @@
-import plotly
 import solara
 import solara.lab
 import peewee
-from typing import Any, Dict, List, Optional, cast
-import ipyvuetify
+from typing import Any, Dict, Optional, cast
 import pandas as pd
-import traitlets
-import reacton.ipyvuetify as v
-from loguru import logger
-from hmtc.models import Video, Channel, Series, YoutubeSeries, Playlist
+from hmtc.models import VideoModel, Channel, Series, YoutubeSeries, Playlist
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.cross_filter.filter_report import FilterReport
 from hmtc.components.cross_filter.select import CrossFilterSelect
 from hmtc.components.cross_filter.dataframe import FilteredDataFrame
-from functools import lru_cache
 
 
 # Memoized sorting function
@@ -25,38 +19,37 @@ def memoized_sort(data, column, ascending):
 
 
 base_query = (
-    Video.select(
-        Video.upload_date,
+    VideoModel.select(
+        VideoModel.upload_date,
         YoutubeSeries.title.alias("yts_title"),
-        Video.episode,
-        Video.title,
-        Video.youtube_id,
-        Video.duration,
+        VideoModel.episode,
+        VideoModel.title,
+        VideoModel.youtube_id,
+        VideoModel.duration,
         Channel.name.alias("channel_name"),
         Series.name.alias("series_name"),
         Playlist.title.alias("playlist_title"),
-        Video.id.alias("video_id"),
+        VideoModel.id.alias("video_id"),
         Series.id.alias("series_id"),
         Channel.id.alias("channel_id"),
         Playlist.id.alias("playlist_id"),
-        Video.contains_unique_content,
+        VideoModel.contains_unique_content,
     )
     .join(Channel, peewee.JOIN.LEFT_OUTER)
-    .switch(Video)
+    .switch(VideoModel)
     .join(Series)
-    .switch(Video)
+    .switch(VideoModel)
     .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
-    .switch(Video)
+    .switch(VideoModel)
     .join(Playlist, peewee.JOIN.LEFT_OUTER)
 )
 
 
 @solara.component
 def Page():
-
     MySidebar(router=solara.use_router())
 
-    mydata = solara.use_reactive(
+    solara.use_reactive(
         [
             {"name": "fdasewr", "age": 123},
             {"name": "fdsfdasewr", "age": 23},
@@ -68,7 +61,7 @@ def Page():
     )
 
     mydata2 = solara.use_reactive(
-        list(base_query.order_by(Video.upload_date.desc()).dicts())
+        list(base_query.order_by(VideoModel.upload_date.desc()).dicts())
     )
 
     column, set_column = solara.use_state(cast(Optional[str], None))
@@ -94,13 +87,12 @@ def Page():
         )
     ]
     if column is not None:
-
         sorted_data = memoized_sort(mydata2.value, column, ascending)
         # Convert back to list of dictionaries
         mydata2.value = [dict(d) for d in sorted_data]
 
     df = pd.DataFrame(mydata2.value)
-    cross_filter = solara.provide_cross_filter()
+    solara.provide_cross_filter()
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Row(gap=16):

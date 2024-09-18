@@ -8,8 +8,8 @@ from hmtc.assets.colors import Colors
 from hmtc.components.video.edit_modal import VideoEditModal
 from hmtc.components.video.series_popover import VideoSeriesPopover
 from hmtc.config import init_config
-from hmtc.models import Video
-from hmtc.mods.file import FileManager
+from hmtc.models import VideoModel
+from hmtc.schemas.file import FileManager
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.youtube_functions import download_video_file
 
@@ -52,7 +52,7 @@ def download_video(video_item):
         video_item.value.youtube_id, WORKING, progress_hook=my_hook
     )
 
-    vid = Video.select().where(Video.id == video_item.value.id).get()
+    vid = VideoModel.select().where(VideoModel.id == video_item.value.id).get()
     for file in files:
         logger.debug(f"Processing files in download_video of the list item {file}")
         FileManager.add_path_to_video(file, vid)
@@ -279,7 +279,7 @@ def VideoListItem(
         else:
             logger.debug(f"No args[0] in on_click_series {args}")
 
-    if refreshing.value is True:
+    if refreshing.value == True:
         with solara.Column():
             solara.SpinnerSolara()
             solara.Info(f"Refreshing {video_item.value.title}")
@@ -287,7 +287,6 @@ def VideoListItem(
 
     elif video_item.value.duration is None:
         with solara.Column():
-
             solara.Error("Please update video information from YouTube")
             has_info = False
             has_video = False
@@ -319,7 +318,6 @@ def VideoListItem(
                     return
 
             if video_item.value.contains_unique_content:
-
                 with solara.Success():
                     solara.Text(f"## {video_item.value.title[:80]}")
                     if video_item.value.episode and video_item.value.youtube_series:
@@ -378,7 +376,7 @@ def VideoListItem(
 
         if edit:
             logger.debug(f"Opening edit modal for {video_item.value.title}")
-            if isinstance(video_item.value, Video):
+            if isinstance(video_item.value, VideoModel):
                 logger.error(
                     "If this doesn't show up in the logs, delete this code 8-21-24 🥦🥦🥦🥦"
                 )

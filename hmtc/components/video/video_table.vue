@@ -20,16 +20,25 @@
       :single-expand="true"
       expanded.sync="expanded"
       item-key="title"
+      @pagination="writeLog"
+      @click:row="handleClick"
       show-expand
     >
-      <template v-slot:top>
+      <template v-slot:top="{ pagination, options, updateOptions }">
+        <v-data-footer
+          :pagination="pagination"
+          :options="options"
+          @update:options="updateOptions"
+          items-per-page-text="$vuetify.dataTable.itemsPerPageText"
+        />
+
         <v-toolbar flat>
-          <v-toolbar-title>Videos</v-toolbar-title>
+          <v-toolbar-title>Videos ({{ items.length }} unique)</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="800px">
             <template v-slot:activator="{ on, attrs }">
-              <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
+              <v-btn dark class="button mb-2" v-bind="attrs" v-on="on">
                 New Item
               </v-btn>
             </template>
@@ -127,6 +136,16 @@
                         return-object
                       ></v-select
                     ></v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-select
+                        v-model="selected_album"
+                        :items="albums"
+                        item-text="title"
+                        item-value="id"
+                        label="Album"
+                        return-object
+                      ></v-select
+                    ></v-col>
                   </v-row>
                 </v-container>
               </v-card-text>
@@ -197,6 +216,7 @@
           Youtube Series: {{ item.youtube_series_title }}<br />
           Channel Name: {{ item.channel_name }}<br />
           Playlist Title: {{ item.playlist_title }}<br />
+          Album Title: {{ item.album_title }}<br />
           Unique: {{ item.contains_unique_content }}<br />
         </td>
       </template>
@@ -352,6 +372,13 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "New Item" : "Edit Item";
     },
+    categoryCount: function () {
+      return this.items.reduce((catCount, blogData) => {
+        catCount[blogData.category] = catCount[blogData.category] || 0;
+        catCount[blogData.category]++;
+        return catCount;
+      }, {});
+    },
   },
 
   watch: {
@@ -397,6 +424,10 @@ export default {
         (playlist) => playlist.title === item.playlist_title
       );
 
+      this.editedItem.album = this.albums.find(
+        (album) => album.title === item.album_title
+      );
+
       this.selected_channel = this.editedItem.channel || this.selected_channel;
 
       this.selected_series = this.editedItem.series || this.selected_series;
@@ -406,6 +437,8 @@ export default {
 
       this.selected_playlist =
         this.editedItem.playlist || this.selected_playlist;
+
+      this.selected_album = this.editedItem.album || this.selected_album;
 
       this.dialog = true;
     },
@@ -432,6 +465,7 @@ export default {
         selectedSeries: this.selected_series,
         selectedYoutubeSeries: this.selected_youtube_series,
         selectedPlaylist: this.selected_playlist,
+        selectedAlbum: this.selected_album,
       });
 
       // update the array in the front end and close the dialog box
@@ -463,12 +497,31 @@ export default {
       }
       this.close();
     },
+    writeLog(paginationObject) {
+      // this is an example of intercepting the pagination event
+      // to perform some action
+      let action;
+      console.log(paginationObject);
+      this.currentPage < paginationObject.page
+        ? (action = "forward")
+        : (action = "backguard");
+      this.currentPage = paginationObject.page;
+      console.log(action);
+      //Write code to call your backend using action...
+    },
+    // this function captures events for the data table
+    handleClick(row) {
+      // this.items.map((item, index) => {
+      //   item.selected = item === row;
+      //   this.$set(this.items, index, item);
+      // });
+      console.log(row.album_title);
+    },
   },
 };
 </script>
 <style>
-/* removes the items per page selector (doesn't work to display none)*/
-.v-application--is-ltr .v-data-footer__pagination {
-  margin-left: auto;
+.selected {
+  background-color: red;
 }
 </style>

@@ -1,15 +1,16 @@
 import os
 
-os.environ["HMTC_ENV"] = "testing"
-os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
+
 from pathlib import Path
 
 import pytest
 from loguru import logger
 
+os.environ["HMTC_ENV"] = "testing"
+os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
-from hmtc.models import Video, db_null
+from hmtc.models import Video as VideoModel, db_null
 from hmtc.utils.general import my_copy_file
 from hmtc.utils.my_logging import setup_logging
 
@@ -80,7 +81,7 @@ def test_video_filename(test_files):
 
 @pytest.fixture(scope="function")
 def video():
-    return Video.create(
+    return VideoModel.create(
         youtube_id="asbsdrjgkdlsa;",
         title="test",
         episode="",

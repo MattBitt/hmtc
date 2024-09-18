@@ -25,8 +25,7 @@ class MyJellyfinClient:
     has_active_user_session: bool = False
     play_status: str = "stopped"
 
-    def connect(self):
-
+    def __post_init__(self):
         url = config["jellyfin"]["url"]
         self.user = config["jellyfin"]["user"]
         password = config["jellyfin"]["password"]
@@ -38,8 +37,8 @@ class MyJellyfinClient:
         credentials = client.auth.credentials.get_credentials()
         try:
             s = credentials["Servers"]
-        except:
-            logger.error(f"Credential Error: {credentials}")
+        except Exception as e:
+            logger.error(f"Credential Error: {credentials} error: {e}")
             return self
 
         if s == []:
@@ -66,7 +65,7 @@ class MyJellyfinClient:
                     )
                     self.play_status = (
                         "paused"
-                        if self.session["PlayState"]["IsPaused"] is True
+                        if self.session["PlayState"]["IsPaused"] == True
                         else "playing"
                     )
                 else:
@@ -98,8 +97,8 @@ class MyJellyfinClient:
             try:
                 logger.debug("(WTF?)")
                 # item = self.session["NowPlayingQueueFullItems"][0]
-            except:
-                logger.debug("No item found in NowPlayingQueueFullItems")
+            except Exception as e:
+                logger.debug(f"No item found in NowPlayingQueueFullItems  {e}")
                 return None
 
             return {
@@ -135,11 +134,10 @@ class MyJellyfinClient:
 
 
 if __name__ == "__main__":
-    jf = MyJellyfinClient().connect()
-    print(f"connected: {jf.is_connected}")
-    # if jf.is_connected and jf.supports_media_control:
-    #     jf.load_media_item(jellyfin_id="6f6baa6a3bf619d667d5b1edb3677205")
-    #     jf.pause()
+    jf = MyJellyfinClient()
+    if jf.supports_media_control and jf.media_item is None:
+        jf.load_media_item(jellyfin_id="6f6baa6a3bf619d667d5b1edb3677205")
+
     logger.debug("Initial Pause")
     jf.play_pause()
     time.sleep(2)

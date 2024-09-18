@@ -6,7 +6,7 @@ from loguru import logger
 
 from hmtc.components.my_app_bar import MyAppBar
 from hmtc.config import init_config
-from hmtc.models import Channel, Playlist, Series, Video
+from hmtc.models import Channel, Playlist, Series, VideoModel
 from hmtc.utils.general import determine_file_object_association, read_json_file
 
 config = init_config()
@@ -85,7 +85,7 @@ def ChannelFilesCard(file, data):
 @solara.component
 def VideoFilesCard(file, data):
     video_yt_id = data["id"]
-    video = Video.get_or_none(Video.youtube_id == video_yt_id)
+    video = VideoModel.get_or_none(VideoModel.youtube_id == video_yt_id)
     color = "orange"
     if video is not None:
         color = "purple"
@@ -101,7 +101,7 @@ def VideoFilesCard(file, data):
         #     data = read_json_file(Path(downloads_path) / file)
         #     logger.debug(f"Data: {data["title"]}")
         # elif file.suffix in [".jpg", ".jpeg", ".png", ".vtt"]:
-        video = Video.get_or_none(Video.youtube_id == video_yt_id)
+        video = VideoModel.get_or_none(VideoModel.youtube_id == video_yt_id)
         if video:
             video.add_file(file)
             logger.success(f"Finished adding file {file} to video")

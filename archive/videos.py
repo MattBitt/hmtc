@@ -48,7 +48,6 @@ def SortButton(label, col_name, sort_by, sort_order, on_click):
 
 @solara.component
 def PageHeader():
-
     def sort_by_title():
         State.sort_by.set("title")
         if State.sort_order.value == "asc":
@@ -60,7 +59,6 @@ def PageHeader():
 
     with solara.Row():
         if not page_filtered.value:
-
             SeriesPopover(
                 current_series=State.series_filter.value,
                 handle_click=State.on_click_series,
@@ -122,7 +120,6 @@ class State:
         page_items = solara.reactive([])
 
     else:
-
         num_pages = solara.reactive(
             compute_number_of_pages(len(video_ids), per_page.value)
         )
@@ -187,7 +184,6 @@ class State:
 
     @staticmethod
     def refresh_page_items():
-
         logger.debug("Refreshing page contents - Videos-New")
         page = State.current_page.value
         per_page = State.per_page.value
@@ -247,13 +243,11 @@ def Page():
         State.load_page_number(new_page)
 
     with solara.Column(classes=["main-container", "mb-10"]):
-
         PageHeader()
         if refreshing.value:
             solara.SpinnerSolara()
         else:
             if State.page_items.value:
-
                 PaginationControls(
                     current_page=State.current_page,
                     num_pages=State.num_pages,

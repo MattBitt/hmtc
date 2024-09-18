@@ -15,7 +15,6 @@ def About():
 
 
 def sidebar(name="mizzle"):
-
     with solara.Sidebar():
         with solara.Card("I am in the sidebar"):
             with solara.Column():

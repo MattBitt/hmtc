@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import cast, Callable
+from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Track
@@ -31,7 +31,7 @@ def save_track(dict_of_items):
 
     try:
         track = Track.get_by_id(item["id"])
-    except Exception as e:
+    except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Track ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id

@@ -6,7 +6,7 @@ from loguru import logger
 from solara.lab import task
 
 from hmtc.config import init_config
-from hmtc.models import Video
+from hmtc.models import VideoModel
 
 # This is where the version is set for now.
 # this ensures that whatever is running
@@ -25,10 +25,10 @@ def disabled_videos_with_files():
     logger.error("This function is disabled")
     return
     query = (
-        Video.select()
+        VideoModel.select()
         .join(VideoFile)
         .where(
-            (Video.enabled is False)
+            (VideoModel.enabled is False)
             & (VideoFile.video_id.is_null(False))
             & (VideoFile.file_type.in_(["video", "audio"]))
         )
@@ -55,7 +55,7 @@ def Page():
             raise result.error
         updating.set(False)
 
-    vids_in_db = Video.select().count()
+    vids_in_db = VideoModel.select().count()
     with solara.Column():
         solara.Markdown(f"## Running Mode = {env}")
         solara.Markdown(f"## Vids in DB: {vids_in_db}")

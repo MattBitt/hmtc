@@ -10,7 +10,7 @@ from peewee import JOIN
 from solara.lab.toestand import Ref
 
 from hmtc.config import init_config
-from hmtc.models import Breakpoint, Video
+from hmtc.models import Breakpoint, VideoModel
 
 time_cursor_slider = solara.reactive(0)
 title = solara.reactive("")
@@ -28,7 +28,7 @@ UPLOAD_PATH = Path(config["paths"]["working"]) / "uploads"
 class BreakpointItem:
     id: int
     timestamp: int
-    video: Video
+    video: VideoModel
 
     @classmethod
     def from_model(cls, model):
@@ -142,9 +142,9 @@ class State:
 
     def load_video(self, video_id):
         return (
-            Video.select()
+            VideoModel.select()
             .join(Breakpoint, join_type=JOIN.LEFT_OUTER)
-            .where(Video.id == video_id)
+            .where(VideoModel.id == video_id)
             .get_or_none()
         )
 

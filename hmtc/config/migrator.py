@@ -1,4 +1,4 @@
-from playhouse.migrate import *
+from playhouse.migrate import IntegerField, migrate, PostgresqlMigrator
 from hmtc.db import (
     import_youtube_series,
     init_db,
@@ -34,7 +34,6 @@ def migration1(db, migrator):
         )
 
     else:
-
         migrate(
             migrator.add_column(table_name, column_name, youtube_series),
         )
@@ -47,7 +46,6 @@ def migration1(db, migrator):
     if column_name in [c.name for c in cols]:
         print(f"Column {column_name} already exists. Migration not possible/required")
     else:
-
         migrate(
             migrator.add_column(table_name2, column_name, youtube_series),
         )
@@ -68,7 +66,6 @@ def run_migrations(db):
 
 
 if __name__ == "__main__":
-
     config = init_config()
     config["database"]["name"] = "HMTC"
     config["database"]["user"] = "postgres"

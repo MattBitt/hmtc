@@ -455,6 +455,29 @@ class YoutubeSeries(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class Album(BaseModel):
+    title = CharField(unique=True)
+    release_date = DateField(null=True)
+    series = ForeignKeyField(Series, backref="albums", null=True)
+
+    @staticmethod
+    def get_by_title(title):
+        return Album.select().where(Album.title == title).get_or_none()
+
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "title": self.title,
+            "release_date": (
+                self.release_date.isoformat() if self.release_date else None
+            ),
+            "series_name": self.series.name if self.series else None,
+            # "video_id": self.video.id if self.video else None,
+        }
+        return new_dict
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
@@ -473,9 +496,10 @@ class Video(BaseModel):
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
     youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
+    album = ForeignKeyField(Album, backref="videos", null=True)
 
     def __repr__(self):
-        return f"VideoModel({self.title=})"
+        return f"Video({self.title=})"
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
@@ -711,25 +735,6 @@ class File(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Album(BaseModel):
-    title = CharField(unique=True)
-    release_date = DateField(null=True)
-    series = ForeignKeyField(Series, backref="albums", null=True)
-    video = ForeignKeyField(Video, backref="album", null=True)
-
-    def model_to_dict(self):
-        new_dict = {
-            "id": self.id,
-            "title": self.title,
-            "release_date": (
-                self.release_date.isoformat() if self.release_date else None
-            ),
-            "video_id": self.video.id if self.video else None,
-        }
-        return new_dict
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Track(BaseModel):
     title = CharField(null=True)
     track_number = CharField(null=True)
@@ -807,13 +812,13 @@ class BeatArtist(BaseModel):
         )
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class PlaylistAlbum(BaseModel):
-    album = ForeignKeyField(Album, backref="playlists")
-    playlist = ForeignKeyField(Playlist, backref="albums")
+# ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# class PlaylistAlbum(BaseModel):
+#     album = ForeignKeyField(Album, backref="playlists")
+#     playlist = ForeignKeyField(Playlist, backref="albums")
 
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("album", "playlist"), True),
-        )
+#     class Meta:
+#         indexes = (
+#             # Create a unique composite index on beat and Artist
+#             (("album", "playlist"), True),
+#         )

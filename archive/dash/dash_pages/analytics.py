@@ -2,7 +2,7 @@ import dash
 import pandas as pd
 from dash import html
 
-from hmtc.models import Video
+from hmtc.models import VideoModel
 
 dash.register_page(__name__)
 
@@ -20,7 +20,9 @@ def get_total_duration(df):
 
 
 def get_library_stats():
-    query = Video.select(Video.duration).where(Video.duration.is_null(False))
+    query = VideoModel.select(VideoModel.duration).where(
+        VideoModel.duration.is_null(False)
+    )
     df = pd.DataFrame([q.duration for q in query])
 
     h, m, s = get_total_duration(df)

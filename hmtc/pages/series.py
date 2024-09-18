@@ -1,9 +1,7 @@
-from typing import cast, Callable
+from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video, Series, Series, YoutubeSeries, Playlist
-from hmtc.schemas.video import VideoItem
-import peewee
+from hmtc.models import Series
 import pandas as pd
 from loguru import logger
 
@@ -30,7 +28,7 @@ def save_series(dict_of_items):
 
     try:
         series = Series.get_by_id(item["id"])
-    except Exception as e:
+    except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Series ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id

@@ -34,7 +34,6 @@ class State:
 def MySidebar(
     router,
 ):
-
     def sidebar_clicked(item):
         # need to add a check to make sure the route is existing
         router.push(item)

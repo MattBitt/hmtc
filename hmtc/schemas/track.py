@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from loguru import logger
-from hmtc.models import Track as TrackTable
+from hmtc.models import Track as TrackModel
 from hmtc.schemas.video import VideoItem
-from hmtc.mods.section import Section
-from hmtc.mods.album import Album as AlbumItem
+from hmtc.schemas.section import Section
+from hmtc.schemas.album import Album as AlbumItem
 from hmtc.config import init_config
 from hmtc.utils.ffmpeg_utils import rip_track
 from pathlib import Path
@@ -74,7 +74,7 @@ class TrackItem:
 
     def save_to_db(self):
         logger.error(f"Saving track {self}")
-        track = TrackTable(
+        track = TrackModel(
             title=self.title,
             track_number=self.track_number,
             video_id=self.video_id,

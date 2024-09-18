@@ -1,11 +1,9 @@
-from typing import cast
+from loguru import logger
+from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video, Channel, Series, YoutubeSeries, Playlist
+from hmtc.models import Video as VideoModel, Channel, Series, YoutubeSeries, Playlist
 import peewee
-import pandas as pd
-from hmtc.components.cross_filter.filter_report import FilterReport
-from hmtc.components.cross_filter.select import CrossFilterSelect
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 
@@ -14,34 +12,40 @@ def Sandbox(items: list = []):
     pass
 
 
+@solara.component_vue("../components/album/album_selector.vue", vuetify=True)
+def AlbumSelector(states: list = [], event_save_album: Callable = None):
+    pass
+
+
+def save_album(album):
+    logger.debug(f"Saving Album: {album}")
+
+
 @solara.component
 def Page():
-    base_query = (
-        Video.select(
-            Video.upload_date,
+    (
+        VideoModel.select(
+            VideoModel.upload_date,
             YoutubeSeries,
-            Video.episode,
-            Video.title,
-            Video.youtube_id,
-            Video.duration,
+            VideoModel.episode,
+            VideoModel.title,
+            VideoModel.youtube_id,
+            VideoModel.duration,
             Channel,
             Series,
             Playlist,
-            Video.id,
-            Video.contains_unique_content,
+            VideoModel.id,
+            VideoModel.contains_unique_content,
         )
         .join(Channel, peewee.JOIN.LEFT_OUTER)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Series)
-        .switch(Video)
+        .switch(VideoModel)
         .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Playlist, peewee.JOIN.LEFT_OUTER)
     )
     MySidebar(router=solara.use_router())
 
     with solara.Column(classes=["main-container"]):
-        jf = MyJellyfinClient()
-        jf.connect()
-        solara.Markdown("### Jellyfin Panel")
-        solara.Markdown(f"{jf.now_playing()}")
+        AlbumSelector(states=["matt", "lindsay", "walle"], event_save_album=save_album)

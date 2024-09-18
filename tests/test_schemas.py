@@ -6,7 +6,7 @@ from hmtc.schemas.todo import TodoItem
 def test_todo_schema():
     t = TodoItem(text="test", done=True, id=1)
     assert t.text == "test"
-    assert t.done is True
+    assert t.done == True
     assert t.id == 1
 
     t = TodoItem.grab_id_from_db(1)
@@ -16,7 +16,7 @@ def test_todo_schema():
     t.save_to_db()
     t = TodoItem.grab_id_from_db(1)
     assert t.text == "test"
-    assert t.done is True
+    assert t.done == True
     assert t.id == 1
 
     t.text = "New Text"

@@ -1,22 +1,14 @@
-import time
-from typing import cast, Callable
+from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video, Section, Series, YoutubeSeries
-from hmtc.mods.section import SectionManager
+from hmtc.models import Section
+from hmtc.schemas.section import SectionManager
 from hmtc.schemas.video import VideoItem
-import peewee
 import pandas as pd
 from loguru import logger
-from hmtc.components.shared.jellyfin_panel import JellyfinPanel, JellyfinSessionInfo
-from hmtc.utils.jf import (
-    jellyfin_loop_2sec,
-    jellyfin_sessions,
-    get_current_session,
-    grab_now_playing,
-)
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from pathlib import Path
+
 force_update_counter = solara.reactive(0)
 
 
@@ -63,7 +55,7 @@ def save_section(dict_of_items):
 
     try:
         section = Section.get_by_id(item["id"])
-    except Exception as e:
+    except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Section ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
@@ -81,11 +73,29 @@ def create_single_section(video_id, duration, section_type="INITIAL"):
     sm = SectionManager(video_id=video_id.id, duration=duration)
     sm.create_section(start=0, end=duration, section_type=section_type.value)
 
+@solara.component
+def VideoInfo(video):
+    with solara.Card():
+        solara.Markdown(f"Title: {video.title}")
+        solara.Markdown(f"Duration: {video.duration}")
+        solara.Markdown(f"Jellyfin ID: {video.jellyfin_id}")
+
+@solara.component
+def AlbumInfo(video):
+    with solara.Card():
+        if video.album is None:
+            with solara.Column():
+                solara.Markdown("No Album Found")
+                solara.Button("Create New", on_click=lambda: logger.debug("Create Album"), classes=["button"])
+            with solara.Column():
+                solara.Button(f"Select Existing", on_click=lambda: logger.debug("Select Album"), classes=["button"])
+        else:
+            solara.Markdown(f"Album: {video.album.title}")
+            solara.Markdown(f"Album ID: {video.album_id}")
+
 
 @solara.component
 def NewJellyfinPanel(jf, video):
-   
-    
     def local_load_item():
         if video.jellyfin_id is None:
             logger.error("No Jellyfin ID for this video")
@@ -97,10 +107,10 @@ def NewJellyfinPanel(jf, video):
         # no media item loaded
         is_video_id_playing_in_jellyfin = False
     else:
-        is_video_id_playing_in_jellyfin = (jf.media_item["Id"] == video.jellyfin_id)
-    
-    pth = Path('./hmtc/assets/icons/jellyfin.1024x1023.png')
-    
+        is_video_id_playing_in_jellyfin = jf.media_item["Id"] == video.jellyfin_id
+
+    pth = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
+
     with solara.Card():
         solara.Image(pth, width="80px")
         solara.Markdown(f"Jellyfin Connected: {jf.is_connected}")
@@ -108,16 +118,28 @@ def NewJellyfinPanel(jf, video):
             if jf.has_active_user_session:
                 solara.Markdown(f"Jellyfin Session ID: {jf.session_id}")
                 solara.Markdown(f"Jellyfin User: {jf.user}")
-            
 
                 with solara.Row():
                     if is_video_id_playing_in_jellyfin:
                         solara.Markdown(f"Title: {jf.media_item['Name']}")
                         solara.Markdown(f"Position: {jf.position}")
-                        solara.Button(f"Play/Pause Jellyfin", on_click=jf.play_pause, classes=["button"])
-                        solara.Button(f"Pause Jellyfin", on_click=jf.pause, classes=["button"])
-                        solara.Button(f"Stop Jellyfin", on_click=jf.stop, classes=["button"])
-                solara.Button(f"Load 'This' Video", on_click=local_load_item, disabled=is_video_id_playing_in_jellyfin , classes=["button"])
+                        solara.Button(
+                            "Play/Pause Jellyfin",
+                            on_click=jf.play_pause,
+                            classes=["button"],
+                        )
+                        solara.Button(
+                            "Pause Jellyfin", on_click=jf.pause, classes=["button"]
+                        )
+                        solara.Button(
+                            "Stop Jellyfin", on_click=jf.stop, classes=["button"]
+                        )
+                solara.Button(
+                    "Load 'This' Video",
+                    on_click=local_load_item,
+                    disabled=is_video_id_playing_in_jellyfin,
+                    classes=["button"],
+                )
             else:
                 logger.debug("No active Jellyfin session found")
                 solara.Markdown("No active Jellyfin session found")
@@ -152,7 +174,6 @@ def SectionControlPanel(
         force_update_counter.set(force_update_counter.value + 1)
 
     def create_1_section():
-
         sm = SectionManager.from_video(video)
         sm.create_section(start=0, end=video.duration, section_type=section_type.value)
         force_update_counter.set(force_update_counter.value + 1)
@@ -185,7 +206,6 @@ def SectionControlPanel(
         force_update_counter.set(force_update_counter.value + 1)
 
     with solara.Column():
-
         if num_sections.value > 0:
             solara.Button(
                 "Clear All Sections", on_click=clear_all_sections, classes=["button"]
@@ -205,7 +225,6 @@ def SectionControlPanel(
 
 @solara.component
 def Page():
-
     MySidebar(solara.use_router())
 
     video_id = parse_url_args()
@@ -218,7 +237,7 @@ def Page():
         video = None
         base_query = Section.select()
 
-    jf = MyJellyfinClient().connect()
+    jf = MyJellyfinClient()
 
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 
@@ -226,13 +245,16 @@ def Page():
     items = df.to_dict("records")
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
-        if video is not None:
-            solara.Markdown(f"Video: {video.title}")
-            SectionControlPanel(video=video)
-        with solara.Card():
-            NewJellyfinPanel(jf, video=video)
+        with solara.Row():
+            if video is not None:
+                with solara.Column():
+                    with solara.Row():
+                        VideoInfo(video=video)
+                    with solara.Row():
+                        AlbumInfo(video=video)
+                SectionControlPanel(video=video)
+                NewJellyfinPanel(jf, video=video)
 
-        
         SectionTable(
             items=items,
             is_connected=jf.is_connected,

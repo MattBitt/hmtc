@@ -157,12 +157,10 @@ def add_video_to_db():
 
 @solara.component
 def Page():
-
     MySidebar(solara.use_router())
 
     with solara.Column(classes=["main-container"]):
         with solara.Column():
-
             AddNewVideo()
             ChannelInfo()
             VideoInfo()

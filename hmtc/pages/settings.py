@@ -9,12 +9,12 @@ import os
 from hmtc.components.shared.progress_slider import SimpleProgressBar
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Channel
-from hmtc.models import Video as VideoTable
+from hmtc.models import Video as VideoModel, Album as AlbumModel
 from hmtc.schemas.video import VideoItem
-from hmtc.mods.album import Album
-from hmtc.mods.section import SectionManager, Section
+from hmtc.schemas.album import Album
+from hmtc.schemas.section import SectionManager, Section
 from hmtc.config import init_config
-from hmtc.mods.track import TrackItem
+from hmtc.schemas.track import TrackItem
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
@@ -23,7 +23,9 @@ STORAGE = Path(config["paths"]["storage"])
 
 
 def import_tracks():
+
     track_file = MEDIA_INFO / "tracks/track_info.csv"
+
     with open(track_file, "r", encoding="utf") as f:
         csv_file = csv.DictReader(f)
         tracks = []
@@ -52,8 +54,8 @@ class PageState:
         logger.debug("Downloading empty video info")
         PageState.updating.set(True)
         vids = (
-            VideoTable.select()
-            .where(VideoTable.duration.is_null())
+            VideoModel.select()
+            .where(VideoModel.duration.is_null())
             .limit(PageState.num_to_download.value)
         )
         logger.info(f"Updating {len(vids)} videos")
@@ -177,23 +179,30 @@ class PageState:
         vids = VideoItem.get_vids_with_no_album()
         logger.debug(f"Found {len(vids)} videos with no album")
         for v in vids:
-            if v.youtube_series is not None and v.episode is not None:
+            if v.youtube_series is not None and (
+                v.episode != "" and v.episode is not None
+            ):
                 album_info = dict(
-                    title=v.youtube_series.title + " " + str(v.episode),
+                    title=v.youtube_series.title + " " + str(v.episode).zfill(3),
                     release_date=v.upload_date,
-                    video_id=v.id,
-                    tracks=[],
+                    series=v.series if v.series else None,
                 )
                 album = Album(**album_info)
                 album.create_album()
+                new_album = AlbumModel.get_by_title(album.title)
+                vid = VideoModel.get_by_id(v.id)
 
+                vid.album = new_album
+                vid.save()
                 logger.debug(f"Created Album {album} for {v}")
+        logger.debug(
+            "Finished creating albums Videos with no album, a YT series, and an episode number"
+        )
 
     @staticmethod
     def import_track_info():
         grouped_tracks = import_tracks()
         for id, tracks in grouped_tracks:
-
             video = VideoItem.get_by_youtube_id(id)
             if video:
                 album = Album.grab_for_video(video.id)
@@ -217,7 +226,6 @@ class PageState:
 
     @staticmethod
     def create_tracks_from_sections():
-
         for sect in Section.get_all():
             vid = VideoItem.get_by_id(sect.video_id)
             album = VideoItem.get_album(video_id=vid.id)
@@ -258,7 +266,6 @@ class PageState:
 @solara.component
 def OldControls():
     with solara.Card("Use at your own peril"):
-
         solara.InputInt(
             label="Number of Videos to Download",
             value=PageState.num_to_download,
@@ -292,13 +299,11 @@ status = solara.reactive("")
 
 @solara.component
 def Page():
-
     MySidebar(
         router=solara.use_router(),
     )
 
     with solara.Column(classes=["main-container"]):
-
         if PageState.updating.value:
             with solara.Card():
                 solara.Text("Updating Videos")

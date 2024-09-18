@@ -9,7 +9,7 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Playlist, Series, Video
+from hmtc.models import Playlist, Series, Video as VideoModel
 
 title = "Library Stats"
 
@@ -132,11 +132,14 @@ def StatsGraphs(on_click: Callable[[dict], None]):
     plists = (
         Playlist.select(
             Playlist.title,
-            fn.Sum(Video.duration).alias("duration"),
+            fn.Sum(VideoModel.duration).alias("duration"),
         )
-        .join(Video)
+        .join(VideoModel)
         .where(
-            (Video.duration.is_null(False) & (Video.contains_unique_content == True))
+            (
+                VideoModel.duration.is_null(False)
+                & (VideoModel.contains_unique_content == True)
+            )
         )
         .group_by(Playlist)
     )
@@ -144,11 +147,14 @@ def StatsGraphs(on_click: Callable[[dict], None]):
     series = (
         Series.select(
             Series.name,
-            fn.Sum(Video.duration).alias("duration"),
+            fn.Sum(VideoModel.duration).alias("duration"),
         )
-        .join(Video)
+        .join(VideoModel)
         .where(
-            (Video.duration.is_null(False) & (Video.contains_unique_content == True))
+            (
+                VideoModel.duration.is_null(False)
+                & (VideoModel.contains_unique_content == True)
+            )
         )
         .group_by(Series)
     )

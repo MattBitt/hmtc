@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 import dash_player
 from dash import html
 
-from hmtc.models import File, Section, Video
+from hmtc.models import File, Section, VideoModel
 
 dash.register_page(__name__, path_template="/video/<video_id>")
 
@@ -97,9 +97,9 @@ def layout(video_id=None):
     if video_id is None or video_id == "None":
         return html.Div("No video selected")
     video = (
-        Video.select(
-            Video.title,
-            Video.id,
+        VideoModel.select(
+            VideoModel.title,
+            VideoModel.id,
             File.filename,
             File.extension,
             File.local_path,
@@ -108,9 +108,9 @@ def layout(video_id=None):
             Section.section_type,
         )
         .join(Section)
-        .switch(Video)
+        .switch(VideoModel)
         .join(File)
-        .where(Video.id == video_id)
+        .where(VideoModel.id == video_id)
         .get()
     )
 

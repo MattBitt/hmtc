@@ -5,7 +5,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.my_app_bar import MyAppBar
-from hmtc.models import File, Playlist, PlaylistVideo, Series, Video, VideoFile
+from hmtc.models import File, Playlist, PlaylistVideo, Series, VideoModel, VideoFile
 from hmtc.pages import config
 
 app_title = solara.reactive("HMTC - ")
@@ -27,27 +27,27 @@ series = solara.reactive([x for x in Series.select()])
 
 def get_video(video_id):
     query = (
-        Video.select()
+        VideoModel.select()
         .join(PlaylistVideo)
         .join(Playlist)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Series)
-        .switch(Video)
+        .switch(VideoModel)
         .join(VideoFile)
         .join(File)
-        .where(Video.id == video_id)
+        .where(VideoModel.id == video_id)
     )
     return query.get()
 
 
 def get_videos(order_by=None, sort_direction=None):
     query = (
-        Video.select(Video.id, Video.title)
+        VideoModel.select(VideoModel.id, VideoModel.title)
         .join(PlaylistVideo)
         .join(Playlist)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Series)
-        .switch(Video)
+        .switch(VideoModel)
         .join(VideoFile)
         .join(File)
         .where(VideoFile.file_type == "poster")
@@ -72,11 +72,11 @@ class VideoFilters:
 @solara.component
 def VideoDetail(video_id):
     loading, set_loading = solara.use_state(True)
-    video = solara.reactive(Video.get(Video.id == video_id))
+    video = solara.reactive(VideoModel.get(VideoModel.id == video_id))
 
     if loading is True:
         solara.Div("Loading...")
-        video = Video.get(Video.id == video_id)
+        video = VideoModel.get(VideoModel.id == video_id)
         set_loading(False)
     else:
         with solara.Column():
@@ -99,7 +99,7 @@ def VideoDetail(video_id):
 @solara.component
 def VideoCard(video_id):
     loading, set_loading = solara.use_state(True)
-    vid = Video.get(Video.id == video_id)
+    vid = VideoModel.get(VideoModel.id == video_id)
     if loading and vid is not None:
         solara.SpinnerSolara()
         set_loading(False)
@@ -179,13 +179,13 @@ def VideosGalleryComponent(init_query=None):
         # logger.debug("Reloading...")
         # set_loading(True)
         set_current_page(1)
-        query = get_videos().where(Video.title.contains(filter))
+        query = get_videos().where(VideoModel.title.contains(filter))
         set_number_videos(query.count())
         set_number_pages(
             calc_number_pages(query.count(), int(config.get("GENERAL", "PER_PAGE")))
         )
         set_video_ids(
-            (query.order_by(Video.upload_date.asc())).paginate(
+            (query.order_by(VideoModel.upload_date.asc())).paginate(
                 (int(current_page)), int(config.get("GENERAL", "PER_PAGE"))
             )
         )
@@ -198,7 +198,7 @@ def VideosGalleryComponent(init_query=None):
             # query = get_videos()
         else:
             if filter:
-                set_query(query.where(Video.title.contains(filter)))
+                set_query(query.where(VideoModel.title.contains(filter)))
             set_number_videos(query.count())
             set_number_pages(
                 calc_number_pages(number_videos, int(config.get("GENERAL", "PER_PAGE")))
@@ -252,7 +252,7 @@ def VideosGalleryComponent(init_query=None):
 
 @solara.component
 def VideoDetailCard(video_id):
-    video = solara.use_reactive(Video.get(Video.id == video_id))
+    video = solara.use_reactive(VideoModel.get(VideoModel.id == video_id))
 
     if video.value is not None:
         vid = video.value
@@ -274,17 +274,17 @@ def VideoDetailCard(video_id):
 @solara.component
 def VideosView():
     query = (
-        Video.select()
+        VideoModel.select()
         .join(PlaylistVideo)
         .join(Playlist)
-        .switch(Video)
+        .switch(VideoModel)
         .join(Series)
         .order_by("upload_date")
         # .limit(15)
     )
 
     query = query.where(
-        Video.series.in_(
+        VideoModel.series.in_(
             Series.select().where(Series.name.in_([n.name for n in series.value]))
         )
     )

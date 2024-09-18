@@ -4,7 +4,7 @@ from solara.lab import task
 from hmtc.components.multi_select import MultiSelect
 from hmtc.components.single_select import SingleSelect
 from hmtc.config import init_config
-from hmtc.models import Playlist, Series, Video
+from hmtc.models import Playlist, Series, VideoModel
 
 config = init_config()
 WORKING = config["paths"]["working"]
@@ -149,14 +149,14 @@ def TitleTextFilter():
 
 def get_sort_method():
     sort_mapping = {
-        ("upload_date", "asc"): Video.upload_date.asc(),
-        ("upload_date", "desc"): Video.upload_date.desc(),
-        ("title", "asc"): Video.title.asc(),
-        ("title", "desc"): Video.title.desc(),
-        ("duration", "asc"): Video.duration.asc(),
-        ("duration", "desc"): Video.duration.desc(),
-        ("added_date", "asc"): Video.created_at.asc(),
-        ("added_date", "desc"): Video.created_at.desc(),
+        ("upload_date", "asc"): VideoModel.upload_date.asc(),
+        ("upload_date", "desc"): VideoModel.upload_date.desc(),
+        ("title", "asc"): VideoModel.title.asc(),
+        ("title", "desc"): VideoModel.title.desc(),
+        ("duration", "asc"): VideoModel.duration.asc(),
+        ("duration", "desc"): VideoModel.duration.desc(),
+        ("added_date", "asc"): VideoModel.created_at.asc(),
+        ("added_date", "desc"): VideoModel.created_at.desc(),
     }
     if sort_by.value not in ["upload_date", "title", "duration", "added_date"]:
         sort_by.set("upload_date")
@@ -185,11 +185,11 @@ def Page():
         SeriesFilterCard()
         PlaylistFilterCard()
 
-    query = Video.select()
+    query = VideoModel.select()
     if no_info_videos.value:
-        query = query.where(Video.title.is_null(True))
+        query = query.where(VideoModel.title.is_null(True))
     else:
-        query = query.where(Video.title.is_null(False))
+        query = query.where(VideoModel.title.is_null(False))
 
     if title_query.value:
         if title_query.value.startswith("https://www.youtube.com/watch?v="):
@@ -198,8 +198,8 @@ def Page():
             )
 
         query = query.where(
-            (Video.title.contains(title_query.value))
-            | (Video.youtube_id.contains(title_query.value))
+            (VideoModel.title.contains(title_query.value))
+            | (VideoModel.youtube_id.contains(title_query.value))
         )
 
     query = query.order_by(get_sort_method())

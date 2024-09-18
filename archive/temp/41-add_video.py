@@ -1,6 +1,6 @@
 import solara
 
-from hmtc.models import Video
+from hmtc.models import VideoModel
 
 yt_id = solara.reactive("")
 
@@ -8,7 +8,7 @@ yt_id = solara.reactive("")
 @solara.component
 def Page():
     def add_video():
-        Video.create_from_yt_id(yt_id.value)
+        VideoModel.create_from_yt_id(yt_id.value)
 
     with solara.Card():
         solara.InputText(

@@ -1,12 +1,11 @@
 import solara
 from loguru import logger
 
-from hmtc.mods.album import Album
+from hmtc.schemas.album import Album
 
 
 @solara.component
 def AlbumInfo(video):
-
     album = solara.reactive(None)
     album.set(Album.grab_for_video(video.id))
 
@@ -15,8 +14,9 @@ def AlbumInfo(video):
         album.set(None)
 
     def create_album():
-        Album.create_for_video(video)
-        album.set(Album.grab_for_video(video.id))
+        # Album.create_for_video(video)
+        # album.set(Album.grab_for_video(video.id))
+        logger.debug("Album created")
 
     def update_album():
         logger.debug("Updating Album")

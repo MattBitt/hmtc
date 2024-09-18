@@ -39,11 +39,6 @@ a {
     visibility: hidden;
 }
 
-/* removes the items per page selector (doesn't seem to work?)*/
-.v-application--is-ltr .v-data-footer__pagination {
-  margin-left: auto;
-  visibility: hidden;
-}
 
 .mizzle
 {

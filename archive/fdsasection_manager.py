@@ -1,6 +1,6 @@
 from loguru import logger
 
-from hmtc.models import Section, Video
+from hmtc.models import Section, VideoModel
 
 
 class SectionManager:
@@ -13,7 +13,7 @@ class SectionManager:
     @property
     def section_list(self):
         self.sections = (
-            Section.select().join(Video).where(Section.video_id == self.video.id)
+            Section.select().join(VideoModel).where(Section.video_id == self.video.id)
         )
         return sorted(self.sections, key=lambda d: d.ordinal)
 
