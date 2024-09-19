@@ -17,7 +17,7 @@
       :search="search"
       :items-per-page="30"
       class="elevation-1"
-      item-key="title"
+      item-key="id"
     >
       <template v-slot:top>
         <v-toolbar flat>
@@ -94,7 +94,11 @@
           </v-dialog>
         </v-toolbar>
       </template>
-
+      <template v-slot:item.numVideos="{ item }">
+        <v-chip color="primary" dark>
+          {{ item.videos.length }}
+        </v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil
@@ -112,59 +116,71 @@
 
 <script>
 export default {
-  data: () => ({
-    dialog: false,
-    dialogDelete: false,
-    sortBy: "title",
-    sortDesc: true,
-    search: "",
-    headers: [
-      { text: "ID", value: "id", align: "start", width: "5%" },
-      {
-        text: "Title",
-        value: "title",
-        align: "start",
-        width: "40%",
-      },
-      { text: "Video ID", value: "video_id", filterable: false },
-      {
-        text: "Release Date",
-        value: "release_date",
-        filterable: false,
-        width: "10%",
-      },
+  data() {
+    return {
+      dialog: false,
+      dialogDelete: false,
+      sortBy: "title",
+      sortDesc: true,
+      search: "",
+      headers: [
+        { text: "ID", value: "id", align: "start", width: "5%" },
+        {
+          text: "Title",
+          value: "title",
+          align: "start",
+          width: "40%",
+        },
+        {
+          text: "Num Videos",
+          value: "numVideos",
+          filterable: false,
+          sortable: false,
+        },
 
-      // { text: 'Unique', value: 'contains_unique_content', filterable: false },
-      { text: "Actions", value: "actions", sortable: false },
-    ],
+        {
+          text: "Release Date",
+          value: "release_date",
+          filterable: false,
+          width: "10%",
+        },
 
-    items: [
-      {
+        // { text: 'Unique', value: 'contains_unique_content', filterable: false },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+
+      items: [
+        {
+          title: "Album Name",
+          video_id: 0,
+          release_date: "2021-01-01",
+          id: 1168487,
+        },
+      ],
+
+      editedIndex: -1,
+      editedItem: {
         title: "Album Name",
         video_id: 0,
         release_date: "2021-01-01",
-        id: 1168487,
+        id: -1,
       },
-    ],
-
-    editedIndex: -1,
-    editedItem: {
-      title: "Album Name",
-      video_id: 0,
-      release_date: "2021-01-01",
-      id: -1,
-    },
-    defaultItem: {
-      title: "Album Name",
-      video_id: 0,
-      release_date: "2021-01-01",
-      id: -1,
-    },
-  }),
+      defaultItem: {
+        title: "Album Name",
+        video_id: 0,
+        release_date: "2021-01-01",
+        id: -1,
+      },
+    };
+  },
+  mounted() {},
 
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Item" : "Edit Item";
+    },
+    numVideos() {
+      return this.items.length;
     },
   },
 

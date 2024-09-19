@@ -1,9 +1,10 @@
 from typing import Callable
 import solara
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Section
+from hmtc.models import Section, Album as AlbumModel, Video as VideoModel
 from hmtc.schemas.section import SectionManager
 from hmtc.schemas.video import VideoItem
+
 import pandas as pd
 from loguru import logger
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
@@ -23,6 +24,23 @@ def parse_url_args():
         return None
 
     return router.parts[level:][0]
+
+@solara.component_vue("../components/shared/snackbar.vue", vuetify=True)
+def MySnackbar(show: bool = True, color: str = "red", message: str = "", icon: str = "mdi-check"):
+    pass
+
+
+@solara.component_vue("../components/album/album_selector.vue", vuetify=True)
+def MyAutoCompleteSelector(
+    selectedItem: str = "",
+    items: list[str] = [],
+    label: str = "",
+    icon: str = "",
+    event_save_item: Callable = None,
+    event_change_item: Callable = None,
+    event_cancel: Callable = None,
+):
+    pass
 
 
 @solara.component_vue("../components/section/section_table.vue", vuetify=True)
@@ -66,6 +84,8 @@ def save_section(dict_of_items):
     section.start = edited_item["start"]
     section.end = edited_item["end"]
     section.save()
+    # why doesn't this work? 9/15/24
+    MySnackbar(show=True, color="green", message="Section Saved", icon="mdi-check")
     force_update_counter.set(force_update_counter.value + 1)
 
 
@@ -80,18 +100,53 @@ def VideoInfo(video):
         solara.Markdown(f"Duration: {video.duration}")
         solara.Markdown(f"Jellyfin ID: {video.jellyfin_id}")
 
+
+
+
 @solara.component
 def AlbumInfo(video):
+
+    def cancel(*args):
+        logger.debug(f"Cancel button clicked {args}")
+
+
+    def change_album(album_title: str):
+        logger.debug(f"Album changed to: {album_title}")
+
+
+    def save_album(album_title):
+        logger.debug(f"Saving Album: {album_title}")
+        vid = VideoModel.select().where(VideoModel.id == video.id).get()
+        if album_title is None:
+            vid.album = None
+            vid.save()
+            logger.debug("Album removed")
+        else:
+            album = AlbumModel.select(AlbumModel, VideoModel).join(VideoModel).where(AlbumModel.title == album_title).get()
+            vid.album = album
+            vid.save()
+            logger.debug(f"Album saved")
+            MySnackbar(message="Album Saved")
+
+    # albums = [dict(title=x.title, id=x.id) for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(AlbumModel.title)]
+    albums = [x.title for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(AlbumModel.title)]
     with solara.Card():
         if video.album is None:
             with solara.Column():
                 solara.Markdown("No Album Found")
                 solara.Button("Create New", on_click=lambda: logger.debug("Create Album"), classes=["button"])
-            with solara.Column():
-                solara.Button(f"Select Existing", on_click=lambda: logger.debug("Select Album"), classes=["button"])
-        else:
-            solara.Markdown(f"Album: {video.album.title}")
-            solara.Markdown(f"Album ID: {video.album_id}")
+        with solara.Column():
+            funcs = [save_album, change_album, cancel]
+            MyAutoCompleteSelector(
+                selectedItem=video.album.title if video.album is not None else "",
+                items=albums,
+                label="Albums",
+                icon="mdi-album",
+                event_save_item=save_album,
+                event_change_item=change_album,
+                event_cancel=cancel,
+            )
+
 
 
 @solara.component
@@ -102,6 +157,9 @@ def NewJellyfinPanel(jf, video):
             return
 
         jf.load_media_item(jellyfin_id=video.jellyfin_id)
+        # this doesn't display, but I'm not sure why not. 9/15/24
+        # my guess is something to do with the timing of the page load
+        MySnackbar(message="Media Item Loaded")
 
     if jf.play_status == "stopped":
         # no media item loaded
@@ -226,7 +284,8 @@ def SectionControlPanel(
 @solara.component
 def Page():
     MySidebar(solara.use_router())
-
+    
+    MySnackbar(message="Welcome to the Page")
     video_id = parse_url_args()
     if video_id is not None:
         video = VideoItem.get_details_for_video(video_id)
@@ -236,25 +295,20 @@ def Page():
         # didn't seem to work, but didn't mess with it much
         video = None
         base_query = Section.select()
+        raise ValueError("No video selected")
 
     jf = MyJellyfinClient()
 
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
     # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
     items = df.to_dict("records")
+
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
-        with solara.Row():
-            if video is not None:
-                with solara.Column():
-                    with solara.Row():
-                        VideoInfo(video=video)
-                    with solara.Row():
-                        AlbumInfo(video=video)
-                SectionControlPanel(video=video)
-                NewJellyfinPanel(jf, video=video)
-
+        VideoInfo(video=video)
+        AlbumInfo(video=video)
+        SectionControlPanel(video=video)
+        NewJellyfinPanel(jf, video=video)
         SectionTable(
             items=items,
             is_connected=jf.is_connected,
@@ -267,3 +321,14 @@ def Page():
                 f"Looping Jellyfin at timestamp: {timestamp}"
             ),
         )
+
+
+# @solara.component
+# def Page():
+#     query = AlbumModel.select(AlbumModel.title, AlbumModel.id, VideoModel.title).join(
+#         VideoModel
+#     )
+#     MySidebar(router=solara.use_router())
+
+#     with solara.Column(classes=["main-container"]):
+#         all_albums = [x.title for x in query.order_by(AlbumModel.title)]

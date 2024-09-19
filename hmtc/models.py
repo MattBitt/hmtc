@@ -460,10 +460,6 @@ class Album(BaseModel):
     release_date = DateField(null=True)
     series = ForeignKeyField(Series, backref="albums", null=True)
 
-    @staticmethod
-    def get_by_title(title):
-        return Album.select().where(Album.title == title).get_or_none()
-
     def model_to_dict(self):
         new_dict = {
             "id": self.id,
@@ -472,7 +468,7 @@ class Album(BaseModel):
                 self.release_date.isoformat() if self.release_date else None
             ),
             "series_name": self.series.name if self.series else None,
-            # "video_id": self.video.id if self.video else None,
+            "videos": [vid.title for vid in self.videos],
         }
         return new_dict
 

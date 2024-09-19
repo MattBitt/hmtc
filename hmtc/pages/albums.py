@@ -51,7 +51,12 @@ def save_album(dict_of_items):
 
 @solara.component
 def Page():
-    base_query = AlbumModel.select()
+    base_query = (
+        AlbumModel.select(AlbumModel)
+        .join(VideoModel)
+        .distinct()
+        .order_by(AlbumModel.id.asc())
+    )
     router = solara.use_router()
     MySidebar(router)
 

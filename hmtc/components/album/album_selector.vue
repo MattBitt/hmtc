@@ -1,90 +1,58 @@
 <template>
-  <v-card class="mx-auto" color="purple-lighten-1" max-width="500">
-    <v-toolbar color="purple" flat>
-      <v-btn icon="mdi-account"></v-btn>
-
-      <v-toolbar-title class="font-weight-light">
-        User Profile
-      </v-toolbar-title>
-
-      <v-spacer></v-spacer>
-
-      <v-btn icon @click="isEditing = !isEditing">
-        <v-fade-transition leave-absolute>
-          <v-icon v-if="isEditing">mdi-close</v-icon>
-
-          <v-icon v-else>mdi-pencil</v-icon>
-        </v-fade-transition>
-      </v-btn>
-    </v-toolbar>
-
-    <v-card-text>
-      <v-text-field
-        :disabled="!isEditing"
-        base-color="white"
-        label="Name"
-      ></v-text-field>
-
+  <v-layout wrap>
+    <v-flex xs6 md6>
+      <v-subheader class="pa-0">Inital Item:{{ initialItem }}</v-subheader>
+      <v-subheader class="pa-0">Selected Item:{{ selectedItem }}</v-subheader>
+    </v-flex>
+    <v-flex xs12 md12>
       <v-autocomplete
-        :custom-filter="customFilter"
-        :disabled="!isEditing"
-        :items="states"
-        base-color="white"
-        item-title="name"
-        item-value="abbr"
-        label="State"
-      ></v-autocomplete>
-    </v-card-text>
-
-    <v-divider></v-divider>
-
-    <v-card-actions>
-      <v-spacer></v-spacer>
-
-      <v-btn :disabled="!isEditing" @click="save"> Save </v-btn>
-    </v-card-actions>
-
-    <v-snackbar
-      v-model="hasSaved"
-      :timeout="2000"
-      location="bottom left"
-      position="absolute"
-      attach
-    >
-      Your profile has been updated
-    </v-snackbar>
-  </v-card>
+        v-model="selectedItem"
+        :items="items"
+        :label="label"
+        :prepend-icon="icon"
+        clearable
+        return-object
+        no-data-text="No matching items"
+        @change="changeItem"
+      >
+      </v-autocomplete>
+      <v-btn @click="saveItem(selectedItem)" :disabled="!is_dirty">Save</v-btn>
+      <v-btn @click="cancel" :disabled="!is_dirty">Cancel</v-btn>
+    </v-flex>
+  </v-layout>
 </template>
 
 <script>
+// 9-18-24 just read something about arrow functions and how they are not good
+// when using Vue. Something wrong with how 'this' is utilized.
+// I think the below format is the way to go for now
 export default {
-  data: () => ({
-    hasSaved: false,
-    isEditing: null,
-    states: [
-      { name: "Florida", abbr: "FL", id: 1 },
-      { name: "Georgia", abbr: "GA", id: 2 },
-      { name: "Nebraska", abbr: "NE", id: 3 },
-      { name: "California", abbr: "CA", id: 4 },
-      { name: "New York", abbr: "NY", id: 5 },
-    ],
-  }),
-
+  data() {
+    return {
+      is_dirty: false,
+      icon: "mdi-null",
+      label: "nulllll",
+      initialItem: null,
+    };
+  },
   methods: {
-    customFilter(itemTitle, queryText, item) {
-      const textOne = item.raw.name.toLowerCase();
-      const textTwo = item.raw.abbr.toLowerCase();
-      const searchText = queryText.toLowerCase();
-
-      return (
-        textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
-      );
+    changeItem() {
+      console.log("changeItem");
+      if (this.selectedItem !== this.initialItem) {
+        this.is_dirty = true;
+      } else {
+        this.is_dirty = false;
+      }
+      console.log(this.selectedItem);
     },
-    save() {
-      this.isEditing = !this.isEditing;
-      this.hasSaved = true;
-      this.save_album();
+    saveItem(item) {
+      console.log("save_item");
+      console.log(item);
+      this.save_item(item);
     },
+  },
+  mounted() {
+    this.initialItem = this.selectedItem;
   },
 };
 </script>
