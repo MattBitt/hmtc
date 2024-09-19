@@ -119,6 +119,7 @@ export default {
     sortDesc: true,
     search: "",
     headers: [
+      { text: "ID", value: "id", align: "start", width: "5%" },
       {
         text: "Title",
         value: "title",
@@ -126,7 +127,12 @@ export default {
         width: "20%",
       },
       { text: "Series", value: "series", filterable: false },
-
+      {
+        text: "# Videos",
+        value: "video_count",
+        filterable: false,
+        sortable: true,
+      },
       // { text: 'Unique', value: 'contains_unique_content', filterable: false },
       { text: "Actions", value: "actions", sortable: false },
     ],

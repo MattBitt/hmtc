@@ -6,6 +6,7 @@ from pathlib import Path
 
 from loguru import logger
 from peewee import (
+    fn,
     AutoField,
     BooleanField,
     CharField,
@@ -166,11 +167,25 @@ class Series(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
+        num_vids = (
+            Video.select(fn.Count(Video.id))
+            .where(
+                (Video.series_id == self.id) & (Video.contains_unique_content == True)
+            )
+            .scalar()
+        )
+        num_yt_series = (
+            YoutubeSeries.select(fn.Count(YoutubeSeries.id))
+            .where(YoutubeSeries.series_id == self.id)
+            .scalar()
+        )
         new_dict = {
             "id": self.id,
             "name": self.name,
             "start_date": (self.start_date.isoformat() if self.start_date else None),
             "end_date": (self.end_date.isoformat() if self.end_date else None),
+            "video_count": num_vids,
+            "youtube_series_count": num_yt_series,
         }
         return new_dict
 
@@ -446,10 +461,19 @@ class YoutubeSeries(BaseModel):
         return f"YoutubeSeriesModel({self.title=})"
 
     def model_to_dict(self):
+        num_vids = (
+            Video.select(fn.Count(Video.id))
+            .where(
+                (Video.youtube_series_id == self.id)
+                & (Video.contains_unique_content == True)
+            )
+            .scalar()
+        )
         new_dict = {
             "id": self.id,
             "title": self.title,
             "series": self.series.name if self.series else None,
+            "video_count": num_vids,
         }
         return new_dict
 
@@ -468,8 +492,9 @@ class Album(BaseModel):
                 self.release_date.isoformat() if self.release_date else None
             ),
             "series_name": self.series.name if self.series else None,
-            "videos": [vid.title for vid in self.videos],
+            "video_count": self.video_count,
         }
+
         return new_dict
 
 

@@ -1,5 +1,6 @@
 from typing import Callable
 import solara
+import time
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section, Album as AlbumModel, Video as VideoModel
 from hmtc.schemas.section import SectionManager
@@ -127,9 +128,12 @@ def AlbumInfo(video):
             vid.save()
             logger.debug(f"Album saved")
             MySnackbar(message="Album Saved")
+    
+    
 
     # albums = [dict(title=x.title, id=x.id) for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(AlbumModel.title)]
     albums = [x.title for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(AlbumModel.title)]
+
     with solara.Card():
         if video.album is None:
             with solara.Column():

@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 # program version
-VERSION = "0.0.12"
+VERSION = "0.0.13"
 
 
 @solara.component_vue("./sidebar.vue")

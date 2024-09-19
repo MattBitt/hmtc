@@ -1,7 +1,9 @@
 from typing import Callable
 import solara
+from peewee import fn
+import peewee
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Series
+from hmtc.models import Series, Video as VideoModel, YoutubeSeries as YoutubeSeriesModel
 import pandas as pd
 from loguru import logger
 
@@ -45,9 +47,21 @@ def save_series(dict_of_items):
 
 @solara.component
 def Page():
-    base_query = Series.select()
     router = solara.use_router()
     MySidebar(router)
+
+    # the following doesn't really work but it almost does
+    # yts counts are 0 correctly, but if there are corresponding
+    # series, it uses that as the count instead of the actual
+
+    base_query = (
+        Series.select(
+            Series.id,
+            Series.name,
+        )
+        .group_by(Series.id, Series.name)
+        .order_by(Series.name.asc())
+    )
 
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 

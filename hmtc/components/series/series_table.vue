@@ -119,11 +119,24 @@ export default {
     sortDesc: true,
     search: "",
     headers: [
+      { text: "ID", value: "id", align: "start", width: "5%" },
       {
         text: "Name",
         value: "name",
         align: "start",
         width: "20%",
+      },
+      {
+        text: "# Videos",
+        value: "video_count",
+        filterable: false,
+        sortable: true,
+      },
+      {
+        text: "# Youtube Series",
+        value: "youtube_series_count",
+        filterable: false,
+        sortable: true,
       },
       { text: "Start Date", value: "start_date", filterable: true },
       { text: "End Date", value: "end_date", filterable: true },

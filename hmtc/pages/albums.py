@@ -1,9 +1,11 @@
 from typing import Callable
+import time
 import solara
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Video as VideoModel, Album as AlbumModel
 import pandas as pd
 from loguru import logger
+from peewee import fn
 
 force_update_counter = solara.reactive(0)
 logger.debug("Albums Page Loaded")
@@ -52,20 +54,22 @@ def save_album(dict_of_items):
 @solara.component
 def Page():
     base_query = (
-        AlbumModel.select(AlbumModel)
+        AlbumModel.select(
+            AlbumModel.id,
+            AlbumModel.title,
+            fn.COUNT(VideoModel.album_id).coerce(False).alias("video_count"),
+        )
         .join(VideoModel)
-        .distinct()
-        .order_by(AlbumModel.id.asc())
+        .group_by(AlbumModel.id, AlbumModel.title)
+        .order_by(AlbumModel.title.asc())
     )
+
     router = solara.use_router()
     MySidebar(router)
-
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
+    items = pd.DataFrame([item.model_to_dict() for item in base_query]).to_dict(
+        "records"
+    )
     with solara.Column(classes=["main-container"]):
-        # solara.Markdown(f"{force_update_counter.value}")
         AlbumTable(
             items=items,
             event_save_album=save_album,

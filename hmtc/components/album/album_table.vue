@@ -46,12 +46,6 @@
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.video_id"
-                        label="Video ID"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
                         v-model="editedItem.release_date"
                         label="Release Date"
                       ></v-text-field>
@@ -94,11 +88,7 @@
           </v-dialog>
         </v-toolbar>
       </template>
-      <template v-slot:item.numVideos="{ item }">
-        <v-chip color="primary" dark>
-          {{ item.videos.length }}
-        </v-chip>
-      </template>
+
       <template v-slot:item.actions="{ item }">
         <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil
@@ -132,10 +122,10 @@ export default {
           width: "40%",
         },
         {
-          text: "Num Videos",
-          value: "numVideos",
+          text: "# Videos",
+          value: "video_count",
           filterable: false,
-          sortable: false,
+          sortable: true,
         },
 
         {
@@ -178,9 +168,6 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Item" : "Edit Item";
-    },
-    numVideos() {
-      return this.items.length;
     },
   },
 
