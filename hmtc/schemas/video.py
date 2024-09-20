@@ -436,8 +436,10 @@ class VideoItem(BaseItem):
         vid = (
             VideoModel.select(
                 VideoModel,
-                YoutubeSeries.title,
-                Channel.name,
+                YoutubeSeries,
+                Channel,
+                AlbumModel,
+                Series,
             )
             .join(
                 YoutubeSeries,
@@ -605,7 +607,7 @@ class VideoItem(BaseItem):
     @staticmethod
     def from_orm(db_object):
         # logger.debug("Creating VideoItem from ORM DB Object: {db_object}")
-        # I'm pretty sure this is the WRONG to do this... 9/16/24
+        # I'm pretty sure this is the WRONG way to do this... 9/16/24
         return VideoItem(
             title=db_object.title,
             url=db_object.url,

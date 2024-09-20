@@ -197,8 +197,14 @@
         ></v-simple-checkbox>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon medium class="mr-2" @click="link_clicked(item)">
+        <v-icon large class="mr-2" @click="link1_clicked(item)">
           mdi-rhombus-split
+        </v-icon>
+        <v-icon medium class="mr-2" @click="link2_clicked(item)">
+          mdi-alert-rhombus
+        </v-icon>
+        <v-icon medium class="mr-2" @click="link3_clicked(item)">
+          mdi-alert-rhombus
         </v-icon>
         <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil

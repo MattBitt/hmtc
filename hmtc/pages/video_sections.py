@@ -418,12 +418,12 @@ def Page():
                         loading=False,
                         on_delete=State.on_delete,
                     )
-            with solara.Card(style="width: 30%"):
-                JellyfinPanel(
-                    current_video_youtube_id=video.youtube_id,
-                    current_section=None,
-                    status=dict(connected=False, correct_video=False),
-                )
+            # with solara.Card(style="width: 30%"):
+            #     JellyfinPanel(
+            #         current_video_youtube_id=video.youtube_id,
+            #         current_section=None,
+            #         status=dict(connected=False, correct_video=False),
+            #     )
         # with solara.Card():
         #     SectionGraphComponent(
         #         formatted_sections=format_sections(

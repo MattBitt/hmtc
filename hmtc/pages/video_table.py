@@ -31,7 +31,9 @@ def VideoTable(
     selected_playlist: dict = None,
     albums: list = [],
     selected_album: dict = None,
-    event_link_clicked: Callable = None,
+    event_link1_clicked: Callable = None,
+    event_link2_clicked: Callable = None,
+    event_link3_clicked: Callable = None,
     event_delete_video_item: Callable = None,
 ):
     pass
@@ -130,8 +132,16 @@ def save_video_item(dict_of_items):
     force_update_counter.set(force_update_counter.value + 1)
 
 
-def view_sections(router, item):
+def view_really_old_sections(router, item):
+    router.push(f"/video-sections/{item['id']}")
+
+
+def view_old_sections(router, item):
     router.push(f"/sections/{item['id']}")
+
+
+def view_sections(router, item):
+    router.push(f"/video-details/{item['id']}")
 
 
 @solara.component
@@ -207,6 +217,8 @@ def Page():
             selected_album={"id": None, "title": None},
             playlists=playlists,
             selected_playlist={"id": None, "title": None},
-            event_link_clicked=lambda x: view_sections(router, x),
+            event_link1_clicked=lambda x: view_sections(router, x),
+            event_link2_clicked=lambda x: view_old_sections(router, x),
+            event_link3_clicked=lambda x: view_really_old_sections(router, x),
             event_delete_video_item=delete_video_item,
         )

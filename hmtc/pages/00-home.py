@@ -50,13 +50,13 @@ def Page():
             ):
                 solara.Image(image=image)
 
-        with solara.ColumnsResponsive(default=12, medium=6, large=4):
+        with solara.ColumnsResponsive(default=12, large=4):
             for vid in latest_vids:
                 poster = FileManager.get_file_for_video(vid, "poster")
                 vid_image = PIL.Image.open(Path(str(poster)))
 
                 with solara.Card():
                     with solara.Column():
-                        with solara.Link(f"/sections/{vid.id}"):
+                        with solara.Link(f"/video-details/{vid.id}"):
                             solara.Image(image=vid_image)
                         solara.Markdown(f"#### {vid.title}")
