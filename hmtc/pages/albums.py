@@ -66,6 +66,7 @@ def Page():
 
     router = solara.use_router()
     MySidebar(router)
+
     items = pd.DataFrame([item.model_to_dict() for item in base_query]).to_dict(
         "records"
     )

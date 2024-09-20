@@ -6,7 +6,7 @@ from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.models import File as FileModel
-from hmtc.models import Video as VideoModel, get_file_type
+from hmtc.models import Video as VideoModel, get_file_type, Album as AlbumModel
 from hmtc.utils.ffmpeg_utils import extract_audio
 from hmtc.utils.general import move_file
 
@@ -156,7 +156,28 @@ class FileManager:
             )
             if not file:
                 # logger.debug(f"No {filetype} file found for {video.title}")
-                return
+                return File(path="hmtc/assets/images", filename="no-image.png")
+
+            return File(path=file.path, filename=file.filename)
+
+        except Exception as e:
+            logger.error(e)
+            raise
+
+    @staticmethod
+    def get_file_for_album(album: AlbumModel, filetype: str):
+        try:
+            if not album:
+                raise ValueError("AlbumModel object is required")
+            if not filetype:
+                raise ValueError("Filetype is required")
+
+            file = FileModel.get_or_none(
+                (FileModel.album_id == album.id) & (FileModel.file_type == filetype)
+            )
+            if not file:
+                # logger.debug(f"No {filetype} file found for {album.title}")
+                return File(path="hmtc/assets/images", filename="no-image.png")
 
             return File(path=file.path, filename=file.filename)
 

@@ -692,6 +692,8 @@ class File(BaseModel):
     series = ForeignKeyField(Series, backref="files", null=True)
     playlist = ForeignKeyField(Playlist, backref="files", null=True)
     video = ForeignKeyField(Video, backref="files", null=True)
+    album = ForeignKeyField(Album, backref="files", null=True)
+    youtube_series = ForeignKeyField(YoutubeSeries, backref="files", null=True)
 
     @classmethod
     def add_new_file(cls, source, target, move_file=True, **kwargs):
@@ -731,6 +733,11 @@ class File(BaseModel):
             f.video_id = (
                 Video.select().where(Video.youtube_id == kwargs["youtube_id"]).get().id
             )
+        if "album" in kwargs:
+            f.album = kwargs["album"]
+
+        if "youtube_series" in kwargs:
+            f.youtube_series = kwargs["youtube_series"]
 
         f.save()
 

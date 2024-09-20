@@ -9,7 +9,7 @@ import os
 from hmtc.components.shared.progress_slider import SimpleProgressBar
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Channel
-from hmtc.models import Video as VideoModel, Album as AlbumModel
+from hmtc.models import Video as VideoModel, Album as AlbumModel, File as FileModel
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.album import Album
 from hmtc.schemas.section import SectionManager, Section
@@ -199,6 +199,31 @@ class PageState:
             "Finished creating albums Videos with no album, a YT series, and an episode number"
         )
 
+    # this is a temporary function to use the video posters for the album posters
+
+    @staticmethod
+    def assign_video_posters_to_albums():
+        logger.debug("Assigning Video Posters to Albums")
+        albums = AlbumModel.select()
+        for a in albums:
+            vid = VideoModel.select().where(VideoModel.album_id == a.id).get()
+            poster = (
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == vid.id) & (FileModel.file_type == "poster")
+                )
+                .get_or_none()
+            )
+            if poster is None:
+                logger.debug(f"No poster for {vid.title}")
+                continue
+
+            poster.album_id = a.id
+            poster.save()
+            logger.debug(f"Assigned {poster} to {a}")
+
+    # this is a temporary function to import track info from a csv file
+
     @staticmethod
     def import_track_info():
         grouped_tracks = import_tracks()
@@ -325,6 +350,11 @@ def Page():
                     solara.Button(
                         label="Create Albums for YT Series",
                         on_click=PageState.create_yts_albums,
+                        classes=["button"],
+                    )
+                    solara.Button(
+                        label="Assign Video Posters to Albums",
+                        on_click=PageState.assign_video_posters_to_albums,
                         classes=["button"],
                     )
 

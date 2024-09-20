@@ -1,5 +1,7 @@
 from typing import Callable
 import solara
+import PIL
+from hmtc.schemas.file import FileManager
 import time
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section, Album as AlbumModel, Video as VideoModel
@@ -139,8 +141,15 @@ def AlbumInfo(video):
             with solara.Column():
                 solara.Markdown("No Album Found")
                 solara.Button("Create New", on_click=lambda: logger.debug("Create Album"), classes=["button"])
+        else:            
+            poster = FileManager.get_file_for_album(video.album, "poster")
+            if poster is None:
+                solara.Text("No poster")
+                return
+            image = PIL.Image.open(Path(str(poster)))
+            solara.Image(image, width="200px")
         with solara.Column():
-            funcs = [save_album, change_album, cancel]
+
             MyAutoCompleteSelector(
                 selectedItem=video.album.title if video.album is not None else "",
                 items=albums,

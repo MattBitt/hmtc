@@ -1,6 +1,10 @@
 from loguru import logger
 from typing import Callable
 import solara
+from pathlib import Path
+from hmtc.schemas.file import FileManager
+from hmtc.schemas.video import VideoItem
+import PIL
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import (
     Video as VideoModel,
@@ -24,4 +28,10 @@ def Page():
     MySidebar(router=solara.use_router())
 
     with solara.Column(classes=["main-container"]):
-        Sandbox(show=True, color="green", message="Hello World", icon="mdi-album")
+        album = AlbumModel.get_by_id(2465)
+        poster = FileManager.get_file_for_album(album, "poster")
+        if poster is None:
+            solara.Text("No poster")
+            return
+        image = PIL.Image.open(Path(str(poster)))
+        solara.Image(image, width="700px")
