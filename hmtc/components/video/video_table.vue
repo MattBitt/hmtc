@@ -10,7 +10,7 @@
       ></v-text-field>
     </v-card-title>
     <v-data-table
-      :headers="headers"
+      :headers="_headers"
       :items="items"
       sort-by.sync="sortBy"
       :sort-desc.sync="sortDesc"
@@ -33,7 +33,7 @@
         />
 
         <v-toolbar flat>
-          <v-toolbar-title>Videos ({{ items.length }} unique)</v-toolbar-title>
+          <v-toolbar-title>{{ table_title }}</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="800px">
@@ -197,19 +197,13 @@
         ></v-simple-checkbox>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon large class="mr-2" @click="link1_clicked(item)">
+        <v-icon medium class="mr-1" @click="link1_clicked(item)">
           mdi-rhombus-split
         </v-icon>
-        <v-icon medium class="mr-2" @click="link2_clicked(item)">
-          mdi-alert-rhombus
-        </v-icon>
-        <v-icon medium class="mr-2" @click="link3_clicked(item)">
-          mdi-alert-rhombus
-        </v-icon>
-        <v-icon medium class="mr-2" @click="editItem(item)">
+        <v-icon medium class="ml-1 mr-4" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <v-icon medium color="red" @click="deleteItem(item)">
+        <v-icon medium class="ml-4" color="red" @click="deleteItem(item)">
           mdi-delete
         </v-icon>
       </template>
@@ -315,6 +309,18 @@ export default {
       },
     ],
 
+    albums: [
+      {
+        id: 1,
+        title: "youtube_playlist 1",
+      },
+    ],
+
+    selected_album: {
+      id: 1,
+      title: "youtube_playlist 1",
+    },
+
     items: [
       {
         title: "Title 1",
@@ -378,12 +384,9 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "New Item" : "Edit Item";
     },
-    categoryCount: function () {
-      return this.items.reduce((catCount, blogData) => {
-        catCount[blogData.category] = catCount[blogData.category] || 0;
-        catCount[blogData.category]++;
-        return catCount;
-      }, {});
+
+    _headers() {
+      return this.headers.filter((x) => !x.value.includes(this.hide_column));
     },
   },
 

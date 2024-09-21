@@ -107,6 +107,17 @@
         </v-toolbar>
       </template>
 
+      <template v-slot:item.video_count="{ item }">
+        <v-chip>
+          <span v-if="item.video_count > 0">
+            <a :href="'/videos/channel/' + item.id">
+              {{ item.video_count }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
+
       <template v-slot:item.actions="{ item }">
         <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil
@@ -138,6 +149,12 @@ export default {
         width: "20%",
       },
       { text: "YouTube ID", value: "youtube_id", filterable: false },
+      {
+        text: "# Videos",
+        value: "video_count",
+        filterable: false,
+        sortable: true,
+      },
       { text: "Enabled", value: "enabled", filterable: true },
       {
         text: "Updated from Youtube",
@@ -145,7 +162,6 @@ export default {
         filterable: false,
       },
 
-      // { text: 'Unique', value: 'contains_unique_content', filterable: false },
       { text: "Actions", value: "actions", sortable: false },
     ],
 

@@ -55,7 +55,8 @@
 export default {
   data: () => ({
     items: [
-      { text: "Videos", icon: "mdi-video", url: "/video-table" },
+      { text: "Videos", icon: "mdi-video", url: "/videos" },
+      { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
       { text: "Albums", icon: "mdi-album", url: "/albums" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },

@@ -1,5 +1,6 @@
 from typing import Callable
 import solara
+import peewee
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import (
     Video as VideoModel,
@@ -10,16 +11,117 @@ from hmtc.models import (
     Album as AlbumModel,
 )
 from hmtc.schemas.video import VideoItem
-import peewee
 import pandas as pd
 from loguru import logger
 
-force_update_counter = solara.reactive(0)
+
+def create_query_from_url():
+    # url options
+    # each level should accept 'all' for non-unique videos
+    # /videos should be a list of all unique videos (default)
+    # /videos/<video_id> should be the video-details page
+    # /videos/all should include non-unique videos
+    # /videos/series/<series_id> should be a list of videos in a series
+    # /videos/youtube_series/<youtube_series_id> should be a list of videos in a youtube series
+    # /videos/channel/<channel_id> should be a list of videos in a channel
+    # /vidoes/album/<album_id> should be a list of videos in an album
+    # /videos/playlist/<playlist_id> should be a list of videos in a playlist
+
+    all = (
+        VideoModel.select(
+            VideoModel.id,
+            VideoModel.contains_unique_content,
+            VideoModel.upload_date,
+            VideoModel.episode,
+            VideoModel.title,
+            VideoModel.youtube_id,
+            VideoModel.duration,
+            VideoModel.jellyfin_id,
+            Channel,
+            Series,
+            Playlist,
+            YoutubeSeries,
+            AlbumModel,
+        )
+        .join(Channel, peewee.JOIN.LEFT_OUTER)
+        .switch(VideoModel)
+        .join(Series)
+        .switch(VideoModel)
+        .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
+        .switch(VideoModel)
+        .join(Playlist, peewee.JOIN.LEFT_OUTER)
+        .switch(VideoModel)
+        .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
+    )
+
+    unique = all.where(VideoModel.contains_unique_content == True)
+
+    valid_filters = ["series", "youtube_series", "channel", "album", "playlist"]
+    router = solara.use_router()
+    level = solara.use_route_level()
+
+    match router.parts:
+        case [_, "all"]:
+            return all, None, None
+        case [_, filter, id_to_filter, "all"]:
+            if filter in valid_filters:
+                return (
+                    all.where(getattr(VideoModel, filter) == id_to_filter),
+                    filter,
+                    id_to_filter,
+                )
+            else:
+                logger.debug(f"Invalid filter: {filter}")
+                return None, None, None
+        case [_, filter, id_to_filter]:
+            if filter in valid_filters:
+                return (
+                    unique.where(getattr(VideoModel, filter) == id_to_filter),
+                    filter,
+                    id_to_filter,
+                )
+            else:
+                logger.debug(f"Invalid filter: {filter}")
+                return None, None, None
+        case [_]:
+            # this is the /videos page view
+            return unique, None, None
+        case _:
+            logger.error(f"Invalid URL: {router.parts}")
+            raise ValueError("Invalid URL")
+
+
+def create_table_title(filter, id_to_filter):
+    if filter:
+        if "channel" in filter:
+            table_title = (
+                "Channel: " + Channel.get(Channel.id == id_to_filter).name.title()
+            )
+        elif "youtube_series" in filter:
+
+            table_title = (
+                "Youtube Series: "
+                + YoutubeSeries.get(YoutubeSeries.id == id_to_filter).title.title()
+            )
+
+        elif "series" in filter:
+            table_title = (
+                "Series: " + Series.get(Series.id == id_to_filter).name.title()
+            )
+        elif "album" in filter:
+            table_title = AlbumModel.get(AlbumModel.id == id_to_filter).title.title()
+        else:
+            table_title = filter.title()
+    else:
+        table_title = "All Videos"
+    return table_title
 
 
 @solara.component_vue("../components/video/video_table.vue", vuetify=True)
-def VideoTable(
+def VideoDisplayTable(
     items: list = [],
+    table_title: str = "",
+    hide_column: str = "",
     event_save_video_item=None,
     channels: list = [],
     selected_channel: dict = None,
@@ -37,6 +139,10 @@ def VideoTable(
     event_delete_video_item: Callable = None,
 ):
     pass
+
+
+def view_details(router, item):
+    router.push(f"/video-details/{item['id']}")
 
 
 def delete_video_item(item):
@@ -129,54 +235,15 @@ def save_video_item(dict_of_items):
         new_vid.album = album
 
     new_vid.save()
-    force_update_counter.set(force_update_counter.value + 1)
-
-
-def view_really_old_sections(router, item):
-    router.push(f"/video-sections/{item['id']}")
-
-
-def view_old_sections(router, item):
-    router.push(f"/sections/{item['id']}")
-
-
-def view_sections(router, item):
-    router.push(f"/video-details/{item['id']}")
 
 
 @solara.component
 def Page():
-    base_query = (
-        VideoModel.select(
-            VideoModel.id,
-            VideoModel.contains_unique_content,
-            VideoModel.upload_date,
-            VideoModel.episode,
-            VideoModel.title,
-            VideoModel.youtube_id,
-            VideoModel.duration,
-            VideoModel.jellyfin_id,
-            Channel,
-            Series,
-            Playlist,
-            YoutubeSeries,
-            AlbumModel,
-        )
-        .join(Channel, peewee.JOIN.LEFT_OUTER)
-        .switch(VideoModel)
-        .join(Series)
-        .switch(VideoModel)
-        .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
-        .switch(VideoModel)
-        .join(Playlist, peewee.JOIN.LEFT_OUTER)
-        .switch(VideoModel)
-        .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
-        .where(VideoModel.contains_unique_content == True)
-    )
     router = solara.use_router()
     MySidebar(router)
+    base_query, filter, id_to_filter = create_query_from_url()
+    table_title = create_table_title(filter, id_to_filter)
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
     channels = [
         {"id": channel.id, "name": channel.name}
         for channel in Channel.select().order_by(Channel.name)
@@ -200,13 +267,20 @@ def Page():
         for album in AlbumModel.select().order_by(AlbumModel.title)
     ]
 
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
+    if base_query is None:
+        solara.Markdown("Invalid Query. Please check the URL.")
+        logger.debug("No base query")
+        return
+
+    df = pd.DataFrame([item.model_to_dict() for item in base_query])
     items = df.to_dict("records")
+
     with solara.Column(classes=["main-container"]):
-        # solara.Markdown(f"{force_update_counter.value}")
-        VideoTable(
+        solara.Markdown(f"Base query results: {len(base_query)}")
+        VideoDisplayTable(
             items=items,
-            event_save_video_item=save_video_item,
+            table_title=table_title,
+            hide_column=filter,
             channels=channels,
             selected_channel={"id": None, "name": None},
             serieses=serieses,
@@ -217,8 +291,7 @@ def Page():
             selected_album={"id": None, "title": None},
             playlists=playlists,
             selected_playlist={"id": None, "title": None},
-            event_link1_clicked=lambda x: view_sections(router, x),
-            event_link2_clicked=lambda x: view_old_sections(router, x),
-            event_link3_clicked=lambda x: view_really_old_sections(router, x),
+            event_link1_clicked=lambda x: view_details(router, x),
             event_delete_video_item=delete_video_item,
+            event_save_video_item=save_video_item,
         )

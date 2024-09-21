@@ -20,6 +20,12 @@
       item-key="id"
     >
       <template v-slot:top>
+        <v-data-footer
+          :pagination="pagination"
+          :options="options"
+          @update:options="updateOptions"
+          items-per-page-text="$vuetify.dataTable.itemsPerPageText"
+        />
         <v-toolbar flat>
           <v-toolbar-title>Albums</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
@@ -88,7 +94,16 @@
           </v-dialog>
         </v-toolbar>
       </template>
-
+      <template v-slot:item.video_count="{ item }">
+        <v-chip>
+          <span v-if="item.video_count > 0">
+            <a :href="'/videos/album/' + item.id">
+              {{ item.video_count }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil

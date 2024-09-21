@@ -46,10 +46,11 @@ def Page():
     logger.debug(f"seconds: {seconds}")
     timestr = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
     with solara.Column(classes=["main-container"]):
-        with solara.Info():
-            solara.Markdown("## Unique Content")
-            solara.Markdown(f"### **{len(videos)}** videos")
-            solara.Markdown(f"### Duration: **{timestr}**")
+        with solara.Card():
+            with solara.Info():
+                solara.Markdown("## Unique Content")
+                solara.Markdown(f"### **{len(videos)}** videos")
+                solara.Markdown(f"### Duration: **{timestr}**")
         with solara.Card():
             solara.Markdown("## Recently Uploaded")
             for vid in recent:

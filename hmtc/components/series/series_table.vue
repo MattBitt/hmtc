@@ -94,7 +94,16 @@
           </v-dialog>
         </v-toolbar>
       </template>
-
+      <template v-slot:item.video_count="{ item }">
+        <v-chip>
+          <span v-if="item.video_count > 0">
+            <a :href="'/videos/series/' + item.id">
+              {{ item.video_count }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon medium class="mr-2" @click="editItem(item)">
           mdi-pencil
