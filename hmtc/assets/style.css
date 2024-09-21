@@ -69,9 +69,10 @@ a {
 
 }
 
-.my_primary {
-  color: var(--on-dark) !important;
+.info-chip {
+  color: var(--on-primary) !important;
   background-color: var(--primary) !important;
+  font-weight: 500;
 
 }
 
@@ -103,4 +104,13 @@ a {
   color: red;
   font-weight: 600;
   font-size: 45px;
+}
+
+.medium-timer {
+  font-family: mySevenSegDisplay;
+  font-size: 1em;
+  padding: 0.25em;
+  color: var(--on-primary);
+  background-color: var(--primary);
+  text-align: center;
 }

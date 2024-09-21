@@ -22,7 +22,7 @@ def Page():
         VideoModel.select()
         .where(VideoModel.contains_unique_content == True)
         .order_by(VideoModel.id.desc())
-        .limit(6)
+        .limit(3)
     )
 
     with solara.Column(classes=["main-container"]):

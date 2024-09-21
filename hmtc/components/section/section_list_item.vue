@@ -1,8 +1,8 @@
 <template>
   <v-card class="mx-auto" max-width="400">
-    <v-span class="text-h5">Select an item</v-span>
+    <span class="text-h5">Select an item</span>
     <v-divider></v-divider>
-    <v-span class="text-h6">Selected: {{ selected.id }}</v-span>
+    <span class="text-h6">Selected: {{ selected.id }}</span>
     <v-list>
       <v-list-item-group v-model="model" mandatory color="indigo">
         <v-list-item v-for="(item, i) in items" :key="i">

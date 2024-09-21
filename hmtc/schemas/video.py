@@ -255,10 +255,10 @@ class VideoItem(BaseItem):
             return
 
         # he posts 'shorts' on his main channel that arent unique
-        if channel.name == "Harry Mack" and info["duration"] > 120:
-            unique = True
-        else:
+        if "Clips" in channel.name or info["duration"] < 120:
             unique = False
+        else:
+            unique = True
 
         vid = VideoModel.create(
             title=info["title"],

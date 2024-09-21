@@ -465,14 +465,8 @@ def Page():
                         for section in sections.value:
                             s = solara.use_reactive(section)
                             with solara.Column():
-                                # background color is GREEN
                                 SectionTimeInfo(
                                     video=video,
                                     section=s,
                                     refresh_sections=refresh_sections,
                                 )
-                                # # background color is RED
-                                # SectionTopicsList(
-                                #     section=dict(id=section.id),
-                                #     topics=topics.value,
-                                # )
