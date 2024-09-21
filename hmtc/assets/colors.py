@@ -3,9 +3,10 @@ from enum import Enum
 
 # need to make sure to keep these in sync with styles.css
 class Colors(Enum):
-    LIGHT = "#FFAB91"
-    PRIMARY = "#FF5722"
-    DARK = "#BF360C"
+    LIGHT = "#c8b1e4"
+    PRIMARY = "#9b72cf"
+    DARK = "#532b88"
+
     SURFACE = "#808080"
     BACKGROUND = "#F0FF0F"
     ERROR = "#00B020"

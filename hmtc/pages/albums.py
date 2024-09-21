@@ -8,7 +8,6 @@ from loguru import logger
 from peewee import fn
 
 force_update_counter = solara.reactive(0)
-logger.debug("Albums Page Loaded")
 
 
 @solara.component_vue("../components/album/album_table.vue", vuetify=True)

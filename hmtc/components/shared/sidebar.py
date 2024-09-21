@@ -39,9 +39,14 @@ def MySidebar(
         router.push(item)
         return
 
-    with solara.Sidebar():
-        _Sidebar(
-            version=VERSION,
-            router=router,
-            event_sidebar_clicked=sidebar_clicked,
+    with solara.AppBar():
+        icon_name = "mdi-logout" if True else "mdi-login"
+        solara.Button(
+            icon_name=icon_name, on_click=lambda: logger.debug("clicked"), icon=True
         )
+        with solara.Sidebar():
+            _Sidebar(
+                version=VERSION,
+                router=router,
+                event_sidebar_clicked=sidebar_clicked,
+            )

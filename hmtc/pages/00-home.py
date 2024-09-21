@@ -31,7 +31,7 @@ def Page():
             with solara.Row(
                 justify="center", style={"background-color": Colors.SURFACE}
             ):
-                solara.Button("Videos", classes=["button"], href="/video-table")
+                solara.Button("Videos", classes=["button"], href="/videos")
                 solara.Button("Serieses", classes=["button"], href="/series")
                 solara.Button("Albums", classes=["button"], href="/albums")
                 solara.Button("Tracks", classes=["button"], href="/tracks")

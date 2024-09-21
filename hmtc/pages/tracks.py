@@ -6,7 +6,6 @@ from hmtc.models import Track
 from loguru import logger
 
 force_update_counter = solara.reactive(0)
-logger.debug("Tracks Page Loaded")
 
 
 @solara.component_vue("../components/track/track_table.vue", vuetify=True)

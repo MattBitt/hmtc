@@ -9,15 +9,15 @@ html, body {
 
 /* need to make sure to keep these in sync with colors.py */
 :root {
-  --light:  #FFAB91;
-  --primary: #FF5722;
-  --dark: #BF360C;
+  --light:  #c8b1e4;
+  --primary: #9b72cf;
+  --dark: #532b88;
   --surface: #808080;
   --background: #F0FF0F;
   --error: #00B020;
   --warning: #FFC107;
   --on-light: #000000;
-  --on-primary: #000000;
+  --on-primary: #FFFFFF;
   --on-dark: #FFFFFF;
   }
 

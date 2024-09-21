@@ -66,15 +66,6 @@ def setup():
 
     create_tables(db_instance)
 
-    download = config["running"]["download_on_init"]
-
-    if download and is_db_empty():
-        logger.error("🥝🥝🥝🥝 I believe this is deprecated 8/20/24  🥝🥝🥝🥝")
-        logger.error("Database is empty, initializing tables")
-        seed_database()
-        download_channel_videos()
-        download_playlist_videos()
-
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
 
