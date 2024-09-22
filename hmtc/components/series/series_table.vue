@@ -19,14 +19,20 @@
       class="elevation-1"
       item-key="name"
     >
-      <template v-slot:top>
+      <template v-slot:top="{ pagination, options, updateOptions }">
+        <v-data-footer
+          :pagination="pagination"
+          :options="options"
+          @update:options="updateOptions"
+          items-per-page-text="$vuetify.dataTable.itemsPerPageText"
+        />
         <v-toolbar flat>
           <v-toolbar-title>Serieses</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="800px">
             <template v-slot:activator="{ on, attrs }">
-              <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
+              <v-btn class="button mb-2" v-bind="attrs" v-on="on">
                 New Item
               </v-btn>
             </template>
@@ -62,14 +68,8 @@
 
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="blue darken-1"
-                  text
-                  @click="saveItemToDB(editedItem)"
-                >
+                <v-btn class="button" @click="close"> Cancel </v-btn>
+                <v-btn class="button" text @click="saveItemToDB(editedItem)">
                   Save
                 </v-btn>
               </v-card-actions>
@@ -82,12 +82,8 @@
               >
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="closeDelete"
-                  >Cancel</v-btn
-                >
-                <v-btn color="blue darken-1" text @click="deleteItemConfirm"
-                  >OK</v-btn
-                >
+                <v-btn class="button" @click="closeDelete">Cancel</v-btn>
+                <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-card>
@@ -113,7 +109,7 @@
         </v-icon>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click=""> Reset </v-btn>
+        <v-btn class="button" @click=""> Reset </v-btn>
       </template>
     </v-data-table>
   </v-card>

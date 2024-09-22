@@ -9,6 +9,7 @@
         hide-details
       ></v-text-field>
     </v-card-title>
+    <!-- Main Data Table -->
     <v-data-table
       :headers="_headers"
       :items="items"
@@ -36,9 +37,10 @@
           <v-toolbar-title>{{ table_title }}</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
+          <!-- New/Edit Dialog -->
           <v-dialog v-model="dialog" max-width="800px">
             <template v-slot:activator="{ on, attrs }">
-              <v-btn dark class="button mb-2" v-bind="attrs" v-on="on">
+              <v-btn class="button mb-2" v-bind="attrs" v-on="on">
                 New Item
               </v-btn>
             </template>
@@ -152,19 +154,14 @@
 
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="blue darken-1"
-                  text
-                  @click="saveItemToDB(editedItem)"
-                >
+                <v-btn class="button" @click="close"> Cancel </v-btn>
+                <v-btn class="button" text @click="saveItemToDB(editedItem)">
                   Save
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <!-- Delete Dialog -->
           <v-dialog v-model="dialogDelete" max-width="500px">
             <v-card>
               <v-card-title class="text-h5"
@@ -172,52 +169,92 @@
               >
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="closeDelete"
-                  >Cancel</v-btn
-                >
-                <v-btn color="blue darken-1" text @click="deleteItemConfirm"
-                  >OK</v-btn
-                >
+                <v-btn class="button" @click="closeDelete">Cancel</v-btn>
+                <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-card>
           </v-dialog>
         </v-toolbar>
       </template>
-      <template v-slot:item.duration="{ item }">
-        <v-chip :color="getColor(item.duration)" dark>
-          {{ item.duration }}
-        </v-chip>
-      </template>
+      <!-- Custom cell contents for each column-->
       <template v-slot:item.contains_unique_content="{ item }">
         <v-simple-checkbox
-          color="orange"
           v-model="item.contains_unique_content"
-          disabled
         ></v-simple-checkbox>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon medium class="mr-1" @click="link1_clicked(item)">
-          mdi-rhombus-split
-        </v-icon>
-        <v-icon medium class="ml-1 mr-4" @click="editItem(item)">
+        <v-icon x-large class="mylight ml-1 mr-4" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <v-icon medium class="ml-4" color="red" @click="deleteItem(item)">
-          mdi-delete
+        <v-icon x-large class="mylight mr-1" @click="link1_clicked(item)">
+          mdi-rhombus-split
         </v-icon>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click=""> Reset </v-btn>
+        <v-btn class="button" @click=""> Reset </v-btn>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
         <td :colspan="headers.length">
-          Series: {{ item.series_name }} <br />
-          Youtube Series: {{ item.youtube_series_title }}<br />
-          Channel Name: {{ item.channel_name }}<br />
-          Playlist Title: {{ item.playlist_title }}<br />
-          Album Title: {{ item.album_title }}<br />
-          Unique: {{ item.contains_unique_content }}<br />
+          <v-chip>
+            <span v-if="item.channel_name">
+              <a
+                :href="
+                  '/videos/channel/' +
+                  channels.find((channel) => channel.name === item.channel_name)
+                    .id
+                "
+              >
+                {{ item.channel_name }}
+              </a>
+            </span>
+            <span v-else>---</span>
+          </v-chip>
+          <v-chip>
+            <span v-if="item.youtube_series_title">
+              <a
+                :href="
+                  '/videos/series/' +
+                  youtube_serieses.find(
+                    (youtube_series) =>
+                      youtube_series.title === item.youtube_series_title
+                  ).id
+                "
+              >
+                {{ item.youtube_series_title }}
+              </a>
+            </span>
+            <span v-else>---</span>
+          </v-chip>
+          <v-chip>
+            <span v-if="item.album_title">
+              <a
+                :href="
+                  '/videos/album/' +
+                  albums.find((album) => album.title === item.album_title).id
+                "
+              >
+                {{ item.album_title }}
+              </a>
+            </span>
+            <span v-else>---</span>
+          </v-chip>
+          <v-chip>
+            <span v-if="item.series_name">
+              <a
+                :href="
+                  '/videos/series/' +
+                  serieses.find((series) => series.name === item.series_name).id
+                "
+              >
+                {{ item.series_name }}
+              </a>
+            </span>
+            <span v-else>---</span>
+          </v-chip>
+          <v-chip :class="getColor(item)">
+            {{ item.duration }}
+          </v-chip>
         </td>
       </template>
     </v-data-table>
@@ -233,25 +270,30 @@ export default {
     sortDesc: true,
     search: "",
     headers: [
-      { text: "id", value: "id", filterable: true },
-      { text: "Upload Date", value: "upload_date", filterable: false },
+      // { text: "id", value: "id", filterable: true },
+      {
+        text: "Uploaded",
+        value: "upload_date",
+        filterable: false,
+        width: "20%",
+        align: "start",
+      },
 
       {
         text: "Title",
         value: "title",
         align: "start",
-        width: "20%",
       },
-      { text: "Duration (s)", value: "duration", filterable: false },
-      { text: "Series Name", value: "series_name", filterable: true },
-      {
-        text: "Youtube Series",
-        value: "youtube_series_title",
-        filterable: true,
-      },
-      { text: "Episode", value: "episode", filterable: true },
-      { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
-      { text: "Album Title", value: "album_title", filterable: true },
+      // { text: "Duration (s)", value: "duration", filterable: false },
+      // { text: "Series Name", value: "series_name", filterable: true },
+      // {
+      //   text: "Youtube Series",
+      //   value: "youtube_series_title",
+      //   filterable: true,
+      // },
+      // { text: "Episode", value: "episode", filterable: true },
+      // { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
+      // { text: "Album Title", value: "album_title", filterable: true },
 
       // { text: "Channel Name", value: "channel_name", filterable: false },
       // {
@@ -259,8 +301,15 @@ export default {
       //   value: "playlist_title",
       //   filterable: false,
       // },
-      // { text: 'Unique', value: 'contains_unique_content', filterable: false },
-      { text: "Actions", value: "actions", sortable: false },
+      { text: "Unique", value: "contains_unique_content", filterable: false },
+      {
+        text: "",
+        value: "actions",
+        sortable: false,
+        filterable: false,
+        width: "30%",
+        align: "end",
+      },
     ],
 
     selected_channel: {
@@ -386,7 +435,12 @@ export default {
     },
 
     _headers() {
-      return this.headers.filter((x) => !x.value.includes(this.hide_column));
+      let h = this.headers;
+
+      if (!this.show_nonunique) {
+        h = h.filter((x) => x.value !== "contains_unique_content");
+      }
+      return h.filter((x) => !x.value.includes(this.hide_column));
     },
   },
 
@@ -408,10 +462,10 @@ export default {
       index = (index + 1) % this.headers.length;
       this.sortBy = this.headers[index].value;
     },
-    getColor(duration) {
-      if (duration < 60) return "red";
-      else if (duration < 900) return "orange";
-      else return "green";
+    getColor(item) {
+      if (item.duration < 60) return "mydark";
+      else if (item.duration < 900) return "mylight";
+      else return "myprimary";
     },
     editItem(item) {
       this.editedIndex = this.items.indexOf(item);
@@ -524,13 +578,9 @@ export default {
       //   item.selected = item === row;
       //   this.$set(this.items, index, item);
       // });
-      console.log(row.album_title);
+      // console.log(row);
     },
   },
 };
 </script>
-<style>
-.selected {
-  background-color: red;
-}
-</style>
+<style></style>

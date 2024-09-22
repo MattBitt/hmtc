@@ -1,65 +1,41 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col cols="12">
-        <div class="mt-2 mb-2"><h2>Files</h2></div>
-      </v-col>
-      <v-col cols="8">
-        <div class="mt-2 mb-2 mychecks">
-          <v-icon>mdi-download</v-icon>
-          <span v-if="has_info">
-            <s> NFO </s>
-          </span>
+  <v-row id="file-statuses" class="mt-2 mb-2">
+    <v-col>
+      <v-chip class="my-2" :class="has_info ? 'myprimary' : 'mydark'">
+        <v-icon class="mr-2">mdi-information</v-icon>
+        <span> NFO </span>
+      </v-chip>
 
-          <span v-else> NFO </span>
-        </div>
+      <v-chip class="my-2" :class="has_poster ? 'myprimary' : 'mydark'">
+        <v-icon class="mr-2">mdi-panorama</v-icon>
+        <span> Poster </span>
+      </v-chip>
 
-        <div class="mt-2 mb-2 mychecks">
-          <v-icon>mdi-panorama</v-icon>
-          <span v-if="has_poster">
-            <s> Poster </s>
-          </span>
-          <span v-else> Poster </span>
-        </div>
+      <v-chip class="my-2" :class="has_subtitle ? 'myprimary' : 'mydark'">
+        <v-icon class="mr-2">mdi-text</v-icon>
+        <span> Lyrics </span>
+      </v-chip>
 
-        <div class="mt-2 mb-2 mychecks">
-          <v-icon>mdi-text</v-icon>
-          <span v-if="has_subtitle">
-            <s>Lyrics</s>
-          </span>
-          <span v-else> Lyrics </span>
-        </div>
-      </v-col>
-      <v-col cols="4">
-        <div>
-          <v-icon>mdi-download</v-icon>
-        </div>
-      </v-col>
-      <v-col cols="8">
-        <div class="mt-10 mb-2 mychecks">
-          <v-icon>mdi-music-note</v-icon>
-          <span v-if="has_audio">
-            <s> .MP3 </s>
-          </span>
-          <span v-else> .MP3 </span>
-        </div>
+      <v-chip class="my-2 mr-8" :class="has_audio ? 'myprimary' : 'mydark'">
+        <v-icon class="mr-2">mdi-music-note</v-icon>
+        <span> Audio </span>
+      </v-chip>
 
-        <div class="mt-2 mb-2 mychecks">
-          <v-icon>mdi-video</v-icon>
-          <span v-if="has_video">
-            <s> .MKV </s>
-          </span>
-
-          <span v-else> .MKV </span>
-        </div>
-      </v-col>
-      <v-col cols="4">
-        <div class="mt-10">
-          <v-icon @click="download_video">mdi-download</v-icon>
-        </div>
-      </v-col>
-    </v-row>
-  </v-container>
+      <v-chip class="my-2 mr-2" :class="has_video ? 'myprimary' : 'mydark'">
+        <v-icon class="mr-2">mdi-video</v-icon>
+        <span> Video </span>
+      </v-chip>
+      <v-divider class="my-4"></v-divider>
+      <v-chip class="myprimary-invert">
+        <v-icon @click="download_video">mdi-download</v-icon>
+        <span> Video </span>
+      </v-chip>
+      <v-chip class="myprimary-invert">
+        <v-icon @click="download_info">mdi-download</v-icon>
+        <span> Info </span>
+      </v-chip>
+    </v-col>
+  </v-row>
 </template>
 <script>
 export default {

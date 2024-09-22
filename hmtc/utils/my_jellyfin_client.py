@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import time
 from jellyfin_apiclient_python import JellyfinClient
 from hmtc.config import init_config
-from hmtc.components.shared.sidebar import VERSION
+
 from loguru import logger
 
 
@@ -30,7 +30,7 @@ class MyJellyfinClient:
         self.user = config["jellyfin"]["user"]
         password = config["jellyfin"]["password"]
 
-        client.config.app("hmtc", VERSION, "zeus", VERSION)
+        client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
         client.config.data["auth.ssl"] = True
         client.auth.connect_to_address(url)
         client.auth.login(url, self.user, password)

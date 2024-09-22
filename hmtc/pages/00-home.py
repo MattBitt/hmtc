@@ -28,9 +28,7 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Columns([1, 4, 1]):
             solara.Markdown("")
-            with solara.Row(
-                justify="center", style={"background-color": Colors.SURFACE}
-            ):
+            with solara.Row(justify="center", style={"background-color": Colors.ERROR}):
                 solara.Button("Videos", classes=["button"], href="/videos")
                 solara.Button("Serieses", classes=["button"], href="/series")
                 solara.Button("Albums", classes=["button"], href="/albums")

@@ -27,7 +27,7 @@
             ></v-text-field>
           </v-flex>
           <v-flex class="text-xs-center" mt-5>
-            <v-btn color="primary" @click="login_clicked()">Sign In</v-btn>
+            <v-btn class="button" @click="login_clicked()">Sign In</v-btn>
             <v-btn color="error" @click="forgot_password_clicked()"
               >Forgot Password</v-btn
             >

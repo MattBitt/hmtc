@@ -1,37 +1,34 @@
-from loguru import logger
-from typing import Callable
 import solara
-from pathlib import Path
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.video import VideoItem
-import PIL
+import ipyvue
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import (
-    Video as VideoModel,
-    Channel,
-    Series,
-    YoutubeSeries,
-    Playlist,
-    Album as AlbumModel,
-)
-import peewee
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 
-@solara.component_vue("../components/shared/snackbar.vue", vuetify=True)
-def Sandbox(show: bool, color: str, message: str, icon: str):
+@solara.component_vue("ParentComponent.vue")
+def ParentComponent(myname: str = ""):
+    pass
+
+
+@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
+def FileTypeCheckboxes(
+    has_audio: bool = False,
+    has_video: bool = False,
+    has_subtitle: bool = False,
+    has_info: bool = True,
+    has_poster: bool = True,
+    event_download_video: callable = None,
+    event_download_info: callable = None,
+):
     pass
 
 
 @solara.component
 def Page():
+    # Don't use reactivity in Page for this registration to work,
+    # move that to another component if necessary.
     MySidebar(router=solara.use_router())
+    ipyvue.register_component_from_file(
+        "MyChildComponent", "ChildComponent.vue", __file__
+    )
 
-    with solara.Column(classes=["main-container"]):
-        album = AlbumModel.get_by_id(2465)
-        poster = FileManager.get_file_for_album(album, "poster")
-        if poster is None:
-            solara.Text("No poster")
-            return
-        image = PIL.Image.open(Path(str(poster)))
-        solara.Image(image, width="700px")
+    ParentComponent(myname="matt")
+    FileTypeCheckboxes()

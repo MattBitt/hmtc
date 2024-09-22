@@ -62,30 +62,33 @@ def create_query_from_url():
 
     match router.parts:
         case [_, "all"]:
-            return all, None, None
+            # should probably show the unique column if all are shown
+            return all, None, None, True
         case [_, filter, id_to_filter, "all"]:
             if filter in valid_filters:
                 return (
                     all.where(getattr(VideoModel, filter) == id_to_filter),
                     filter,
                     id_to_filter,
+                    True,
                 )
             else:
                 logger.debug(f"Invalid filter: {filter}")
-                return None, None, None
+                return None, None, None, False
         case [_, filter, id_to_filter]:
             if filter in valid_filters:
                 return (
                     unique.where(getattr(VideoModel, filter) == id_to_filter),
                     filter,
                     id_to_filter,
+                    False,
                 )
             else:
                 logger.debug(f"Invalid filter: {filter}")
-                return None, None, None
+                return None, None, None, False
         case [_]:
             # this is the /videos page view
-            return unique, None, None
+            return unique, None, None, False
         case _:
             logger.error(f"Invalid URL: {router.parts}")
             raise ValueError("Invalid URL")
@@ -122,6 +125,7 @@ def VideoDisplayTable(
     items: list = [],
     table_title: str = "",
     hide_column: str = "",
+    show_nonunique: bool = False,
     event_save_video_item=None,
     channels: list = [],
     selected_channel: dict = None,
@@ -162,6 +166,7 @@ def save_video_item(dict_of_items):
     playlist = None
     youtube_series = None
     series = None
+    album = None
 
     logger.debug(f"Item received from Vue: {item}")
 
@@ -241,7 +246,7 @@ def save_video_item(dict_of_items):
 def Page():
     router = solara.use_router()
     MySidebar(router)
-    base_query, filter, id_to_filter = create_query_from_url()
+    base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
     table_title = create_table_title(filter, id_to_filter)
 
     channels = [
@@ -276,11 +281,11 @@ def Page():
     items = df.to_dict("records")
 
     with solara.Column(classes=["main-container"]):
-        solara.Markdown(f"Base query results: {len(base_query)}")
         VideoDisplayTable(
             items=items,
             table_title=table_title,
             hide_column=filter,
+            show_nonunique=show_nonunique,
             channels=channels,
             selected_channel={"id": None, "name": None},
             serieses=serieses,

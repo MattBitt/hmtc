@@ -10,29 +10,18 @@
     </div>
 
     <v-divider></v-divider>
-    <template>
-      <div class="text-center">
-        <v-menu offset-y>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn class="button" dark v-bind="attrs" v-on="on">
-              old functions
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item v-for="(item, index) in old_items" :key="index">
-              <v-list-item-title
-                ><v-btn class="button" @click="sidebar_clicked(item.url)">
-                  <v-icon class="px-4">{{ item.icon }}</v-icon
-                  >{{ item.text }}
-                </v-btn></v-list-item-title
-              >
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
-    </template>
+    <template> </template>
     <v-list class="top-list">
       <v-list-item v-for="(item, i) in items" :key="i" :value="item">
+        <v-btn class="button" @click="sidebar_clicked(item.url)">
+          <v-icon class="px-4">{{ item.icon }}</v-icon
+          >{{ item.text }}
+        </v-btn>
+      </v-list-item>
+    </v-list>
+    <v-divider></v-divider>
+    <v-list class="top-list mt-8">
+      <v-list-item v-for="(item, i) in items2" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
           <v-icon class="px-4">{{ item.icon }}</v-icon
           >{{ item.text }}
@@ -48,6 +37,23 @@
         </v-btn>
       </v-list-item>
     </v-list>
+    <div class="text-center">
+      <v-menu offset-y>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn class="button" v-bind="attrs" v-on="on"> old functions </v-btn>
+        </template>
+        <v-list>
+          <v-list-item v-for="(item, index) in old_items" :key="index">
+            <v-list-item-title
+              ><v-btn class="button" @click="sidebar_clicked(item.url)">
+                <v-icon class="px-4">{{ item.icon }}</v-icon
+                >{{ item.text }}
+              </v-btn></v-list-item-title
+            >
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
   </v-card>
 </template>
 
@@ -56,30 +62,32 @@ export default {
   data: () => ({
     items: [
       { text: "Videos", icon: "mdi-video", url: "/videos" },
+      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
+    ],
+    items2: [
       { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
       { text: "Albums", icon: "mdi-album", url: "/albums" },
-      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
+
       { text: "Series", icon: "mdi-shape", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },
-      {
-        text: "Playlists",
-        icon: "mdi-playlist-music",
-        url: "/playlists",
-      },
-
-      { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },
     ],
     old_items: [
       { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
+      {
+        text: "Playlists",
+        icon: "mdi-playlist-music",
+        url: "/playlists",
+      },
     ],
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },
 
       { text: "Files", icon: "mdi-folder", url: "/files" },
+      { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },
     ],
     version: "-0.0.0",
   }),
@@ -91,9 +99,9 @@ export default {
   font-weight: 600;
   font-size: 20px;
   text-align: center;
-  background-color: var(--dark) !important;
-  color: var(--on-dark) !important;
-  min-width: 400px;
+  background-color: var(--light) !important;
+  color: var(--on-light) !important;
+  min-width: 200px;
   min-height: 90vh;
 
   & .header a {

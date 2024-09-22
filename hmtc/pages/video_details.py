@@ -53,14 +53,29 @@ def SectionListItem(items):
     pass
 
 
+@solara.component_vue("../components/section/section_info.vue", vuetify=True)
+def SectionEditor(
+    items: list = [],
+    is_connected: bool = False,
+    has_active_user_session: bool = False,
+    play_status: bool = False,
+    current_position: int = 0,
+    event_save_section: callable = None,
+    event_delete_section: callable = None,
+    event_loop_jellyfin: callable = None,
+):
+    pass
+
+
 @solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
 def FileTypeCheckboxes(
-    has_audio: bool,
-    has_video: bool,
-    has_subtitle: bool,
-    has_info: bool,
-    has_poster: bool,
-    event_download_video: callable,
+    has_audio: bool = False,
+    has_video: bool = False,
+    has_subtitle: bool = False,
+    has_info: bool = True,
+    has_poster: bool = True,
+    event_download_video: callable = None,
+    event_download_info: callable = None,
 ):
     pass
 
@@ -264,11 +279,10 @@ def Page():
 
                         with Carousel(model=model.value):
                             for section in sm.sections:
-                                s = solara.use_reactive(section)
                                 with solara.Column():
-                                    solara.Text(f"s.value = {s.value}")
-                                    solara.Text(f"Start: {section.start}")
-                                    solara.Text(f"End: {section.end}")
+                                    SectionEditor(
+                                        items=[section.model_to_dict()],
+                                    )
         with solara.Row(style={"background-color": "lightgrey"}):
             with solara.ColumnsResponsive(12, large=6):
 

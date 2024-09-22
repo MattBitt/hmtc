@@ -30,24 +30,22 @@ html, body {
     font-family: mySevenSegDisplay;
     src: local("Gameplay"), url("./Gameplay.ttf"), 
   }
+
 a {
     text-decoration: none;
+  }
+
+.main-container {
+    background-color: var(--surface) !important;
+    padding: 20px;
+    min-height: 80vh;
+    height: 100%;
   }
 
 /* remove solara watermark */
 .v-application--wrap > :nth-child(2) > :nth-child(2) {
     visibility: hidden;
 }
-
-
-.mizzle
-{
-    color:brown;
-}
-.main-container {
-    background-color: var(--surface) !important;
-    min-height: 80vh;
-  }
 
 
 .button {
@@ -60,13 +58,23 @@ a {
   padding: 8px !important;
 }
 
+.myprimary {
+  color: var(--primary) !important;
+}
 
+.myprimary-invert {
+  color: var(--on-primary) !important;
+  background-color: var(--primary) !important;
+}
 
-
-.my_danger {
+.mydark {
   color: var(--on-dark) !important;
-  background-color: var(--error) !important;
+  background-color: var(--dark) !important;
+}
 
+.mylight {
+  color: var(--on-light) !important;
+  background-color: var(--light) !important;
 }
 
 .info-chip {
@@ -76,35 +84,6 @@ a {
 
 }
 
-.my_success {
-  color: var(--on-dark) !important;
-  background-color: var(--light) !important;
-
-}
-
-.my_cta {
-  color: var(--on-dark) !important;
-  background-color: var(--primary) !important;
-
-}
-.my_warning {
-  color: var(--on-dark) !important;
-  background-color: var(--dark) !important;
-
-}
-
-.status-green {
-  color: green;
-  font-weight: 600;
-  font-size: 45px;
-
-}
-
-.status-red {
-  color: red;
-  font-weight: 600;
-  font-size: 45px;
-}
 
 .medium-timer {
   font-family: mySevenSegDisplay;
@@ -114,3 +93,6 @@ a {
   background-color: var(--primary);
   text-align: center;
 }
+
+
+

@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+
 # program version
 VERSION = "0.0.13"
 
@@ -40,7 +41,7 @@ def MySidebar(
         return
 
     with solara.AppBar():
-        icon_name = "mdi-logout" if True else "mdi-login"
+        icon_name = "mdi-logout" if False else "mdi-login"
         solara.Button(
             icon_name=icon_name, on_click=lambda: logger.debug("clicked"), icon=True
         )
