@@ -58,11 +58,9 @@ a {
   padding: 8px !important;
 }
 
-.myprimary {
-  color: var(--primary) !important;
-}
 
-.myprimary-invert {
+
+.myprimary {
   color: var(--on-primary) !important;
   background-color: var(--primary) !important;
 }
@@ -75,6 +73,11 @@ a {
 .mylight {
   color: var(--on-light) !important;
   background-color: var(--light) !important;
+}
+
+.mywarning {
+  color: var(--on-light) !important;
+  background-color: var(--warning) !important;
 }
 
 .info-chip {

@@ -263,117 +263,137 @@
 
 <script>
 export default {
-  data: () => ({
-    dialog: false,
-    dialogDelete: false,
-    sortBy: "upload_date",
-    sortDesc: true,
-    search: "",
-    headers: [
-      // { text: "id", value: "id", filterable: true },
-      {
-        text: "Uploaded",
-        value: "upload_date",
-        filterable: false,
-        width: "20%",
-        align: "start",
-      },
+  data() {
+    return {
+      dialog: false,
+      dialogDelete: false,
+      sortBy: "title",
+      sortDesc: true,
+      search: "",
+      headers: [
+        // { text: "id", value: "id", filterable: true },
+        {
+          text: "Uploaded",
+          value: "upload_date",
+          filterable: false,
+          width: "20%",
+          align: "start",
+        },
 
-      {
-        text: "Title",
-        value: "title",
-        align: "start",
-      },
-      // { text: "Duration (s)", value: "duration", filterable: false },
-      // { text: "Series Name", value: "series_name", filterable: true },
-      // {
-      //   text: "Youtube Series",
-      //   value: "youtube_series_title",
-      //   filterable: true,
-      // },
-      // { text: "Episode", value: "episode", filterable: true },
-      // { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
-      // { text: "Album Title", value: "album_title", filterable: true },
+        {
+          text: "Title",
+          value: "title",
+          align: "start",
+        },
+        // { text: "Duration (s)", value: "duration", filterable: false },
+        // { text: "Series Name", value: "series_name", filterable: true },
+        // {
+        //   text: "Youtube Series",
+        //   value: "youtube_series_title",
+        //   filterable: true,
+        // },
+        // { text: "Episode", value: "episode", filterable: true },
+        // { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
+        // { text: "Album Title", value: "album_title", filterable: true },
 
-      // { text: "Channel Name", value: "channel_name", filterable: false },
-      // {
-      //   text: "Playlist Title",
-      //   value: "playlist_title",
-      //   filterable: false,
-      // },
-      { text: "Unique", value: "contains_unique_content", filterable: false },
-      {
-        text: "",
-        value: "actions",
-        sortable: false,
-        filterable: false,
-        width: "30%",
-        align: "end",
-      },
-    ],
+        // { text: "Channel Name", value: "channel_name", filterable: false },
+        // {
+        //   text: "Playlist Title",
+        //   value: "playlist_title",
+        //   filterable: false,
+        // },
+        { text: "Unique", value: "contains_unique_content", filterable: false },
+        {
+          text: "",
+          value: "actions",
+          sortable: false,
+          filterable: false,
+          width: "30%",
+          align: "end",
+        },
+      ],
 
-    selected_channel: {
-      id: 1,
-      name: "Channel 1",
-    },
-    channels: [
-      {
+      selected_channel: {
         id: 1,
         name: "Channel 1",
       },
-    ],
+      channels: [
+        {
+          id: 1,
+          name: "Channel 1",
+        },
+      ],
 
-    selected_series: {
-      id: 1,
-      name: "series 1",
-    },
-    serieses: [
-      {
+      selected_series: {
         id: 1,
         name: "series 1",
       },
-    ],
+      serieses: [
+        {
+          id: 1,
+          name: "series 1",
+        },
+      ],
 
-    selected_youtube_series: {
-      id: 1,
-      title: "youtube_series 1",
-    },
-
-    youtube_serieses: [
-      {
+      selected_youtube_series: {
         id: 1,
         title: "youtube_series 1",
       },
-    ],
 
-    selected_playlist: {
-      id: 1,
-      title: "youtube_playlist 1",
-    },
+      youtube_serieses: [
+        {
+          id: 1,
+          title: "youtube_series 1",
+        },
+      ],
 
-    playlists: [
-      {
+      selected_playlist: {
         id: 1,
         title: "youtube_playlist 1",
       },
-    ],
 
-    albums: [
-      {
+      playlists: [
+        {
+          id: 1,
+          title: "youtube_playlist 1",
+        },
+      ],
+
+      albums: [
+        {
+          id: 1,
+          title: "youtube_playlist 1",
+        },
+      ],
+
+      selected_album: {
         id: 1,
         title: "youtube_playlist 1",
       },
-    ],
 
-    selected_album: {
-      id: 1,
-      title: "youtube_playlist 1",
-    },
+      items: [
+        {
+          title: "Title 1",
+          youtube_series_title: "Frozen Yogurt",
+          episode: "",
+          duration: 0,
+          series: "",
+          playlist: "",
+          youtube_series: "",
+          channel: "",
+          series_name: "",
+          playlist_title: "",
+          channel_name: "",
+          contains_unique_content: true,
+          upload_date: "2021-01-01",
+          id: 1,
+          jellyfin_id: "",
+        },
+      ],
 
-    items: [
-      {
-        title: "Title 1",
-        youtube_series_title: "Frozen Yogurt",
+      editedIndex: -1,
+      editedItem: {
+        title: "Video Title",
         episode: "",
         duration: 0,
         series: "",
@@ -382,52 +402,35 @@ export default {
         channel: "",
         series_name: "",
         playlist_title: "",
+        youtube_series_title: "",
         channel_name: "",
         contains_unique_content: true,
-        upload_date: "2021-01-01",
-        id: 1,
+        upload_date: "",
+        youtube_id: "",
+        id: 0,
         jellyfin_id: "",
       },
-    ],
-
-    editedIndex: -1,
-    editedItem: {
-      title: "Video Title",
-      episode: "",
-      duration: 0,
-      series: "",
-      playlist: "",
-      youtube_series: "",
-      channel: "",
-      series_name: "",
-      playlist_title: "",
-      youtube_series_title: "",
-      channel_name: "",
-      contains_unique_content: true,
-      upload_date: "",
-      youtube_id: "",
-      id: 0,
-      jellyfin_id: "",
-    },
-    defaultItem: {
-      title: "",
-      episode: "",
-      duration: 0,
-      series: "",
-      playlist: "",
-      youtube_series: "",
-      channel: "",
-      series_name: "",
-      playlist_title: "",
-      youtube_series_title: "",
-      channel_name: "",
-      contains_unique_content: false,
-      upload_date: "",
-      youtube_id: "",
-      id: 0,
-      jellyfin_id: "",
-    },
-  }),
+      defaultItem: {
+        title: "",
+        episode: "",
+        duration: 0,
+        series: "",
+        playlist: "",
+        youtube_series: "",
+        channel: "",
+        series_name: "",
+        playlist_title: "",
+        youtube_series_title: "",
+        channel_name: "",
+        contains_unique_content: false,
+        upload_date: "",
+        youtube_id: "",
+        id: 0,
+        jellyfin_id: "",
+      },
+      expanded: [],
+    };
+  },
 
   computed: {
     formTitle() {
@@ -454,14 +457,6 @@ export default {
   },
 
   methods: {
-    toggleOrder() {
-      this.sortDesc = !this.sortDesc;
-    },
-    nextSort() {
-      let index = this.headers.findIndex((h) => h.value === this.sortBy);
-      index = (index + 1) % this.headers.length;
-      this.sortBy = this.headers[index].value;
-    },
     getColor(item) {
       if (item.duration < 60) return "mydark";
       else if (item.duration < 900) return "mylight";

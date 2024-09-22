@@ -277,7 +277,12 @@ def Page():
         logger.debug("No base query")
         return
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
+    df = pd.DataFrame(
+        [
+            item.model_to_dict()
+            for item in base_query.order_by(VideoModel.upload_date.desc())
+        ]
+    )
     items = df.to_dict("records")
 
     with solara.Column(classes=["main-container"]):

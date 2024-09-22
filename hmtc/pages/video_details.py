@@ -159,7 +159,7 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         with solara.Row(style={"background-color": "lightgrey"}):
-            with solara.ColumnsResponsive(12, large=[6, 3, 3]):
+            with solara.ColumnsResponsive(12, large=[8, 4]):
                 with solara.Card():
                     with solara.Columns([4, 4, 4]):
 
@@ -236,14 +236,6 @@ def Page():
                             solara.Markdown("No Album")
                             solara.Button("Add Album", classes=["button"])
 
-                with solara.Card():
-                    with solara.Columns([2, 10]):
-                        solara.Image(jellyfin_logo, width="50px")
-                        with solara.Column():
-                            solara.Markdown(f"###### Jellyfin Status")
-                            solara.Markdown(f"* Jellyfin Status")
-                            solara.Markdown(f"* asdf Status")
-                            solara.Markdown(f"* Status of the fin made of jelly")
         with solara.Row(style={"background-color": "lightgrey"}):
             with solara.ColumnsResponsive(12):
                 with solara.Card():
