@@ -19,6 +19,10 @@ html, body {
   --on-light: #000000;
   --on-primary: #FFFFFF;
   --on-dark: #FFFFFF;
+  --on-surface: #FFFFFF;
+  --on-background: #000000;
+  --on-error: #FFFFFF;
+  --on-warning: #000000;
   }
 
   @font-face {
@@ -35,6 +39,11 @@ a {
     text-decoration: none;
   }
 
+/* remove solara watermark */
+.v-application--wrap > :nth-child(2) > :nth-child(2) {
+  visibility: hidden;
+}
+
 .main-container {
     background-color: var(--surface) !important;
     padding: 20px;
@@ -42,10 +51,7 @@ a {
     height: 100%;
   }
 
-/* remove solara watermark */
-.v-application--wrap > :nth-child(2) > :nth-child(2) {
-    visibility: hidden;
-}
+
 
 
 .button {
@@ -76,8 +82,23 @@ a {
 }
 
 .mywarning {
-  color: var(--on-light) !important;
+  color: var(--on-warning) !important;
   background-color: var(--warning) !important;
+}
+
+.myerror {
+  color: var(--on-error) !important;
+  background-color: var(--error) !important;
+}
+
+.mysurface {
+  color: var(--on-surface) !important;
+  background-color: var(--surface) !important;
+}
+
+.mybackground {
+  color: var(--on-background) !important;
+  background-color: var(--background) !important;
 }
 
 .info-chip {
@@ -96,6 +117,5 @@ a {
   background-color: var(--primary);
   text-align: center;
 }
-
 
 

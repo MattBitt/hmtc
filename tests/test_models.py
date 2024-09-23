@@ -14,6 +14,7 @@ from hmtc.models import (
     Series,
     TodoTable,
     Video as VideoModel,
+    Topic as TopicModel,
     get_file_type,
 )
 

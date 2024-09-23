@@ -840,13 +840,27 @@ class BeatArtist(BaseModel):
         )
 
 
-# ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-# class PlaylistAlbum(BaseModel):
-#     album = ForeignKeyField(Album, backref="playlists")
-#     playlist = ForeignKeyField(Playlist, backref="albums")
+class Topic(BaseModel):
+    text = CharField()
 
-#     class Meta:
-#         indexes = (
-#             # Create a unique composite index on beat and Artist
-#             (("album", "playlist"), True),
-#         )
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "text": self.text,
+        }
+        return new_dict
+
+
+# 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class SectionTopics(BaseModel):
+    section = ForeignKeyField(Section, backref="topics")
+    topic = ForeignKeyField(Topic, backref="sections")
+    order = IntegerField()
+
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "section_id": self.section.id,
+            "topic_id": self.topic.id,
+        }
+        return new_dict

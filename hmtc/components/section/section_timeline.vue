@@ -1,39 +1,53 @@
 <template>
-  <v-sheet class="mt-0 pt-6">
-    <template>
-      <v-container fluid class="pa-4">
-        <v-row>
-          <h1>{{ timestamps.whole_start }}</h1>
-          <v-col class="pa-1">
-            <v-range-slider :value="[timestamps.part_start, timestamps.part_end]" :min="timestamps.whole_start"
-              :max="timestamps.whole_end" tick-size="4" thumb-label="always" readonly :color="thumbColor"
-              :thumb-color="thumbColor">
-            </v-range-slider>
-          </v-col>
-          <h1>{{ timestamps.whole_end }}</h1>
-        </v-row>
-      </v-container>
-    </template>
-  </v-sheet>
-</template>
+  <v-container fluid class="" id="timeline-container">
+    <v-row>
+      <h1>asdf</h1>
+      <v-btn class="button mx-2" @click="prev_slide">Previous</v-btn>
 
+      <v-range-slider
+        :value="[part_start, part_end]"
+        :min="whole_start"
+        :max="whole_end"
+        tick-size="4"
+        thumb-label="always"
+        readonly
+        :color="thumbColor"
+        :thumb-color="thumbColor"
+        :track-color="thumbColor"
+        :hint="'Section ' + this.section_number + ' of ' + this.total_sections"
+        persistent-hint
+      >
+      </v-range-slider>
+
+      <v-btn class="button mx-2" @click="next_slide">Next</v-btn>
+    </v-row>
+  </v-container>
+</template>
 
 <script>
 export default {
-  data: () => ({
-    timestamps: {
+  data() {
+    return {
       whole_start: 0,
       whole_end: 300,
       part_start: 60,
       part_end: 240,
-    },
-    thumbColor: 'deep-purple',
+      section_number: 1,
+      total_sections: 5,
 
-  }),
-
-  methods: {
-
+      thumbColor: "teal",
+    };
   },
+
+  methods: {},
 };
 </script>
-<style></style>
+<style>
+/* persistant hint of slider */
+.v-messages__message {
+  text-align: center;
+  font-size: 20px;
+
+  color: var(--on-primary);
+}
+</style>

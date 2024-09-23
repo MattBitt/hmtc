@@ -58,7 +58,7 @@ def create_query_from_url():
 
     valid_filters = ["series", "youtube_series", "channel", "album", "playlist"]
     router = solara.use_router()
-    level = solara.use_route_level()
+    # level = solara.use_route_level()
 
     match router.parts:
         case [_, "all"]:
@@ -251,25 +251,31 @@ def Page():
 
     channels = [
         {"id": channel.id, "name": channel.name}
-        for channel in Channel.select().order_by(Channel.name)
+        for channel in Channel.select(Channel.id, Channel.name).order_by(Channel.name)
     ]
     serieses = [
         {"id": series.id, "name": series.name}
-        for series in Series.select().order_by(Series.name)
+        for series in Series.select(Series.id, Series.name).order_by(Series.name)
     ]
     youtube_serieses = [
         {"id": series.id, "title": series.title}
-        for series in YoutubeSeries.select().order_by(YoutubeSeries.title)
+        for series in YoutubeSeries.select(
+            YoutubeSeries.id, YoutubeSeries.title
+        ).order_by(YoutubeSeries.title)
     ]
 
     playlists = [
         {"id": playlist.id, "title": playlist.title}
-        for playlist in Playlist.select().order_by(Playlist.title)
+        for playlist in Playlist.select(Playlist.id, Playlist.title).order_by(
+            Playlist.title
+        )
     ]
 
     albums = [
         {"id": album.id, "title": album.title}
-        for album in AlbumModel.select().order_by(AlbumModel.title)
+        for album in AlbumModel.select(AlbumModel.id, AlbumModel.title).order_by(
+            AlbumModel.title
+        )
     ]
 
     if base_query is None:

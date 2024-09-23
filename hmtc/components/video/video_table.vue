@@ -1,264 +1,258 @@
 <template>
-  <v-card>
-    <v-card-title>
-      <v-text-field
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Search"
-        single-line
-        hide-details
-      ></v-text-field>
-    </v-card-title>
-    <!-- Main Data Table -->
-    <v-data-table
-      :headers="_headers"
-      :items="items"
-      sort-by.sync="sortBy"
-      :sort-desc.sync="sortDesc"
-      :search="search"
-      :items-per-page="30"
-      class="elevation-1"
-      :single-expand="true"
-      expanded.sync="expanded"
-      item-key="title"
-      @pagination="writeLog"
-      @click:row="handleClick"
-      show-expand
-    >
-      <template v-slot:top="{ pagination, options, updateOptions }">
+  <!-- Main Data Table -->
+  <v-data-table
+    :headers="_headers"
+    :items="items"
+    sort-by.sync="sortBy"
+    :sort-desc.sync="sortDesc"
+    :search="search"
+    :items-per-page="30"
+    class="elevation-1"
+    :single-expand="true"
+    expanded.sync="expanded"
+    item-key="title"
+    @pagination="writeLog"
+    @click:row="handleClick"
+    show-expand
+  >
+    <template v-slot:top="{ pagination, options, updateOptions }">
+      <v-toolbar flat>
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+        <v-divider inset vertical></v-divider>
         <v-data-footer
           :pagination="pagination"
           :options="options"
           @update:options="updateOptions"
           items-per-page-text="$vuetify.dataTable.itemsPerPageText"
         />
+        <v-spacer></v-spacer>
+        <!-- New/Edit Modal Dialog Starts Here -->
+        <v-dialog v-model="dialog" max-width="800px">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn class="button mb-2" v-bind="attrs" v-on="on">
+              New Item
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-title>
+              <span class="text-h5">{{ formTitle }}</span>
+            </v-card-title>
 
-        <v-toolbar flat>
-          <v-toolbar-title>{{ table_title }}</v-toolbar-title>
-          <v-divider class="mx-4" inset vertical></v-divider>
-          <v-spacer></v-spacer>
-          <!-- New/Edit Dialog -->
-          <v-dialog v-model="dialog" max-width="800px">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn class="button mb-2" v-bind="attrs" v-on="on">
-                New Item
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.title"
+                      label="Title"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.duration"
+                      label="Duration"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.episode"
+                      label="Episode Number"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.youtube_id"
+                      label="Youtube ID"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.jellyfin_id"
+                      label="Jellyfin ID"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.upload_date"
+                      label="Upload Date"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-checkbox
+                      v-model="editedItem.contains_unique_content"
+                      label="Unique Content"
+                    ></v-checkbox>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select
+                      v-model="selected_channel"
+                      :items="channels"
+                      item-text="name"
+                      item-value="id"
+                      label="Channel"
+                      return-object
+                    ></v-select
+                  ></v-col>
+
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select
+                      v-model="selected_series"
+                      :items="serieses"
+                      item-text="name"
+                      item-value="id"
+                      label="Series"
+                      return-object
+                    ></v-select
+                  ></v-col>
+
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select
+                      v-model="selected_youtube_series"
+                      :items="youtube_serieses"
+                      item-text="title"
+                      item-value="id"
+                      label="YouTube Series"
+                      return-object
+                    ></v-select
+                  ></v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select
+                      v-model="selected_playlist"
+                      :items="playlists"
+                      item-text="title"
+                      item-value="id"
+                      label="YouTube Playlist"
+                      return-object
+                    ></v-select
+                  ></v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select
+                      v-model="selected_album"
+                      :items="albums"
+                      item-text="title"
+                      item-value="id"
+                      label="Album"
+                      return-object
+                    ></v-select
+                  ></v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn class="button" @click="close"> Cancel </v-btn>
+              <v-btn class="button" text @click="saveItemToDB(editedItem)">
+                Save
               </v-btn>
-            </template>
-            <v-card>
-              <v-card-title>
-                <span class="text-h5">{{ formTitle }}</span>
-              </v-card-title>
-
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.title"
-                        label="Title"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.duration"
-                        label="Duration"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.episode"
-                        label="Episode Number"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.youtube_id"
-                        label="Youtube ID"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.jellyfin_id"
-                        label="Jellyfin ID"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.upload_date"
-                        label="Upload Date"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-checkbox
-                        v-model="editedItem.contains_unique_content"
-                        label="Unique Content"
-                      ></v-checkbox>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-select
-                        v-model="selected_channel"
-                        :items="channels"
-                        item-text="name"
-                        item-value="id"
-                        label="Channel"
-                        return-object
-                      ></v-select
-                    ></v-col>
-
-                    <v-col cols="12" sm="6" md="4">
-                      <v-select
-                        v-model="selected_series"
-                        :items="serieses"
-                        item-text="name"
-                        item-value="id"
-                        label="Series"
-                        return-object
-                      ></v-select
-                    ></v-col>
-
-                    <v-col cols="12" sm="6" md="4">
-                      <v-select
-                        v-model="selected_youtube_series"
-                        :items="youtube_serieses"
-                        item-text="title"
-                        item-value="id"
-                        label="YouTube Series"
-                        return-object
-                      ></v-select
-                    ></v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-select
-                        v-model="selected_playlist"
-                        :items="playlists"
-                        item-text="title"
-                        item-value="id"
-                        label="YouTube Playlist"
-                        return-object
-                      ></v-select
-                    ></v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-select
-                        v-model="selected_album"
-                        :items="albums"
-                        item-text="title"
-                        item-value="id"
-                        label="Album"
-                        return-object
-                      ></v-select
-                    ></v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn class="button" @click="close"> Cancel </v-btn>
-                <v-btn class="button" text @click="saveItemToDB(editedItem)">
-                  Save
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <!-- Delete Dialog -->
-          <v-dialog v-model="dialogDelete" max-width="500px">
-            <v-card>
-              <v-card-title class="text-h5"
-                >Are you sure you want to delete this item?</v-card-title
-              >
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-                <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
-                <v-spacer></v-spacer>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-        </v-toolbar>
-      </template>
-      <!-- Custom cell contents for each column-->
-      <template v-slot:item.contains_unique_content="{ item }">
-        <v-simple-checkbox
-          v-model="item.contains_unique_content"
-        ></v-simple-checkbox>
-      </template>
-      <template v-slot:item.actions="{ item }">
-        <v-icon x-large class="mylight ml-1 mr-4" @click="editItem(item)">
-          mdi-pencil
-        </v-icon>
-        <v-icon x-large class="mylight mr-1" @click="link1_clicked(item)">
-          mdi-rhombus-split
-        </v-icon>
-      </template>
-      <template v-slot:no-data>
-        <v-btn class="button" @click=""> Reset </v-btn>
-      </template>
-      <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <v-chip>
-            <span v-if="item.channel_name">
-              <a
-                :href="
-                  '/videos/channel/' +
-                  channels.find((channel) => channel.name === item.channel_name)
-                    .id
-                "
-              >
-                {{ item.channel_name }}
-              </a>
-            </span>
-            <span v-else>---</span>
-          </v-chip>
-          <v-chip>
-            <span v-if="item.youtube_series_title">
-              <a
-                :href="
-                  '/videos/series/' +
-                  youtube_serieses.find(
-                    (youtube_series) =>
-                      youtube_series.title === item.youtube_series_title
-                  ).id
-                "
-              >
-                {{ item.youtube_series_title }}
-              </a>
-            </span>
-            <span v-else>---</span>
-          </v-chip>
-          <v-chip>
-            <span v-if="item.album_title">
-              <a
-                :href="
-                  '/videos/album/' +
-                  albums.find((album) => album.title === item.album_title).id
-                "
-              >
-                {{ item.album_title }}
-              </a>
-            </span>
-            <span v-else>---</span>
-          </v-chip>
-          <v-chip>
-            <span v-if="item.series_name">
-              <a
-                :href="
-                  '/videos/series/' +
-                  serieses.find((series) => series.name === item.series_name).id
-                "
-              >
-                {{ item.series_name }}
-              </a>
-            </span>
-            <span v-else>---</span>
-          </v-chip>
-          <v-chip :class="getColor(item)">
-            {{ item.duration }}
-          </v-chip>
-        </td>
-      </template>
-    </v-data-table>
-  </v-card>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!-- Delete Dialog -->
+        <v-dialog v-model="dialogDelete" max-width="500px">
+          <v-card>
+            <v-card-title class="text-h5"
+              >Are you sure you want to delete this item?</v-card-title
+            >
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn class="button" @click="closeDelete">Cancel</v-btn>
+              <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-toolbar>
+    </template>
+    <!-- Custom cell contents for each column-->
+    <template v-slot:item.contains_unique_content="{ item }">
+      <v-simple-checkbox
+        v-model="item.contains_unique_content"
+      ></v-simple-checkbox>
+    </template>
+    <template v-slot:item.actions="{ item }">
+      <v-icon x-large class="mylight ml-1 mr-4" @click="editItem(item)">
+        mdi-pencil
+      </v-icon>
+      <v-icon x-large class="mylight mr-1" @click="link1_clicked(item)">
+        mdi-rhombus-split
+      </v-icon>
+    </template>
+    <template v-slot:no-data>
+      <v-btn class="button" @click=""> Reset </v-btn>
+    </template>
+    <template v-slot:expanded-item="{ headers, item }">
+      <td :colspan="headers.length">
+        <v-chip>
+          <span v-if="item.channel_name">
+            <a
+              :href="
+                '/videos/channel/' +
+                channels.find((channel) => channel.name === item.channel_name)
+                  .id
+              "
+            >
+              {{ item.channel_name }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+        <v-chip>
+          <span v-if="item.youtube_series_title">
+            <a
+              :href="
+                '/videos/series/' +
+                youtube_serieses.find(
+                  (youtube_series) =>
+                    youtube_series.title === item.youtube_series_title
+                ).id
+              "
+            >
+              {{ item.youtube_series_title }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+        <v-chip>
+          <span v-if="item.album_title">
+            <a
+              :href="
+                '/videos/album/' +
+                albums.find((album) => album.title === item.album_title).id
+              "
+            >
+              {{ item.album_title }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+        <v-chip>
+          <span v-if="item.series_name">
+            <a
+              :href="
+                '/videos/series/' +
+                serieses.find((series) => series.name === item.series_name).id
+              "
+            >
+              {{ item.series_name }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+        <v-chip :class="getColor(item)">
+          {{ item.duration }}
+        </v-chip>
+      </td>
+    </template>
+  </v-data-table>
 </template>
 
 <script>

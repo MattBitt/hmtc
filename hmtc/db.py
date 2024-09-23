@@ -20,12 +20,14 @@ from hmtc.models import (
     Section,
     Series,
     TodoTable,
+    Topic,
     Track,
     TrackBeat,
     User,
     UserInfo,
     Video,
     YoutubeSeries,
+    SectionTopics,
 )
 from hmtc.utils.general import get_youtube_id
 
@@ -58,6 +60,8 @@ def create_tables(db, download_info=False):
             Channel,
             TodoTable,
             YoutubeSeries,
+            Topic,
+            SectionTopics,
         ]
     )
     if download_info:
@@ -82,12 +86,14 @@ def drop_tables(db):
             Artist,
             Breakpoint,
             Section,
+            Topic,
             User,
             UserInfo,
             Post,
             Channel,
             TodoTable,
             YoutubeSeries,
+            SectionTopics,
         ]
     )
 

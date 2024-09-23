@@ -14,7 +14,7 @@ config = init_config()
 @solara.component
 def Page():
     image = PIL.Image.open(Path("hmtc/assets/images/harry-mack-logo.png"))
-    image2 = PIL.Image.open(Path("hmtc/assets/images/harry-mack-logo-inverted.png"))
+
     MySidebar(
         router=solara.use_router(),
     )
@@ -28,13 +28,15 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Columns([1, 4, 1]):
             solara.Markdown("")
-            with solara.Row(justify="center", style={"background-color": Colors.ERROR}):
+            with solara.Row(
+                justify="center", style={"background-color": Colors.SURFACE}
+            ):
                 solara.Button("Videos", classes=["button"], href="/videos")
-                solara.Button("Serieses", classes=["button"], href="/series")
-                solara.Button("Albums", classes=["button"], href="/albums")
+                # solara.Button("Serieses", classes=["button"], href="/series")
+                # solara.Button("Albums", classes=["button"], href="/albums")
                 solara.Button("Tracks", classes=["button"], href="/tracks")
             solara.Markdown("")
-        with solara.Row(style={"height": "30%"}):
+        with solara.Row():
             with solara.Column(
                 align="center",
                 style={
@@ -43,7 +45,6 @@ def Page():
                     # "top": "0",
                     # "left": "0",
                     "width": "100%",
-                    "height": "20%",
                 },
             ):
                 solara.Image(image=image)

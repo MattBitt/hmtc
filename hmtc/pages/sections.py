@@ -28,8 +28,11 @@ def parse_url_args():
 
     return router.parts[level:][0]
 
+
 @solara.component_vue("../components/shared/snackbar.vue", vuetify=True)
-def MySnackbar(show: bool = True, color: str = "red", message: str = "", icon: str = "mdi-check"):
+def MySnackbar(
+    show: bool = True, color: str = "red", message: str = "", icon: str = "mdi-check"
+):
     pass
 
 
@@ -96,6 +99,7 @@ def create_single_section(video_id, duration, section_type="INITIAL"):
     sm = SectionManager(video_id=video_id.id, duration=duration)
     sm.create_section(start=0, end=duration, section_type=section_type.value)
 
+
 @solara.component
 def VideoInfo(video):
     with solara.Card():
@@ -104,18 +108,14 @@ def VideoInfo(video):
         solara.Markdown(f"Jellyfin ID: {video.jellyfin_id}")
 
 
-
-
 @solara.component
 def AlbumInfo(video):
 
     def cancel(*args):
         logger.debug(f"Cancel button clicked {args}")
 
-
     def change_album(album_title: str):
         logger.debug(f"Album changed to: {album_title}")
-
 
     def save_album(album_title):
         logger.debug(f"Saving Album: {album_title}")
@@ -125,23 +125,35 @@ def AlbumInfo(video):
             vid.save()
             logger.debug("Album removed")
         else:
-            album = AlbumModel.select(AlbumModel, VideoModel).join(VideoModel).where(AlbumModel.title == album_title).get()
+            album = (
+                AlbumModel.select(AlbumModel, VideoModel)
+                .join(VideoModel)
+                .where(AlbumModel.title == album_title)
+                .get()
+            )
             vid.album = album
             vid.save()
-            logger.debug(f"Album saved")
+            logger.debug("Album saved")
             MySnackbar(message="Album Saved")
-    
-    
 
     # albums = [dict(title=x.title, id=x.id) for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(AlbumModel.title)]
-    albums = [x.title for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(AlbumModel.title)]
+    albums = [
+        x.title
+        for x in AlbumModel.select(AlbumModel.title, AlbumModel.id).order_by(
+            AlbumModel.title
+        )
+    ]
 
     with solara.Card():
         if video.album is None:
             with solara.Column():
                 solara.Markdown("No Album Found")
-                solara.Button("Create New", on_click=lambda: logger.debug("Create Album"), classes=["button"])
-        else:            
+                solara.Button(
+                    "Create New",
+                    on_click=lambda: logger.debug("Create Album"),
+                    classes=["button"],
+                )
+        else:
             poster = FileManager.get_file_for_album(video.album, "poster")
             if poster is None:
                 solara.Text("No poster")
@@ -159,7 +171,6 @@ def AlbumInfo(video):
                 event_change_item=change_album,
                 event_cancel=cancel,
             )
-
 
 
 @solara.component
@@ -297,7 +308,7 @@ def SectionControlPanel(
 @solara.component
 def Page():
     MySidebar(solara.use_router())
-    
+
     MySnackbar(message="Welcome to the Page")
     video_id = parse_url_args()
     if video_id is not None:

@@ -4,7 +4,13 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.file import FileManager
 import PIL
-from hmtc.models import Video as VideoModel, Section, File as FileModel
+from hmtc.models import (
+    Video as VideoModel,
+    Section,
+    File as FileModel,
+    Topic as TopicModel,
+    SectionTopics as SectionTopicsModel,
+)
 from hmtc.schemas.section import SectionManager
 from hmtc.config import init_config
 from loguru import logger
@@ -55,7 +61,7 @@ def SectionListItem(items):
 
 @solara.component_vue("../components/section/section_info.vue", vuetify=True)
 def SectionEditor(
-    items: list = [],
+    item: Section = None,
     is_connected: bool = False,
     has_active_user_session: bool = False,
     play_status: bool = False,
@@ -82,12 +88,14 @@ def FileTypeCheckboxes(
 
 @solara.component_vue("../components/section/section_timeline.vue", vuetify=True)
 def SectionTimeLine(
-    timestamps=dict(
-        whole_start=0,
-        whole_end=2447,
-        part_start=600,
-        part_end=1200,
-    ),
+    whole_start=0,
+    whole_end=2447,
+    part_start=600,
+    part_end=1200,
+    section_number=0,
+    total_sections=0,
+    event_prev_slide: callable = None,
+    event_next_slide: callable = None,
 ):
     pass
 
@@ -123,11 +131,28 @@ def Carousel(children=[], model=0):
 
 
 @solara.component
+def TopicsList():
+    with solara.Row():
+        solara.Markdown("Topics List")
+
+
+@solara.component_vue("../components/section/section_topics.vue", vuetify=True)
+def SectionTopics(
+    topic: str,
+    section_id: int,
+    section_topics: list,
+    event_add_topic: callable = None,
+    event_remove_topic: callable = None,
+):
+    pass
+
+
+@solara.component
 def Page():
     MySidebar(router=solara.use_router())
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
-    jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
+    # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
 
     model = solara.use_reactive(0)
 
@@ -145,139 +170,129 @@ def Page():
             logger.debug(f"Processing files in download_video of the list item {file}")
             FileManager.add_path_to_video(file, vid)
 
-    def next_slide():
+    def next_slide(*args):
         if model.value == len(sm.sections) - 1:
             model.set(0)
         else:
             model.set(model.value + 1)
 
-    def prev_slide():
+    def prev_slide(*args):
         if model.value == 0:
             model.set(len(sm.sections) - 1)
         else:
             model.set(model.value - 1)
 
-    with solara.Column(classes=["main-container"]):
-        with solara.Row(style={"background-color": "lightgrey"}):
-            with solara.ColumnsResponsive(12, large=[8, 4]):
-                with solara.Card():
-                    with solara.Columns([4, 4, 4]):
+    poster = FileManager.get_file_for_video(video, "poster")
+    image = PIL.Image.open(Path(str(poster)))
+    IMG_WIDTH = "300px"
+    with solara.Row(classes=[""]):
+        with solara.Columns([8, 4]):
+            with solara.Column(classes=[""], style={"min_width": IMG_WIDTH}):
+                solara.Image(image, width=IMG_WIDTH)
+            with solara.Column(classes=[""]):
+                solara.Text(
+                    f"{video.upload_date}",
+                    classes=["medium-timer"],
+                )
+                solara.Text(
+                    f"{seconds_to_hms(video.duration)}",
+                    classes=["medium-timer"],
+                )
 
-                        with solara.Column():
-                            poster = FileManager.get_file_for_video(video, "poster")
-                            image = PIL.Image.open(Path(str(poster)))
-                            solara.Image(image, width="200px")
+                SeriesChip(series=(video.series.name if video.series else "No Series"))
+                if video.youtube_series and video.episode:
+                    YoutubeSeriesChip(
+                        youtube_series=(f"{video.youtube_series.title} {video.episode}")
+                    )
+                else:
+                    YoutubeSeriesChip(youtube_series=(f"-----"))
+            with solara.Column(classes=[""]):
+                FileTypeCheckboxes(
+                    has_audio="audio" in [f.file_type for f in files],
+                    has_video="video" in [f.file_type for f in files],
+                    has_info="info" in [f.file_type for f in files],
+                    has_subtitle="subtitle" in [f.file_type for f in files],
+                    has_poster="poster" in [f.file_type for f in files],
+                    event_download_video=download_video,
+                )
 
-                            solara.Text(
-                                f"{video.upload_date}",
-                                classes=["medium-timer"],
-                            )
-                            solara.Text(
-                                f"{seconds_to_hms(video.duration)}",
-                                classes=["medium-timer"],
-                            )
-                        with solara.Column(align="start"):
-                            SeriesChip(
-                                series=(
-                                    video.series.name if video.series else "No Series"
-                                )
-                            )
+    with solara.Row(classes=["mylight"]):
+        if video.album is not None:
+            poster = FileManager.get_file_for_album(video.album, "poster")
+            image = PIL.Image.open(Path(str(poster)))
+            solara.Image(image, width="200px")
+            solara.Text(f"{video.album.title}")
+        else:
+            solara.Markdown("No Album")
+            solara.Button("Add Album", classes=["button"])
 
-                            AlbumChip(
-                                album=(video.album.title if video.album else "No Album")
-                            )
-                            YoutubeSeriesChip(
-                                youtube_series=(
-                                    video.youtube_series.title
-                                    if video.youtube_series
-                                    else "No Youtube Series"
-                                )
-                            )
-                            ChannelChip(
-                                channel=(
-                                    video.channel.name
-                                    if video.channel
-                                    else "No Channel"
-                                )
-                            )
-                            PlaylistChip(
-                                playlist=(
-                                    video.playlist.title
-                                    if video.playlist
-                                    else "No Playlist"
-                                )
-                            )
+    if len(sm.sections) > 0:
+        with solara.Row(classes=["mydark"]):
+            SectionTimeLine(
+                whole_start=0,
+                whole_end=video.duration,
+                part_start=sm.sections[model.value].start // 1000,
+                part_end=sm.sections[model.value].end // 1000,
+                section_number=model.value + 1,
+                total_sections=len(sm.sections),
+                event_prev_slide=prev_slide,
+                event_next_slide=next_slide,
+            )
+        with solara.Row(classes=["myprimary"]):
+            with Carousel(model=model.value):
+                for section in sm.sections:
 
-                        with solara.Column(align="center"):
-                            FileTypeCheckboxes(
-                                has_audio="audio" in [f.file_type for f in files],
-                                has_video="video" in [f.file_type for f in files],
-                                has_info="info" in [f.file_type for f in files],
-                                has_subtitle="subtitle" in [f.file_type for f in files],
-                                has_poster="poster" in [f.file_type for f in files],
-                                event_download_video=download_video,
-                            )
-                            if "video" not in [f.file_type for f in files]:
-                                solara.Button(
-                                    "Download Video",
-                                    classes=["button"],
-                                    on_click=download_video,
-                                )
-                with solara.Card():
+                    def add_topic(*args):
+                        logger.debug(f"add_topic_and_add_to_section: {args}")
+                        t, created = TopicModel.get_or_create(text=args[0])
+                        if created:
+                            logger.debug(f"Created topic {t.text}")
+                        SectionTopicsModel.create(
+                            section_id=section.id, topic_id=t.id, order=15
+                        )
+
+                    def remove_topic(*args):
+                        logger.debug(f"remove_topic: {args} from seciton {section}")
+                        t = (
+                            TopicModel.select()
+                            .where(TopicModel.text == args[0]["text"])
+                            .get_or_none()
+                        )
+                        if t is None:
+                            logger.error(f"Topic {args[0]} not found")
+                            return
+
+                        SectionTopicsModel.delete().where(
+                            (SectionTopicsModel.section_id == section.id)
+                            & (SectionTopicsModel.topic_id == t.id)
+                        )
+                        logger.error(
+                            f"Removed topic {t.text} from section {section.id}"
+                        )
+
                     with solara.Column():
-                        if video.album is not None:
-                            poster = FileManager.get_file_for_album(
-                                video.album, "poster"
-                            )
-                            image = PIL.Image.open(Path(str(poster)))
-                            solara.Image(image, width="200px")
-                            solara.Text(f"{video.album.title}")
-                        else:
-                            solara.Markdown("No Album")
-                            solara.Button("Add Album", classes=["button"])
+                        solara.Text(f"id: {section.id}", classes=["ml-8 mt-4"])
+                        st = (
+                            TopicModel.select(TopicModel.id, TopicModel.text)
+                            .join(SectionTopicsModel)
+                            .where(SectionTopicsModel.section_id == section.id)
+                            .order_by(SectionTopicsModel.order)
+                        )
 
-        with solara.Row(style={"background-color": "lightgrey"}):
-            with solara.ColumnsResponsive(12):
-                with solara.Card():
+                        section_topics = [item.model_to_dict() for item in st]
+                        logger.debug(
+                            f"Section Topics: {section_topics} for section id {section.id}"
+                        )
+                        SectionTopics(
+                            topic="",
+                            section_id=section.id,
+                            section_topics=section_topics,
+                            event_add_topic=add_topic,
+                            event_remove_topic=remove_topic,
+                        )
+                        SectionEditor(
+                            item=section.model_to_dict(),
+                        )
 
-                    # SectionListItem(
-                    #     items=[sect.model_to_dict() for sect in sm.sections],
-                    # )
-
-                    with solara.Column():
-                        with solara.Row(justify="space-between"):
-                            solara.Button(
-                                "Previous", on_click=prev_slide, classes=["button"]
-                            )
-                            solara.Markdown(
-                                f"## Section {model.value + 1} of {len(sm.sections)}"
-                            )
-                            solara.Button(
-                                "Next", on_click=next_slide, classes=["button"]
-                            )
-                        with solara.Column():
-                            if len(sm.sections) > 0:
-                                SectionTimeLine(
-                                    timestamps=dict(
-                                        whole_start=0,
-                                        whole_end=video.duration,
-                                        part_start=sm.sections[model.value].start
-                                        // 1000,
-                                        part_end=sm.sections[model.value].end // 1000,
-                                    )
-                                )
-                            else:
-                                solara.Markdown("No Sections Found")
-
-                        with Carousel(model=model.value):
-                            for section in sm.sections:
-                                with solara.Column():
-                                    SectionEditor(
-                                        items=[section.model_to_dict()],
-                                    )
-        with solara.Row(style={"background-color": "lightgrey"}):
-            with solara.ColumnsResponsive(12, large=6):
-
-                with solara.Card():
-                    solara.Markdown(f"###### ?? Info")
-                    solara.Markdown(f"* {video.duration}")
+    else:
+        solara.Markdown("No Sections Found")

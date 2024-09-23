@@ -1,6 +1,9 @@
 import solara
 import ipyvue
+from loguru import logger
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.schemas.section import SectionManager
+from hmtc.schemas.video import VideoItem
 
 
 @solara.component_vue("ParentComponent.vue")
@@ -8,27 +11,30 @@ def ParentComponent(myname: str = ""):
     pass
 
 
-@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
-def FileTypeCheckboxes(
-    has_audio: bool = False,
-    has_video: bool = False,
-    has_subtitle: bool = False,
-    has_info: bool = True,
-    has_poster: bool = True,
-    event_download_video: callable = None,
-    event_download_info: callable = None,
+@solara.component_vue("../components/section/section_timeline.vue", vuetify=True)
+def SectionTimeLine(
+    whole_start=0,
+    whole_end=2447,
+    part_start=600,
+    part_end=1200,
+    event_prev_slide: callable = None,
+    event_next_slide: callable = None,
 ):
     pass
 
 
 @solara.component
 def Page():
-    # Don't use reactivity in Page for this registration to work,
-    # move that to another component if necessary.
-    MySidebar(router=solara.use_router())
-    ipyvue.register_component_from_file(
-        "MyChildComponent", "ChildComponent.vue", __file__
-    )
+    video_id = 285
+    video = VideoItem.get_details_for_video(video_id)
+    model = solara.use_reactive(0)
+    sm = SectionManager.from_video(video)
 
-    ParentComponent(myname="matt")
-    FileTypeCheckboxes()
+    SectionTimeLine(
+        whole_start=0,
+        whole_end=video.duration,
+        part_start=sm.sections[model.value].start // 1000,
+        part_end=sm.sections[model.value].end // 1000,
+        event_prev_slide=lambda: logger.debug("prev"),
+        event_next_slide=lambda: logger.debug("next"),
+    )
