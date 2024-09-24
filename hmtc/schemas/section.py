@@ -1,9 +1,13 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
-
+import peewee
 from loguru import logger
 
-from hmtc.models import Section as SectionTable
+from hmtc.models import (
+    Section as SectionTable,
+    Topic as TopicTable,
+    SectionTopics as SectionTopicsTable,
+)
 
 
 @dataclass(frozen=True, order=True)
@@ -13,6 +17,7 @@ class Section:
     video_id: int
     id: int = None
     section_type: str = "INITIAL"
+    topics: list = field(default_factory=list)
 
     def check_times(self) -> None:
         if self.start > self.end:
@@ -49,18 +54,19 @@ class Section:
     @staticmethod
     def from_video(video):
         logger.debug(f"Grabbing sections for video {video.id}")
-        query = (
-            SectionTable.select()
-            .where(SectionTable.video_id == video.id)
-            .order_by(SectionTable.start)
-        )
-        results = list(query)
-        if results:
-            logger.debug(f"Results: {results}")
-        else:
-            logger.debug("No results found")
+        logger.debug("Using staticmethod from_video in Section'Table'")
+        # query = (
+        #     SectionTable.select()
+        #     .where(SectionTable.video_id == video.id)
+        #     .order_by(SectionTable.start)
+        # )
+        # results = list(query)
+        # if results:
+        #     logger.debug(f"Results: {results}")
+        # else:
+        #     logger.debug("No results found")
 
-        return results
+        # return results
 
     @staticmethod
     def get_by_start(video_id, start):
@@ -75,6 +81,24 @@ class Section:
             (SectionTable.end == end) & (SectionTable.video_id == video_id)
         )
         return query.get()
+
+    @staticmethod
+    def get_details_for_section(section_id):
+        query = (
+            SectionTable.select(SectionTable, TopicTable, SectionTopicsTable)
+            .join(
+                SectionTopicsTable,
+                on=(SectionTable.id == SectionTopicsTable.section_id),
+                join_type=peewee.JOIN.LEFT_OUTER,
+            )
+            .join(
+                TopicTable,
+                join_type=peewee.JOIN.LEFT_OUTER,
+            )
+            .where(SectionTable.id == section_id)
+        ).get()
+        if query:
+            return query.model_to_dict()
 
 
 @dataclass
@@ -100,9 +124,10 @@ class SectionManager:
 
     @staticmethod
     def from_video(video) -> "SectionManager":
+        logger.debug("Using staticmethod from_video in SectionManager")
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
-            SectionTable.select()
+            SectionTable.select(SectionTable.id, SectionTable.start, SectionTable.end)
             .where(SectionTable.video_id == video.id)
             .order_by(SectionTable.start)
         )

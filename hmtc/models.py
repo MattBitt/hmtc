@@ -645,6 +645,7 @@ class Section(BaseModel):
             "duration": (self.end - self.start) / 1000,
             "section_type": self.section_type,
             "video_id": self.video.id if self.video else None,
+            "topics": [t.topic.model_to_dict() for t in self.topics],
         }
         return new_dict
 

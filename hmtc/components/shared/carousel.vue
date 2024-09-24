@@ -1,189 +1,173 @@
 <template>
-  <div>
-    <v-container fluid class="" id="carousel-container">
-      <v-card>
-        <v-tabs
-          v-model="tab"
-          background-color="deep-purple accent-4"
-          centered
-          dark
-          icons-and-text
+  <v-container fluid class="" id="carousel-container">
+    <v-card>
+      <v-tabs v-model="tab" centered>
+        <v-tabs-slider></v-tabs-slider>
+        <v-tab
+          v-for="(section, i) in sections"
+          :key="i"
+          :value="'tab-' + i"
+          :href="'#tab-' + i"
         >
-          <v-tabs-slider></v-tabs-slider>
-          <v-tab
-            v-for="(section, i) in sections"
-            :key="i"
-            :value="'tab-' + i"
-            :href="'#tab-' + i"
-            >{{ section.start }} - {{ section.end }}
+          <h3>{{ i + 1 }}</h3>
+        </v-tab>
+      </v-tabs>
 
-            <v-icon>mdi-phone</v-icon>
-          </v-tab>
-        </v-tabs>
-
-        <v-tabs-items v-model="tab">
-          <v-tab-item
-            v-for="(section, i) in sections"
-            :key="i"
-            :value="'tab-' + i"
-          >
-            <v-card flat>
-              <v-card-text>{{ text }}</v-card-text>
-              <v-sheet class="mt-4" height="100%">
-                <v-container>
-                  <v-row>
-                    <v-col cols="4">
-                      <v-row>
-                        <h1>{{ section.id }}</h1>
-                      </v-row>
-                      <v-row>
-                        <v-form
-                          ref="form"
-                          v-model="valid"
-                          @submit.prevent="handleSubmit"
-                        >
-                          <v-text-field
-                            v-model="topic"
-                            :rules="topicRules"
-                            label="Enter Topic"
-                            required
-                          ></v-text-field>
-                          <v-btn type="submit" color="primary">Submit</v-btn>
-                        </v-form>
-                      </v-row>
-                      <v-row class="mt-6">
-                        <v-alert
-                          outlined
-                          v-if="error"
-                          type="error"
-                          dismissible
-                          >{{ error }}</v-alert
-                        >
-                        <v-alert
-                          outlined
-                          v-if="success"
-                          type="success"
-                          dismissible
-                          >{{ success }}</v-alert
-                        >
-                      </v-row>
-                    </v-col>
-                    <v-col cols="8">
-                      <v-chip
-                        v-for="sectionTopic in section_topics"
-                        :key="sectionTopic.id"
-                        class="mx-4"
-                        close
-                        @click:close="deleteSectionTopic(sectionTopic)"
+      <v-tabs-items v-model="tab">
+        <v-tab-item
+          v-for="(section, i) in sections"
+          :key="i"
+          :value="'tab-' + i"
+        >
+          <v-card flat>
+            <v-card-text>{{ text }}</v-card-text>
+            <v-sheet class="mt-4" height="100%">
+              <v-container>
+                <v-row>
+                  <v-col cols="4">
+                    <v-row>
+                      <h1>{{ section.id }}</h1>
+                    </v-row>
+                    <v-row>
+                      <v-form
+                        ref="form"
+                        v-model="valid"
+                        @submit.prevent="handleSubmit"
                       >
-                        {{ sectionTopic.text }}
-                      </v-chip>
-                    </v-col>
-                  </v-row>
-                </v-container>
-                <container id="section-info-container">
-                  <v-row id="section-times">
-                    <v-col id="start_time" cols="6">
-                      <v-row justify="center" class="mb-6">
-                        <span class="seven-seg">{{
-                          timeString(section.start)
-                        }}</span>
-                      </v-row>
+                        <v-text-field
+                          v-model="topic"
+                          :rules="topicRules"
+                          label="Enter Topic"
+                          required
+                        ></v-text-field>
+                        <v-btn type="submit" color="primary">Submit</v-btn>
+                      </v-form>
+                    </v-row>
+                    <v-row class="mt-6">
+                      <v-alert outlined v-if="error" type="error" dismissible>{{
+                        error
+                      }}</v-alert>
+                      <v-alert
+                        outlined
+                        v-if="success"
+                        type="success"
+                        dismissible
+                        >{{ success }}</v-alert
+                      >
+                    </v-row>
+                  </v-col>
+                  <v-col cols="8">
+                    <v-chip
+                      v-for="sectionTopic in section_topics"
+                      :key="sectionTopic.id"
+                      class="mx-4"
+                      close
+                      @click:close="deleteSectionTopic(sectionTopic)"
+                    >
+                      {{ sectionTopic.text }}
+                    </v-chip>
+                  </v-col>
+                </v-row>
+              </v-container>
+              <container id="section-info-container">
+                <v-row id="section-times">
+                  <v-col id="start_time" cols="6">
+                    <v-row justify="center" class="mb-6">
+                      <span class="seven-seg">{{
+                        timeString(section.start)
+                      }}</span>
+                    </v-row>
 
-                      <v-row justify="center">
-                        <v-col cols="4">
-                          <v-btn xs class="button" @click="setStartTime(-0.25)">
-                            -0.25
+                    <v-row justify="center">
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setStartTime(-0.25)">
+                          -0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(-1)">
+                          -1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(-5)">
+                          -5
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-row justify="center" class="mb-6">
+                          <v-btn class="button" @click="loopStartJellyfin()">
+                            Play
                           </v-btn>
-                          <v-btn xs class="button" @click="setStartTime(-1)">
-                            -1
+                        </v-row>
+                        <v-row>
+                          <v-btn class="button" @click="adjustStartToCurrent()">
+                            Sync (jf)
                           </v-btn>
-                          <v-btn xs class="button" @click="setStartTime(-5)">
-                            -5
-                          </v-btn>
-                        </v-col>
-                        <v-col cols="4">
-                          <v-row justify="center" class="mb-6">
-                            <v-btn class="button" @click="loopStartJellyfin()">
-                              Play
-                            </v-btn>
-                          </v-row>
-                          <v-row>
-                            <v-btn
-                              class="button"
-                              @click="adjustStartToCurrent()"
-                            >
-                              Sync (jf)
-                            </v-btn>
-                          </v-row>
-                        </v-col>
-                        <v-col cols="4">
-                          <v-btn xs class="button" @click="setStartTime(+0.25)">
-                            +0.25
-                          </v-btn>
-                          <v-btn xs class="button" @click="setStartTime(+1)">
-                            +1
-                          </v-btn>
-                          <v-btn xs class="button" @click="setStartTime(+5)">
-                            +5
-                          </v-btn>
-                        </v-col>
-                      </v-row>
-                    </v-col>
+                        </v-row>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setStartTime(+0.25)">
+                          +0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(+1)">
+                          +1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(+5)">
+                          +5
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-col>
 
-                    <v-col id="end_time" cols="6">
-                      <v-row justify="center" class="mb-6">
-                        <span class="seven-seg">{{
-                          timeString(section.end)
-                        }}</span>
-                      </v-row>
+                  <v-col id="end_time" cols="6">
+                    <v-row justify="center" class="mb-6">
+                      <span class="seven-seg">{{
+                        timeString(section.end)
+                      }}</span>
+                    </v-row>
 
-                      <v-row justify="center">
-                        <v-col cols="4">
-                          <v-btn xs class="button" @click="setEndTime(-0.25)">
-                            -0.25
+                    <v-row justify="center">
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setEndTime(-0.25)">
+                          -0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(-1)">
+                          -1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(-5)">
+                          -5
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-row justify="center" class="mb-6">
+                          <v-btn class="button" @click="loopEndJellyfin()">
+                            Play
                           </v-btn>
-                          <v-btn xs class="button" @click="setEndTime(-1)">
-                            -1
+                        </v-row>
+                        <v-row>
+                          <v-btn class="button" @click="adjustEndToCurrent()">
+                            Sync (jf)
                           </v-btn>
-                          <v-btn xs class="button" @click="setEndTime(-5)">
-                            -5
-                          </v-btn>
-                        </v-col>
-                        <v-col cols="4">
-                          <v-row justify="center" class="mb-6">
-                            <v-btn class="button" @click="loopEndJellyfin()">
-                              Play
-                            </v-btn>
-                          </v-row>
-                          <v-row>
-                            <v-btn class="button" @click="adjustEndToCurrent()">
-                              Sync (jf)
-                            </v-btn>
-                          </v-row>
-                        </v-col>
-                        <v-col cols="4">
-                          <v-btn xs class="button" @click="setEndTime(+0.25)">
-                            +0.25
-                          </v-btn>
-                          <v-btn xs class="button" @click="setEndTime(+1)">
-                            +1
-                          </v-btn>
-                          <v-btn xs class="button" @click="setEndTime(+5)">
-                            +5
-                          </v-btn>
-                        </v-col>
-                      </v-row>
-                    </v-col>
-                  </v-row>
-                </container>
-              </v-sheet>
-            </v-card>
-          </v-tab-item>
-        </v-tabs-items>
-      </v-card>
-    </v-container>
-  </div>
+                        </v-row>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setEndTime(+0.25)">
+                          +0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(+1)">
+                          +1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(+5)">
+                          +5
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
+              </container>
+            </v-sheet>
+          </v-card>
+        </v-tab-item>
+      </v-tabs-items>
+    </v-card>
+  </v-container>
 </template>
 <script>
 export default {
@@ -206,7 +190,7 @@ export default {
         end: 0,
         id: 682148,
       },
-
+      section: null,
       section_topics: [
         {
           id: 1,

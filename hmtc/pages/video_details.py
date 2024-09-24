@@ -1,6 +1,7 @@
 import solara
 from pathlib import Path
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.file import FileManager
 import PIL
@@ -56,6 +57,11 @@ def my_hook(*args):
 
 @solara.component_vue("../components/section/section_list_item.vue", vuetify=True)
 def SectionListItem(items):
+    pass
+
+
+@solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
+def SectionTabs(tabItems):
     pass
 
 
@@ -186,8 +192,8 @@ def Page():
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
     IMG_WIDTH = "300px"
-    with solara.Row(classes=[""]):
-        with solara.Columns([8, 4]):
+    with solara.Row(classes=["mylight"]):
+        with solara.Columns([4, 4, 2, 2]):
             with solara.Column(classes=[""], style={"min_width": IMG_WIDTH}):
                 solara.Image(image, width=IMG_WIDTH)
             with solara.Column(classes=[""]):
@@ -217,33 +223,21 @@ def Page():
                     event_download_video=download_video,
                 )
 
-    with solara.Row(classes=["mylight"]):
-        if video.album is not None:
-            poster = FileManager.get_file_for_album(video.album, "poster")
-            image = PIL.Image.open(Path(str(poster)))
-            solara.Image(image, width="200px")
-            solara.Text(f"{video.album.title}")
-        else:
-            solara.Markdown("No Album")
-            solara.Button("Add Album", classes=["button"])
+            if video.album is not None:
+                poster = FileManager.get_file_for_album(video.album, "poster")
+                image = PIL.Image.open(Path(str(poster)))
+                solara.Image(image, width="200px")
+                solara.Text(f"{video.album.title}")
+            else:
+                solara.Markdown("No Album")
+                solara.Button("Add Album", classes=["button"])
 
     if len(sm.sections) > 0:
-        with solara.Row():
-            sects = [item.model_to_dict() for item in sm.sections]
-            sect_ids = [item.id for item in sm.sections]
-            section_topics = list(
-                TopicModel.select(
-                    TopicModel.id, Section.id.alias("section_id"), TopicModel.text
-                )
-                .join(SectionTopicsModel)
-                .join(Section)
-                .where(SectionTopicsModel.section_id in sect_ids)
-                .group_by(Section.id, TopicModel.id)
-            )
-            logger.debug(
-                f"Section Topics: {[x.model_to_dict() for x in section_topics]}"
-            )
-            Carousel(sections=sects)
+        logger.debug(f"NUm sections: {len(sm.sections)}")
+        with solara.Row(classes=["mylight"], style={"height": "300px"}):
+
+            section_dicts = [s.model_to_dict() for s in sm.sections]
+            SectionTabs(tabItems=section_dicts)
 
     else:
         solara.Markdown("No Sections Found")
