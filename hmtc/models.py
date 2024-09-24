@@ -633,6 +633,7 @@ class Section(BaseModel):
         return breaks
 
     def model_to_dict(self):
+
         new_dict = {
             "id": self.id,
             "start": self.start,

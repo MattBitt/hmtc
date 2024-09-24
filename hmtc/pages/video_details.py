@@ -86,20 +86,6 @@ def FileTypeCheckboxes(
     pass
 
 
-@solara.component_vue("../components/section/section_timeline.vue", vuetify=True)
-def SectionTimeLine(
-    whole_start=0,
-    whole_end=2447,
-    part_start=600,
-    part_end=1200,
-    section_number=0,
-    total_sections=0,
-    event_prev_slide: callable = None,
-    event_next_slide: callable = None,
-):
-    pass
-
-
 @solara.component_vue("../components/chips/series.vue", vuetify=True)
 def SeriesChip(series):
     pass
@@ -126,24 +112,39 @@ def ChannelChip(channel):
 
 
 @solara.component_vue("../components/shared/carousel.vue")
-def Carousel(children=[], model=0):
+def Carousel(sections: list = []):
     pass
 
 
-@solara.component
-def TopicsList():
-    with solara.Row():
-        solara.Markdown("Topics List")
+def add_topic(*args):
+    # logger.debug(f"add_topic_and_add_to_section: {args}")
+    # t, created = TopicModel.get_or_create(text=args[0])
+    # if created:
+    #     logger.debug(f"Created topic {t.text}")
+    # SectionTopicsModel.create(
+    #     section_id=section.id, topic_id=t.id, order=15
+    # )
+    pass
 
 
-@solara.component_vue("../components/section/section_topics.vue", vuetify=True)
-def SectionTopics(
-    topic: str,
-    section_id: int,
-    section_topics: list,
-    event_add_topic: callable = None,
-    event_remove_topic: callable = None,
-):
+def remove_topic(*args):
+    # logger.debug(f"remove_topic: {args} from seciton {section}")
+    # t = (
+    #     TopicModel.select()
+    #     .where(TopicModel.text == args[0]["text"])
+    #     .get_or_none()
+    # )
+    # if t is None:
+    #     logger.error(f"Topic {args[0]} not found")
+    #     return
+
+    # SectionTopicsModel.delete().where(
+    #     (SectionTopicsModel.section_id == section.id)
+    #     & (SectionTopicsModel.topic_id == t.id)
+    # )
+    # logger.error(
+    #     f"Removed topic {t.text} from section {section.id}"
+    # )
     pass
 
 
@@ -227,72 +228,22 @@ def Page():
             solara.Button("Add Album", classes=["button"])
 
     if len(sm.sections) > 0:
-        with solara.Row(classes=["mydark"]):
-            SectionTimeLine(
-                whole_start=0,
-                whole_end=video.duration,
-                part_start=sm.sections[model.value].start // 1000,
-                part_end=sm.sections[model.value].end // 1000,
-                section_number=model.value + 1,
-                total_sections=len(sm.sections),
-                event_prev_slide=prev_slide,
-                event_next_slide=next_slide,
+        with solara.Row():
+            sects = [item.model_to_dict() for item in sm.sections]
+            sect_ids = [item.id for item in sm.sections]
+            section_topics = list(
+                TopicModel.select(
+                    TopicModel.id, Section.id.alias("section_id"), TopicModel.text
+                )
+                .join(SectionTopicsModel)
+                .join(Section)
+                .where(SectionTopicsModel.section_id in sect_ids)
+                .group_by(Section.id, TopicModel.id)
             )
-        with solara.Row(classes=["myprimary"]):
-            with Carousel(model=model.value):
-                for section in sm.sections:
-
-                    def add_topic(*args):
-                        logger.debug(f"add_topic_and_add_to_section: {args}")
-                        t, created = TopicModel.get_or_create(text=args[0])
-                        if created:
-                            logger.debug(f"Created topic {t.text}")
-                        SectionTopicsModel.create(
-                            section_id=section.id, topic_id=t.id, order=15
-                        )
-
-                    def remove_topic(*args):
-                        logger.debug(f"remove_topic: {args} from seciton {section}")
-                        t = (
-                            TopicModel.select()
-                            .where(TopicModel.text == args[0]["text"])
-                            .get_or_none()
-                        )
-                        if t is None:
-                            logger.error(f"Topic {args[0]} not found")
-                            return
-
-                        SectionTopicsModel.delete().where(
-                            (SectionTopicsModel.section_id == section.id)
-                            & (SectionTopicsModel.topic_id == t.id)
-                        )
-                        logger.error(
-                            f"Removed topic {t.text} from section {section.id}"
-                        )
-
-                    with solara.Column():
-                        solara.Text(f"id: {section.id}", classes=["ml-8 mt-4"])
-                        st = (
-                            TopicModel.select(TopicModel.id, TopicModel.text)
-                            .join(SectionTopicsModel)
-                            .where(SectionTopicsModel.section_id == section.id)
-                            .order_by(SectionTopicsModel.order)
-                        )
-
-                        section_topics = [item.model_to_dict() for item in st]
-                        logger.debug(
-                            f"Section Topics: {section_topics} for section id {section.id}"
-                        )
-                        SectionTopics(
-                            topic="",
-                            section_id=section.id,
-                            section_topics=section_topics,
-                            event_add_topic=add_topic,
-                            event_remove_topic=remove_topic,
-                        )
-                        SectionEditor(
-                            item=section.model_to_dict(),
-                        )
+            logger.debug(
+                f"Section Topics: {[x.model_to_dict() for x in section_topics]}"
+            )
+            Carousel(sections=sects)
 
     else:
         solara.Markdown("No Sections Found")
