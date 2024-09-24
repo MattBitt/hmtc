@@ -206,7 +206,7 @@ def Page():
                         youtube_series=(f"{video.youtube_series.title} {video.episode}")
                     )
                 else:
-                    YoutubeSeriesChip(youtube_series=(f"-----"))
+                    YoutubeSeriesChip(youtube_series=("-----"))
             with solara.Column(classes=[""]):
                 FileTypeCheckboxes(
                     has_audio="audio" in [f.file_type for f in files],
