@@ -72,6 +72,7 @@ export default {
       { text: "Series", icon: "mdi-shape", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },
+      { text: "Topics", icon: "mdi-book-open", url: "/topics" },
     ],
     old_items: [
       { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },

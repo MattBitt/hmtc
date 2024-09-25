@@ -34,11 +34,11 @@
         <v-spacer></v-spacer>
         <!-- New/Edit Modal Dialog Starts Here -->
         <v-dialog v-model="dialog" max-width="800px">
-          <template v-slot:activator="{ on, attrs }">
+          <!-- <template v-slot:activator="{ on, attrs }">
             <v-btn class="button mb-2" v-bind="attrs" v-on="on">
               New Item
             </v-btn>
-          </template>
+          </template> -->
           <v-card>
             <v-card-title>
               <span class="text-h5">{{ formTitle }}</span>

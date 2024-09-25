@@ -9,7 +9,13 @@ import os
 from hmtc.components.shared.progress_slider import SimpleProgressBar
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Channel
-from hmtc.models import Video as VideoModel, Album as AlbumModel, File as FileModel
+from hmtc.models import (
+    Video as VideoModel,
+    Album as AlbumModel,
+    File as FileModel,
+    Topic as TopicModel,
+    SectionTopics as SectionTopicsModel,
+)
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.album import Album
 from hmtc.schemas.section import SectionManager, Section
@@ -230,11 +236,11 @@ class PageState:
         for id, tracks in grouped_tracks:
             video = VideoItem.get_by_youtube_id(id)
             if video:
-                album = Album.grab_for_video(video.id)
-                if not album:
-                    album = Album.create_for_video(video)
-                if video.duration == 0 or video.duration is None:
-                    video.duration = 7200
+                # album = Album.grab_for_video(video.id)
+                # if not album:
+                #     album = Album.create_for_video(video)
+                # if video.duration == 0 or video.duration is None:
+                #     video.duration = 7200
 
                 sm = SectionManager.from_video(video)
                 if len(sm.sections) > 0:
@@ -247,6 +253,19 @@ class PageState:
                         end=int(track["end"]),
                         section_type="instrumental",
                     )
+                    topics = track["title"].split(",")
+                    for t in topics:
+                        new_topic, _ = TopicModel.get_or_create(text=t)
+                        num_topics_in_section = (
+                            SectionTopicsModel.select()
+                            .where(SectionTopicsModel.section_id == section)
+                            .count()
+                        )
+                        SectionTopicsModel.create(
+                            topic_id=new_topic.id,
+                            section=section,
+                            order=num_topics_in_section + 1,
+                        )
                 logger.debug(f"Section created: {section}")
 
     @staticmethod

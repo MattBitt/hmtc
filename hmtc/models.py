@@ -846,9 +846,16 @@ class Topic(BaseModel):
     text = CharField()
 
     def model_to_dict(self):
+        num_sections = (
+            SectionTopics.select(fn.Count(SectionTopics.section_id))
+            .where((SectionTopics.topic_id == self.id))
+            .scalar()
+        )
+
         new_dict = {
             "id": self.id,
             "text": self.text,
+            "section_count": num_sections,
         }
         return new_dict
 

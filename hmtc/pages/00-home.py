@@ -8,6 +8,7 @@ from hmtc.models import Video as VideoModel, Channel as ChannelModel
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.file import FileManager
 from hmtc.assets.colors import Colors
+from loguru import logger
 
 config = init_config()
 
@@ -27,9 +28,9 @@ def refresh_from_youtube():
             VideoItem.create_from_youtube_id(id)
 
     if num_new_vids == 0:
-        t = "No new videos found"
+        logger.debug("No new videos found")
     else:
-        t = f"Found {num_new_vids} new videos"
+        logger.debug(f"Found {num_new_vids} new videos")
 
 
 @solara.component

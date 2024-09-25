@@ -61,7 +61,7 @@ def SectionListItem(items):
 
 
 @solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
-def SectionTabs(tabItems, event_add_item):
+def SectionTabs(tabItems, event_add_item, event_remove_item):
     pass
 
 
@@ -126,7 +126,7 @@ def add_topic(*args):
     section_id = args[0]["item_id"]
     topic = args[0]["topic"]
     if section_id is None or topic is None:
-        logger.error(f"Section ID or Topic is None")
+        logger.error("Section ID or Topic is None")
         return
     topic, created = TopicModel.get_or_create(text=topic)
     if created:
@@ -150,24 +150,28 @@ def add_topic(*args):
 
 
 def remove_topic(*args):
-    # logger.debug(f"remove_topic: {args} from seciton {section}")
-    # t = (
-    #     TopicModel.select()
-    #     .where(TopicModel.text == args[0]["text"])
-    #     .get_or_none()
-    # )
-    # if t is None:
-    #     logger.error(f"Topic {args[0]} not found")
-    #     return
+    section_id = args[0]["item_id"]
+    topic = args[0]["topic"]
+    logger.debug(f"remove_topic: {topic} from seciton {section_id}")
 
-    # SectionTopicsModel.delete().where(
-    #     (SectionTopicsModel.section_id == section.id)
-    #     & (SectionTopicsModel.topic_id == t.id)
-    # )
-    # logger.error(
-    #     f"Removed topic {t.text} from section {section.id}"
-    # )
-    pass
+    t = TopicModel.select().where(TopicModel.text == topic).get_or_none()
+    if t is None:
+        logger.error(f"Topic {args[0]} not found")
+        return
+
+    SectionTopicsModel.delete().where(
+        (SectionTopicsModel.section_id == section_id)
+        & (SectionTopicsModel.topic_id == t.id)
+    ).execute()
+
+    topic_still_needed = SectionTopicsModel.get_or_none(
+        SectionTopicsModel.topic_id == t.id
+    )
+    if topic_still_needed is None:
+        logger.debug(f"Topic no longer needed {t.text} ({t.id}). Removing.")
+        t.delete_instance()
+
+    logger.error(f"Removed topic {t.text} ({t.id}) from section {section_id}")
 
 
 @solara.component
@@ -255,7 +259,11 @@ def Page():
             section_dicts = [
                 SectionManager.get_section_details(s.id) for s in sm.sections
             ]
-            SectionTabs(tabItems=section_dicts, event_add_item=add_topic)
+            SectionTabs(
+                tabItems=section_dicts,
+                event_add_item=add_topic,
+                event_remove_item=remove_topic,
+            )
 
         else:
             solara.Markdown("No Sections Found")

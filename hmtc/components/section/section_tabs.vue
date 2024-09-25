@@ -22,20 +22,22 @@
                     handleSubmit(item.id, topic, item.topics.length)
                   "
                 ></v-text-field>
-                <div class="d-flex flex-column">
+              </v-row>
+              <v-row>
+                <v-col cols="6">
+                  <v-btn class="button" block @click="handleCancel">
+                    Cancel
+                  </v-btn>
+                </v-col>
+                <v-col cols="6">
                   <v-btn
-                    class="mt-4"
-                    color="success"
+                    class="button"
                     block
                     @click="handleSubmit(item.id, topic, item.topics.length)"
                   >
                     Submit
                   </v-btn>
-
-                  <v-btn class="mt-4" color="error" block @click="handleCancel">
-                    Cancel
-                  </v-btn>
-                </div>
+                </v-col>
               </v-row>
             </v-col>
             <v-col cols="8">
@@ -44,8 +46,12 @@
                   v-for="topic in item.topics"
                   :key="topic.text + topic.id"
                 >
-                  <v-chip :key="topic.id">
-                    {{ topic.id }} - {{ topic.text }}</v-chip
+                  <v-chip
+                    :key="topic.id"
+                    close
+                    @click:close="removeItem(item.id, topic.text)"
+                  >
+                    {{ topic.text }}</v-chip
                   >
                 </v-col>
               </v-row>
@@ -192,6 +198,21 @@ export default {
       console.log("Cancelled");
     },
 
+    removeItem(item_id, topic) {
+      console.log("Removing topic", item_id, topic);
+      const item = this.tabItems.filter((item) => item.id === item_id)[0];
+      const topicIndex = item.topics.findIndex((t) => t.text === topic);
+      if (topicIndex !== -1) {
+        item.topics.splice(topicIndex, 1);
+      }
+
+      const args = {
+        item_id: item_id,
+        topic: topic,
+      };
+      this.remove_item(args);
+    },
+
     timeString(ms) {
       return new Date(ms).toLocaleTimeString();
     },
@@ -229,15 +250,6 @@ export default {
     adjustEndToCurrent() {
       this.editedItem.end = this.current_position;
       this.endStringJS = this.timeString(this.editedItem.end);
-    },
-
-    async deleteSectionTopic(topic) {
-      console.log("Deleting topic from this section:", topic);
-      this.section_topics = this.section_topics.filter((t) => t !== topic);
-      this.remove_topic(topic);
-      // Replace with actual API call to delete a section topic entry
-      // Example:
-      // await axios.delete(`/api/sectiontopics/${topic}`);
     },
   },
 };
