@@ -170,3 +170,21 @@ class SectionManager:
     def get_by_id(id):
         logger.debug("🧪🧪🧪🧪 get_by_id Is this is being used? 9/13/24🧪🧪🧪🧪")
         return SectionTable.get_or_none(SectionTable.id == id)
+
+    @staticmethod
+    def get_section_details(id):
+        query = (
+            SectionTable.select(SectionTable, TopicTable, SectionTopicsTable)
+            .join(
+                SectionTopicsTable,
+                on=(SectionTable.id == SectionTopicsTable.section_id),
+                join_type=peewee.JOIN.LEFT_OUTER,
+            )
+            .join(
+                TopicTable,
+                join_type=peewee.JOIN.LEFT_OUTER,
+            )
+            .where(SectionTable.id == id)
+        ).get()
+
+        return query.model_to_dict()

@@ -61,7 +61,7 @@ def SectionListItem(items):
 
 
 @solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
-def SectionTabs(tabItems):
+def SectionTabs(tabItems, event_add_item):
     pass
 
 
@@ -123,7 +123,23 @@ def Carousel(sections: list = []):
 
 
 def add_topic(*args):
-    # logger.debug(f"add_topic_and_add_to_section: {args}")
+    section_id = args[0]["item_id"]
+    topic = args[0]["topic"]
+    if section_id is None or topic is None:
+        logger.error(f"Section ID or Topic is None")
+        return
+    topic, created = TopicModel.get_or_create(text=topic)
+    if created:
+        logger.debug(f"Created topic {topic.text}")
+    _order = (
+        SectionTopicsModel.select()
+        .where(SectionTopicsModel.section_id == section_id)
+        .count()
+    )
+    SectionTopicsModel.create(
+        section_id=section_id, topic_id=topic.id, order=_order + 1
+    )
+    logger.debug(f"adding topic {topic} to section {section_id}")
     # t, created = TopicModel.get_or_create(text=args[0])
     # if created:
     #     logger.debug(f"Created topic {t.text}")
@@ -232,12 +248,14 @@ def Page():
                 solara.Markdown("No Album")
                 solara.Button("Add Album", classes=["button"])
 
-    if len(sm.sections) > 0:
-        logger.debug(f"NUm sections: {len(sm.sections)}")
-        with solara.Row(classes=["mylight"], style={"height": "300px"}):
+    with solara.Row(classes=["mylight"]):
+        if len(sm.sections) > 0:
+            logger.debug(f"NUm sections: {len(sm.sections)}")
 
-            section_dicts = [s.model_to_dict() for s in sm.sections]
-            SectionTabs(tabItems=section_dicts)
+            section_dicts = [
+                SectionManager.get_section_details(s.id) for s in sm.sections
+            ]
+            SectionTabs(tabItems=section_dicts, event_add_item=add_topic)
 
-    else:
-        solara.Markdown("No Sections Found")
+        else:
+            solara.Markdown("No Sections Found")

@@ -4,11 +4,32 @@ from pathlib import Path
 import PIL
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import Video as VideoModel
+from hmtc.models import Video as VideoModel, Channel as ChannelModel
+from hmtc.schemas.video import VideoItem
 from hmtc.schemas.file import FileManager
 from hmtc.assets.colors import Colors
 
 config = init_config()
+
+
+def refresh_from_youtube():
+
+    existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
+    channels = ChannelModel.select().where((ChannelModel.name.contains("Harry")))
+
+    num_new_vids = 0
+
+    for c in channels:
+        yt_ids = c.grab_ids()
+        ids_to_update = [id for id in yt_ids if id not in existing_ids]
+        num_new_vids += len(ids_to_update)
+        for id in ids_to_update:
+            VideoItem.create_from_youtube_id(id)
+
+    if num_new_vids == 0:
+        t = "No new videos found"
+    else:
+        t = f"Found {num_new_vids} new videos"
 
 
 @solara.component
@@ -26,16 +47,20 @@ def Page():
     )
 
     with solara.Column(classes=["main-container"]):
-        with solara.Columns([1, 4, 1]):
-            solara.Markdown("")
-            with solara.Row(
-                justify="center", style={"background-color": Colors.SURFACE}
-            ):
-                solara.Button("Videos", classes=["button"], href="/videos")
-                # solara.Button("Serieses", classes=["button"], href="/series")
-                # solara.Button("Albums", classes=["button"], href="/albums")
-                solara.Button("Tracks", classes=["button"], href="/tracks")
-            solara.Markdown("")
+        with solara.Row(classes=["mysurface"]):
+            with solara.Columns([10, 2]):
+
+                with solara.Row(
+                    justify="center", style={"background-color": Colors.SURFACE}
+                ):
+                    solara.Button("Videos", classes=["button"], href="/videos")
+                    solara.Button("Tracks", classes=["button"], href="/tracks")
+                with solara.Row(
+                    justify="end", style={"background-color": Colors.SURFACE}
+                ):
+                    solara.Button(
+                        "Refresh", classes=["button"], on_click=refresh_from_youtube
+                    )
         with solara.Row():
             with solara.Column(
                 align="center",
