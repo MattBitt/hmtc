@@ -22,7 +22,6 @@ from hmtc.utils.my_logging import setup_logging
 config = init_config()
 env = config["general"]["environment"]
 
-
 match env:
     case "development":
         color = Colors.ERROR

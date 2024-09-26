@@ -37,9 +37,7 @@ def save_topic(dict_of_items):
         TopicModel.create(**edited_item)
         return
 
-    topic.text = edited_item["name"]
-    topic.start_date = edited_item["start_date"]
-    topic.end_date = edited_item["end_date"]
+    topic.text = edited_item["text"]
 
     topic.save()
     force_update_counter.set(force_update_counter.value + 1)

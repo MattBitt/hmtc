@@ -119,3 +119,11 @@ a {
 }
 
 
+/* adding on 9/25/2024 for version number in appbar */
+.version-number {
+  font-size: 1em;
+  padding: 0.25em;
+  margin-left: 1em;
+  color: var(--on-primary);
+  text-align: center;
+}

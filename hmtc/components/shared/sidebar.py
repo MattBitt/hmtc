@@ -3,7 +3,7 @@ from loguru import logger
 
 
 # program version
-VERSION = "0.0.14"
+VERSION = "0.0.16"
 
 
 @solara.component_vue("./sidebar.vue")
@@ -41,10 +41,15 @@ def MySidebar(
         return
 
     with solara.AppBar():
+
+        solara.Button(
+            icon_name="mdi-home", on_click=lambda: router.push("/"), icon=True
+        )
         icon_name = "mdi-logout" if False else "mdi-login"
         solara.Button(
             icon_name=icon_name, on_click=lambda: logger.debug("clicked"), icon=True
         )
+        solara.Text(f"{VERSION}", classes=["version-number"])
         with solara.Sidebar():
             _Sidebar(
                 version=VERSION,

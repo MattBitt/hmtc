@@ -5,7 +5,7 @@ import re
 import peewee
 from loguru import logger
 from peewee import fn
-
+from hmtc.utils.xml_creator import create_album_xml
 from hmtc.config import init_config
 from hmtc.models import (
     File,
@@ -37,6 +37,7 @@ class VideoItem(BaseItem):
     last_update_completed = None
     episode: str = None
     upload_date: datetime = None
+    private: bool = False
     duration: int = 0
     description: str = None
     contains_unique_content: bool = False
@@ -231,9 +232,14 @@ class VideoItem(BaseItem):
             (VideoModel.duration.is_null() & VideoModel.contains_unique_content == True)
         )
 
-    @staticmethod
-    def get_by_id(video_id):
-        return VideoModel.select().where(VideoModel.id == video_id).get_or_none()
+    @classmethod
+    def get_by_id(cls, video_id):
+        return cls(
+            **VideoModel.select()
+            .where(VideoModel.id == video_id)
+            .get_or_none()
+            .model_to_dict()
+        )
 
     @staticmethod
     def get_youtube_ids():
@@ -648,6 +654,24 @@ class VideoItem(BaseItem):
             .join(Playlist, peewee.JOIN.LEFT_OUTER)
             .where(VideoModel.contains_unique_content == True)
         )
+
+    @staticmethod
+    def create_xml_for_jellyfin(video_id):
+        vid = VideoModel.get(VideoModel.id == video_id)
+        album_data = {
+            "lockdata": False,
+            "track_position": 0,
+            "dateadded": datetime.now().isoformat(),
+            "title": vid.title,
+            "track_title": vid.title,
+            "sorttitle": vid.title,
+            "year": vid.upload_date.year,
+            "runtime": int(vid.duration / 60),  # rounded minutes
+            "poster": f"/data/music1/inputs/Harry Mack/{vid.youtube_id}/poster.webp",
+            "track_duration": "21:45",  # this is in minutes:seconds format. what happens if longer than 60 minutes?
+        }
+
+        create_album_xml(WORKING / "album.nfo", album_data)
 
     ### 🟣🟣🟣 Temporary Methods
 

@@ -12,9 +12,12 @@ from loguru import logger
 
 config = init_config()
 
+title = " "
+busy_downloading = solara.reactive(False)
+
 
 def refresh_from_youtube():
-
+    busy_downloading.set(True)
     existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
     channels = ChannelModel.select().where((ChannelModel.name.contains("Harry")))
 
@@ -31,6 +34,12 @@ def refresh_from_youtube():
         logger.debug("No new videos found")
     else:
         logger.debug(f"Found {num_new_vids} new videos")
+    busy_downloading.set(False)
+
+
+@solara.component_vue("../components/shared/progress_circle.vue", vuetify=True)
+def ProgressCircle():
+    pass
 
 
 @solara.component
@@ -59,9 +68,12 @@ def Page():
                 with solara.Row(
                     justify="end", style={"background-color": Colors.SURFACE}
                 ):
-                    solara.Button(
-                        "Refresh", classes=["button"], on_click=refresh_from_youtube
-                    )
+                    if busy_downloading.value:
+                        ProgressCircle()
+                    else:
+                        solara.Button(
+                            "Refresh", classes=["button"], on_click=refresh_from_youtube
+                        )
         with solara.Row():
             with solara.Column(
                 align="center",

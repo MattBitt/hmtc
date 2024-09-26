@@ -255,7 +255,7 @@ class PageState:
                     )
                     topics = track["title"].split(",")
                     for t in topics:
-                        new_topic, _ = TopicModel.get_or_create(text=t)
+                        new_topic, _ = TopicModel.get_or_create(text=t.strip().lower())
                         num_topics_in_section = (
                             SectionTopicsModel.select()
                             .where(SectionTopicsModel.section_id == section)
@@ -399,6 +399,12 @@ def Page():
                     solara.Button(
                         label="Update Episode Numbers (Guerilla Exclusive Videos)",
                         on_click=PageState.update_episode_numbers_guerilla_exlusive,
+                        classes=["button"],
+                    )
+
+                    solara.Button(
+                        label="Import Sections and Topics",
+                        on_click=PageState.import_track_info,
                         classes=["button"],
                     )
 
