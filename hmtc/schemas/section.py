@@ -185,6 +185,8 @@ class SectionManager:
                 join_type=peewee.JOIN.LEFT_OUTER,
             )
             .where(SectionTable.id == id)
-        ).get()
-
-        return query.model_to_dict()
+        ).get_or_none()
+        if query:
+            return query.model_to_dict()
+        else:
+            return None

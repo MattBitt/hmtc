@@ -66,7 +66,10 @@ def get_file_type(file: str, override=None):
     elif ext in [".srt", ".en.vtt"]:
         filetype = "subtitle"
     elif ext in [".nfo", ".info.json", ".json"]:
-        filetype = "info"
+        if f.name == "album.nfo":
+            filetype = "album_nfo"
+        else:
+            filetype = "info"
     elif ext in [".jpg", ".jpeg", ".png", ".webp"]:
         filetype = "poster"
     else:

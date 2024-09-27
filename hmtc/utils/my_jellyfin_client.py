@@ -17,6 +17,7 @@ class MyJellyfinClient:
     session_id: str = None
     position: int = 0
     user: str = None
+    user_id: str = None
     media_item: dict = None
     supports_media_control: bool = False
     supports_remote_control: bool = False
@@ -57,6 +58,7 @@ class MyJellyfinClient:
                 self.has_active_user_session = True
                 self.supports_media_control = self.session["SupportsMediaControl"]
                 self.supports_remote_control = self.session["SupportsRemoteControl"]
+                self.user_id = self.session["UserId"]
 
                 if "NowPlayingItem" in self.session.keys():
                     self.media_item = self.session["NowPlayingItem"]
@@ -132,6 +134,9 @@ class MyJellyfinClient:
     def stop(self):
         client.jellyfin.remote_stop(self.session_id)
 
+    def search_media(self, query):
+        return client.jellyfin.search_media_items(query)
+
 
 if __name__ == "__main__":
     jf = MyJellyfinClient()
@@ -141,7 +146,7 @@ if __name__ == "__main__":
     logger.debug("Initial Pause")
     jf.play_pause()
     time.sleep(2)
-
+    exists = jf.search_media("qlfHCE9nl34")
     logger.debug("Playing")
     jf.play_pause()
     time.sleep(2)

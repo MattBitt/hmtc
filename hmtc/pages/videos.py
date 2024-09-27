@@ -117,6 +117,7 @@ def create_table_title(filter, id_to_filter):
             table_title = filter.title()
     else:
         table_title = "All Videos"
+
     return table_title
 
 
@@ -159,7 +160,7 @@ def save_video_item(dict_of_items):
     selected_channel = dict_of_items["selectedChannel"]
     selected_series = dict_of_items["selectedSeries"]
     selected_youtube_series = dict_of_items["selectedYoutubeSeries"]
-    selected_playlist = dict_of_items["selectedPlaylist"]
+
     selected_album = dict_of_items["selectedAlbum"]
 
     channel = None
@@ -167,66 +168,52 @@ def save_video_item(dict_of_items):
     youtube_series = None
     series = None
     album = None
+    episode_number = None
 
     logger.debug(f"Item received from Vue: {item}")
 
     video_item = VideoItem.get_by_id(item["id"])
 
     if selected_channel["id"] is not None:
-        logger.debug(f"Selected channel: {selected_channel}")
-        if selected_channel["id"] != video_item.channel.id:
+        if video_item.channel is None or (
+            selected_channel["id"] != video_item.channel.id
+        ):
             channel = Channel.get_by_id(selected_channel["id"])
 
-            logger.debug(
-                f"Channel id is different. Need to update to {selected_channel['name']} from {video_item.channel.name}"
-            )
-
     if selected_series["id"] is not None:
-        if selected_series["id"] != video_item.series.id:
+        if video_item.series is None or (selected_series["id"] != video_item.series.id):
             series = Series.get_by_id(selected_series["id"])
 
-            logger.debug(
-                f"selected_series id is different. Need to update to {selected_series['name']} from {video_item.series.name}"
-            )
-
     if selected_youtube_series["id"] is not None:
-        logger.debug(f"Selected youtube series: {selected_youtube_series}")
         if video_item.youtube_series is None or (
             selected_youtube_series["id"] != video_item.youtube_series.id
         ):
-            logger.debug(
-                f"Youtube series is None. Need to update it to {selected_youtube_series['title']}"
-            )
             youtube_series = YoutubeSeries.get_by_id(selected_youtube_series["id"])
 
-    if selected_playlist["id"] is not None:
-        logger.debug(f"Selected playlist: {selected_playlist}")
-        if video_item.playlist is None:
-            logger.debug(
-                f"Playlist is None. Need to update it to {selected_playlist['title']}"
-            )
-            playlist = Playlist.get_by_id(selected_playlist["id"])
-        elif selected_playlist["id"] != video_item.playlist.id:
-            logger.debug(
-                f"Playlist id is different. Need to update to {selected_playlist['title']} from {video_item.playlist.title}"
-            )
+    # starting to deprecate (youtube) playlists 9/27/24
+    # if selected_playlist["id"] is not None:
+    #     if video_item.playlist is None or (
+    #         selected_playlist["id"] != video_item.playlist.id
+    #     ):
+    #         playlist = Playlist.get_by_id(selected_playlist["id"])
 
     if selected_album["id"] is not None:
-        logger.debug(f"Selected album: {selected_album}")
-        if video_item.album is None:
-            logger.debug(
-                f"Album is None. Need to update it to {selected_album['title']}"
-            )
+        if (video_item.album is None) or (selected_album["id"] != video_item.album.id):
             album = AlbumModel.get_by_id(selected_album["id"])
-        elif selected_album["id"] != video_item.album.id:
-            logger.debug(
-                f"Album id is different. Need to update to {selected_album['title']} from {video_item.album.title}"
-            )
+
+    if edited_item["episode"] is not None:
+        if (video_item.episode is None) or (
+            int(edited_item["episode"]) != int(video_item.episode)
+        ):
+            if not edited_item["episode"].isdigit():
+                logger.debug("Episode number is not a digit")
+                return
+
+            episode_number = edited_item["episode"]
+
     new_vid = VideoModel.get_by_id(item["id"])
     new_vid.duration = edited_item["duration"]
     new_vid.jellyfin_id = edited_item["jellyfin_id"]
-    if edited_item["episode"] is not None:
-        new_vid.episode = str(edited_item["episode"])
 
     if channel is not None:
         new_vid.channel = channel
@@ -238,6 +225,8 @@ def save_video_item(dict_of_items):
         new_vid.series = series
     if album is not None:
         new_vid.album = album
+    if episode_number is not None:
+        new_vid.episode = episode_number
 
     new_vid.save()
 

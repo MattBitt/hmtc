@@ -9,7 +9,11 @@ def create_album_xml(path: Path, album_data: dict):
     album = ET.Element("album")
 
     review = ET.SubElement(album, "review")
+    review.text = album_data.get("review", "")
+
     outline = ET.SubElement(album, "outline")
+    outline.text = album_data.get("outline", "")
+
     lockdata = ET.SubElement(album, "lockdata")
     lockdata.text = str(album_data.get("lockdata", "false")).lower()
 

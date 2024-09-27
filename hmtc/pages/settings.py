@@ -2,6 +2,7 @@ import csv
 import solara
 import operator
 from itertools import groupby
+import peewee
 
 from loguru import logger
 from pathlib import Path
@@ -19,8 +20,10 @@ from hmtc.models import (
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.album import Album
 from hmtc.schemas.section import SectionManager, Section
+from hmtc.schemas.file import FileManager, File as FileItem
 from hmtc.config import init_config
 from hmtc.schemas.track import TrackItem
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
@@ -50,10 +53,63 @@ def import_tracks():
     return groupby(tracks, key=key_func)
 
 
+def create_album_xmls():
+    # added on 9/25/24
+    # run in production on ??????
+    vids = VideoModel.select().join(FileModel).where(FileModel.file_type == "video")
+    for v in vids:
+        album_nfo_path = VideoItem.create_xml_for_jellyfin(v.id)
+        # logger.debug(f"Created album.nfo for {v.title} at {album_nfo_path}")
+        # file = FileItem.from_path(album_nfo_path)
+        # file_path = Path(file.path) / file.filename
+        album_nfo = FileManager.add_path_to_video(album_nfo_path, v)
+        logger.debug(f"Created album.nfo file for {v.title} at {album_nfo}")
+
+
 class PageState:
     updating = solara.reactive(False)
     i = solara.reactive(0)
     num_to_download = solara.reactive(10)
+    jf = MyJellyfinClient()
+
+    @staticmethod
+    def search_for_jellyfin_ids():
+        # this should search for the 'inputs' library in jellyfin
+        vids = (
+            VideoModel.select(VideoModel, FileModel.file_type)
+            .join(
+                FileModel,
+                peewee.JOIN.LEFT_OUTER,
+                on=(FileModel.video_id == VideoModel.id),
+            )
+            .where(
+                (VideoModel.jellyfin_id.is_null())
+                & (VideoModel.duration.is_null(False))
+                & (VideoModel.contains_unique_content == True)
+                & (FileModel.file_type == "audio")
+            )
+        )
+        logger.debug(f"Found {len(vids)} videos with no jellyfin id and an audio file)")
+        for v in vids:
+            if v.youtube_id is None:
+                logger.error(f"No youtube id found for {v.title}")
+                continue
+
+            existing = PageState.jf.search_media(v.youtube_id)
+
+            if existing["TotalRecordCount"] == 1:
+                v.jellyfin_id = existing["Items"][0]["Id"]
+                v.save()
+                logger.debug(f"Assigned {v.jellyfin_id} to {v.title}")
+            elif existing["TotalRecordCount"] > 1:
+                for item in existing["Items"]:
+                    if item["Type"] == "Audio":
+                        v.jellyfin_id = item["Id"]
+                        v.save()
+                        logger.debug(f"Assigned {v.jellyfin_id} to {v.title}")
+                        break
+            else:
+                logger.error(f"No results found for {v.youtube_id}")
 
     @staticmethod
     def download_empty_video_info():
@@ -376,6 +432,11 @@ def Page():
                         on_click=PageState.assign_video_posters_to_albums,
                         classes=["button"],
                     )
+                    solara.Button(
+                        label="Search for Jellyfin IDs",
+                        on_click=PageState.search_for_jellyfin_ids,
+                        classes=["button"],
+                    )
 
             with solara.Card("Non-Reusuable Functions"):
                 with solara.ColumnsResponsive():
@@ -405,6 +466,12 @@ def Page():
                     solara.Button(
                         label="Import Sections and Topics",
                         on_click=PageState.import_track_info,
+                        classes=["button"],
+                    )
+
+                    solara.Button(
+                        label="Create album.nfo xml files for Jellyfin",
+                        on_click=create_album_xmls,
                         classes=["button"],
                     )
 

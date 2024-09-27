@@ -117,51 +117,65 @@
 
 <script>
 export default {
-  data: () => ({
-    dialog: false,
-    dialogDelete: false,
-    sortBy: "title",
-    sortDesc: true,
-    search: "",
-    headers: [
-      { text: "ID", value: "id", align: "start", width: "5%" },
-      {
-        text: "Title",
-        value: "title",
-        align: "start",
-        width: "20%",
-      },
-      { text: "Series", value: "series", filterable: false },
-      {
-        text: "# Videos",
-        value: "video_count",
-        filterable: false,
-        sortable: true,
-      },
-      // { text: 'Unique', value: 'contains_unique_content', filterable: false },
-      { text: "Actions", value: "actions", sortable: false },
-    ],
+  data() {
+    return {
+      dialog: false,
+      dialogDelete: false,
+      sortBy: "title",
+      sortDesc: true,
+      search: "",
+      headers: [
+        { text: "ID", value: "id", align: "start", width: "5%" },
+        {
+          text: "Title",
+          value: "title",
+          align: "start",
+          width: "20%",
+        },
+        { text: "Series", value: "series", filterable: false },
+        {
+          text: "# Videos",
+          value: "video_count",
+          filterable: false,
+          sortable: true,
+        },
+        // { text: 'Unique', value: 'contains_unique_content', filterable: false },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
 
-    items: [
-      {
+      items: [
+        {
+          title: "Youtube_series Title",
+          series_name: "",
+          series: "",
+          id: -1,
+        },
+      ],
+      selected_series: {
+        id: 1,
+        name: "series 1",
+      },
+      serieses: [
+        {
+          id: 1,
+          name: "series 1",
+        },
+      ],
+      editedIndex: -1,
+      editedItem: {
         title: "Youtube_series Title",
-        series: "Some Series",
-        id: 6363546,
+        series_name: "",
+        series: "",
+        id: 0,
       },
-    ],
-
-    editedIndex: -1,
-    editedItem: {
-      title: "Youtube_series Title",
-      series: "Some Series",
-      id: 1665436,
-    },
-    defaultItem: {
-      title: "Youtube_series Title",
-      series: "Some Series",
-      id: 1665436,
-    },
-  }),
+      defaultItem: {
+        title: "Youtube_series Title",
+        series_name: "",
+        series: "",
+        id: -1,
+      },
+    };
+  },
 
   computed: {
     formTitle() {
@@ -194,6 +208,9 @@ export default {
       this.editedItem.series = this.serieses.find(
         (series) => series.name === item.series_name
       );
+
+      console.log(this.editedItem);
+      this.selected_series = this.editedItem.series || this.selected_series;
       this.dialog = true;
     },
 

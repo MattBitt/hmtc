@@ -36,9 +36,9 @@ def save_youtube_series(dict_of_items):
         youtube_series = YoutubeSeries.get_by_id(item["id"])
     except Exception:
         ## this should probably check item for id instead of edited_item
-        logger.debug(f"Series ID not found. Creating {edited_item}")
-        edited_item["id"] = None  # db should assign id
-        YoutubeSeries.create(**edited_item)
+        logger.error(f"Could not find YoutubeSeries with id: {item['id']}")
+        # edited_item["id"] = None  # db should assign id
+        # YoutubeSeries.create(**edited_item)
         return
 
     if selected_series["id"] is not None:
@@ -54,7 +54,6 @@ def save_youtube_series(dict_of_items):
     if series is not None:
         youtube_series.series = series
     youtube_series.save()
-    force_update_counter.set(force_update_counter.value + 1)
 
 
 @solara.component

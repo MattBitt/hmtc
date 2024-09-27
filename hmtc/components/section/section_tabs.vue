@@ -40,7 +40,7 @@
                 </v-col>
               </v-row>
             </v-col>
-            <v-col cols="8">
+            <v-col cols="4">
               <v-row>
                 <v-col
                   v-for="topic in item.topics"
@@ -54,6 +54,18 @@
                     {{ topic.text }}</v-chip
                   >
                 </v-col>
+              </v-row>
+            </v-col>
+            <v-col cols="4">
+              <v-row>
+                <v-btn
+                  outlined
+                  class="mywarning"
+                  block
+                  @click="removeSection(item.id)"
+                >
+                  Remove Section
+                </v-btn>
               </v-row>
             </v-col>
           </v-row>
@@ -211,6 +223,20 @@ export default {
         topic: topic,
       };
       this.remove_item(args);
+    },
+
+    removeSection(section_id) {
+      console.log("Removing section", section_id);
+      const sectionIndex = this.tabItems.findIndex(
+        (item) => item.id === section_id
+      );
+      if (sectionIndex !== -1) {
+        this.tabItems.splice(sectionIndex, 1);
+      }
+      const args = {
+        section_id: section_id,
+      };
+      this.delete_section(args);
     },
 
     timeString(ms) {

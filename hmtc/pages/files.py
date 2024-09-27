@@ -180,7 +180,7 @@ def Page():
 
     def add_file(*args):
         logger.debug(f"This is only for testing 🤠🤠🤠🤠🤠Adding file to video {args}")
-        file = STORAGE / "videos" / "test.info.json"
+        file = str(STORAGE / "videos" / "test.info.json")
         f = FileObject.from_path(file)
         video = VideoModel.get(VideoModel.id == 1)
         FileManager.add_file_to_video(f, video)

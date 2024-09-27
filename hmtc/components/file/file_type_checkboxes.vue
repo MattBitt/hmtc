@@ -27,15 +27,26 @@
             <v-icon class="mr-2">mdi-video</v-icon>
             <span> Video </span>
           </v-chip>
+          <v-chip class="" :class="has_album_nfo ? 'myprimary' : 'mywarning'">
+            <v-icon class="mr-2">mdi-information</v-icon>
+            <span> Album NFO </span>
+          </v-chip>
+
           <v-divider></v-divider>
-          <v-chip class="myerror mt-10">
-            <v-icon @click="download_video">mdi-download</v-icon>
+
+          <v-btn @click="download_video" class="myerror">
+            <v-icon>mdi-download</v-icon>
             <span> Download Video (Future) </span>
-          </v-chip>
-          <v-chip class="myerror">
-            <v-icon @click="download_info">mdi-download</v-icon>
+          </v-btn>
+          <v-btn @click="download_info" class="myerror">
+            <v-icon>mdi-download</v-icon>
             <span> Download Info (Future) </span>
-          </v-chip>
+          </v-btn>
+
+          <v-btn @click="create_album_nfo" class="myerror">
+            <v-icon>mdi-download</v-icon>
+            <span> Create Jellyfin Info File </span>
+          </v-btn>
         </v-col>
       </v-row>
     </v-container>
@@ -50,6 +61,7 @@ export default {
       has_info: false,
       has_poster: false,
       has_subtitle: false,
+      has_album_nfo: false,
     };
   },
   methods: {},

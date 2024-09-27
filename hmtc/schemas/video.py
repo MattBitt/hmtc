@@ -671,7 +671,12 @@ class VideoItem(BaseItem):
             "track_duration": "21:45",  # this is in minutes:seconds format. what happens if longer than 60 minutes?
         }
 
-        create_album_xml(WORKING / "album.nfo", album_data)
+        try:
+            create_album_xml(WORKING / "album.nfo", album_data)
+            return WORKING / "album.nfo"
+        except Exception as e:
+            logger.error(f"Error creating album xml: {e}")
+            return None
 
     ### 🟣🟣🟣 Temporary Methods
 
