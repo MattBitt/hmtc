@@ -123,7 +123,7 @@ class MyJellyfinClient:
         time.sleep(
             0.1
         )  # i think this is necessary to give jellyfin time to load the media
-        self.pause()
+        # self.pause()
 
     def pause(self):
         client.jellyfin.remote_pause(self.session_id)
@@ -141,7 +141,7 @@ class MyJellyfinClient:
 if __name__ == "__main__":
     jf = MyJellyfinClient()
     if jf.supports_media_control and jf.media_item is None:
-        jf.load_media_item(jellyfin_id="6f6baa6a3bf619d667d5b1edb3677205")
+        jf.load_media_item(jellyfin_id="a1e24cf5a495a0d9a42bf2d4550b48c7")
 
     logger.debug("Initial Pause")
     jf.play_pause()

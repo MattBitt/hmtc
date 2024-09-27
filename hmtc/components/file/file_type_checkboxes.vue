@@ -1,56 +1,100 @@
 <template>
-  <v-sheet fluid>
-    <v-container class="">
-      <v-row align-items="right">
-        <v-col class="d-flex flex-column mb-6 mysurface">
-          <v-chip class="" :class="has_info ? 'myprimary' : 'mywarning'">
-            <v-icon class="mr-2">mdi-information</v-icon>
-            <span> NFO </span>
+  <v-container class="" fluid>
+    <v-row>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            :class="has_info ? 'myprimary' : 'mywarning'"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon class="">mdi-information</v-icon>
           </v-chip>
+        </template>
+        <span>Youtube .info.json</span>
+      </v-tooltip>
 
-          <v-chip class="" :class="has_poster ? 'myprimary' : 'mywarning'">
-            <v-icon class="mr-2">mdi-panorama</v-icon>
-            <span> Poster </span>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            :class="has_info ? 'myprimary' : 'mywarning'"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon class="">mdi-panorama</v-icon>
           </v-chip>
+        </template>
+        <span>Poster</span>
+      </v-tooltip>
 
-          <v-chip class="" :class="has_subtitle ? 'myprimary' : 'mywarning'">
-            <v-icon class="mr-2">mdi-text</v-icon>
-            <span> Lyrics </span>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            :class="has_info ? 'myprimary' : 'mywarning'"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon class="">mdi-text</v-icon>
           </v-chip>
-          <v-divider></v-divider>
-          <v-chip class="" :class="has_audio ? 'myprimary' : 'mywarning'">
-            <v-icon class="mr-2">mdi-music-note</v-icon>
-            <span> Audio </span>
-          </v-chip>
+        </template>
+        <span>Lyrics</span>
+      </v-tooltip>
 
-          <v-chip class="" :class="has_video ? 'myprimary' : 'mywarning'">
-            <v-icon class="mr-2">mdi-video</v-icon>
-            <span> Video </span>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            :class="has_audio ? 'myprimary' : 'mywarning'"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon class="">mdi-music-note</v-icon>
           </v-chip>
-          <v-chip class="" :class="has_album_nfo ? 'myprimary' : 'mywarning'">
-            <v-icon class="mr-2">mdi-information</v-icon>
-            <span> Album NFO </span>
+        </template>
+        <span>Audio</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            :class="has_video ? 'myprimary' : 'mywarning'"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon class="">mdi-video</v-icon>
           </v-chip>
+        </template>
+        <span>Video</span>
+      </v-tooltip>
 
-          <v-divider></v-divider>
-
-          <v-btn @click="download_video" class="myerror">
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            :class="has_album_nfo ? 'myprimary' : 'mywarning'"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon class="">mdi-information</v-icon>
+          </v-chip>
+        </template>
+        <span>Album NFO</span>
+      </v-tooltip>
+    </v-row>
+    <v-row>
+      <v-btn outlined @click="download_video" class="myprimary">
+        <v-icon>mdi-download</v-icon>
+        <span> Video</span>
+      </v-btn>
+      <!-- <v-btn outlined @click="download_info" class="mywarning">
             <v-icon>mdi-download</v-icon>
-            <span> Download Video (Future) </span>
-          </v-btn>
-          <v-btn @click="download_info" class="myerror">
-            <v-icon>mdi-download</v-icon>
-            <span> Download Info (Future) </span>
-          </v-btn>
+            <span> Download Info</span>
+          </v-btn> -->
 
-          <v-btn @click="create_album_nfo" class="myerror">
-            <v-icon>mdi-download</v-icon>
-            <span> Create Jellyfin Info File </span>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-container>
-  </v-sheet>
+      <v-btn outlined @click="create_album_nfo" class="myprimary">
+        <v-icon>mdi-hammer-wrench</v-icon>
+        <span> Album NFO </span>
+      </v-btn>
+    </v-row>
+  </v-container>
 </template>
 <script>
 export default {
