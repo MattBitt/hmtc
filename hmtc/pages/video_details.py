@@ -139,9 +139,10 @@ def Carousel(sections: list = []):
 
 
 @solara.component
-def NewJellyfinPanel(jf, video):
+def NewJellyfinPanel(video):
     JF_LOGO_WIDTH = "80px"
     pth = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
+    jf = MyJellyfinClient()
     
     def play_button():
         # adding on 9/28/24
@@ -368,7 +369,7 @@ def Page():
         ),
     )
     files = FileModel.select().where(FileModel.video_id == video.id)
-    jf = MyJellyfinClient()
+
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
@@ -438,7 +439,7 @@ def Page():
                         )
 
                 with solara.Column():
-                    NewJellyfinPanel(jf, video=video)
+                    NewJellyfinPanel(video=video)
                     FileTypeCheckboxes(
                         has_audio="audio" in [f.file_type for f in files],
                         has_video="video" in [f.file_type for f in files],
