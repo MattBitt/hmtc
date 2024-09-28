@@ -1,6 +1,4 @@
 import os
-
-
 from pathlib import Path
 
 import pytest
@@ -10,7 +8,8 @@ os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
-from hmtc.models import Video as VideoModel, db_null
+from hmtc.models import Video as VideoModel
+from hmtc.models import db_null
 from hmtc.utils.general import my_copy_file
 from hmtc.utils.my_logging import setup_logging
 

@@ -5,8 +5,10 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.config import init_config
+from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
-from hmtc.models import Video as VideoModel, get_file_type, Album as AlbumModel
+from hmtc.models import Video as VideoModel
+from hmtc.models import get_file_type
 from hmtc.utils.ffmpeg_utils import extract_audio
 from hmtc.utils.general import move_file
 

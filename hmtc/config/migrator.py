@@ -1,10 +1,11 @@
-from playhouse.migrate import IntegerField, migrate, PostgresqlMigrator
+from playhouse.migrate import IntegerField, PostgresqlMigrator, migrate
+
+from hmtc.config import init_config
 from hmtc.db import (
     import_youtube_series,
     init_db,
 )
-from hmtc.models import db_null, YoutubeSeries
-from hmtc.config import init_config
+from hmtc.models import YoutubeSeries, db_null
 
 
 def migration1(db, migrator):

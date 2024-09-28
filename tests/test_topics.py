@@ -1,8 +1,14 @@
 from hmtc.models import (
-    Topic as TopicModel,
-    Video as VideoModel,
     Section as SectionModel,
+)
+from hmtc.models import (
     SectionTopics as SectionTopicsModel,
+)
+from hmtc.models import (
+    Topic as TopicModel,
+)
+from hmtc.models import (
+    Video as VideoModel,
 )
 from hmtc.schemas.section import Section as SectionItem
 

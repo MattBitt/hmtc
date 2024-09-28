@@ -1,14 +1,16 @@
+from pathlib import Path
+
 import solara
 from loguru import logger
-from pathlib import Path
+
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jf import (
     grab_now_playing,
-    jellyfin_sessions,
-    jellyfin_playpause,
     jellyfin_connection_test,
-    jellyfin_seekto,
     jellyfin_loop_2sec,
+    jellyfin_playpause,
+    jellyfin_seekto,
+    jellyfin_sessions,
 )
 
 

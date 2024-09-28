@@ -3,9 +3,10 @@ from typing import List
 
 from loguru import logger
 
-from hmtc.models import Album as AlbumModel, Track as TrackModel, Series as SeriesModel
+from hmtc.models import Album as AlbumModel
+from hmtc.models import Series as SeriesModel
+from hmtc.models import Track as TrackModel
 from hmtc.schemas.video import VideoItem
-
 
 # # not sure what this is for
 # # don't think it's used

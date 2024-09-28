@@ -1,18 +1,24 @@
 from typing import Callable
-import solara
+
+import pandas as pd
 import peewee
+import solara
+from loguru import logger
+
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import (
-    Video as VideoModel,
-    Channel,
-    Series,
-    YoutubeSeries,
-    Playlist,
     Album as AlbumModel,
 )
+from hmtc.models import (
+    Channel,
+    Playlist,
+    Series,
+    YoutubeSeries,
+)
+from hmtc.models import (
+    Video as VideoModel,
+)
 from hmtc.schemas.video import VideoItem
-import pandas as pd
-from loguru import logger
 
 
 def create_query_from_url():

@@ -1,28 +1,38 @@
 import csv
-import solara
 import operator
-from itertools import groupby
-import peewee
-
-from loguru import logger
-from pathlib import Path
 import os
+from itertools import groupby
+from pathlib import Path
+
+import peewee
+import solara
+from loguru import logger
+
 from hmtc.components.shared.progress_slider import SimpleProgressBar
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.config import init_config
+from hmtc.models import (
+    Album as AlbumModel,
+)
 from hmtc.models import Channel
 from hmtc.models import (
-    Video as VideoModel,
-    Album as AlbumModel,
     File as FileModel,
-    Topic as TopicModel,
+)
+from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
-from hmtc.schemas.video import VideoItem
+from hmtc.models import (
+    Topic as TopicModel,
+)
+from hmtc.models import (
+    Video as VideoModel,
+)
 from hmtc.schemas.album import Album
-from hmtc.schemas.section import SectionManager, Section
-from hmtc.schemas.file import FileManager, File as FileItem
-from hmtc.config import init_config
+from hmtc.schemas.file import File as FileItem
+from hmtc.schemas.file import FileManager
+from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.track import TrackItem
+from hmtc.schemas.video import VideoItem
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"

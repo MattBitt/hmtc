@@ -1,12 +1,17 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+
 import peewee
 from loguru import logger
 
 from hmtc.models import (
     Section as SectionTable,
-    Topic as TopicTable,
+)
+from hmtc.models import (
     SectionTopics as SectionTopicsTable,
+)
+from hmtc.models import (
+    Topic as TopicTable,
 )
 
 

@@ -6,7 +6,6 @@ from pathlib import Path
 
 from loguru import logger
 from peewee import (
-    fn,
     AutoField,
     BooleanField,
     CharField,
@@ -17,6 +16,7 @@ from peewee import (
     Model,
     PostgresqlDatabase,
     TextField,
+    fn,
 )
 
 from hmtc.config import init_config

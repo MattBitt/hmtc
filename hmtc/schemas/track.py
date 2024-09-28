@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from loguru import logger
-from hmtc.models import Track as TrackModel
-from hmtc.schemas.video import VideoItem
-from hmtc.schemas.section import Section
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.config import init_config
-from hmtc.utils.ffmpeg_utils import rip_track
 from pathlib import Path
+
+from loguru import logger
+
+from hmtc.config import init_config
+from hmtc.models import Track as TrackModel
+from hmtc.schemas.album import Album as AlbumItem
+from hmtc.schemas.section import Section
+from hmtc.schemas.video import VideoItem
+from hmtc.utils.ffmpeg_utils import rip_track
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

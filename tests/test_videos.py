@@ -1,5 +1,5 @@
-from hmtc.schemas.video import VideoItem
 from hmtc.models import Video as VideoModel
+from hmtc.schemas.video import VideoItem
 
 
 def test_xml_creator():

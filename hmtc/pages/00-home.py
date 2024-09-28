@@ -1,14 +1,17 @@
+from pathlib import Path
+
+import PIL
 import solara
 import solara.lab
-from pathlib import Path
-import PIL
+from loguru import logger
+
+from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import Video as VideoModel, Channel as ChannelModel
-from hmtc.schemas.video import VideoItem
+from hmtc.models import Channel as ChannelModel
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import FileManager
-from hmtc.assets.colors import Colors
-from loguru import logger
+from hmtc.schemas.video import VideoItem
 
 config = init_config()
 

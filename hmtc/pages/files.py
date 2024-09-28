@@ -7,7 +7,8 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import Channel, File, Playlist, Series, Video as VideoModel
+from hmtc.models import Channel, File, Playlist, Series
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import File as FileObject
 from hmtc.schemas.file import FileManager
 

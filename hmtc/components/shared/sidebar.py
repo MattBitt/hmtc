@@ -1,7 +1,6 @@
 import solara
 from loguru import logger
 
-
 # program version
 VERSION = "0.0.17"
 

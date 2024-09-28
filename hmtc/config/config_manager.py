@@ -1,6 +1,7 @@
 import os
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 CONFIG = os.environ.get("HMTC_CONFIG_PATH", "/workspace/working")
 assert CONFIG is not None, "HMTC_CONFIG_PATH not set"

@@ -13,9 +13,13 @@ from hmtc.models import (
     Section,
     Series,
     TodoTable,
-    Video as VideoModel,
-    Topic as TopicModel,
     get_file_type,
+)
+from hmtc.models import (
+    Topic as TopicModel,
+)
+from hmtc.models import (
+    Video as VideoModel,
 )
 
 config = init_config()

@@ -1,12 +1,13 @@
 from typing import Callable
+
+import reacton.ipyvuetify as v
 import solara
 import solara.lab
-import reacton.ipyvuetify as v
 from loguru import logger
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.album.album_info import AlbumInfo
 from hmtc.components.shared.jellyfin_panel import JellyfinPanel
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.video import VideoItem
 

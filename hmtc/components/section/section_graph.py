@@ -1,10 +1,12 @@
+import datetime
+import time
+
 import pandas as pd
-from hmtc.assets.colors import Colors
 import plotly.express as px
 import solara
 from loguru import logger
-import time
-import datetime
+
+from hmtc.assets.colors import Colors
 
 
 def seconds_to_pd_datetime(ts):

@@ -18,6 +18,7 @@ from hmtc.models import (
     Playlist,
     Post,
     Section,
+    SectionTopics,
     Series,
     TodoTable,
     Topic,
@@ -27,7 +28,6 @@ from hmtc.models import (
     UserInfo,
     Video,
     YoutubeSeries,
-    SectionTopics,
 )
 from hmtc.utils.general import get_youtube_id
 

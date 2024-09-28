@@ -2,7 +2,8 @@ import dataclasses
 
 from loguru import logger
 
-from hmtc.models import Playlist, Video as VideoModel
+from hmtc.models import Playlist
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.base import BaseItem
 
 

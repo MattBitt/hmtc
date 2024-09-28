@@ -1,11 +1,14 @@
-from typing import Callable
 import time
-import solara
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video as VideoModel, Album as AlbumModel
+from typing import Callable
+
 import pandas as pd
+import solara
 from loguru import logger
 from peewee import fn
+
+from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Album as AlbumModel
+from hmtc.models import Video as VideoModel
 
 force_update_counter = solara.reactive(0)
 

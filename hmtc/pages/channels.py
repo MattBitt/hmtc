@@ -1,9 +1,11 @@
 from typing import Callable
+
+import pandas as pd
 import solara
+from loguru import logger
+
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Channel
-import pandas as pd
-from loguru import logger
 
 force_update_counter = solara.reactive(0)
 

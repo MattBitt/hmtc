@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 import time
-from jellyfin_apiclient_python import JellyfinClient
-from hmtc.config import init_config
+from dataclasses import dataclass
 
+from jellyfin_apiclient_python import JellyfinClient
 from loguru import logger
 
+from hmtc.config import init_config
 
 config = init_config()
 # not sure why but this seems to work better if its a global

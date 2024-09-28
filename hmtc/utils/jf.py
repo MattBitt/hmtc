@@ -1,5 +1,7 @@
 import time
+
 from jellyfin_apiclient_python import JellyfinClient
+
 from hmtc.config import init_config
 from hmtc.utils.my_logging import logger
 

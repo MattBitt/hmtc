@@ -1,11 +1,15 @@
 from typing import Callable
-import solara
-from peewee import fn
-import peewee
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Series, Video as VideoModel, YoutubeSeries as YoutubeSeriesModel
+
 import pandas as pd
+import peewee
+import solara
 from loguru import logger
+from peewee import fn
+
+from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Series
+from hmtc.models import Video as VideoModel
+from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 
 force_update_counter = solara.reactive(0)
 

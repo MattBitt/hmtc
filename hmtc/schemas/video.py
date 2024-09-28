@@ -1,26 +1,32 @@
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-import re
+
 import peewee
 from loguru import logger
 from peewee import fn
-from hmtc.utils.xml_creator import create_album_xml
+
 from hmtc.config import init_config
 from hmtc.models import (
+    Album as AlbumModel,
+)
+from hmtc.models import (
+    Channel,
     File,
     Playlist,
     Series,
-    Video as VideoModel,
-    Channel,
     YoutubeSeries,
-    Album as AlbumModel,
 )
-from hmtc.schemas.file import FileManager
+from hmtc.models import (
+    Video as VideoModel,
+)
 from hmtc.schemas.base import BaseItem
+from hmtc.schemas.file import FileManager
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
+from hmtc.utils.xml_creator import create_album_xml
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
 config = init_config()

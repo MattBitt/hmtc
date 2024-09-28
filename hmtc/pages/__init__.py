@@ -5,7 +5,6 @@ import solara.lab
 from loguru import logger
 
 from hmtc.assets.colors import Colors
-
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,

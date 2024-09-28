@@ -1,11 +1,13 @@
 from typing import Callable
-import solara
-from peewee import fn
+
+import pandas as pd
 import peewee
+import solara
+from loguru import logger
+from peewee import fn
+
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Topic as TopicModel
-import pandas as pd
-from loguru import logger
 
 force_update_counter = solara.reactive(0)
 
