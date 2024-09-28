@@ -299,6 +299,25 @@ class VideoItem(BaseItem):
         return info
 
     @staticmethod
+    def refresh_youtube_info(video_id):
+        vid = VideoModel.get(VideoModel.id == video_id)
+        info, files = get_video_info(youtube_id=vid.youtube_id, output_folder=WORKING)
+
+        vid.title = info["title"]
+        vid.url = info["webpage_url"]
+        vid.upload_date = info["upload_date"]
+        vid.duration = info["duration"]
+        vid.description = info["description"]
+        vid.save()
+
+        for file in files:
+            logger.debug(
+                f"Processing files in VideoItem.create_from_youtube_id: {file}"
+            )
+            FileManager.add_path_to_video(file, vid)
+        return vid
+
+    @staticmethod
     def get_vids_with_no_channel():
         return VideoModel.select().where(VideoModel.channel.is_null())
 

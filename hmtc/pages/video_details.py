@@ -140,6 +140,18 @@ def Carousel(sections: list = []):
 
 @solara.component
 def NewJellyfinPanel(jf, video):
+    JF_LOGO_WIDTH = "80px"
+    pth = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
+    
+    def play_button():
+        # adding on 9/28/24
+        # want to load the item if its not already loaded
+        if jf.play_status == "stopped":
+            local_load_item()
+            jf.play_pause()
+        else:
+            jf.play_pause()
+
     def local_load_item():
         if video.jellyfin_id is None:
             logger.error("No Jellyfin ID for this video")
@@ -163,39 +175,41 @@ def NewJellyfinPanel(jf, video):
     else:
         is_video_id_playing_in_jellyfin = jf.media_item["Id"] == video.jellyfin_id
 
-    pth = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
 
+    logger.debug(f"Jellyfin Session ID: {jf.session_id}")
     if jf.is_connected and jf.has_active_user_session:
-        solara.Image(pth, width="80px", classes=["mydark", "pa-2"])
-        # solara.Markdown(f"Jellyfin Connected: {jf.is_connected}")
-        logger.debug(f"Jellyfin Session ID: {jf.session_id}")
-        solara.Markdown(f"**{jf.user}**")
+        with solara.Columns([4,8]):            
+            solara.Image(pth, width=JF_LOGO_WIDTH, classes=["mydark", "pa-2"])
+            with solara.Row():
+                solara.Button(label="", icon_name='mdi-play-pause', classes=["button"], on_click=play_button)
 
-        with solara.Row():
-            if is_video_id_playing_in_jellyfin:
-                # solara.Markdown(f"Title: {jf.media_item['Name']}")
-                # solara.Markdown(f"Position: {jf.position}")
-                solara.Button(
-                    "Play/Pause",
-                    on_click=jf.play_pause,
-                    classes=["button"],
-                )
-                # solara.Button("Pause Jellyfin", on_click=jf.pause, classes=["button"])
-                # solara.Button("Stop Jellyfin", on_click=jf.stop, classes=["button"])
-        solara.Button(
-            "Play",
-            on_click=local_load_item,
-            disabled=(
-                (not jf.has_active_user_session) or is_video_id_playing_in_jellyfin
-            ),
-            classes=["button"],
-        )
+                solara.Button(label="", icon_name='mdi-stop', classes=["button"], disabled=not jf.play_status == "playing")
+
+        # with solara.Row():
+        #     if is_video_id_playing_in_jellyfin:
+        #         # solara.Markdown(f"Title: {jf.media_item['Name']}")
+        #         # solara.Markdown(f"Position: {jf.position}")
+        #         solara.Button(
+        #             "Play/Pause",
+        #             on_click=jf.play_pause,
+        #             classes=["button"],
+        #         )
+        #         # solara.Button("Pause Jellyfin", on_click=jf.pause, classes=["button"])
+        #         # solara.Button("Stop Jellyfin", on_click=jf.stop, classes=["button"])
+        # solara.Button(
+        #     "Play",
+        #     on_click=local_load_item,
+        #     disabled=(
+        #         (not jf.has_active_user_session) or is_video_id_playing_in_jellyfin
+        #     ),
+        #     classes=["button"],
+        # )
 
     else:
         logger.debug("Jellyfin not connected/or no active")
-        with solara.Column():
-            solara.Image(pth, width="80px", classes=["mywarning", "pa-2"])
-            # solara.Markdown("No active Jellyfin session found")
+        with solara.Columns([4,8]):
+            solara.Image(pth, width=JF_LOGO_WIDTH, classes=["mywarning", "pa-2"])
+            solara.Text(f"No Active Jellyfin sessions found for {jf.user}.")
 
 
 @solara.component
@@ -354,11 +368,11 @@ def Page():
         ),
     )
     files = FileModel.select().where(FileModel.video_id == video.id)
-    # jf = MyJellyfinClient()
+    jf = MyJellyfinClient()
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
-    IMG_WIDTH = "1000px"
+    IMG_WIDTH = "200px"
 
     def download_video(*args):
         logger.info(f"Downloading video: {video.title}")
@@ -394,52 +408,59 @@ def Page():
         )
 
     with solara.Column(classes=["main-container"]):
+        with solara.Card():
+            with solara.Columns([6,6]):
+                with solara.Columns([6,6]):
+                    with solara.Column():
+                        
+                        solara.Image(image, width=IMG_WIDTH)
+                    
+                        solara.Text(
+                            f"{video.upload_date}",
+                            classes=["medium-timer"],
+                        )
+                        solara.Text(
+                            f"{seconds_to_hms(video.duration)}",
+                            classes=["medium-timer"],
+                        )
+                    with solara.Column():
+                        solara.Text(
+                            f"{video.series.name if video.series else 'No Series'}",
+                            classes=["video-info-text"],
+                        )
+                        solara.Text(
+                            f"{video.youtube_series.title if video.youtube_series else 'No YT Series'}",
+                            classes=["video-info-text"],
+                        )
+                        solara.Text(
+                            f"{video.channel.name if video.channel else 'No Channel'}",
+                            classes=["video-info-text"],
+                        )
 
-        with solara.Columns([8, 4]):
-            with solara.Column():
-                with solara.Row():
-                    solara.Image(image, width=IMG_WIDTH)
-                with solara.Row():
-                    solara.Text(
-                        f"{video.upload_date}",
-                        classes=["medium-timer"],
+                with solara.Column():
+                    NewJellyfinPanel(jf, video=video)
+                    FileTypeCheckboxes(
+                        has_audio="audio" in [f.file_type for f in files],
+                        has_video="video" in [f.file_type for f in files],
+                        has_info="info" in [f.file_type for f in files],
+                        has_subtitle="subtitle" in [f.file_type for f in files],
+                        has_poster="poster" in [f.file_type for f in files],
+                        has_album_nfo="album_nfo" in [f.file_type for f in files],
+                        event_download_video=download_video,
+                        event_create_album_nfo=create_album_nfo,
+                        event_download_info=lambda x: VideoItem.refresh_youtube_info(video.id),
                     )
-                    solara.Text(
-                        f"{seconds_to_hms(video.duration)}",
-                        classes=["medium-timer"],
-                    )
-                    solara.Text(
-                        f"{video.series.name if video.series else 'No Series'}",
-                        classes=["medium-timer"],
-                    )
-                    solara.Text(
-                        f"{video.youtube_series.title if video.youtube_series else 'No YT Series'}",
-                        classes=["medium-timer"],
-                    )
-            with solara.Column():
-                with solara.Card():
-                    if video.album is not None:
-                        poster = FileManager.get_file_for_album(video.album, "poster")
-                        image = PIL.Image.open(Path(str(poster)))
-                        solara.Image(image, width="200px")
-                        solara.Text(f"{video.album.title}")
-                    else:
-                        solara.Markdown("No Album")
-                        solara.Button("Add Album", classes=["button"])
-                # NewJellyfinPanel(jf, video=video)
-                FileTypeCheckboxes(
-                    has_audio="audio" in [f.file_type for f in files],
-                    has_video="video" in [f.file_type for f in files],
-                    has_info="info" in [f.file_type for f in files],
-                    has_subtitle="subtitle" in [f.file_type for f in files],
-                    has_poster="poster" in [f.file_type for f in files],
-                    has_album_nfo="album_nfo" in [f.file_type for f in files],
-                    event_download_video=download_video,
-                    event_create_album_nfo=create_album_nfo,
-                    event_download_info=lambda x: logger.debug(
-                        f"event_download_info {x}"
-                    ),
-                )
+
+        with solara.Row():
+            with solara.Card():
+                if video.album is not None:
+                    poster = FileManager.get_file_for_album(video.album, "poster")
+                    image = PIL.Image.open(Path(str(poster)))
+                    solara.Image(image, width="200px")
+                    solara.Text(f"{video.album.title}")
+                else:
+                    solara.Markdown("No Album")
+                    solara.Button("Add Album", classes=["button"])
 
         SectionControlPanel(
             video=video,

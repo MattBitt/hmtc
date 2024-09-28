@@ -108,6 +108,14 @@ a {
 
 }
 
+.video-info-text {
+  color: var(--primary) !important;
+
+  font-size: 1em;
+  font-weight: 500;
+  padding: 0.25em;
+  margin: 0.25em;
+}
 
 .medium-timer {
   font-family: mySevenSegDisplay;
