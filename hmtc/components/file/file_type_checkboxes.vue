@@ -1,37 +1,6 @@
 <template>
   <v-container class="" fluid>
-    <!-- <template>
-      <v-hover>
-        <template v-slot:default="{ hover }">
-          <v-card class="mx-auto" max-width="344">
-            <v-card-text>
-              <h2 class="text-h6 primary--text">Magento Forests</h2>
-              Travel to the best outdoor experience on planet Earth. A vacation
-              you will never forget!
-            </v-card-text>
-
-            <v-card-title>
-              <v-rating
-                :value="4"
-                dense
-                color="orange"
-                background-color="orange"
-                hover
-                class="mr-2"
-              ></v-rating>
-              <span class="primary--text text-subtitle-2">64 Reviews</span>
-            </v-card-title>
-
-            <v-fade-transition>
-              <v-overlay v-if="hover" absolute color="#036358">
-                <v-btn>See more info</v-btn>
-              </v-overlay>
-            </v-fade-transition>
-          </v-card>
-        </template>
-      </v-hover>
-    </template> -->
-
+    <v-row><div>Files</div></v-row>
     <v-row justify="space-between" class="mx-2">
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
@@ -119,23 +88,26 @@
         </v-btn>
       </v-col>
       <v-col cols="4" v-else>
-        <span>Already Downloaded</span>
+        <v-img src="/static/public/icons/check.png" max-width="30px">
+</v-img>
       </v-col>
-      <v-col cols="4" v-if="!has_video">
-        <v-btn outlined @click="download_info" class="mywarning">
+      <v-col cols="4" v-if="!has_info">
+        <v-btn outlined @click="download_info" class="myprimary">
           <v-icon>mdi-download</v-icon>
-          <span> Info</span>
-        </v-btn>
-      </v-col>
-      <v-col cols="4" v-else><span>Already Downloaded</span></v-col>
-      <v-col cols="4" v-if="!has_album_nfo">
-        <v-btn outlined @click="create_album_nfo" class="myprimary">
-          <v-icon>mdi-hammer-wrench</v-icon>
-          <span> NFO </span>
+          <span>Info</span>
         </v-btn>
       </v-col>
       <v-col cols="4" v-else>
-        <span>Already Downloaded</span>
+        <v-img src="/static/public/icons/check.png" max-width="30px"></v-img
+      ></v-col>
+      <v-col cols="4" v-if="!has_album_nfo">
+        <v-btn outlined @click="create_album_nfo" class="myprimary">
+          <v-icon>mdi-hammer-wrench</v-icon>
+          <span>NFO</span>
+        </v-btn>
+      </v-col>
+      <v-col cols="4" v-else>
+        <v-img src="/static/public/icons/check.png" max-width="30px"></v-img>
       </v-col>
     </v-row>
   </v-container>
@@ -153,16 +125,27 @@ export default {
       absolute: true,
       opacity: 1,
       overlay: false,
+      publicPath: "../../assets/",
     };
   },
   methods: {},
   mounted() {},
 };
 </script>
-<style>
-.mychecks {
-  font-size: 1.4em;
-  font-weight: 900;
-  margin: 10px 10px 0px 0px;
-}
+
+<style scoped>
+  .bottom-gradient {
+    background-image: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, transparent 72px);
+  }
+
+  .repeating-gradient {
+    background-image: repeating-linear-gradient(-45deg,
+                        rgba(255,0,0,.25),
+                        rgba(255,0,0,.25) 5px,
+                        rgba(0,0,255,.25) 5px,
+                        rgba(0,0,255,.25) 10px
+                      );
+  }
+</style>
+
 </style>

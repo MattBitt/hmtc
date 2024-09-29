@@ -102,8 +102,8 @@ export default {
   text-align: center;
   background-color: var(--light) !important;
   color: var(--on-light) !important;
-  min-width: 200px;
-  min-height: 90vh;
+  min-width: 180px;
+  min-height: 80vh;
 
   & .header a {
     font-family: "LogoFont";

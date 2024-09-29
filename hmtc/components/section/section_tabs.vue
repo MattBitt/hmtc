@@ -1,35 +1,44 @@
 <template>
-  <v-container fluid class="" id="tabbed-container">
-    <v-tabs v-model="tabs" center-active>
+  <v-container fluid class="mydark pt-10" id="tabbed-container">
+    <v-tabs v-model="tabs" center-active class="mylight">
       <v-tab v-for="item in tabItems" :key="item.id"> {{ item.id }} </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tabs">
       <v-tab-item v-for="item in tabItems" :key="item.id">
-        <v-container>
-          <v-row>
-            {{ item.id }} - {{ item.text }} - {{ timeString(item.start) }} -
-            {{ timeString(item.end) }}</v-row
-          >
-          <v-row>
-            <v-col cols="4">
-              <v-row>
-                <v-text-field
-                  v-model="topic"
-                  :rules="topicRules"
-                  label="Enter Topic"
-                  required
-                  @keydown.enter="
-                    handleSubmit(item.id, topic, item.topics.length)
-                  "
-                ></v-text-field>
-              </v-row>
-              <v-row>
+        <v-tabs vertical>
+          <v-tab>
+            <v-icon left> mdi-account </v-icon>
+            Topics
+          </v-tab>
+          <v-tab>
+            <v-icon left> mdi-lock </v-icon>
+            Timing
+          </v-tab>
+          <v-tab>
+            <v-icon left> mdi-access-point </v-icon>
+            Beats <br />
+            Artists
+          </v-tab>
+          <v-tab>
+            <v-icon left> mdi-access-point </v-icon>
+            Admin
+          </v-tab>
+          <v-tab-item>
+            <v-container>
+              <v-row class="px-10" align-items="center">
+                <v-spacer></v-spacer>
                 <v-col cols="6">
-                  <v-btn class="button" block @click="handleCancel">
-                    Cancel
-                  </v-btn>
+                  <v-text-field
+                    v-model="topic"
+                    :rules="topicRules"
+                    label="Enter Topic"
+                    required
+                    @keydown.enter="
+                      handleSubmit(item.id, topic, item.topics.length)
+                    "
+                  ></v-text-field>
                 </v-col>
-                <v-col cols="6">
+                <v-col cols="3">
                   <v-btn
                     class="button"
                     block
@@ -38,10 +47,10 @@
                     Submit
                   </v-btn>
                 </v-col>
+                <v-spacer></v-spacer>
               </v-row>
-            </v-col>
-            <v-col cols="4">
-              <v-row>
+
+              <v-row class="mt-10 ml-6">
                 <v-col
                   v-for="topic in item.topics"
                   :key="topic.text + topic.id"
@@ -55,8 +64,105 @@
                   >
                 </v-col>
               </v-row>
-            </v-col>
-            <v-col cols="4">
+            </v-container>
+          </v-tab-item>
+          <v-tab-item>
+            <v-container id="section-info-container">
+              <v-row id="section-times">
+                <v-col id="start_time" cols="6">
+                  <v-row justify="center" class="mb-6">
+                    <span class="seven-seg">{{ timeString(item.start) }}</span>
+
+                    <v-row justify="center">
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setStartTime(-0.25)">
+                          -0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(-1)">
+                          -1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(-5)">
+                          -5
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-row justify="center" class="mb-6">
+                          <v-btn class="button" @click="loopStartJellyfin()">
+                            Play
+                          </v-btn>
+                        </v-row>
+                        <v-row>
+                          <v-btn class="button" @click="adjustStartToCurrent()">
+                            Sync (jf)
+                          </v-btn>
+                        </v-row>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setStartTime(+0.25)">
+                          +0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(+1)">
+                          +1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setStartTime(+5)">
+                          +5
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-row>
+                </v-col>
+
+                <v-col id="end_time" cols="6">
+                  <v-row justify="center" class="mb-6">
+                    <span class="seven-seg">{{ timeString(item.end) }}</span>
+
+                    <v-row justify="center">
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setEndTime(-0.25)">
+                          -0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(-1)">
+                          -1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(-5)">
+                          -5
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-row justify="center" class="mb-6">
+                          <v-btn class="button" @click="loopEndJellyfin()">
+                            Play
+                          </v-btn>
+                        </v-row>
+                        <v-row>
+                          <v-btn class="button" @click="adjustEndToCurrent()">
+                            Sync (jf)
+                          </v-btn>
+                        </v-row>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn xs class="button" @click="setEndTime(+0.25)">
+                          +0.25
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(+1)">
+                          +1
+                        </v-btn>
+                        <v-btn xs class="button" @click="setEndTime(+5)">
+                          +5
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-row>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-tab-item>
+          <v-tab-item>
+            <v-container> Beats/Artists Tab</v-container>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-container>
               <v-row>
                 <v-btn
                   outlined
@@ -67,100 +173,9 @@
                   Remove Section
                 </v-btn>
               </v-row>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-container id="section-info-container">
-              <v-row id="section-times">
-                <v-col id="start_time" cols="6">
-                  <v-row justify="center" class="mb-6">
-                    <span class="seven-seg">{{ timeString(item.start) }}</span>
-                  </v-row>
-
-                  <v-row justify="center">
-                    <v-col cols="4">
-                      <v-btn xs class="button" @click="setStartTime(-0.25)">
-                        -0.25
-                      </v-btn>
-                      <v-btn xs class="button" @click="setStartTime(-1)">
-                        -1
-                      </v-btn>
-                      <v-btn xs class="button" @click="setStartTime(-5)">
-                        -5
-                      </v-btn>
-                    </v-col>
-                    <v-col cols="4">
-                      <v-row justify="center" class="mb-6">
-                        <v-btn class="button" @click="loopStartJellyfin()">
-                          Play
-                        </v-btn>
-                      </v-row>
-                      <v-row>
-                        <v-btn class="button" @click="adjustStartToCurrent()">
-                          Sync (jf)
-                        </v-btn>
-                      </v-row>
-                    </v-col>
-                    <v-col cols="4">
-                      <v-btn xs class="button" @click="setStartTime(+0.25)">
-                        +0.25
-                      </v-btn>
-                      <v-btn xs class="button" @click="setStartTime(+1)">
-                        +1
-                      </v-btn>
-                      <v-btn xs class="button" @click="setStartTime(+5)">
-                        +5
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </v-col>
-
-                <v-col id="end_time" cols="6">
-                  <v-row justify="center" class="mb-6">
-                    <span class="seven-seg">{{ timeString(item.end) }}</span>
-                  </v-row>
-
-                  <v-row justify="center">
-                    <v-col cols="4">
-                      <v-btn xs class="button" @click="setEndTime(-0.25)">
-                        -0.25
-                      </v-btn>
-                      <v-btn xs class="button" @click="setEndTime(-1)">
-                        -1
-                      </v-btn>
-                      <v-btn xs class="button" @click="setEndTime(-5)">
-                        -5
-                      </v-btn>
-                    </v-col>
-                    <v-col cols="4">
-                      <v-row justify="center" class="mb-6">
-                        <v-btn class="button" @click="loopEndJellyfin()">
-                          Play
-                        </v-btn>
-                      </v-row>
-                      <v-row>
-                        <v-btn class="button" @click="adjustEndToCurrent()">
-                          Sync (jf)
-                        </v-btn>
-                      </v-row>
-                    </v-col>
-                    <v-col cols="4">
-                      <v-btn xs class="button" @click="setEndTime(+0.25)">
-                        +0.25
-                      </v-btn>
-                      <v-btn xs class="button" @click="setEndTime(+1)">
-                        +1
-                      </v-btn>
-                      <v-btn xs class="button" @click="setEndTime(+5)">
-                        +5
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </v-col>
-              </v-row>
             </v-container>
-          </v-row>
-        </v-container>
+          </v-tab-item>
+        </v-tabs>
       </v-tab-item>
     </v-tabs-items>
   </v-container>

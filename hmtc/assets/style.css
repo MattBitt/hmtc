@@ -46,8 +46,8 @@ a {
 
 .main-container {
     background-color: var(--surface) !important;
-    padding: 20px;
-    min-height: 80vh;
+    padding: 2px;
+    min-height: 90vh;
     height: 100%;
   }
 
@@ -64,11 +64,24 @@ a {
   padding: 8px !important;
 }
 
+.button:hover {
+  color: var(--on-dark) !important;
+  background-color: var(--primary) !important;
+}
 
 
 .myprimary {
   color: var(--on-primary) !important;
   background-color: var(--primary) !important;
+}
+.myprimary:hover {
+  color: var(--on-primary) !important;
+  background-color: var(--dark) !important;
+}
+
+.myprimary-inverted {
+  color: var(--primary) !important;
+  background-color: var(--on-primary) !important;
 }
 
 .mydark {
