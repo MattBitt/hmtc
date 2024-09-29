@@ -18,6 +18,7 @@ from hmtc.models import (
     Series,
     YoutubeSeries,
 )
+from hmtc.models import File as FileModel
 from hmtc.models import (
     Video as VideoModel,
 )
@@ -200,18 +201,28 @@ class VideoItem(BaseItem):
         return vid_items
 
     @staticmethod
-    def count_vids_with_media_files():
-        return (
-            VideoModel.select()
+    def video_file_counts(unique=True):
+        videos = VideoModel.select(fn.Count(VideoModel.id)).where(
+            VideoModel.contains_unique_content == unique
+        )
+        videos_with_video_files = (
+            videos.join(FileModel)
             .where(
-                (VideoModel.contains_unique_content == True)
-                & (
-                    VideoModel.id.in_(
-                        File.select(File.video_id).where(File.file_type == "video")
-                    )
-                )
+                (FileModel.file_type == "video")
+                & (VideoModel.contains_unique_content == True)
             )
-            .count()
+            .scalar()
+        )
+        videos_with_audio_files = (
+            videos.join(FileModel)
+            .where(
+                (FileModel.file_type == "audio")
+                & (VideoModel.contains_unique_content == True)
+            )
+            .scalar()
+        )
+        return dict(
+            video_files=videos_with_video_files, audio_files=videos_with_audio_files
         )
 
     @staticmethod

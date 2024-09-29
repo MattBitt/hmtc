@@ -73,7 +73,7 @@ def setup():
 @solara.component
 def Layout(children=[]):
     solara.Style(Path("../assets/style.css"))
-
+    solara.lab.theme.dark = False
     return solara.AppLayout(
         navigation=False,
         title=title,

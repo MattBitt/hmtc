@@ -1,8 +1,9 @@
 import solara
+import solara.lab
 from loguru import logger
 
 # program version
-VERSION = "0.0.17"
+VERSION = "0.0.18"
 
 
 @solara.component_vue("./sidebar.vue")
@@ -49,6 +50,7 @@ def MySidebar(
             icon_name=icon_name, on_click=lambda: logger.debug("clicked"), icon=True
         )
         solara.Text(f"{VERSION}", classes=["version-number"])
+        # solara.lab.ThemeToggle(enable_auto=False)
         with solara.Sidebar():
             _Sidebar(
                 version=VERSION,

@@ -25,7 +25,6 @@ def create_query_from_url():
     # url options
     # each level should accept 'all' for non-unique videos
     # /videos should be a list of all unique videos (default)
-    # /videos/<video_id> should be the video-details page
     # /videos/all should include non-unique videos
     # /videos/series/<series_id> should be a list of videos in a series
     # /videos/youtube_series/<youtube_series_id> should be a list of videos in a youtube series
@@ -278,12 +277,11 @@ def Page():
         logger.debug("No base query")
         return
 
-    df = pd.DataFrame(
-        [
-            item.model_to_dict()
-            for item in base_query.order_by(VideoModel.upload_date.desc())
-        ]
-    )
+    item_list = [
+        item.model_to_dict()
+        for item in base_query.order_by(VideoModel.upload_date.desc())
+    ]
+    df = pd.DataFrame(item_list)
     items = df.to_dict("records")
 
     with solara.Column(classes=["main-container"]):

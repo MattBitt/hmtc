@@ -527,6 +527,10 @@ class Video(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
+        num_files = (
+            File.select(fn.Count(File.id)).where((File.video_id == self.id)).scalar()
+        )
+
         new_dict = {
             "id": self.id,
             "youtube_id": self.youtube_id,
@@ -549,6 +553,7 @@ class Video(BaseModel):
                 self.youtube_series.title if self.youtube_series else None
             ),
             "album_title": self.album.title if self.album else None,
+            "file_count": num_files,
         }
         return new_dict
 

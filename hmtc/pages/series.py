@@ -54,10 +54,6 @@ def Page():
     router = solara.use_router()
     MySidebar(router)
 
-    # the following doesn't really work but it almost does
-    # yts counts are 0 correctly, but if there are corresponding
-    # series, it uses that as the count instead of the actual
-
     base_query = (
         Series.select(
             Series.id,

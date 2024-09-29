@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 import PIL
 import solara
 from loguru import logger
-
+from hmtc.assets.colors import Colors
 from hmtc.components.shared.jellyfin_panel import JellyfinPanel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
@@ -11,7 +11,8 @@ from hmtc.models import (
     File as FileModel,
 )
 from hmtc.models import (
-    Section,
+    Series as SeriesModel,
+    YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
@@ -81,7 +82,7 @@ def SectionTabs(tabItems, event_add_item, event_remove_item, event_delete_sectio
 
 @solara.component_vue("../components/section/section_info.vue", vuetify=True)
 def SectionEditor(
-    item: Section = None,
+    item: SectionModel = None,
     is_connected: bool = False,
     has_active_user_session: bool = False,
     play_status: bool = False,
@@ -385,8 +386,10 @@ def Page():
         ),
     )
     files = FileModel.select().where(FileModel.video_id == video.id)
-
-
+    serieses = [item.model_to_dict()['name'] for item in SeriesModel.select(SeriesModel.name).order_by(SeriesModel.name)]
+    series_name = solara.reactive(video.series.name if video.series else None)
+    youtube_serieses = [item.model_to_dict()['title'] for item in YoutubeSeriesModel.select(YoutubeSeriesModel.title).order_by(YoutubeSeriesModel.title)]
+    youtube_series_title = solara.reactive(video.youtube_series.title if video.youtube_series else None)
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
     IMG_WIDTH = "200px"
@@ -424,8 +427,22 @@ def Page():
             [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
         )
 
+    def update_series(*args):
+        logger.debug(f"Updating Series: {args}")
+        series = SeriesModel.select().where(SeriesModel.name == args[0]).get()
+        vid = VideoModel.get_by_id(video.id)
+        vid.series = series
+        vid.save()
+
+    def update_youtube_series(*args):
+        logger.debug(f"Updating Youtube Series: {args}")
+        youtube_series = YoutubeSeriesModel.select().where(YoutubeSeriesModel.title == args[0]).get()
+        vid = VideoModel.get_by_id(video.id)
+        vid.youtube_series = youtube_series
+        vid.save()
+
     with solara.Column(classes=["main-container"]):
-        with solara.Card():
+        with solara.Column(classes=["py-0", "px-4"]):
             with solara.Columns([6,6]):
                 with solara.Columns([6,6]):
                     with solara.Column():
@@ -433,30 +450,26 @@ def Page():
                         solara.Image(image, width=IMG_WIDTH)
                         solara.Text(
                             f"{video.title[:60]}",
+                            classes=["video-info-text"],
                             
                         )
-
+                        
                     with solara.Column():
-                        solara.Text(
-                            f"{video.series.name if video.series else 'No Series'}",
-                            classes=["video-info-text"],
-                        )
-                        solara.Text(
-                            f"{video.youtube_series.title if video.youtube_series else 'No YT Series'}",
-                            classes=["video-info-text"],
-                        )
-                        solara.Text(
-                            f"{video.channel.name if video.channel else 'No Channel'}",
-                            classes=["video-info-text"],
-                        )
-                        solara.Text(
-                            f"{time_ago_string(video.upload_date)}",
-                            classes=["medium-timer"],
-                        )
-                        solara.Text(
-                            f"{seconds_to_hms(video.duration)}",
-                            classes=["medium-timer"],
-                        )
+                        with solara.Column():
+
+                            solara.Select(label="Series", values=serieses, value=series_name, on_value=update_series)
+                            solara.Select(label="Youtube Series", values=youtube_serieses, value=youtube_series_title, on_value=update_youtube_series)
+
+
+                        with solara.Column(classes=["mt-2"]):
+                            solara.Text(
+                                f"Uploaded: {time_ago_string(video.upload_date)}",
+                                classes=["medium-timer"],
+                            )
+                            solara.Text(
+                                f"Length: {seconds_to_hms(video.duration)}",
+                                classes=["medium-timer"],
+                            )
 
                 with solara.Column():
                     NewJellyfinPanel(video=video)
@@ -492,17 +505,17 @@ def Page():
                 on_delete=lambda x: logger.debug(f"on_delete {x}"),
             )
 
+        with solara.Column(classes=["mysurface"], style={"height": "300px"}):
+            if len(sm.sections) > 0:
+                logger.debug(f"Num sections: {len(sm.sections)}")
 
-        if len(sm.sections) > 0:
-            logger.debug(f"Num sections: {len(sm.sections)}")
+                SectionTabs(
+                        tabItems=section_dicts[0].value,
+                        event_add_item=add_topic,
+                        event_remove_item=remove_topic,
+                        event_delete_section=delete_section,
+                    )
 
-            SectionTabs(
-                    tabItems=section_dicts[0].value,
-                    event_add_item=add_topic,
-                    event_remove_item=remove_topic,
-                    event_delete_section=delete_section,
-                )
+            else:
 
-        else:
-            with solara.Row(classes=["mylight"]):
                 solara.Markdown("No Sections Found")

@@ -173,6 +173,12 @@
       </v-toolbar>
     </template>
     <!-- Custom cell contents for each column-->
+    <template v-slot:item.file_count="{ item }">
+      <v-chip>
+        {{ item.file_count }}
+      </v-chip>
+    </template>
+
     <template v-slot:item.contains_unique_content="{ item }">
       <v-simple-checkbox
         v-model="item.contains_unique_content"
@@ -296,6 +302,12 @@ export default {
         //   value: "playlist_title",
         //   filterable: false,
         // },
+        {
+          text: "# Files",
+          value: "file_count",
+          filterable: false,
+          sortable: true,
+        },
         { text: "Unique", value: "contains_unique_content", filterable: false },
         {
           text: "",

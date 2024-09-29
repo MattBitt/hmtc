@@ -270,7 +270,7 @@ export default {
     timeString(value) {
       const date = new Date(null);
       date.setSeconds(value / 1000);
-      console.log(date.toISOString().slice(11, 19));
+      // console.log(date.toISOString().slice(11, 19));
       return date.toISOString().slice(11, 19);
     },
     loopStartJellyfin() {
