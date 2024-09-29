@@ -357,8 +357,16 @@ def time_ago_string(dt):
         else:
             return f"{time_ago.days} days ago"
     if time_ago.days < 365:
-        return f"{time_ago.days // 30} months ago"
-    return f"{time_ago.days // 365} years ago"
+        months = time_ago.days // 30
+        if months == 1:
+            return "Last month"
+        else:
+            return f"{months} months ago"
+    years = time_ago.days // 365
+    if years == 1:
+        return "Last year"
+    else:
+        return f"{years} years ago"
     
 
 @solara.component
@@ -367,7 +375,7 @@ def Page():
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
     # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
-    check_icon = Path("./hmtc/assets/icons/check_icon.png")
+    check_icon = Path("./hmtc/public/icons/check.png")
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
     # not sure why this is a tuple...
