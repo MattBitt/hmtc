@@ -199,10 +199,11 @@ def move_file(source: str, dest: str):
     d = Path(dest)
 
     if d.exists() and d.is_file():
-        logger.error("Destination is a file that already exists. Skipping.")
-        logger.debug(f"Source: {source}")
-        logger.debug(f"Destination: {dest}")
-        return
+        ## warning. I'm updating this on 9/29 to alway overwrite the destination
+        # i've finished the initial sort, so anything i download now, should be
+        # on purpose
+        logger.debug(f"File {dest} already exists. Overwriting.")
+        pass
 
     try:
         shutil.move(source, dest)

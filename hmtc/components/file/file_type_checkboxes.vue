@@ -81,16 +81,17 @@
       </v-tooltip>
     </v-row>
     <v-row>
-      <v-col cols="4" v-if="!has_video">
+      <!-- <v-col cols="4" v-if="!has_video"> -->
+        <v-col cols="4">
         <v-btn outlined @click="download_video" class="myprimary">
           <v-icon>mdi-download</v-icon>
           <span>Video</span>
         </v-btn>
       </v-col>
-      <v-col cols="4" v-else>
+      <!-- <v-col cols="4" v-else>
         <v-img src="/static/public/icons/check.png" max-width="30px">
 </v-img>
-      </v-col>
+      </v-col> -->
       <v-col cols="4" v-if="!has_info">
         <v-btn outlined @click="download_info" class="myprimary">
           <v-icon>mdi-download</v-icon>

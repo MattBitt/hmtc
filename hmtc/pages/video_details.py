@@ -36,6 +36,7 @@ WORKING = Path(config["paths"]["working"]) / "downloads"
 STORAGE = Path(config["paths"]["storage"]) / "videos"
 MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
+AVERAGE_SECTION_LENGTH = 300
 
 
 def parse_url_args():
@@ -68,225 +69,6 @@ def my_hook(*args):
     # if p < 1:
     #     logger.info(f"Percent Complete: {d/t*100:.2f}%")
     # current_download_progress.set(p)
-
-
-@solara.component_vue("../components/section/section_list_item.vue", vuetify=True)
-def SectionListItem(items):
-    pass
-
-
-@solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
-def SectionTabs(tabItems, event_add_item, event_remove_item, event_delete_section):
-    pass
-
-
-@solara.component_vue("../components/section/section_info.vue", vuetify=True)
-def SectionEditor(
-    item: SectionModel = None,
-    is_connected: bool = False,
-    has_active_user_session: bool = False,
-    play_status: bool = False,
-    current_position: int = 0,
-    event_save_section: callable = None,
-    event_delete_section: callable = None,
-    event_loop_jellyfin: callable = None,
-):
-    pass
-
-
-@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
-def FileTypeCheckboxes(
-    has_audio: bool = False,
-    has_video: bool = False,
-    has_subtitle: bool = False,
-    has_info: bool = False,
-    has_poster: bool = False,
-    has_album_nfo: bool = False,
-    event_download_video: callable = None,
-    event_download_info: callable = None,
-    event_create_album_nfo: callable = None,
-):
-    pass
-
-
-@solara.component_vue("../components/chips/series.vue", vuetify=True)
-def SeriesChip(series):
-    pass
-
-
-@solara.component_vue("../components/chips/playlist.vue", vuetify=True)
-def PlaylistChip(playlist):
-    pass
-
-
-@solara.component_vue("../components/chips/album.vue", vuetify=True)
-def AlbumChip(album):
-    pass
-
-
-@solara.component_vue("../components/chips/youtube_series.vue", vuetify=True)
-def YoutubeSeriesChip(youtube_series):
-    pass
-
-
-@solara.component_vue("../components/chips/channel.vue")
-def ChannelChip(channel):
-    pass
-
-
-@solara.component_vue("../components/shared/carousel.vue")
-def Carousel(sections: list = []):
-    pass
-
-
-# code from old NewJellyfinPanel lol
-                # exists = jf_client.value.search_media(video.youtube_id)
-                # if exists["TotalRecordCount"] > 0:
-                #     logger.debug(f"Found video {video.youtube_id} in Jellyfin")
-                #     logger.debug(f"Video jellyfin id = {exists['Items'][0]['Id']}")
-                #     # solara.Markdown("Found in Jellyfin")
-                # else:
-                #     logger.debug(f"Video {video.youtube_id} not found in Jellyfin")
-                #     # solara.Markdown("Not Found in Jellyfin")
-
-                # if jf_client.value.play_status == "stopped":
-                #     # no media item loaded
-                #     is_video_id_playing_in_jellyfin = False
-                # else:
-                #     is_video_id_playing_in_jellyfin = jf_client.value.media_item["Id"] == video.jellyfin_id
-
-
-
-
-@solara.component
-def NewJellyfinPanel(video):
-    JF_LOGO_WIDTH = "80px"
-    pth = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
-    jf_client = solara.use_reactive(None)
-    play_state = solara.use_reactive("stopped")
-    icon_color = solara.use_reactive("mywarning")
-    def connect_jellyfin():
-        jf_client.set(MyJellyfinClient())
-        if jf_client.value.is_connected:
-            icon_color.set("mylight")
-        else:
-            icon_color.set("mywarning")
-    
-    def play_button():
-        # adding on 9/28/24
-        # want to load the item if its not already loaded
-        if jf_client.value.play_status == "stopped":
-            local_load_item()
-            jf_client.value.play_pause()
-        else:
-            jf_client.value.play_pause()
-
-    def local_load_item():
-        if video.jellyfin_id is None:
-            logger.error("No Jellyfin ID for this video")
-            return
-        jf_client.value.stop()
-        jf_client.value.load_media_item(jellyfin_id=video.jellyfin_id)
-        jf_client.value.play_pause()
-
-    with solara.Columns([4,8]):
-        with solara.Column():
-            solara.Image(pth, width=JF_LOGO_WIDTH, classes=[icon_color.value, "pa-1"])
-            
-        with solara.Column():
-            if jf_client.value is None:
-                logger.debug("Haven't tried connecting yet.")
-                solara.Text(f'Not connected to Jellyfin.')
-            else:
-                if jf_client.value.is_connected and jf_client.value.has_active_user_session:
-                        with solara.Row():
-                            solara.Button(label="", icon_name='mdi-play-pause', classes=["button"], on_click=play_button)
-                            solara.Button(label="", icon_name='mdi-stop', classes=["button"], disabled=not jf_client.value.play_status == "playing")
-                else:
-                    logger.debug("Jellyfin not connected/or no active")
-                    solara.Text(f"No Active Jellyfin sessions found for {jf_client.value.user}.")
-            solara.Button(label="", icon_name='mdi-refresh', classes=["button"], on_click=connect_jellyfin)
-
-@solara.component
-def SectionCounter(sections):
-    solara.Markdown(f"Num Sections: {len(sections.value)}")
-
-
-@solara.component
-def SectionControlPanel(
-    video,
-    sections,
-    current_section,
-    create_section: callable = None,
-    on_delete: callable = None,
-):
-    section_type = solara.use_reactive("intro")
-
-    # existing sections
-    num_sections = solara.use_reactive(len(sections.value))
-
-    # text box for number of sections
-    num_sections_input = solara.use_reactive(4)
-
-    def delete_sections():
-        for section in sections.value:
-            on_delete(section)
-
-    def clear_all_sections():
-        delete_sections()
-        sections.set([])
-
-    def create_1_section():
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=0, end=video.duration, section_type=section_type.value
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        sections.set(sections.value + [new_sect])
-
-    def split_into():
-        # loading.set(False)
-        if num_sections_input.value < 1:
-            logger.error("Must have at least 1 section")
-            return
-
-        section_length = video.duration // num_sections_input.value
-        if section_length < MIN_SECTION_LENGTH:
-            logger.error(f"Sections must be at least {MIN_SECTION_LENGTH} seconds long")
-            return
-        elif section_length > MAX_SECTION_LENGTH:
-            logger.error(
-                f"Sections must be less than {MAX_SECTION_LENGTH} seconds long"
-            )
-            return
-        num_new_sections = video.duration // section_length
-        for i in range(num_new_sections):
-            create_section(
-                video=video,
-                start=i * (video.duration / num_new_sections),
-                end=(i + 1) * (video.duration / num_new_sections),
-                section_type="instrumental",
-            )
-
-    with solara.Column():
-        if num_sections.value > 0:
-            solara.Markdown(
-                f"Section ID {current_section.value.id if current_section is not None else "asdf"} selected ({num_sections.value } found)"
-            )
-            solara.Button(
-                "Clear All Sections", on_click=clear_all_sections, classes=["button"]
-            )
-        else:
-            solara.Button(
-                "Single Section", on_click=create_1_section, classes=["button"]
-            )
-            with solara.Row():
-                solara.InputInt("How Many Sections?", value=num_sections_input)
-                solara.Button(
-                    "Split",
-                    on_click=split_into,
-                    classes=["button"],
-                )
 
 
 def add_topic(*args):
@@ -368,7 +150,236 @@ def time_ago_string(dt):
         return "Last year"
     else:
         return f"{years} years ago"
-    
+
+
+@solara.component_vue("../components/section/section_list_item.vue", vuetify=True)
+def SectionListItem(items):
+    pass
+
+
+@solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
+def SectionTabs(tabItems, event_add_item, event_remove_item, event_delete_section):
+    pass
+
+
+@solara.component_vue("../components/section/section_info.vue", vuetify=True)
+def SectionEditor(
+    item: SectionModel = None,
+    is_connected: bool = False,
+    has_active_user_session: bool = False,
+    play_status: bool = False,
+    current_position: int = 0,
+    event_save_section: callable = None,
+    event_delete_section: callable = None,
+    event_loop_jellyfin: callable = None,
+):
+    pass
+
+
+@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
+def FileTypeCheckboxes(
+    has_audio: bool = False,
+    has_video: bool = False,
+    has_subtitle: bool = False,
+    has_info: bool = False,
+    has_poster: bool = False,
+    has_album_nfo: bool = False,
+    event_download_video: callable = None,
+    event_download_info: callable = None,
+    event_create_album_nfo: callable = None,
+):
+    pass
+
+
+# code from old NewJellyfinPanel lol
+# exists = jf_client.value.search_media(video.youtube_id)
+# if exists["TotalRecordCount"] > 0:
+#     logger.debug(f"Found video {video.youtube_id} in Jellyfin")
+#     logger.debug(f"Video jellyfin id = {exists['Items'][0]['Id']}")
+#     # solara.Markdown("Found in Jellyfin")
+# else:
+#     logger.debug(f"Video {video.youtube_id} not found in Jellyfin")
+#     # solara.Markdown("Not Found in Jellyfin")
+
+# if jf_client.value.play_status == "stopped":
+#     # no media item loaded
+#     is_video_id_playing_in_jellyfin = False
+# else:
+#     is_video_id_playing_in_jellyfin = jf_client.value.media_item["Id"] == video.jellyfin_id
+
+
+@solara.component
+def NewJellyfinPanel(video, jellyfin_status):
+    JF_LOGO_WIDTH = "80px"
+    pth = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
+    jf_client = solara.use_reactive(None)
+    play_state = solara.use_reactive("stopped")
+    icon_color = solara.use_reactive("mywarning")
+
+    def connect_jellyfin():
+        jf_client.set(MyJellyfinClient())
+        if jf_client.value.is_connected:
+            jellyfin_status.set(dict(status="connected", color="mylight"))
+            icon_color.set("mylight")
+        else:
+            jellyfin_status.set(dict(status="disconnected", color="myerror"))
+            icon_color.set("myerror")
+
+    def play_button():
+        # adding on 9/28/24
+        # want to load the item if its not already loaded
+        if jf_client.value.play_status == "stopped":
+            local_load_item()
+            jf_client.value.play_pause()
+        else:
+            jf_client.value.play_pause()
+
+    def local_load_item():
+        if video.jellyfin_id is None:
+            logger.error("No Jellyfin ID for this video")
+            return
+        jf_client.value.stop()
+        jf_client.value.load_media_item(jellyfin_id=video.jellyfin_id)
+        jf_client.value.play_pause()
+
+    with solara.Columns([4, 8]):
+        with solara.Column():
+            solara.Image(pth, width=JF_LOGO_WIDTH, classes=[icon_color.value, "pa-1"])
+
+        with solara.Column():
+            if jf_client.value is None:
+                logger.debug("Haven't tried connecting yet.")
+                solara.Text(f"Not connected to Jellyfin.")
+            else:
+                if (
+                    jf_client.value.is_connected
+                    and jf_client.value.has_active_user_session
+                ):
+                    with solara.Row():
+                        solara.Button(
+                            label="",
+                            icon_name="mdi-play-pause",
+                            classes=["button"],
+                            on_click=play_button,
+                        )
+                        solara.Button(
+                            label="",
+                            icon_name="mdi-stop",
+                            classes=["button"],
+                            disabled=not jf_client.value.play_status == "playing",
+                        )
+                else:
+                    logger.debug("Jellyfin not connected/or no active")
+                    solara.Text(
+                        f"No Active Jellyfin sessions found for {jf_client.value.user}."
+                    )
+            solara.Button(
+                label="",
+                icon_name="mdi-refresh",
+                classes=["button"],
+                on_click=connect_jellyfin,
+            )
+
+
+@solara.component
+def SectionCounter(sections):
+    solara.Markdown(f"Num Sections: {len(sections.value)}")
+
+
+@solara.component
+def SectionControlPanel(
+    video,
+    sections,
+    current_section,
+    section_dicts,
+    jellyfin_status,
+):
+    section_type = solara.use_reactive("intro")
+
+    # existing sections
+    num_sections = solara.use_reactive(len(sections.value))
+
+    def clear_all_sections():
+        for section in sections.value:
+            logger.debug(f"Deleting Section: {section}")
+            delete_section_from_db(section.id)
+
+        sections.set([])
+
+    def create_1_section():
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(
+            start=0, end=video.duration, section_type=section_type.value
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        sections.set(sections.value + [new_sect])
+
+    def split_into():
+        # returns the number of whole sections
+        sm = SectionManager.from_video(video)
+        number_of_even_sections = (
+            video.duration // AVERAGE_SECTION_LENGTH
+        )  # 5 minute sections
+
+        for i in range(number_of_even_sections):
+            new_id = sm.create_section(
+                start=i * (video.duration / number_of_even_sections),
+                end=(i + 1) * (video.duration / number_of_even_sections),
+                section_type="instrumental",
+            )
+        new_sect = SectionModel.get_by_id(new_id)
+        sections.set(sm.sections + [new_sect])
+        section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
+        logger.debug(f"New Section ID: {new_id}")
+
+    def create_section_at_0():
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(
+            start=0, end=AVERAGE_SECTION_LENGTH, section_type=section_type.value
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        sections.set(sections.value + [new_sect])
+
+    def create_section_at_jellyfin_position():
+        pass
+
+    with solara.Column(align="center"):
+        if num_sections.value > 0:
+            with solara.Column(style={"width": "30%"}):
+                solara.Button(
+                    "Clear All Sections",
+                    on_click=clear_all_sections,
+                    outlined=True,
+                    classes=["button mywarning"],
+                )
+        else:
+            with solara.Row():
+                solara.Button(
+                    "1 Section",
+                    on_click=create_1_section,
+                    classes=["button"],
+                    disabled=(video.duration > MAX_SECTION_LENGTH),
+                )
+                solara.Button(
+                    f"{video.duration // AVERAGE_SECTION_LENGTH} sections",
+                    on_click=split_into,
+                    classes=["button"],
+                    disabled=(video.duration < AVERAGE_SECTION_LENGTH),
+                )
+                solara.Button(
+                    label="Section at 0",
+                    classes=["button"],
+                    on_click=create_section_at_0,
+                    disabled=(video.duration < AVERAGE_SECTION_LENGTH),
+                )
+                solara.Button(
+                    label="Section at Jellyfin",
+                    classes=["button"],
+                    on_click=create_section_at_jellyfin_position,
+                    disabled=(video.duration < AVERAGE_SECTION_LENGTH)
+                    or (jellyfin_status.value["status"] == "initial"),
+                )
+
 
 @solara.component
 def Page():
@@ -377,6 +388,7 @@ def Page():
     video = VideoItem.get_details_for_video(video_id)
     # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
     check_icon = Path("./hmtc/public/icons/check.png")
+    jellyfin_status = solara.use_reactive(dict(status="initial", color="mylight"))
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
     # not sure why this is a tuple...
@@ -386,10 +398,20 @@ def Page():
         ),
     )
     files = FileModel.select().where(FileModel.video_id == video.id)
-    serieses = [item.model_to_dict()['name'] for item in SeriesModel.select(SeriesModel.name).order_by(SeriesModel.name)]
+    serieses = [
+        item.model_to_dict()["name"]
+        for item in SeriesModel.select(SeriesModel.name).order_by(SeriesModel.name)
+    ]
     series_name = solara.reactive(video.series.name if video.series else None)
-    youtube_serieses = [item.model_to_dict()['title'] for item in YoutubeSeriesModel.select(YoutubeSeriesModel.title).order_by(YoutubeSeriesModel.title)]
-    youtube_series_title = solara.reactive(video.youtube_series.title if video.youtube_series else None)
+    youtube_serieses = [
+        item.model_to_dict()["title"]
+        for item in YoutubeSeriesModel.select(YoutubeSeriesModel.title).order_by(
+            YoutubeSeriesModel.title
+        )
+    ]
+    youtube_series_title = solara.reactive(
+        video.youtube_series.title if video.youtube_series else None
+    )
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
     IMG_WIDTH = "200px"
@@ -405,27 +427,17 @@ def Page():
             logger.debug(f"Processing files in download_video of the list item {file}")
             FileManager.add_path_to_video(file, vid)
 
+    def delete_section(*args, **kwargs):
+        for section in reactive_sections.value:
+            logger.debug(f"Deleting Section: {args}")
+            delete_section_from_db(args[0]["section_id"])
+            reactive_sections.set(
+                [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
+            )
+
     def create_album_nfo(*args):
         new_file = VideoItem.create_xml_for_jellyfin(video.id)
         FileManager.add_path_to_video(new_file, video)
-
-    def create_section(*args, **kwargs):
-        new_id = sm.create_section(
-            start=0, end=video.duration, section_type="instrumental"
-        )
-        new_sect = SectionModel.get_by_id(new_id)
-        reactive_sections.set(sm.sections + [new_sect])
-        section_dicts.set(
-            reactive_sections.value + [SectionManager.get_section_details(new_id)]
-        )
-        logger.debug(f"New Section ID: {new_id}")
-
-    def delete_section(*args):
-        logger.debug(f"Deleting Section: {args}")
-        delete_section_from_db(args[0]["section_id"])
-        reactive_sections.set(
-            [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
-        )
 
     def update_series(*args):
         logger.debug(f"Updating Series: {args}")
@@ -436,30 +448,40 @@ def Page():
 
     def update_youtube_series(*args):
         logger.debug(f"Updating Youtube Series: {args}")
-        youtube_series = YoutubeSeriesModel.select().where(YoutubeSeriesModel.title == args[0]).get()
+        youtube_series = (
+            YoutubeSeriesModel.select().where(YoutubeSeriesModel.title == args[0]).get()
+        )
         vid = VideoModel.get_by_id(video.id)
         vid.youtube_series = youtube_series
         vid.save()
 
     with solara.Column(classes=["main-container"]):
         with solara.Column(classes=["py-0", "px-4"]):
-            with solara.Columns([6,6]):
-                with solara.Columns([6,6]):
+            with solara.Columns([6, 6]):
+                with solara.Columns([6, 6]):
                     with solara.Column():
-                        
+
                         solara.Image(image, width=IMG_WIDTH)
                         solara.Text(
                             f"{video.title[:60]}",
                             classes=["video-info-text"],
-                            
                         )
-                        
+
                     with solara.Column():
                         with solara.Column():
 
-                            solara.Select(label="Series", values=serieses, value=series_name, on_value=update_series)
-                            solara.Select(label="Youtube Series", values=youtube_serieses, value=youtube_series_title, on_value=update_youtube_series)
-
+                            solara.Select(
+                                label="Series",
+                                values=serieses,
+                                value=series_name,
+                                on_value=update_series,
+                            )
+                            solara.Select(
+                                label="Youtube Series",
+                                values=youtube_serieses,
+                                value=youtube_series_title,
+                                on_value=update_youtube_series,
+                            )
 
                         with solara.Column(classes=["mt-2"]):
                             solara.Text(
@@ -472,7 +494,7 @@ def Page():
                             )
 
                 with solara.Column():
-                    NewJellyfinPanel(video=video)
+                    NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
                     FileTypeCheckboxes(
                         has_audio="audio" in [f.file_type for f in files],
                         has_video="video" in [f.file_type for f in files],
@@ -482,39 +504,39 @@ def Page():
                         has_album_nfo="album_nfo" in [f.file_type for f in files],
                         event_download_video=download_video,
                         event_create_album_nfo=create_album_nfo,
-                        event_download_info=lambda x: VideoItem.refresh_youtube_info(video.id),
+                        event_download_info=lambda x: VideoItem.refresh_youtube_info(
+                            video.id
+                        ),
                     )
 
-        with solara.Row():
-            with solara.Card():
-                if video.album is not None:
-                    poster = FileManager.get_file_for_album(video.album, "poster")
-                    image = PIL.Image.open(Path(str(poster)))
-                    # solara.Image(image, width="200px")
-                    solara.Text(f"{video.album.title}")
-                    solara.Image(check_icon, width="50px")
-                else:
-                    solara.Markdown("No Album")
-                    solara.Button("Add Album", classes=["button"])
+        # with solara.Row():
+        #     with solara.Card():
+        #         if video.album is not None:
+        #             poster = FileManager.get_file_for_album(video.album, "poster")
+        #             image = PIL.Image.open(Path(str(poster)))
+        #             # solara.Image(image, width="200px")
+        #             solara.Text(f"{video.album.title}")
+        #             solara.Image(check_icon, width="50px")
+        #         else:
+        #             solara.Markdown("No Album")
+        #             solara.Button("Add Album", classes=["button"])
 
+        with solara.Column(classes=["mysurface"], style={"height": "800px"}):
             SectionControlPanel(
                 video=video,
                 sections=reactive_sections,
                 current_section=None,
-                create_section=create_section,
-                on_delete=lambda x: logger.debug(f"on_delete {x}"),
+                section_dicts=section_dicts,
+                jellyfin_status=jellyfin_status,
             )
-
-        with solara.Column(classes=["mysurface"], style={"height": "300px"}):
             if len(sm.sections) > 0:
-                logger.debug(f"Num sections: {len(sm.sections)}")
 
                 SectionTabs(
-                        tabItems=section_dicts[0].value,
-                        event_add_item=add_topic,
-                        event_remove_item=remove_topic,
-                        event_delete_section=delete_section,
-                    )
+                    tabItems=section_dicts[0].value,
+                    event_add_item=add_topic,
+                    event_remove_item=remove_topic,
+                    event_delete_section=delete_section,
+                )
 
             else:
 

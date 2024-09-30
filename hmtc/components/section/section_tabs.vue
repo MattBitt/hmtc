@@ -1,5 +1,10 @@
 <template>
-  <v-container fluid class="mydark pt-10" id="tabbed-container">
+  <v-container
+    fluid
+    class="mysurface px-0"
+    id="tabbed-container"
+    min-height="600px"
+  >
     <v-tabs v-model="tabs" center-active class="mylight">
       <v-tab v-for="item in tabItems" :key="item.id"> {{ item.id }} </v-tab>
     </v-tabs>
@@ -16,11 +21,11 @@
           </v-tab>
           <v-tab>
             <v-icon left> mdi-access-point </v-icon>
-            Beats <br />
+            Beats/ <br />
             Artists
           </v-tab>
           <v-tab>
-            <v-icon left> mdi-access-point </v-icon>
+            <v-icon left> mdi-screw-flat-top </v-icon>
             Admin
           </v-tab>
           <v-tab-item>
@@ -71,8 +76,10 @@
               <v-row id="section-times">
                 <v-col id="start_time" cols="6">
                   <v-row justify="center" class="mb-6">
-                    <span class="seven-seg">{{ timeString(item.start) }}</span>
-
+                    <span class="seven-seg mysurface">{{
+                      timeString(item.start)
+                    }}</span>
+                    <span>Time String is before this...</span>
                     <v-row justify="center">
                       <v-col cols="4">
                         <v-btn xs class="button" @click="setStartTime(-0.25)">
@@ -114,7 +121,9 @@
 
                 <v-col id="end_time" cols="6">
                   <v-row justify="center" class="mb-6">
-                    <span class="seven-seg">{{ timeString(item.end) }}</span>
+                    <span class="seven-seg mysurface">{{
+                      timeString(item.end)
+                    }}</span>
 
                     <v-row justify="center">
                       <v-col cols="4">

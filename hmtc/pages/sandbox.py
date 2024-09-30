@@ -3,7 +3,7 @@ import solara
 from loguru import logger
 from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.schemas.video import VideoItem
+from hmtc.models import File as FileModel
 
 
 @solara.component_vue("sandbox.vue")
@@ -15,7 +15,16 @@ def Sandbox():
 def Page():
 
     MySidebar(router=solara.use_router())
-    Sandbox()
-    x = VideoItem.video_file_counts(unique=True)
-    solara.Markdown(f"Total number of unique video files: {x['video_files']}")
-    solara.Markdown(f"Total number of unique audio files: {x['audio_files']}")
+    vids_with_video = FileModel.select(FileModel.id, FileModel.video_id).where(
+        (FileModel.video_id.is_null(False)) & (FileModel.file_type == "video")
+    )
+    vids_with_audio = FileModel.select(FileModel.id, FileModel.video_id).where(
+        (FileModel.video_id.is_null(False) & (FileModel.file_type == "audio"))
+    )
+    x = [v.video_id for v in vids_with_video]
+    y = [v.video_id for v in vids_with_audio]
+    missing_audio = [v for v in x if v not in y]
+    solara.Markdown(f"## xx{len(vids_with_video)} Videos have video files")
+    solara.Markdown(f"## xx{len(vids_with_audio)} Videos have audio files")
+    for vid in missing_audio:
+        solara.Markdown(f"## {vid} is missing audio")

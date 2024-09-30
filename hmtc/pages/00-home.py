@@ -55,7 +55,7 @@ def Page():
     latest_vids = (
         VideoModel.select()
         .where(VideoModel.contains_unique_content == True)
-        .order_by(VideoModel.id.desc())
+        .order_by(VideoModel.upload_date.desc())
         .limit(3)
     )
 
@@ -82,10 +82,6 @@ def Page():
                 align="center",
                 style={
                     "background-color": Colors.SURFACE,
-                    # "position": "absolute",
-                    # "top": "0",
-                    # "left": "0",
-                    "width": "100%",
                 },
             ):
                 solara.Image(image=image)
