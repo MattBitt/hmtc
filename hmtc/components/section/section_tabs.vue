@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="mysurface px-0" id="tabbed-container">
+  <v-container>
     <v-tabs
       v-model="tabs"
       grow
@@ -47,7 +47,7 @@
               </v-row>
               <!-- Start Time Control Panel -->
               <v-row justify="center" class="mb-6">
-                <span class="seven-seg mysurface">{{
+                <span class="seven-seg myprimary">{{
                   timeString(item.start)
                 }}</span>
               </v-row>
@@ -83,7 +83,7 @@
               </v-row>
               <!-- End Time Control Panel -->
               <v-row justify="center" class="mt-5 mb-5">
-                <span class="seven-seg mysurface">{{
+                <span class="seven-seg myprimary">{{
                   timeString(item.end)
                 }}</span>
               </v-row>

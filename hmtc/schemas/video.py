@@ -52,16 +52,22 @@ class VideoItem(BaseItem):
     manually_edited: bool = False
     channel_id: int = None
     playlist_id: int = None
+    playlist_title: str = None
     series_id: int = None
     youtube_series_id: int = None
     youtube_series_title: str = None
     series: Series = None
+    series_name: str = None
     channel: Channel = None
+    channel_name: str = None
     playlist: Playlist = None
     youtube_series: YoutubeSeries = None
+    youtube_series_title: str = None
     jellyfin_id: str = None
     album_id: int = None
     album: AlbumModel = None
+    album_title: str = None
+    file_count: int = 0
 
     # has_video_file: bool = False
     # has_audio_file: bool = False

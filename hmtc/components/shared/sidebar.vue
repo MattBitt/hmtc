@@ -103,7 +103,7 @@ export default {
   background-color: var(--light) !important;
   color: var(--on-light) !important;
   min-width: 180px;
-  min-height: 80vh;
+  min-height: 90vh;
 
   & .header a {
     font-family: "LogoFont";

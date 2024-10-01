@@ -471,12 +471,11 @@ def Page():
             FileManager.add_path_to_video(file, vid)
 
     def delete_section(*args, **kwargs):
-        for section in reactive_sections.value:
-            logger.debug(f"Deleting Section: {args}")
-            delete_section_from_db(args[0]["section_id"])
-            reactive_sections.set(
-                [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
-            )
+        logger.debug(f"Deleting Section: {args}")
+        delete_section_from_db(args[0]["section_id"])
+        reactive_sections.set(
+            [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
+        )
 
     def create_album_nfo(*args):
         new_file = VideoItem.create_xml_for_jellyfin(video.id)
@@ -499,58 +498,59 @@ def Page():
         vid.save()
 
     with solara.Column(classes=["main-container"]):
-        with solara.Column(classes=["py-0", "px-4"]):
-            with solara.Columns([6, 6]):
+        with solara.Card():
+            with solara.Column(classes=["py-0", "px-4"]):
                 with solara.Columns([6, 6]):
-                    with solara.Column():
-
-                        solara.Image(image, width=IMG_WIDTH)
-                        solara.Text(
-                            f"{video.title[:60]}",
-                            classes=["video-info-text"],
-                        )
-
-                    with solara.Column():
+                    with solara.Columns([6, 6]):
                         with solara.Column():
 
-                            solara.Select(
-                                label="Series",
-                                values=serieses,
-                                value=series_name,
-                                on_value=update_series,
-                            )
-                            solara.Select(
-                                label="Youtube Series",
-                                values=youtube_serieses,
-                                value=youtube_series_title,
-                                on_value=update_youtube_series,
+                            solara.Image(image, width=IMG_WIDTH)
+                            solara.Text(
+                                f"{video.title[:60]}",
+                                classes=["video-info-text"],
                             )
 
-                        with solara.Column(classes=["mt-2"]):
-                            solara.Text(
-                                f"Uploaded: {time_ago_string(video.upload_date)}",
-                                classes=["medium-timer"],
-                            )
-                            solara.Text(
-                                f"Length: {seconds_to_hms(video.duration)}",
-                                classes=["medium-timer"],
-                            )
+                        with solara.Column():
+                            with solara.Column():
 
-                with solara.Column():
-                    NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
-                    FileTypeCheckboxes(
-                        has_audio="audio" in [f.file_type for f in files],
-                        has_video="video" in [f.file_type for f in files],
-                        has_info="info" in [f.file_type for f in files],
-                        has_subtitle="subtitle" in [f.file_type for f in files],
-                        has_poster="poster" in [f.file_type for f in files],
-                        has_album_nfo="album_nfo" in [f.file_type for f in files],
-                        event_download_video=download_video,
-                        event_create_album_nfo=create_album_nfo,
-                        event_download_info=lambda x: VideoItem.refresh_youtube_info(
-                            video.id
-                        ),
-                    )
+                                solara.Select(
+                                    label="Series",
+                                    values=serieses,
+                                    value=series_name,
+                                    on_value=update_series,
+                                )
+                                solara.Select(
+                                    label="Youtube Series",
+                                    values=youtube_serieses,
+                                    value=youtube_series_title,
+                                    on_value=update_youtube_series,
+                                )
+
+                            with solara.Column(classes=["mt-2"]):
+                                solara.Text(
+                                    f"Uploaded: {time_ago_string(video.upload_date)}",
+                                    classes=["medium-timer"],
+                                )
+                                solara.Text(
+                                    f"Length: {seconds_to_hms(video.duration)}",
+                                    classes=["medium-timer"],
+                                )
+
+                    with solara.Column():
+                        NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
+                        FileTypeCheckboxes(
+                            has_audio="audio" in [f.file_type for f in files],
+                            has_video="video" in [f.file_type for f in files],
+                            has_info="info" in [f.file_type for f in files],
+                            has_subtitle="subtitle" in [f.file_type for f in files],
+                            has_poster="poster" in [f.file_type for f in files],
+                            has_album_nfo="album_nfo" in [f.file_type for f in files],
+                            event_download_video=download_video,
+                            event_create_album_nfo=create_album_nfo,
+                            event_download_info=lambda x: VideoItem.refresh_youtube_info(
+                                video.id
+                            ),
+                        )
 
         # with solara.Row():
         #     with solara.Card():
@@ -565,7 +565,7 @@ def Page():
         #             solara.Button("Add Album", classes=["button"])
 
         with solara.Column(classes=["mysurface"]):
-            with solara.Card(classes=["mywarning"], style={"height": "500px"}):
+            with solara.Card(classes=[""]):
                 if len(sm.sections) > 0:
 
                     SectionTabs(
