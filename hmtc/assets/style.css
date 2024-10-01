@@ -138,7 +138,14 @@ a {
   background-color: var(--primary);
   text-align: center;
 }
-
+.seven-seg {
+  font-family: mySevenSegDisplay;
+  font-size: 2em;
+  padding: 0.25em;
+  color: var(--on-primary);
+  background-color: var(--primary);
+  text-align: center;
+}
 
 /* adding on 9/25/2024 for version number in appbar */
 .version-number {

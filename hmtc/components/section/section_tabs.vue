@@ -1,33 +1,134 @@
 <template>
-  <v-container
-    fluid
-    class="mysurface px-0"
-    id="tabbed-container"
-    min-height="600px"
-  >
-    <v-tabs v-model="tabs" center-active class="mylight">
-      <v-tab v-for="item in tabItems" :key="item.id"> {{ item.id }} </v-tab>
+  <v-container fluid class="mysurface px-0" id="tabbed-container">
+    <v-tabs
+      v-model="tabs"
+      grow
+      show-arrows
+      icons-and-text
+      next-icon="mdi-arrow-right-bold-box-outline"
+      prev-icon="mdi-arrow-left-bold-box-outline"
+    >
+      <v-tab v-for="(item, index) in tabItems" :key="item.id">
+        <span> ({{ item.id }})</span>
+        <span>{{ index + 1 }}</span>
+      </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tabs">
       <v-tab-item v-for="item in tabItems" :key="item.id">
         <v-tabs vertical>
           <v-tab>
-            <v-icon left> mdi-account </v-icon>
-            Topics
-          </v-tab>
-          <v-tab>
             <v-icon left> mdi-lock </v-icon>
             Timing
           </v-tab>
           <v-tab>
+            <v-icon left> mdi-account </v-icon>
+            Topics
+          </v-tab>
+          <v-tab>
             <v-icon left> mdi-access-point </v-icon>
-            Beats/ <br />
+            Beat/ <br />
             Artists
           </v-tab>
           <v-tab>
             <v-icon left> mdi-screw-flat-top </v-icon>
             Admin
           </v-tab>
+
+          <v-tab-item>
+            <v-container class="px-10">
+              <v-row justify="end">
+                <v-btn
+                  :class="[editingTime ? 'mywarning' : 'myprimary']"
+                  @click="toggleEditMode"
+                  ><span v-if="editingTime"
+                    ><v-icon>mdi-content-save</v-icon></span
+                  ><span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
+                >
+              </v-row>
+              <!-- Start Time Control Panel -->
+              <v-row justify="center" class="mb-6">
+                <span class="seven-seg mysurface">{{
+                  timeString(item.start)
+                }}</span>
+              </v-row>
+              <v-row v-if="editingTime" justify="center" class="mt-4">
+                <v-btn medium fab class="" @click="item.start += -5000">
+                  <v-icon>mdi-rewind-5</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.start += -1000">
+                  <v-icon>mdi-rewind</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.start += -250">
+                  <v-icon>mdi-step-backward</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.start += 250">
+                  <v-icon>mdi-step-forward</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.start += 1000">
+                  <v-icon>mdi-fast-forward</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.start += 5000">
+                  <v-icon>mdi-fast-forward-5</v-icon>
+                </v-btn>
+              </v-row>
+              <v-row justify="center">
+                <v-btn
+                  x-large
+                  fab
+                  class="button"
+                  @click="loopJellyfinAt(item.start)"
+                >
+                  <v-icon> mdi-play </v-icon>
+                </v-btn>
+              </v-row>
+              <!-- End Time Control Panel -->
+              <v-row justify="center" class="mt-5 mb-5">
+                <span class="seven-seg mysurface">{{
+                  timeString(item.end)
+                }}</span>
+              </v-row>
+              <v-row v-if="editingTime" justify="center" class="mt-4">
+                <v-btn medium fab class="" @click="item.end += -5000">
+                  <v-icon>mdi-rewind-5</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.end += -1000">
+                  <v-icon>mdi-rewind</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.end += -250">
+                  <v-icon>mdi-step-backward</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.end += 250">
+                  <v-icon>mdi-step-forward</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.end += 1000">
+                  <v-icon>mdi-fast-forward</v-icon>
+                </v-btn>
+                <v-btn medium fab class="" @click="item.end += 5000">
+                  <v-icon>mdi-fast-forward-5</v-icon>
+                </v-btn>
+              </v-row>
+              <v-row justify="center">
+                <v-btn
+                  x-large
+                  fab
+                  class="button"
+                  @click="loopJellyfinAt(item.end)"
+                >
+                  <v-icon> mdi-play </v-icon>
+                </v-btn>
+              </v-row>
+              <v-row v-if="editingTime" justify="end">
+                <v-btn
+                  x-large
+                  fab
+                  class="button"
+                  @click="updateTimes(item.id, item.start, item.end)"
+                >
+                  <v-icon> mdi-content-save </v-icon>
+                </v-btn>
+              </v-row>
+            </v-container>
+          </v-tab-item>
           <v-tab-item>
             <v-container>
               <v-row class="px-10" align-items="center">
@@ -39,7 +140,7 @@
                     label="Enter Topic"
                     required
                     @keydown.enter="
-                      handleSubmit(item.id, topic, item.topics.length)
+                      handleSubmitTopic(item.id, topic, item.topics.length)
                     "
                   ></v-text-field>
                 </v-col>
@@ -47,7 +148,9 @@
                   <v-btn
                     class="button"
                     block
-                    @click="handleSubmit(item.id, topic, item.topics.length)"
+                    @click="
+                      handleSubmitTopic(item.id, topic, item.topics.length)
+                    "
                   >
                     Submit
                   </v-btn>
@@ -63,105 +166,10 @@
                   <v-chip
                     :key="topic.id"
                     close
-                    @click:close="removeItem(item.id, topic.text)"
+                    @click:close="removeTopic(item.id, topic.text)"
                   >
                     {{ topic.text }}</v-chip
                   >
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-tab-item>
-          <v-tab-item>
-            <v-container id="section-info-container">
-              <v-row id="section-times">
-                <v-col id="start_time" cols="6">
-                  <v-row justify="center" class="mb-6">
-                    <span class="seven-seg mysurface">{{
-                      timeString(item.start)
-                    }}</span>
-                    <span>Time String is before this...</span>
-                    <v-row justify="center">
-                      <v-col cols="4">
-                        <v-btn xs class="button" @click="setStartTime(-0.25)">
-                          -0.25
-                        </v-btn>
-                        <v-btn xs class="button" @click="setStartTime(-1)">
-                          -1
-                        </v-btn>
-                        <v-btn xs class="button" @click="setStartTime(-5)">
-                          -5
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-row justify="center" class="mb-6">
-                          <v-btn class="button" @click="loopStartJellyfin()">
-                            Play
-                          </v-btn>
-                        </v-row>
-                        <v-row>
-                          <v-btn class="button" @click="adjustStartToCurrent()">
-                            Sync (jf)
-                          </v-btn>
-                        </v-row>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn xs class="button" @click="setStartTime(+0.25)">
-                          +0.25
-                        </v-btn>
-                        <v-btn xs class="button" @click="setStartTime(+1)">
-                          +1
-                        </v-btn>
-                        <v-btn xs class="button" @click="setStartTime(+5)">
-                          +5
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </v-row>
-                </v-col>
-
-                <v-col id="end_time" cols="6">
-                  <v-row justify="center" class="mb-6">
-                    <span class="seven-seg mysurface">{{
-                      timeString(item.end)
-                    }}</span>
-
-                    <v-row justify="center">
-                      <v-col cols="4">
-                        <v-btn xs class="button" @click="setEndTime(-0.25)">
-                          -0.25
-                        </v-btn>
-                        <v-btn xs class="button" @click="setEndTime(-1)">
-                          -1
-                        </v-btn>
-                        <v-btn xs class="button" @click="setEndTime(-5)">
-                          -5
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-row justify="center" class="mb-6">
-                          <v-btn class="button" @click="loopEndJellyfin()">
-                            Play
-                          </v-btn>
-                        </v-row>
-                        <v-row>
-                          <v-btn class="button" @click="adjustEndToCurrent()">
-                            Sync (jf)
-                          </v-btn>
-                        </v-row>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn xs class="button" @click="setEndTime(+0.25)">
-                          +0.25
-                        </v-btn>
-                        <v-btn xs class="button" @click="setEndTime(+1)">
-                          +1
-                        </v-btn>
-                        <v-btn xs class="button" @click="setEndTime(+5)">
-                          +5
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </v-row>
                 </v-col>
               </v-row>
             </v-container>
@@ -172,15 +180,17 @@
 
           <v-tab-item>
             <v-container>
-              <v-row>
-                <v-btn
-                  outlined
-                  class="mywarning"
-                  block
-                  @click="removeSection(item.id)"
-                >
-                  Remove Section
-                </v-btn>
+              <v-row justify="center">
+                <v-col cols="6">
+                  <v-btn
+                    outlined
+                    class="button mywarning"
+                    block
+                    @click="removeSection(item.id)"
+                  >
+                    Remove Section
+                  </v-btn>
+                </v-col>
               </v-row>
             </v-container>
           </v-tab-item>
@@ -194,6 +204,8 @@
 export default {
   data() {
     return {
+      editingTime: false,
+      timeFormDirty: false,
       tabs: 0,
       topic: "",
       valid: false,
@@ -216,8 +228,8 @@ export default {
     };
   },
   methods: {
-    handleSubmit(item_id, topic, num_topics) {
-      console.log("Submitted", item_id, topic, "blash");
+    handleSubmitTopic(item_id, topic, num_topics) {
+      console.log("Submitted Topic", item_id, topic);
       this.tabItems
         .filter((item) => item.id === item_id)[0]
         .topics.push({ id: 0, text: topic });
@@ -226,15 +238,11 @@ export default {
         item_id: item_id,
         topic: topic,
       };
+      // python function
       this.add_item(args);
-      // run api call here
-    },
-    handleCancel() {
-      this.topic = "";
-      console.log("Cancelled");
     },
 
-    removeItem(item_id, topic) {
+    removeTopic(item_id, topic) {
       console.log("Removing topic", item_id, topic);
       const item = this.tabItems.filter((item) => item.id === item_id)[0];
       const topicIndex = item.topics.findIndex((t) => t.text === topic);
@@ -246,6 +254,7 @@ export default {
         item_id: item_id,
         topic: topic,
       };
+      // python function
       this.remove_item(args);
     },
 
@@ -263,44 +272,35 @@ export default {
       this.delete_section(args);
     },
 
-    timeString(ms) {
-      return new Date(ms).toLocaleTimeString();
-    },
-    setStartTime(value) {
-      if (this.editedItem.start + value * 1000 >= 0) {
-        this.editedItem.start += value * 1000;
-        this.startStringJS = this.timeString(this.editedItem.start);
-      }
-    },
-    setEndTime(value) {
-      this.editedItem.end += value * 1000;
-      this.endStringJS = this.timeString(this.editedItem.end);
-    },
     timeString(value) {
-      const date = new Date(null);
-      date.setSeconds(value / 1000);
-      // console.log(date.toISOString().slice(11, 19));
-      return date.toISOString().slice(11, 19);
+      return new Date(value).toISOString().slice(11, 19);
     },
-    loopStartJellyfin() {
-      this.loop_jellyfin(this.editedItem.start);
-    },
-    // Jellyfin Looping delay defined below
-    loopEndJellyfin() {
-      this.loop_jellyfin(this.editedItem.end - 1);
+    loopJellyfinAt(value) {
+      console.log("Looping Jellyfin at", value, this.jellyfin_status);
+      this.loop_jellyfin(value);
     },
 
-    adjustStartToCurrent() {
-      // this doesn't work since current_postion doesn't change
-      // need to call it from python
-      this.editedItem.start = this.current_position;
-      this.startStringJS = this.timeString(this.editedItem.start);
+    toggleEditMode() {
+      if (this.timeFormDirty && this.editingTime) {
+        alert("You have unsaved changes");
+        //this.timeFormDirty = false;
+        return;
+      }
+      this.editingTime = !this.editingTime;
+      console.log("Toggled edit mode", this.editingTime);
     },
-
-    adjustEndToCurrent() {
-      this.editedItem.end = this.current_position;
-      this.endStringJS = this.timeString(this.editedItem.end);
+    updateTimes(item_id, start, end) {
+      console.log("Updating times", item_id, start, end);
+      const args = {
+        item_id: item_id,
+        start: start,
+        end: end,
+      };
+      this.update_times(args);
+      this.editingTime = false;
+      this.timeFormDirty = false;
     },
   },
 };
 </script>
+<style></style>

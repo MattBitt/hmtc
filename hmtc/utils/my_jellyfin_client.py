@@ -137,6 +137,9 @@ class MyJellyfinClient:
     def search_media(self, query):
         return client.jellyfin.search_media_items(query)
 
+    def seek_to(self, position):
+        client.jellyfin.remote_seek(self.session_id, position * 10_000)
+
 
 if __name__ == "__main__":
     jf = MyJellyfinClient()

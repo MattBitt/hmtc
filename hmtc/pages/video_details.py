@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import timedelta, datetime
+import time
 import PIL
 import solara
 from loguru import logger
@@ -158,7 +159,15 @@ def SectionListItem(items):
 
 
 @solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
-def SectionTabs(tabItems, event_add_item, event_remove_item, event_delete_section):
+def SectionTabs(
+    tabItems,
+    jellyfin_status,
+    event_add_item,
+    event_remove_item,
+    event_delete_section,
+    event_update_times,
+    event_loop_jellyfin,
+):
     pass
 
 
@@ -219,10 +228,18 @@ def NewJellyfinPanel(video, jellyfin_status):
     def connect_jellyfin():
         jf_client.set(MyJellyfinClient())
         if jf_client.value.is_connected:
-            jellyfin_status.set(dict(status="connected", color="mylight"))
+            jellyfin_status.set(
+                dict(
+                    status="connected",
+                    color="mylight",
+                    session_id=jf_client.value.session_id,
+                )
+            )
             icon_color.set("mylight")
         else:
-            jellyfin_status.set(dict(status="disconnected", color="myerror"))
+            jellyfin_status.set(
+                dict(status="disconnected", color="myerror", session_id=None)
+            )
             icon_color.set("myerror")
 
     def play_button():
@@ -241,6 +258,7 @@ def NewJellyfinPanel(video, jellyfin_status):
         jf_client.value.stop()
         jf_client.value.load_media_item(jellyfin_id=video.jellyfin_id)
         jf_client.value.play_pause()
+        jellyfin_status.value["status"] = "playing"
 
     with solara.Columns([4, 8]):
         with solara.Column():
@@ -381,6 +399,24 @@ def SectionControlPanel(
                 )
 
 
+def update_section_times(*args):
+    logger.debug(f"Updating Section Times: {args}")
+    section = SectionModel.get_by_id(args[0]["item_id"])
+    section.start = args[0]["start"]
+    section.end = args[0]["end"]
+    section.save()
+
+
+def loop_jellyfin(jellyfin_status, *args):
+    logger.debug(f"Looping Jellyfin: {jellyfin_status} {args}")
+    if jellyfin_status.value["status"] == "connected":
+        jf_client = MyJellyfinClient()
+        jf_client.seek_to(args[0])
+        jf_client.play_pause()
+        time.sleep(1.5)
+        jf_client.play_pause()
+
+
 @solara.component
 def Page():
     MySidebar(router=solara.use_router())
@@ -388,7 +424,14 @@ def Page():
     video = VideoItem.get_details_for_video(video_id)
     # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
     check_icon = Path("./hmtc/public/icons/check.png")
-    jellyfin_status = solara.use_reactive(dict(status="initial", color="mylight"))
+    jellyfin_status = solara.use_reactive(
+        dict(
+            status="initial",
+            color="mylight",
+            client=None,
+            video_jellyfin_id=video.jellyfin_id,
+        )
+    )
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
     # not sure why this is a tuple...
@@ -521,23 +564,27 @@ def Page():
         #             solara.Markdown("No Album")
         #             solara.Button("Add Album", classes=["button"])
 
-        with solara.Column(classes=["mysurface"], style={"height": "800px"}):
-            SectionControlPanel(
-                video=video,
-                sections=reactive_sections,
-                current_section=None,
-                section_dicts=section_dicts,
-                jellyfin_status=jellyfin_status,
-            )
-            if len(sm.sections) > 0:
+        with solara.Column(classes=["mysurface"]):
+            with solara.Card(classes=["mywarning"], style={"height": "500px"}):
+                if len(sm.sections) > 0:
 
-                SectionTabs(
-                    tabItems=section_dicts[0].value,
-                    event_add_item=add_topic,
-                    event_remove_item=remove_topic,
-                    event_delete_section=delete_section,
+                    SectionTabs(
+                        tabItems=section_dicts[0].value,
+                        jellyfin_status=jellyfin_status.value,
+                        event_add_item=add_topic,
+                        event_remove_item=remove_topic,
+                        event_delete_section=delete_section,
+                        event_update_times=update_section_times,
+                        event_loop_jellyfin=lambda x: loop_jellyfin(jellyfin_status, x),
+                    )
+
+                else:
+
+                    solara.Markdown("No Sections Found")
+                SectionControlPanel(
+                    video=video,
+                    sections=reactive_sections,
+                    current_section=None,
+                    section_dicts=section_dicts,
+                    jellyfin_status=jellyfin_status,
                 )
-
-            else:
-
-                solara.Markdown("No Sections Found")

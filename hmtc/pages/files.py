@@ -7,7 +7,7 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import Channel, File, Playlist, Series
+from hmtc.models import Channel, File as FileModel, Playlist, Series
 from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import File as FileObject
 from hmtc.schemas.file import FileManager
@@ -125,26 +125,33 @@ def get_folder_files(folder):
 
 
 def get_series_files():
-    db_files = Series.select().join(File).where(File.series_id.is_null(False))
+    db_files = Series.select().join(FileModel).where(FileModel.series_id.is_null(False))
     folder_files = get_folder_files(STORAGE / "series")
     return db_files, folder_files
 
 
 def get_playlist_files():
-    db_files = Playlist.select().join(File).where(File.playlist_id.is_null(False))
+    db_files = (
+        Playlist.select().join(FileModel).where(FileModel.playlist_id.is_null(False))
+    )
     folder_files = get_folder_files(STORAGE / "playlists")
     return db_files, folder_files
 
 
 def get_channel_files():
-    db_files = Channel.select().join(File).where(File.channel_id.is_null(False))
+    db_files = (
+        Channel.select().join(FileModel).where(FileModel.channel_id.is_null(False))
+    )
     folder_files = get_folder_files(STORAGE / "channels")
     return db_files, folder_files
 
 
 def get_video_files():
-    db_files = VideoModel.select().join(File).where(File.video_id.is_null(False))
+    # db_files = VideoModel.select().join(File).where(File.video_id.is_null(False))
+    db_files = FileModel.select().where(FileModel.video_id.is_null(False))
+
     folder_files = get_folder_files(STORAGE / "videos")
+
     return db_files, folder_files
 
 
@@ -164,6 +171,21 @@ def FileTypeInfoCard(ftype):
         solara.Markdown(f"**{len(db_files)}** files in Database")
         solara.Markdown(f"**{len(folder_files)}** files in Storage Folder")
         solara.Markdown("End of Card")
+    if ftype == "Videos":
+
+        db_file_names = [x.filename for x in db_files]
+        folder_file_names = [x.name for x in folder_files]
+
+        with solara.Card(title=f"DB vs Folder Video Files"):
+            with solara.Column():
+                for file in folder_file_names[:100]:
+                    if file not in folder_file_names:
+                        # logger.error(f"File {file} not found in folder")
+                        solara.Markdown(f"**{file}** not found in folder")
+                for file in folder_file_names[:100]:
+                    if file not in db_file_names:
+                        # logger.debug(f"File {file} not found in db")
+                        solara.Markdown(f"**{file}** not found in db")
 
 
 @solara.component
