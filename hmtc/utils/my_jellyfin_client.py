@@ -27,6 +27,7 @@ class MyJellyfinClient:
     play_status: str = "stopped"
 
     def __post_init__(self):
+
         url = config["jellyfin"]["url"]
         self.user = config["jellyfin"]["user"]
         password = config["jellyfin"]["password"]
@@ -60,61 +61,74 @@ class MyJellyfinClient:
                 self.supports_remote_control = self.session["SupportsRemoteControl"]
                 self.user_id = self.session["UserId"]
 
-                if "NowPlayingItem" in self.session.keys():
-                    self.media_item = self.session["NowPlayingItem"]
-                    self.position = (
-                        int(self.session["PlayState"]["PositionTicks"]) / 10_000_000
-                    )
-                    self.play_status = (
-                        "paused"
-                        if self.session["PlayState"]["IsPaused"] == True
-                        else "playing"
-                    )
-                else:
-                    self.media_item = None
-                    self.position = 0
-                    self.play_status = "stopped"
-
         return self
 
-    def get_current_session(self):
-        for sess in client.jellyfin.sessions():
-            if (
-                sess["UserName"] == self.user
-                and sess["Client"] != "hmtc"
-                and sess["SupportsMediaControl"] == True
-            ):
-                return sess
+    def get_playing_status_from_jellyfin(self):
+        if self.session is None:
+            logger.error(f"No active session found.")
+            return None
 
-    def now_playing(self):
-        if self.is_playing:
-            # im not sure what the point of this is... 9/15/24
-            path_str = self.media_item["Path"]
-            if "inputs" in path_str:
-                item_type = "input"
-            else:
-                item_type = "track"
-
-            # i think this was my attempt at a 'tag' solution for jellyfin 9/15/24
-            try:
-                logger.debug("(WTF?)")
-                # item = self.session["NowPlayingQueueFullItems"][0]
-            except Exception as e:
-                logger.debug(f"No item found in NowPlayingQueueFullItems  {e}")
-                return None
-
+        if "NowPlayingItem" in self.session.keys():
+            self.media_item = self.session["NowPlayingItem"]
+            self.position = int(self.session["PlayState"]["PositionTicks"]) / 10_000_000
+            self.play_status = (
+                "paused" if self.session["PlayState"]["IsPaused"] == True else "playing"
+            )
             return {
                 "jf_id": self.media_item["Id"],
                 "title": self.media_item["Name"],
                 "path": self.media_item["Path"],
                 "status": self.play_status,
                 "position": self.position,
-                "tags": [],
-                "type": item_type,
             }
         else:
-            logger.debug("Nothing is playing right now.")
+            self.media_item = None
+            self.position = 0
+            self.play_status = "stopped"
             return None
+
+    def get_current_session(self):
+        for sess in client.jellyfin.sessions():
+            if "UserName" in sess.keys():
+                if (
+                    sess["UserName"] == self.user
+                    and sess["Client"] != "hmtc"
+                    and sess["SupportsMediaControl"] == True
+                ):
+                    return sess
+            else:
+                logger.debug(f"Session: {sess} doesn't have username")
+
+    # def now_playing(self):
+    #     pass
+    #     if self.is_playing:
+    #         # im not sure what the point of this is... 9/15/24
+    #         path_str = self.media_item["Path"]
+    #         if "inputs" in path_str:
+    #             item_type = "input"
+    #         else:
+    #             item_type = "track"
+
+    #         # i think this was my attempt at a 'tag' solution for jellyfin 9/15/24
+    #         try:
+    #             logger.debug("(WTF?)")
+    #             # item = self.session["NowPlayingQueueFullItems"][0]
+    #         except Exception as e:
+    #             logger.debug(f"No item found in NowPlayingQueueFullItems  {e}")
+    #             return None
+
+    #         return {
+    #             "jf_id": self.media_item["Id"],
+    #             "title": self.media_item["Name"],
+    #             "path": self.media_item["Path"],
+    #             "status": self.play_status,
+    #             "position": self.position,
+    #             "tags": [],
+    #             "type": item_type,
+    #         }
+    #     else:
+    #         logger.debug("Nothing is playing right now.")
+    #         return None
 
     def load_media_item(self, jellyfin_id):
         client.jellyfin.remote_play_media(
@@ -143,25 +157,3 @@ class MyJellyfinClient:
 
 if __name__ == "__main__":
     jf = MyJellyfinClient()
-    if jf.supports_media_control and jf.media_item is None:
-        jf.load_media_item(jellyfin_id="a1e24cf5a495a0d9a42bf2d4550b48c7")
-
-    logger.debug("Initial Pause")
-    jf.play_pause()
-    time.sleep(2)
-    exists = jf.search_media("qlfHCE9nl34")
-    logger.debug("Playing")
-    jf.play_pause()
-    time.sleep(2)
-
-    logger.debug("Pausing")
-    jf.pause()
-    time.sleep(2)
-
-    logger.debug("Playing")
-    jf.play_pause()
-    time.sleep(2)
-
-    logger.debug("Stopping")
-    jf.stop()
-    print(jf.now_playing())

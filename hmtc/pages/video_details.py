@@ -5,7 +5,7 @@ import PIL
 import solara
 from loguru import logger
 from hmtc.assets.colors import Colors
-from hmtc.components.shared.jellyfin_panel import JellyfinPanel
+from archive.oldjellyfin_panel import JellyfinPanel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import (
@@ -38,6 +38,17 @@ STORAGE = Path(config["paths"]["storage"]) / "videos"
 MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
 AVERAGE_SECTION_LENGTH = 300
+
+
+jellyfin_status = solara.reactive(
+    dict(
+        status="initial",
+        color="mylight",
+        client=None,
+        video_jellyfin_id=None,
+        current_position=None,
+    )
+)
 
 
 def parse_url_args():
@@ -200,6 +211,11 @@ def FileTypeCheckboxes(
     pass
 
 
+@solara.component_vue("../components/shared/jellyfin_control_panel.vue")
+def JellyfinControlPanel(session_id):
+    pass
+
+
 # code from old NewJellyfinPanel lol
 # exists = jf_client.value.search_media(video.youtube_id)
 # if exists["TotalRecordCount"] > 0:
@@ -228,17 +244,26 @@ def NewJellyfinPanel(video, jellyfin_status):
     def connect_jellyfin():
         jf_client.set(MyJellyfinClient())
         if jf_client.value.is_connected:
+            now_playing = jf_client.value.get_playing_status_from_jellyfin()
+            logger.debug(f"Now Playing {now_playing}")
             jellyfin_status.set(
                 dict(
                     status="connected",
                     color="mylight",
                     session_id=jf_client.value.session_id,
+                    current_position=0,
                 )
             )
+
             icon_color.set("mylight")
         else:
             jellyfin_status.set(
-                dict(status="disconnected", color="myerror", session_id=None)
+                dict(
+                    status="disconnected",
+                    color="myerror",
+                    session_id=None,
+                    current_position=None,
+                )
             )
             icon_color.set("myerror")
 
@@ -313,7 +338,7 @@ def SectionControlPanel(
     jellyfin_status,
 ):
     section_type = solara.use_reactive("intro")
-
+    logger.debug(f"Jellyfin Status at SectionControlPanel: {jellyfin_status.value}")
     # existing sections
     num_sections = solara.use_reactive(len(sections.value))
 
@@ -359,43 +384,56 @@ def SectionControlPanel(
         sections.set(sections.value + [new_sect])
 
     def create_section_at_jellyfin_position():
-        pass
+        jf = MyJellyfinClient()
+        status = jf.get_playing_status_from_jellyfin()
+        pos = status["position"]
+
+        sm = SectionManager.from_video(video)
+        section_end = (
+            (pos + AVERAGE_SECTION_LENGTH)
+            if pos + AVERAGE_SECTION_LENGTH < video.duration
+            else video.duration
+        )
+        new_sect_id = sm.create_section(
+            start=pos,
+            end=section_end,
+            section_type=section_type.value,
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        sections.set(sections.value + [new_sect])
 
     with solara.Column(align="center"):
-        if num_sections.value > 0:
-            with solara.Column(style={"width": "30%"}):
+        with solara.Row():
+            solara.Button(
+                "1 Section",
+                on_click=create_1_section,
+                classes=["button"],
+                disabled=(video.duration > MAX_SECTION_LENGTH),
+            )
+            solara.Button(
+                f"{video.duration // AVERAGE_SECTION_LENGTH} sections",
+                on_click=split_into,
+                classes=["button"],
+                disabled=(video.duration < AVERAGE_SECTION_LENGTH),
+            )
+            solara.Button(
+                label="Section at 0",
+                classes=["button"],
+                on_click=create_section_at_0,
+                disabled=(video.duration < AVERAGE_SECTION_LENGTH),
+            )
+            logger.debug(f"Jellyfin Status: {jellyfin_status.value}")
+            solara.Button(
+                label="Section at Jellyfin",
+                classes=["button"],
+                on_click=create_section_at_jellyfin_position,
+            )
+            if num_sections.value > 0:
                 solara.Button(
                     "Clear All Sections",
                     on_click=clear_all_sections,
                     outlined=True,
                     classes=["button mywarning"],
-                )
-        else:
-            with solara.Row():
-                solara.Button(
-                    "1 Section",
-                    on_click=create_1_section,
-                    classes=["button"],
-                    disabled=(video.duration > MAX_SECTION_LENGTH),
-                )
-                solara.Button(
-                    f"{video.duration // AVERAGE_SECTION_LENGTH} sections",
-                    on_click=split_into,
-                    classes=["button"],
-                    disabled=(video.duration < AVERAGE_SECTION_LENGTH),
-                )
-                solara.Button(
-                    label="Section at 0",
-                    classes=["button"],
-                    on_click=create_section_at_0,
-                    disabled=(video.duration < AVERAGE_SECTION_LENGTH),
-                )
-                solara.Button(
-                    label="Section at Jellyfin",
-                    classes=["button"],
-                    on_click=create_section_at_jellyfin_position,
-                    disabled=(video.duration < AVERAGE_SECTION_LENGTH)
-                    or (jellyfin_status.value["status"] == "initial"),
                 )
 
 
@@ -424,14 +462,7 @@ def Page():
     video = VideoItem.get_details_for_video(video_id)
     # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
     check_icon = Path("./hmtc/public/icons/check.png")
-    jellyfin_status = solara.use_reactive(
-        dict(
-            status="initial",
-            color="mylight",
-            client=None,
-            video_jellyfin_id=video.jellyfin_id,
-        )
-    )
+
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
     # not sure why this is a tuple...
@@ -458,6 +489,7 @@ def Page():
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
     IMG_WIDTH = "200px"
+    jf = MyJellyfinClient()
 
     def download_video(*args):
         logger.info(f"Downloading video: {video.title}")
@@ -537,7 +569,8 @@ def Page():
                                 )
 
                     with solara.Column():
-                        NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
+                        JellyfinControlPanel(session_id=jf.session_id)
+                        # NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
                         FileTypeCheckboxes(
                             has_audio="audio" in [f.file_type for f in files],
                             has_video="video" in [f.file_type for f in files],
