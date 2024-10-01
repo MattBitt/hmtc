@@ -133,7 +133,7 @@ export default {
     },
   },
   created() {
-    turnOnUpdating();
+    this.turnOnUpdating();
   },
 };
 </script>

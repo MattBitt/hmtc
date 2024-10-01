@@ -386,7 +386,12 @@ def SectionControlPanel(
     def create_section_at_jellyfin_position():
         jf = MyJellyfinClient()
         status = jf.get_playing_status_from_jellyfin()
-        pos = status["position"]
+        try:
+            pos = status["position"]
+
+        except Exception as e:
+            logger.error(f"Error getting position from Jellyfin: {e}")
+            return
 
         sm = SectionManager.from_video(video)
         section_end = (
