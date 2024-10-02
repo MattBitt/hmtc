@@ -8,7 +8,15 @@ from hmtc.config import init_config
 
 config = init_config()
 # not sure why but this seems to work better if its a global
-client = JellyfinClient()
+try:
+    client = JellyfinClient()
+
+except Exception as e:
+    logger.error(f"Error creating JellyfinClient (in global state): {e}")
+    logger.error("This is likely due to a connection error with Jellyfin")
+    logger.error(
+        "Why does it show 'User is not authenticated' when it's a connection error?"
+    )
 
 
 @dataclass
@@ -27,17 +35,21 @@ class MyJellyfinClient:
     play_status: str = "stopped"
 
     def __post_init__(self):
+        self.user = config["jellyfin"]["user"]
 
         url = config["jellyfin"]["url"]
-        self.user = config["jellyfin"]["user"]
         password = config["jellyfin"]["password"]
-
-        client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
-        client.config.data["auth.ssl"] = True
-        client.auth.connect_to_address(url)
-        client.auth.login(url, self.user, password)
-        credentials = client.auth.credentials.get_credentials()
         try:
+            client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
+            client.config.data["auth.ssl"] = True
+            client.auth.connect_to_address(url)
+            client.auth.login(url, self.user, password)
+        except Exception as e:
+            logger.error(f"Error connecting to Jellyfin: {e}")
+            return self
+
+        try:
+            credentials = client.auth.credentials.get_credentials()
             s = credentials["Servers"]
         except Exception as e:
             logger.error(f"Credential Error: {credentials} error: {e}")
@@ -61,6 +73,7 @@ class MyJellyfinClient:
                 self.supports_remote_control = self.session["SupportsRemoteControl"]
                 self.user_id = self.session["UserId"]
 
+        logger.debug(f"Finished initializing MyJellyfinClient {self}")
         return self
 
     def get_playing_status_from_jellyfin(self):
@@ -88,7 +101,12 @@ class MyJellyfinClient:
             return None
 
     def get_current_session(self):
-        for sess in client.jellyfin.sessions():
+        try:
+            sessions = client.jellyfin.sessions()
+        except Exception as e:
+            logger.error(f"Error getting sessions from Jellyfin: {e}")
+            return None
+        for sess in sessions:
             if "UserName" in sess.keys():
                 if (
                     sess["UserName"] == self.user

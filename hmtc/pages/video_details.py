@@ -212,7 +212,7 @@ def FileTypeCheckboxes(
 
 
 @solara.component_vue("../components/shared/jellyfin_control_panel.vue")
-def JellyfinControlPanel(session_id):
+def JellyfinControlPanel(session_id, jellyfin_id):
     pass
 
 
@@ -574,7 +574,9 @@ def Page():
                                 )
 
                     with solara.Column():
-                        JellyfinControlPanel(session_id=jf.session_id)
+                        JellyfinControlPanel(
+                            session_id=jf.session_id, jellyfin_id=video.jellyfin_id
+                        )
                         # NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
                         FileTypeCheckboxes(
                             has_audio="audio" in [f.file_type for f in files],

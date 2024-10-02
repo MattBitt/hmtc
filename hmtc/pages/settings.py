@@ -84,21 +84,8 @@ class PageState:
 
     @staticmethod
     def search_for_jellyfin_ids():
-        # this should search for the 'inputs' library in jellyfin
-        vids = (
-            VideoModel.select(VideoModel, FileModel.file_type)
-            .join(
-                FileModel,
-                peewee.JOIN.LEFT_OUTER,
-                on=(FileModel.video_id == VideoModel.id),
-            )
-            .where(
-                (VideoModel.jellyfin_id.is_null())
-                & (VideoModel.duration.is_null(False))
-                & (VideoModel.contains_unique_content == True)
-                & (FileModel.file_type == "audio")
-            )
-        )
+        vids = VideoModel.select(VideoModel).where((VideoModel.jellyfin_id.is_null()))
+
         logger.debug(f"Found {len(vids)} videos with no jellyfin id and an audio file)")
         for v in vids:
             if v.youtube_id is None:
