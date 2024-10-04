@@ -168,7 +168,7 @@
 export default {
   data: () => ({
     is_connected: false,
-    has_active_user_session: false,
+    has_active_session: false,
     current_position: 0,
     play_status: "STOPPED",
     dialog: false,

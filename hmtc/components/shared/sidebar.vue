@@ -63,6 +63,7 @@ export default {
     items: [
       { text: "Videos", icon: "mdi-video", url: "/videos" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
+      { text: "Jellyfin Info", icon: "mdi-information", url: "/jellyfin-info" },
     ],
     items2: [
       { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },

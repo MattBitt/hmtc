@@ -1,8 +1,10 @@
 import time
 from dataclasses import dataclass
-
+from dataclasses import InitVar, dataclass, field
 from jellyfin_apiclient_python import JellyfinClient
 from loguru import logger
+from collections import defaultdict
+from dataclasses import dataclass, field
 
 from hmtc.config import init_config
 
@@ -13,71 +15,92 @@ try:
 
 except Exception as e:
     logger.error(f"Error creating JellyfinClient (in global state): {e}")
-    logger.error("This is likely due to a connection error with Jellyfin")
-    logger.error(
-        "Why does it show 'User is not authenticated' when it's a connection error?"
-    )
 
 
 @dataclass
 class MyJellyfinClient:
-    session: str = None
+    user: str = field(init=False)
+    url: str = field(init=False)
+    password: str = field(init=False)
+
+    is_connected: bool = False
+    active_session: defaultdict[dict] = field(default_factory=lambda: defaultdict(dict))
+    can_seek: bool = False
+
     session_id: str = None
     position: int = 0
-    user: str = None
     user_id: str = None
     media_item: dict = None
     supports_media_control: bool = False
     supports_remote_control: bool = False
     is_playing: bool = False
-    is_connected: bool = False
-    has_active_user_session: bool = False
+
     play_status: str = "stopped"
 
     def __post_init__(self):
         self.user = config["jellyfin"]["user"]
+        self.url = config["jellyfin"]["url"]
+        self.password = config["jellyfin"]["password"]
 
-        url = config["jellyfin"]["url"]
-        password = config["jellyfin"]["password"]
         try:
-            client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
-            client.config.data["auth.ssl"] = True
-            client.auth.connect_to_address(url)
-            client.auth.login(url, self.user, password)
+            self.configure_client()
         except Exception as e:
             logger.error(f"Error connecting to Jellyfin: {e}")
-            return self
+
+        return self
+
+    def has_active_session(self):
+        if type(self.active_session) == defaultdict:
+            return False
+        else:
+            return True
+
+    def configure_client(self):
+        # no idea what these values are supposed to be used for.
+        client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
+        client.config.data["auth.ssl"] = True
+
+    def connect(self):
+        try:
+            client.auth.connect_to_address(self.url)
+            client.auth.login(self.url, self.user, self.password)
+            self.is_connected = True
+        except Exception as e:
+            self.is_connected = False
+            logger.error(f"Error connecting to Jellyfin: {e}")
 
         try:
             credentials = client.auth.credentials.get_credentials()
-            s = credentials["Servers"]
+            client.authenticate(credentials, discover=False)
+            if len(credentials["Servers"]) == 0:
+                logger.error("No Jellyfin Servers found")
+
         except Exception as e:
             logger.error(f"Credential Error: {credentials} error: {e}")
-            return self
 
-        if s == []:
-            logger.error("No Jellyfin Servers found")
-            return self
+        try:
+            self.set_active_session(sessions=client.jellyfin.sessions())
 
-        self.is_connected = True
+        except Exception as e:
+            logger.error(f"Error setting active section: {e}")
+            return None
 
-        client.authenticate(credentials, discover=False)
-        if client.logged_in:
-            self.session = self.get_current_session()
-            if self.session is None:
-                logger.debug("No active session found.")
-            else:
-                self.session_id = self.session["Id"]
-                self.has_active_user_session = True
-                self.supports_media_control = self.session["SupportsMediaControl"]
-                self.supports_remote_control = self.session["SupportsRemoteControl"]
-                self.user_id = self.session["UserId"]
+        self.session_id = self.active_session["Id"]
+        self.supports_media_control = self.active_session["SupportsMediaControl"]
+        self.supports_remote_control = self.active_session["SupportsRemoteControl"]
+        self.user_id = self.active_session["UserId"]
 
-        logger.debug(f"Finished initializing MyJellyfinClient {self}")
-        return self
+    def set_active_session(self, sessions):
+        for sess in sessions:
+            try:
+                if sess["UserName"] == self.user and sess["Client"] != "hmtc":
+                    self.active_session = sess
+                    self.can_seek = sess["PlayState"]["CanSeek"]
+            except Exception as e:
+                logger.error(f"Error getting active session: {e}")
 
     def get_playing_status_from_jellyfin(self):
-        if self.session is None:
+        if self.active_session is None:
             logger.error(f"No active session found.")
             return None
 
@@ -99,23 +122,6 @@ class MyJellyfinClient:
             self.position = 0
             self.play_status = "stopped"
             return None
-
-    def get_current_session(self):
-        try:
-            sessions = client.jellyfin.sessions()
-        except Exception as e:
-            logger.error(f"Error getting sessions from Jellyfin: {e}")
-            return None
-        for sess in sessions:
-            if "UserName" in sess.keys():
-                if (
-                    sess["UserName"] == self.user
-                    and sess["Client"] != "hmtc"
-                    and sess["SupportsMediaControl"] == True
-                ):
-                    return sess
-            else:
-                logger.debug(f"Session: {sess} doesn't have username")
 
     # def now_playing(self):
     #     pass
@@ -174,4 +180,12 @@ class MyJellyfinClient:
 
 
 if __name__ == "__main__":
-    jf = MyJellyfinClient()
+    try:
+        jf = MyJellyfinClient()
+        jf.connect()
+        logger.debug("Finished connecting to Jellyfin")
+
+        logger.debug(f"is Connected: {jf.is_connected}")
+        logger.debug(f"Has Active Session: {jf.has_active_session()}")
+    except Exception as e:
+        logger.error(f"Error: {e}")

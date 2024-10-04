@@ -186,7 +186,7 @@ def SectionTabs(
 def SectionEditor(
     item: SectionModel = None,
     is_connected: bool = False,
-    has_active_user_session: bool = False,
+    has_active_session: bool = False,
     play_status: bool = False,
     current_position: int = 0,
     event_save_section: callable = None,
@@ -212,7 +212,17 @@ def FileTypeCheckboxes(
 
 
 @solara.component_vue("../components/shared/jellyfin_control_panel.vue")
-def JellyfinControlPanel(session_id, jellyfin_id):
+def JellyfinControlPanel(
+    session_id,
+    jellyfin_id,
+    is_server_connected,
+    has_active_session,
+    event_open_detail_page,
+    event_open_video_in_jellyfin,
+    event_playpause_jellyfin,
+    event_stop_jellyfin,
+    api_key,
+):
     pass
 
 
@@ -294,10 +304,7 @@ def NewJellyfinPanel(video, jellyfin_status):
                 logger.debug("Haven't tried connecting yet.")
                 solara.Text(f"Not connected to Jellyfin.")
             else:
-                if (
-                    jf_client.value.is_connected
-                    and jf_client.value.has_active_user_session
-                ):
+                if jf_client.value.is_connected and jf_client.value.has_active_session:
                     with solara.Row():
                         solara.Button(
                             label="",
@@ -385,6 +392,7 @@ def SectionControlPanel(
 
     def create_section_at_jellyfin_position():
         jf = MyJellyfinClient()
+        jf.connect()
         status = jf.get_playing_status_from_jellyfin()
         try:
             pos = status["position"]
@@ -454,6 +462,7 @@ def loop_jellyfin(jellyfin_status, *args):
     logger.debug(f"Looping Jellyfin: {jellyfin_status} {args}")
     if jellyfin_status.value["status"] == "connected":
         jf_client = MyJellyfinClient()
+        jf_client.connect()
         jf_client.seek_to(args[0])
         jf_client.play_pause()
         time.sleep(1.5)
@@ -462,7 +471,22 @@ def loop_jellyfin(jellyfin_status, *args):
 
 @solara.component
 def Page():
-    MySidebar(router=solara.use_router())
+    router = solara.use_router()
+    MySidebar(router=router)
+
+    def vue_link_clicked(item):
+        # need to add a check to make sure the route is existing
+        if item is not None:
+            try:
+                playing_vid = (
+                    VideoModel.select(VideoModel.id)
+                    .where(VideoModel.jellyfin_id == item)
+                    .get_or_none()
+                )
+                router.push(f"/video-details/{playing_vid.id}")
+            except Exception as e:
+                logger.error(e)
+
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
     # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
@@ -495,6 +519,10 @@ def Page():
     image = PIL.Image.open(Path(str(poster)))
     IMG_WIDTH = "200px"
     jf = MyJellyfinClient()
+    try:
+        jf.connect()
+    except Exception as e:
+        logger.error(f"Error connecting to Jellyfin: {e}")
 
     def download_video(*args):
         logger.info(f"Downloading video: {video.title}")
@@ -547,6 +575,14 @@ def Page():
                                 classes=["video-info-text"],
                             )
 
+                            solara.Button(
+                                label="Refresh Jellyfin",
+                                classes=["button"],
+                                on_click=(
+                                    jf.connect if jf.has_active_session() else None
+                                ),
+                            ),
+
                         with solara.Column():
                             with solara.Column():
 
@@ -572,10 +608,26 @@ def Page():
                                     f"Length: {seconds_to_hms(video.duration)}",
                                     classes=["medium-timer"],
                                 )
-
+                    if jf.has_active_session():
+                        session_id = jf.active_session["Id"]
+                    else:
+                        session_id = ""
                     with solara.Column():
+
                         JellyfinControlPanel(
-                            session_id=jf.session_id, jellyfin_id=video.jellyfin_id
+                            is_server_connected=jf.is_connected,
+                            has_active_session=jf.has_active_session(),
+                            can_seek=jf.can_seek,
+                            session_id=session_id,
+                            jellyfin_id=video.jellyfin_id,
+                            event_open_detail_page=vue_link_clicked,
+                            event_open_video_in_jellyfin=lambda x: jf.load_media_item(
+                                video.jellyfin_id
+                            ),
+                            event_pause_jellyfin=lambda x: jf.pause(),
+                            event_playpause_jellyfin=lambda x: jf.play_pause(),
+                            event_stop_jellyfin=lambda x: jf.stop(),
+                            api_key=config["jellyfin"]["api"],
                         )
                         # NewJellyfinPanel(video=video, jellyfin_status=jellyfin_status)
                         FileTypeCheckboxes(

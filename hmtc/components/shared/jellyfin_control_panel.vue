@@ -1,64 +1,120 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col cols="3">
-        <v-sheet class="">
-          <v-row class="pa-2" justify="center">
-            <v-img
-              :class="[isConnected ? '' : 'myerror']"
-              src="/static/public/icons/jellyfin.1024x1023.png"
-              max-width="60px"
-            ></v-img>
-          </v-row>
-        </v-sheet>
-        <v-sheet class="pa-2">
-          <v-row class="" justify="center">
-            <div v-if="isConnected">
-              <v-btn
-                :class="[liveUpdating ? 'myprimary' : 'mywarning']"
-                @click="toggleUpdating"
-                ><v-icon>mdi-cloud-download-outline</v-icon></v-btn
-              >
-            </div>
-          </v-row>
-        </v-sheet>
-      </v-col>
-      <v-col cols="9">
-        <v-sheet class="pa-4">
-          <v-row>
-            <h3>{{ isConnected ? "Connected" : "Disconnected" }}</h3>
-            <div v-if="isConnected">
-              {{ hasItemLoaded ? "Item Loaded" : "Nothing Loaded" }}
-              <div v-if="hasItemLoaded">
-                {{ isPaused ? "Paused" : "Playing" }}
-                <h3>Position: {{ currentPosition }}</h3>
-              </div>
-              <v-divider></v-divider>
-            </div>
-          </v-row>
-          <v-row>
-            <div v-if="debugMode">
-              <h5>Video Jellyfin id</h5>
+  <div>
+    <div v-if="is_connected & hasItemLoaded">
+      <!-- <v-img src="/static/public/icons/jellyfin.1024x1023.png" contain> -->
+      <v-row justify="end">
+        <v-switch
+          v-model="liveUpdating"
+          color="primary"
+          label="Live Updating"
+        ></v-switch>
+      </v-row>
+      <v-row justify="center" v-if="hasItemLoaded" class="border1">
+        <p class="medium-timer mt-2">{{ timeString }}</p>
+        <v-btn
+          class="button"
+          @click="playpause_jellyfin()"
+          :disabled="!can_seek"
+        >
+          <v-icon>{{ isPaused ? "mdi-play" : "mdi-pause" }}</v-icon>
+        </v-btn>
+        <v-btn class="button" @click="stop_jellyfin()" :disabled="!can_seek">
+          <v-icon>mdi-stop</v-icon>
+        </v-btn>
+      </v-row>
 
-              <span>{{ jellyfin_id }}</span>
-              <h5>Client Jellyfin id:</h5>
-              <span>{{ loadedItemJellyfinId }}</span>
-            </div>
+      <v-row>
+        <v-col v-if="jellyfin_id == loadedItemJellyfinId">
+          <v-row class="">
+            <v-img
+              src="/static/public/icons/check.png"
+              max-height="20px"
+              max-width="20px"
+            ></v-img>
+            <span class="ml-4">What You See == What You Hear!</span>
           </v-row>
-          <v-row>
-            {{ jellyfin_id === loadedItemJellyfinId ? "Ready" : "Not Ready" }}
+        </v-col>
+        <v-col v-else>
+          <v-row class="mywarning">
+            <v-img
+              src="/static/public/icons/x.png"
+              max-height="20px"
+              max-width="20px"
+            ></v-img>
+            <span class="ml-4">What You See != What You Hear</span>
           </v-row>
-        </v-sheet>
-      </v-col>
-    </v-row>
-  </v-container>
+
+          <v-row justify="center">
+            <v-btn
+              class="button"
+              @click="open_detail_page(loadedItemJellyfinId)"
+              >Page</v-btn
+            >
+
+            <v-btn
+              class="button"
+              @click="open_video_in_jellyfin()"
+              :disabled="!can_seek"
+              >Audio</v-btn
+            >
+          </v-row>
+          <v-row justify="center">
+            <span>Which to Change</span>
+          </v-row>
+        </v-col>
+      </v-row>
+    </div>
+    <div v-if="!is_connected">
+      <v-row justify="center">
+        <v-img
+          src="/static/public/icons/x.png"
+          max-height="20px"
+          max-width="20px"
+        ></v-img>
+        <span class="ml-4">Disconnected</span>
+      </v-row>
+    </div>
+    <div v-if="!hasItemLoaded">
+      <v-row justify="center">
+        <v-img
+          src="/static/public/icons/x.png"
+          max-height="20px"
+          max-width="20px"
+        ></v-img>
+        <span class="ml-4">Nothing Playing</span>
+      </v-row>
+      <v-row justify="center">
+        <v-btn class="button" @click="open_video_in_jellyfin()"
+          >Play in Jellyfin</v-btn
+        >
+      </v-row>
+    </div>
+    <div v-if="debugMode">
+      <h5>Video Jellyfin id</h5>
+      {{ hasItemLoaded ? "" : "Nothing Playing" }}
+      <h3>{{ is_connected ? "" : "Disconnected" }}</h3>
+      <span>{{ jellyfin_id }}</span>
+      <h5>Client Jellyfin id:</h5>
+      {{ isPaused ? "Paused" : "Playing" }}
+      <span>{{ loadedItemJellyfinId }}</span>
+      <v-btn
+        :class="[liveUpdating ? 'myprimary' : 'mywarning']"
+        @click="toggleUpdating"
+        ><v-icon>mdi-cloud-download-outline</v-icon></v-btn
+      >
+    </div>
+  </div>
 </template>
 <script>
 export default {
   data() {
     return {
-      debugMode: true,
-      isConnected: false,
+      has_active_session: false,
+      is_server_connected: false,
+      can_seek: false,
+      logoBackground: "",
+      debugMode: false,
+      is_connected: false,
       hasItemLoaded: false,
       loadedItemJellyfinId: "",
       currentPosition: "",
@@ -66,7 +122,7 @@ export default {
       liveUpdating: false,
       session_id: "",
       jellyfin_id: "",
-      api_key: "d035af26e54542e9a3a31785ec260e14",
+      api_key: "",
       intervalID: "",
     };
   },
@@ -91,6 +147,7 @@ export default {
       // GET request using fetch with set headers
       if (this.session_id == "") {
         console.log("session_id is empty");
+        this.logoBackground = "";
         return;
       }
       const fetchPromise = fetch(
@@ -105,9 +162,11 @@ export default {
           response.json().then((data) => {
             const session = data.find((item) => item.Id === this.session_id);
             if (session) {
-              this.isConnected = true;
+              this.is_connected = true;
+              this.logoBackground = "mylight";
               if (session.NowPlayingItem) {
                 this.hasItemLoaded = true;
+                this.logoBackground = "";
                 this.loadedItemJellyfinId = session.NowPlayingItem.Id;
                 this.currentPosition = Math.floor(
                   session.PlayState.PositionTicks / 10_000_000
@@ -115,10 +174,12 @@ export default {
                 this.isPaused = session.PlayState.IsPaused;
               } else {
                 this.hasItemLoaded = false;
+                this.logoBackground = "myprimary";
                 // console.log("Nothing is playing");
               }
             } else {
-              this.isConnected = false;
+              this.is_connected = false;
+              this.logoBackground = "mywarning";
               this.turnOffUpdating();
             }
           });
@@ -151,7 +212,13 @@ export default {
     },
   },
   created() {
-    this.turnOnUpdating();
+    if (this.is_server_connected) {
+      this.is_connected = true;
+      this.getPlayStatus();
+      this.turnOnUpdating();
+    } else {
+      this.logoBackground = "myerror";
+    }
   },
   computed: {
     headers() {
@@ -159,6 +226,11 @@ export default {
         "Content-Type": "application/json",
         Authorization: "Mediabrowser Token=" + this.api_key,
       };
+    },
+    timeString() {
+      return new Date(this.currentPosition * 1000)
+        .toISOString()
+        .substring(11, 19);
     },
   },
 };

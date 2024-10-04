@@ -51,7 +51,10 @@ a {
   }
 
 
-
+.active
+{
+  border: 2px solid var(--primary);
+}
 
 .button {
   text-decoration: none;
