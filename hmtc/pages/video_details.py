@@ -1,29 +1,33 @@
-from pathlib import Path
-from datetime import timedelta, datetime
 import time
+from datetime import datetime, timedelta
+from pathlib import Path
+
 import PIL
 import solara
 from loguru import logger
-from hmtc.assets.colors import Colors
+
 from archive.oldjellyfin_panel import JellyfinPanel
+from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import (
     File as FileModel,
-)
-from hmtc.models import (
-    Series as SeriesModel,
-    YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
 from hmtc.models import (
+    Series as SeriesModel,
+)
+from hmtc.models import (
     Topic as TopicModel,
 )
 from hmtc.models import (
     Video as VideoModel,
+)
+from hmtc.models import (
+    YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
@@ -39,7 +43,7 @@ MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
 AVERAGE_SECTION_LENGTH = 300
 
-
+loading = solara.reactive(False)
 jellyfin_status = solara.reactive(
     dict(
         status="initial",
@@ -178,6 +182,7 @@ def SectionTabs(
     event_delete_section,
     event_update_times,
     event_loop_jellyfin,
+    event_update_section_from_jellyfin,
 ):
     pass
 
@@ -379,7 +384,7 @@ def SectionControlPanel(
             )
         new_sect = SectionModel.get_by_id(new_id)
         sections.set(sm.sections + [new_sect])
-        section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
+        # section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
         logger.debug(f"New Section ID: {new_id}")
 
     def create_section_at_0():
@@ -435,7 +440,8 @@ def SectionControlPanel(
                 on_click=create_section_at_0,
                 disabled=(video.duration < AVERAGE_SECTION_LENGTH),
             )
-            logger.debug(f"Jellyfin Status: {jellyfin_status.value}")
+            # logger.debug(f"Jellyfin Status: {jellyfin_status.value}")
+        with solara.Row():
             solara.Button(
                 label="Section at Jellyfin",
                 classes=["button"],
@@ -460,13 +466,12 @@ def update_section_times(*args):
 
 def loop_jellyfin(jellyfin_status, *args):
     logger.debug(f"Looping Jellyfin: {jellyfin_status} {args}")
-    if jellyfin_status.value["status"] == "connected":
-        jf_client = MyJellyfinClient()
-        jf_client.connect()
-        jf_client.seek_to(args[0])
-        jf_client.play_pause()
-        time.sleep(1.5)
-        jf_client.play_pause()
+    jf_client = MyJellyfinClient()
+    jf_client.connect()
+    jf_client.seek_to(args[0])
+    jf_client.play_pause()
+    time.sleep(1.5)
+    jf_client.play_pause()
 
 
 @solara.component
@@ -494,6 +499,7 @@ def Page():
 
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
+
     # not sure why this is a tuple...
     section_dicts = (
         solara.use_reactive(
@@ -562,10 +568,33 @@ def Page():
         vid.youtube_series = youtube_series
         vid.save()
 
+    def update_section_from_jellyfin(*args):
+        logger.debug(f"Updating Section from Jellyfin: {args}")
+        section_id = args[0]["section"]
+        start_or_end = args[0]["start_or_end"]
+
+        jf = MyJellyfinClient()
+        jf.connect()
+        if jf.is_connected:
+            loading.set(True)
+            new_position = jf.get_playing_status_from_jellyfin()["position"]
+            sect = SectionModel.get_by_id(section_id)
+            if start_or_end == "start":
+                sect.start = new_position * 1000
+            else:
+                sect.end = new_position * 1000
+            sect.save()
+            new_sm = SectionManager.from_video(video)
+            reactive_sections.set(new_sm.sections)
+            logger.debug(f"Updated Section {sect.id} to {new_position}")
+        else:
+            logger.error("No Jellyfin connection. Quitting")
+        loading.set(False)
+
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Column(classes=["py-0", "px-4"]):
-                with solara.Columns([6, 6]):
+                with solara.Columns([8, 4]):
                     with solara.Columns([6, 6]):
                         with solara.Column():
 
@@ -574,7 +603,8 @@ def Page():
                                 f"{video.title[:60]}",
                                 classes=["video-info-text"],
                             )
-
+                            # im pretty sure this button is vital to the structural integrity of this page
+                            # leave it here for now 10/3/24
                             solara.Button(
                                 label="Refresh Jellyfin",
                                 classes=["button"],
@@ -620,6 +650,7 @@ def Page():
                             can_seek=jf.can_seek,
                             session_id=session_id,
                             jellyfin_id=video.jellyfin_id,
+                            event_update_section_from_jellyfin=update_section_from_jellyfin,
                             event_open_detail_page=vue_link_clicked,
                             event_open_video_in_jellyfin=lambda x: jf.load_media_item(
                                 video.jellyfin_id
@@ -644,39 +675,46 @@ def Page():
                             ),
                         )
 
-        # with solara.Row():
-        #     with solara.Card():
-        #         if video.album is not None:
-        #             poster = FileManager.get_file_for_album(video.album, "poster")
-        #             image = PIL.Image.open(Path(str(poster)))
-        #             # solara.Image(image, width="200px")
-        #             solara.Text(f"{video.album.title}")
-        #             solara.Image(check_icon, width="50px")
-        #         else:
-        #             solara.Markdown("No Album")
-        #             solara.Button("Add Album", classes=["button"])
+            # with solara.Row():
+            #     with solara.Card():
+            #         if video.album is not None:
+            #             poster = FileManager.get_file_for_album(video.album, "poster")
+            #             image = PIL.Image.open(Path(str(poster)))
+            #             # solara.Image(image, width="200px")
+            #             solara.Text(f"{video.album.title}")
+            #             solara.Image(check_icon, width="50px")
+            #         else:
+            #             solara.Markdown("No Album")
+            #             solara.Button("Add Album", classes=["button"])
 
-        with solara.Column(classes=["mysurface"]):
-            with solara.Card(classes=[""]):
-                if len(sm.sections) > 0:
+            if loading.value:
+                solara.Markdown("Loading...")
+            else:
 
-                    SectionTabs(
-                        tabItems=section_dicts[0].value,
-                        jellyfin_status=jellyfin_status.value,
-                        event_add_item=add_topic,
-                        event_remove_item=remove_topic,
-                        event_delete_section=delete_section,
-                        event_update_times=update_section_times,
-                        event_loop_jellyfin=lambda x: loop_jellyfin(jellyfin_status, x),
-                    )
+                with solara.Column(classes=["mysurface"]):
+                    with solara.Card(classes=[""]):
+                        if len(sm.sections) > 0:
 
-                else:
+                            SectionTabs(
+                                tabItems=section_dicts[0].value,
+                                jellyfin_status=jellyfin_status.value,
+                                event_add_item=add_topic,
+                                event_remove_item=remove_topic,
+                                event_delete_section=delete_section,
+                                event_update_times=update_section_times,
+                                event_loop_jellyfin=lambda x: loop_jellyfin(
+                                    jellyfin_status, x
+                                ),
+                                event_update_section_from_jellyfin=update_section_from_jellyfin,
+                            )
 
-                    solara.Markdown("No Sections Found")
-                SectionControlPanel(
-                    video=video,
-                    sections=reactive_sections,
-                    current_section=None,
-                    section_dicts=section_dicts,
-                    jellyfin_status=jellyfin_status,
-                )
+                        else:
+
+                            solara.Markdown("No Sections Found")
+                        SectionControlPanel(
+                            video=video,
+                            sections=reactive_sections,
+                            current_section=None,
+                            section_dicts=section_dicts,
+                            jellyfin_status=jellyfin_status,
+                        )

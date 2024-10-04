@@ -1,7 +1,6 @@
 import logging
 import sys
 
-
 from loguru import logger
 
 log_stderr_format = (

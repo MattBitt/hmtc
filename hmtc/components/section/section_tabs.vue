@@ -50,6 +50,14 @@
                 <span class="seven-seg myprimary">{{
                   timeString(item.start)
                 }}</span>
+                <v-btn
+                  x-large
+                  fab
+                  class="button"
+                  @click="updateSectionTime(item.id, 'start')"
+                >
+                  <v-icon>mdi-sync</v-icon>
+                </v-btn>
               </v-row>
               <v-row v-if="editingTime" justify="center" class="mt-4">
                 <v-btn medium fab class="" @click="item.start += -5000">
@@ -86,6 +94,14 @@
                 <span class="seven-seg myprimary">{{
                   timeString(item.end)
                 }}</span>
+                <v-btn
+                  x-large
+                  fab
+                  class="button"
+                  @click="updateSectionTime(item.id, 'end')"
+                >
+                  <v-icon>mdi-sync</v-icon>
+                </v-btn>
               </v-row>
               <v-row v-if="editingTime" justify="center" class="mt-4">
                 <v-btn medium fab class="" @click="item.end += -5000">
@@ -241,6 +257,15 @@ export default {
       // python function
       this.add_item(args);
     },
+    updateSectionTime(section, start_or_end) {
+      console.log("Updating times", section, start_or_end);
+      const args = {
+        section: section,
+        start_or_end: start_or_end,
+      };
+      // python function
+      this.update_section_from_jellyfin(args);
+    },
 
     removeTopic(item_id, topic) {
       console.log("Removing topic", item_id, topic);
@@ -291,6 +316,7 @@ export default {
     },
     updateTimes(item_id, start, end) {
       console.log("Updating times", item_id, start, end);
+
       const args = {
         item_id: item_id,
         start: start,

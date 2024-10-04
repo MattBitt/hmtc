@@ -1,7 +1,7 @@
 <template>
   <v-container class="" fluid>
-    <v-row><div>Files</div></v-row>
-    <v-row justify="space-between" class="mx-2">
+    <v-row justify="center">
+
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-chip
@@ -41,6 +41,10 @@
         <span>Lyrics</span>
       </v-tooltip>
 
+    </v-row>
+
+    <v-row justify="center">
+      
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-chip
@@ -66,7 +70,7 @@
         </template>
         <span>Video</span>
       </v-tooltip>
-
+      
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-chip
@@ -79,38 +83,21 @@
         </template>
         <span>Album NFO</span>
       </v-tooltip>
+    
     </v-row>
-    <v-row>
-      <!-- <v-col cols="4" v-if="!has_video"> -->
-        <v-col cols="4">
-        <v-btn outlined @click="download_video" class="myprimary">
+    
+    <v-row justify="center">
+        <v-btn @click="download_info" class="myprimary">
           <v-icon>mdi-download</v-icon>
-          <span>Video</span>
+          <v-icon>mdi-information</v-icon>
         </v-btn>
-      </v-col>
-      <!-- <v-col cols="4" v-else>
-        <v-img src="/static/public/icons/check.png" max-width="30px">
-</v-img>
-      </v-col> -->
-      <v-col cols="4" v-if="!has_info">
-        <v-btn outlined @click="download_info" class="myprimary">
+
+        <v-btn @click="download_video" class="myprimary">
           <v-icon>mdi-download</v-icon>
-          <span>Info</span>
+          <v-icon>mdi-video</v-icon>
         </v-btn>
-      </v-col>
-      <v-col cols="4" v-else>
-        <v-img src="/static/public/icons/check.png" max-width="30px"></v-img
-      ></v-col>
-      <v-col cols="4" v-if="!has_album_nfo">
-        <v-btn outlined @click="create_album_nfo" class="myprimary">
-          <v-icon>mdi-hammer-wrench</v-icon>
-          <span>NFO</span>
-        </v-btn>
-      </v-col>
-      <v-col cols="4" v-else>
-        <v-img src="/static/public/icons/check.png" max-width="30px"></v-img>
-      </v-col>
     </v-row>
+
   </v-container>
 </template>
 <script>

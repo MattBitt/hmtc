@@ -8,7 +8,10 @@ from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    solara.Markdown("Hello, Jellyfin!")
+    solara.Markdown(f"## What's Playing")
     jf = MyJellyfinClient()
     jf.connect()
-    solara.Text(f"Jellyfin object: {jf}")
+    if jf.has_active_session():
+        solara.Markdown(f"{jf.active_session}")
+    else:
+        solara.Markdown(f"No active session")

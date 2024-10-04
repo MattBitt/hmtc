@@ -1,26 +1,17 @@
+import asyncio
 import time
 
-import numpy as np
-
-
-import solara
-import numpy as np
-
-
-import solara
 import ipyvue
+import numpy as np
 import solara
 from loguru import logger
 from peewee import fn
+from solara.lab import Task, use_task
+
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
-from hmtc.models import Video as VideoModel
 from hmtc.models import File as FileModel
-
-
-import asyncio
-import solara
-from solara.lab import use_task, Task
+from hmtc.models import Video as VideoModel
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 
 @solara.component_vue("../components/shared/jellyfin_control_panel.vue")

@@ -5,8 +5,8 @@ import solara
 import solara.lab
 from loguru import logger
 
-from hmtc.components.album.album_info import AlbumInfo
 from archive.oldjellyfin_panel import JellyfinPanel
+from hmtc.components.album.album_info import AlbumInfo
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.video import VideoItem

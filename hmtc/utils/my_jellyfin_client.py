@@ -1,10 +1,9 @@
 import time
-from dataclasses import dataclass
+from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
+
 from jellyfin_apiclient_python import JellyfinClient
 from loguru import logger
-from collections import defaultdict
-from dataclasses import dataclass, field
 
 from hmtc.config import init_config
 
@@ -95,7 +94,8 @@ class MyJellyfinClient:
             try:
                 if sess["UserName"] == self.user and sess["Client"] != "hmtc":
                     self.active_session = sess
-                    self.can_seek = sess["PlayState"]["CanSeek"]
+                    self.can_seek = True
+                    # self.can_seek = sess["PlayState"]["CanSeek"]
             except Exception as e:
                 logger.error(f"Error getting active session: {e}")
 
@@ -104,11 +104,15 @@ class MyJellyfinClient:
             logger.error(f"No active session found.")
             return None
 
-        if "NowPlayingItem" in self.session.keys():
-            self.media_item = self.session["NowPlayingItem"]
-            self.position = int(self.session["PlayState"]["PositionTicks"]) / 10_000_000
+        if "NowPlayingItem" in self.active_session.keys():
+            self.media_item = self.active_session["NowPlayingItem"]
+            self.position = (
+                int(self.active_session["PlayState"]["PositionTicks"]) / 10_000_000
+            )
             self.play_status = (
-                "paused" if self.session["PlayState"]["IsPaused"] == True else "playing"
+                "paused"
+                if self.active_session["PlayState"]["IsPaused"] == True
+                else "playing"
             )
             return {
                 "jf_id": self.media_item["Id"],

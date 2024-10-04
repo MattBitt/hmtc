@@ -68,6 +68,9 @@ def Page():
                 ):
                     solara.Button("Videos", classes=["button"], href="/videos")
                     solara.Button("Tracks", classes=["button"], href="/tracks")
+                    solara.Button(
+                        "What's Playing", classes=["button"], href="/whats-playing"
+                    )
                 with solara.Row(
                     justify="end", style={"background-color": Colors.SURFACE}
                 ):

@@ -1,5 +1,8 @@
 <template>
   <div>
+    <v-btn class="button" @click="debugMode = !debugMode"
+      >Toggle Debug Mode</v-btn
+    >
     <div v-if="is_connected & hasItemLoaded">
       <!-- <v-img src="/static/public/icons/jellyfin.1024x1023.png" contain> -->
       <v-row justify="end">
@@ -11,14 +14,10 @@
       </v-row>
       <v-row justify="center" v-if="hasItemLoaded" class="border1">
         <p class="medium-timer mt-2">{{ timeString }}</p>
-        <v-btn
-          class="button"
-          @click="playpause_jellyfin()"
-          :disabled="!can_seek"
-        >
+        <v-btn class="button" @click="playpause_jellyfin()">
           <v-icon>{{ isPaused ? "mdi-play" : "mdi-pause" }}</v-icon>
         </v-btn>
-        <v-btn class="button" @click="stop_jellyfin()" :disabled="!can_seek">
+        <v-btn class="button" @click="stop_jellyfin()">
           <v-icon>mdi-stop</v-icon>
         </v-btn>
       </v-row>
@@ -51,10 +50,7 @@
               >Page</v-btn
             >
 
-            <v-btn
-              class="button"
-              @click="open_video_in_jellyfin()"
-              :disabled="!can_seek"
+            <v-btn class="button" @click="open_video_in_jellyfin()"
               >Audio</v-btn
             >
           </v-row>
@@ -90,7 +86,8 @@
       </v-row>
     </div>
     <div v-if="debugMode">
-      <h5>Video Jellyfin id</h5>
+      <h3>Debug Mode</h3>
+      <p>{{ fetchedResponse }}</p>
       {{ hasItemLoaded ? "" : "Nothing Playing" }}
       <h3>{{ is_connected ? "" : "Disconnected" }}</h3>
       <span>{{ jellyfin_id }}</span>
@@ -113,7 +110,7 @@ export default {
       is_server_connected: false,
       can_seek: false,
       logoBackground: "",
-      debugMode: false,
+      debugMode: true,
       is_connected: false,
       hasItemLoaded: false,
       loadedItemJellyfinId: "",
@@ -124,6 +121,7 @@ export default {
       jellyfin_id: "",
       api_key: "",
       intervalID: "",
+      fetchedResponse: "",
     };
   },
   methods: {
@@ -157,11 +155,11 @@ export default {
         }
       );
       fetchPromise.then((response) => {
-        // this.fetchedResponse = response.statusText;
         if (response.status == 200) {
           response.json().then((data) => {
             const session = data.find((item) => item.Id === this.session_id);
             if (session) {
+              this.fetchedResponse = JSON.stringify(session);
               this.is_connected = true;
               this.logoBackground = "mylight";
               if (session.NowPlayingItem) {
@@ -212,7 +210,9 @@ export default {
     },
   },
   created() {
+    console.log("Jellyfin Control Panel created");
     if (this.is_server_connected) {
+      console.log("is_server was connected is true");
       this.is_connected = true;
       this.getPlayStatus();
       this.turnOnUpdating();
