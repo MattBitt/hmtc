@@ -1,93 +1,103 @@
 <template>
   <div>
-    <v-btn class="button" @click="debugMode = !debugMode"
-      >Toggle Debug Mode</v-btn
-    >
-    <div v-if="is_connected & hasItemLoaded">
+    <v-row justify="space-between" class="mx-4">
+      <v-btn small class="button" @click="debugMode = !debugMode">
+        <v-icon>mdi-spider</v-icon>
+      </v-btn>
       <!-- <v-img src="/static/public/icons/jellyfin.1024x1023.png" contain> -->
-      <v-row justify="end">
-        <v-switch
-          v-model="liveUpdating"
-          color="primary"
-          label="Live Updating"
-        ></v-switch>
-      </v-row>
-      <v-row justify="center" v-if="hasItemLoaded" class="border1">
+      <v-switch v-model="liveUpdating" color="primary" label="Live"></v-switch>
+    </v-row>
+    <!-- The following cases are considered
+
+      1. server not found - disable everything (ERROR)
+      2. no eligible client sessions - disable everything (WARNING)
+      3. found multiple client sessions - disable everything (??)
+      4. 1 client session - not playing anything (Load in Jellyfin)
+      5. 1 client session - playing something different than on the page (jellyfin id in hmtc db) what you see != what you hear 
+      6. 1 client session - playing something different than on the page (jellyfin id NOT in hmtc db)
+      7. 1 client session - playing whats on the page - play and pause -->
+
+    <v-row v-if="!is_server_connected">
+      <v-img
+        src="/static/public/icons/x.png"
+        max-height="20px"
+        max-width="20px"
+      ></v-img>
+      <span class="ml-4">1. Python could find the server. Good Luck</span>
+    </v-row>
+
+    <v-row v-if="!has_active_session">
+      <v-img
+        src="/static/public/icons/x.png"
+        max-height="20px"
+        max-width="20px"
+      ></v-img>
+      <span class="ml-4">2. No Active Session</span>
+    </v-row>
+
+    <v-row justify="center" v-else>
+      <v-row v-if="hasItemLoaded" class="">
         <p class="medium-timer mt-2">{{ timeString }}</p>
-        <v-btn class="button" @click="playpause_jellyfin()">
+        <v-btn small class="button" @click="playpause_jellyfin()">
           <v-icon>{{ isPaused ? "mdi-play" : "mdi-pause" }}</v-icon>
         </v-btn>
-        <v-btn class="button" @click="stop_jellyfin()">
+        <v-btn small class="button" @click="stop_jellyfin()">
           <v-icon>mdi-stop</v-icon>
         </v-btn>
-      </v-row>
 
-      <v-row>
-        <v-col v-if="jellyfin_id == loadedItemJellyfinId">
-          <v-row class="">
-            <v-img
-              src="/static/public/icons/check.png"
-              max-height="20px"
-              max-width="20px"
-            ></v-img>
-            <span class="ml-4">What You See == What You Hear!</span>
-          </v-row>
-        </v-col>
-        <v-col v-else>
-          <v-row class="mywarning">
-            <v-img
-              src="/static/public/icons/x.png"
-              max-height="20px"
-              max-width="20px"
-            ></v-img>
-            <span class="ml-4">What You See != What You Hear</span>
-          </v-row>
-
-          <v-row justify="center">
-            <v-btn
-              class="button"
-              @click="open_detail_page(loadedItemJellyfinId)"
-              >Page</v-btn
+        <v-row justify="center">
+          <v-col v-if="jellyfin_id == loadedItemJellyfinId">
+            <v-row class="">
+              <v-img
+                src="/static/public/icons/check.png"
+                max-height="20px"
+                max-width="20px"
+              ></v-img>
+              <span class="ml-4">7. What You See == What You Hear!</span>
+            </v-row>
+          </v-col>
+          <v-col v-else>
+            <v-row
+              v-if="(jellyfin_id != '') | (loadedItemJellyfinId != '')"
+              class="mywarning"
             >
+              <v-img
+                src="/static/public/icons/x.png"
+                max-height="20px"
+                max-width="20px"
+              ></v-img>
+              <span class="ml-4">What You See != What You Hear</span>
 
-            <v-btn class="button" @click="open_video_in_jellyfin()"
-              >Audio</v-btn
-            >
-          </v-row>
-          <v-row justify="center">
-            <span>Which to Change</span>
-          </v-row>
-        </v-col>
+              <v-row justify="center">
+                <v-btn
+                  class="button"
+                  @click="open_detail_page(loadedItemJellyfinId)"
+                  >Page</v-btn
+                >
+
+                <v-btn class="button" @click="open_video_in_jellyfin()"
+                  >Audio</v-btn
+                >
+                <p>Which to Change</p>
+              </v-row>
+            </v-row>
+            <v-row v-else>
+              <span>I think shows up if the jellyfin id is not in the db?</span>
+            </v-row>
+          </v-col>
+        </v-row>
       </v-row>
-    </div>
-    <div v-if="!is_connected">
-      <v-row justify="center">
-        <v-img
-          src="/static/public/icons/x.png"
-          max-height="20px"
-          max-width="20px"
-        ></v-img>
-        <span class="ml-4">Disconnected</span>
-      </v-row>
-    </div>
-    <div v-if="!hasItemLoaded">
-      <v-row justify="center">
-        <v-img
-          src="/static/public/icons/x.png"
-          max-height="20px"
-          max-width="20px"
-        ></v-img>
-        <span class="ml-4">Nothing Playing</span>
-      </v-row>
-      <v-row justify="center">
+      <v-row justify="center" v-else>
+        <p>4. Active Session Found but nothing is playing</p>
         <v-btn class="button" @click="open_video_in_jellyfin()"
-          >Play in Jellyfin</v-btn
+          >Open in Jellyfin</v-btn
         >
       </v-row>
-    </div>
+    </v-row>
+
     <div v-if="debugMode">
       <h3>Debug Mode</h3>
-      <p>{{ fetchedResponse }}</p>
+      <!-- <p>{{ fetchedResponse }}</p> -->
       {{ hasItemLoaded ? "" : "Nothing Playing" }}
       <h3>{{ is_connected ? "" : "Disconnected" }}</h3>
       <span>{{ jellyfin_id }}</span>
@@ -110,7 +120,7 @@ export default {
       is_server_connected: false,
       can_seek: false,
       logoBackground: "",
-      debugMode: true,
+      debugMode: false,
       is_connected: false,
       hasItemLoaded: false,
       loadedItemJellyfinId: "",

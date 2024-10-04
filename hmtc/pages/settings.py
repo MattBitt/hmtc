@@ -84,7 +84,12 @@ class PageState:
 
     @staticmethod
     def search_for_jellyfin_ids():
-        vids = VideoModel.select(VideoModel).where((VideoModel.jellyfin_id.is_null()))
+        vids = VideoModel.select(VideoModel).where(
+            (
+                VideoModel.jellyfin_id.is_null() & VideoModel.contains_unique_content
+                == True
+            )
+        )
 
         logger.debug(f"Found {len(vids)} videos with no jellyfin id and an audio file)")
         for v in vids:

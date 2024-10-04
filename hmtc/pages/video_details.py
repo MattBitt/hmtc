@@ -260,7 +260,7 @@ def NewJellyfinPanel(video, jellyfin_status):
         jf_client.set(MyJellyfinClient())
         if jf_client.value.is_connected:
             now_playing = jf_client.value.get_playing_status_from_jellyfin()
-            logger.debug(f"Now Playing {now_playing}")
+            # logger.debug(f"Now Playing {now_playing}")
             jellyfin_status.set(
                 dict(
                     status="connected",
@@ -494,6 +494,27 @@ def Page():
 
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
+    # the below didn't work. it assigned a different jellyfin id to the video
+    # manually doing scans for now
+    # if (
+    #     video.jellyfin_id is None
+    #     and video.contains_unique_content
+    #     and video.youtube_id is not None
+    # ):
+    #     ### Using this to keep the jellyfin id in-sync with the database. not ideal.
+    #     logger.debug(f"Video {video.title} is unique. Adding to Jellyfin.")
+    #     _jf = MyJellyfinClient()
+    #     _jf.connect()
+    #     if _jf.is_connected:
+    #         vid = VideoModel.get_by_id(video.id)
+    #         jellyfin_file = _jf.search_media(video.youtube_id)
+    #         if jellyfin_file["TotalRecordCount"] > 0:
+    #             vid.jellyfin_id = jellyfin_file["Items"][0]["Id"]
+    #             vid.save()
+    #             logger.debug(f"Assigned {vid.jellyfin_id} to {vid.title}")
+    #         else:
+    #             logger.debug(f"{video.youtube_id} not found in Jellyfin.")
+
     # jellyfin_logo = Path("./hmtc/assets/icons/jellyfin.1024x1023.png")
     check_icon = Path("./hmtc/public/icons/check.png")
 
@@ -528,7 +549,7 @@ def Page():
     try:
         jf.connect()
     except Exception as e:
-        logger.error(f"Error connecting to Jellyfin: {e}")
+        logger.error(f"Error connecting to Jellyfin from Video Details Page: {e}")
 
     def download_video(*args):
         logger.info(f"Downloading video: {video.title}")
@@ -540,6 +561,8 @@ def Page():
         for file in files:
             logger.debug(f"Processing files in download_video of the list item {file}")
             FileManager.add_path_to_video(file, vid)
+            # this is where i need to add the jellyfin id to the database,
+            # but, i need to make sure that the video is in jellyfin first
 
     def delete_section(*args, **kwargs):
         logger.debug(f"Deleting Section: {args}")
@@ -586,7 +609,7 @@ def Page():
             sect.save()
             new_sm = SectionManager.from_video(video)
             reactive_sections.set(new_sm.sections)
-            logger.debug(f"Updated Section {sect.id} to {new_position}")
+            # logger.debug(f"Updated Section {sect.id} to {new_position}")
         else:
             logger.error("No Jellyfin connection. Quitting")
         loading.set(False)
@@ -603,15 +626,6 @@ def Page():
                                 f"{video.title[:60]}",
                                 classes=["video-info-text"],
                             )
-                            # im pretty sure this button is vital to the structural integrity of this page
-                            # leave it here for now 10/3/24
-                            solara.Button(
-                                label="Refresh Jellyfin",
-                                classes=["button"],
-                                on_click=(
-                                    jf.connect if jf.has_active_session() else None
-                                ),
-                            ),
 
                         with solara.Column():
                             with solara.Column():
