@@ -6,7 +6,6 @@ import PIL
 import solara
 from loguru import logger
 
-from archive.oldjellyfin_panel import JellyfinPanel
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
@@ -544,12 +543,19 @@ def Page():
     )
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
-    IMG_WIDTH = "200px"
+
+    IMG_WIDTH = "500px"  # this isn't actually true on ipad, but it seems to look good
+
     jf = MyJellyfinClient()
     try:
         jf.connect()
     except Exception as e:
         logger.error(f"Error connecting to Jellyfin from Video Details Page: {e}")
+
+    if jf.has_active_session():
+        session_id = jf.active_session["Id"]
+    else:
+        session_id = ""
 
     def download_video(*args):
         logger.info(f"Downloading video: {video.title}")
@@ -617,19 +623,11 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Column(classes=["py-0", "px-4"]):
-                with solara.Columns([8, 4]):
-                    with solara.Columns([6, 6]):
-                        with solara.Column():
-
+                with solara.Columns([7, 5]):
+                    with solara.Column():
+                        with solara.Row():
                             solara.Image(image, width=IMG_WIDTH)
-                            solara.Text(
-                                f"{video.title[:60]}",
-                                classes=["video-info-text"],
-                            )
-
-                        with solara.Column():
                             with solara.Column():
-
                                 solara.Select(
                                     label="Series",
                                     values=serieses,
@@ -642,20 +640,22 @@ def Page():
                                     value=youtube_series_title,
                                     on_value=update_youtube_series,
                                 )
+                        with solara.Row():
+                            solara.Text(
+                                f"{video.title[:50]}",
+                                classes=["video-info-text"],
+                            )
 
-                            with solara.Column(classes=["mt-2"]):
-                                solara.Text(
-                                    f"Uploaded: {time_ago_string(video.upload_date)}",
-                                    classes=["medium-timer"],
-                                )
-                                solara.Text(
-                                    f"Length: {seconds_to_hms(video.duration)}",
-                                    classes=["medium-timer"],
-                                )
-                    if jf.has_active_session():
-                        session_id = jf.active_session["Id"]
-                    else:
-                        session_id = ""
+                        with solara.Row():
+                            solara.Text(
+                                f"Uploaded: {time_ago_string(video.upload_date)}",
+                                classes=["medium-timer"],
+                            )
+                            solara.Text(
+                                f"Length: {seconds_to_hms(video.duration)}",
+                                classes=["medium-timer"],
+                            )
+
                     with solara.Column():
 
                         JellyfinControlPanel(

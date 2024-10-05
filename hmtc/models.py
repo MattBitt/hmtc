@@ -429,7 +429,9 @@ class Playlist(BaseModel):
         return
 
     def apply_to_videos(self):
-        vids = Video.select().where(Video.playlist_id == self.id)
+        vids = Video.select(Video.id, Video.playlist_id).where(
+            Video.playlist_id == self.id
+        )
         for vid in vids:
             vid.contains_unique_content = self.contains_unique_content
             vid.has_chapters = self.has_chapters

@@ -83,6 +83,7 @@ def Page():
         .join(VideoModel, peewee.JOIN.LEFT_OUTER)
         .switch(YoutubeSeries)
         .join(SeriesModel, peewee.JOIN.LEFT_OUTER)
+        .where(VideoModel.contains_unique_content == True)
         .group_by(YoutubeSeries.id, YoutubeSeries.title)
         .order_by(
             YoutubeSeries.title.asc(),
@@ -92,7 +93,9 @@ def Page():
     MySidebar(router)
     serieses = [
         {"id": series.id, "name": series.name}
-        for series in SeriesModel.select().order_by(SeriesModel.name)
+        for series in SeriesModel.select(SeriesModel.id, SeriesModel.name).order_by(
+            SeriesModel.name
+        )
     ]
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 

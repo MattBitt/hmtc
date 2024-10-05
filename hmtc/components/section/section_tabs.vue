@@ -8,12 +8,18 @@
       next-icon="mdi-arrow-right-bold-box-outline"
       prev-icon="mdi-arrow-left-bold-box-outline"
     >
+      <v-tab>My Tab Header</v-tab>
       <v-tab v-for="(item, index) in tabItems" :key="item.id">
         <span> ({{ item.id }})</span>
         <span>{{ index + 1 }}</span>
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tabs">
+      <v-tab-item>
+        <v-container class="my-10">
+          <p>My Tab item should appear first</p>
+        </v-container>
+      </v-tab-item>
       <v-tab-item v-for="item in tabItems" :key="item.id">
         <v-tabs vertical>
           <v-tab>

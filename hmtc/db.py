@@ -226,9 +226,6 @@ def download_channel_videos():
     logger.warning(
         "To disable these checks, set the 'download_on_init' config to False"
     )
-    channels = Channel.select().where(Channel.enabled == True)
-    for channel in channels:
-        channel.check_for_new_videos()
 
 
 def download_playlist_videos():
@@ -236,13 +233,10 @@ def download_playlist_videos():
     logger.warning(
         "To disable these checks, set the 'download_on_init' config to False"
     )
-    playlists = Playlist.select().where(Playlist.enabled == True)
-    for playlist in playlists:
-        playlist.update_videos_with_playlist_info()
 
 
 def is_db_empty():
-    vids = Video.select().count()
+    vids = Video.select(Video.id).count()
     logger.debug(f"DB currently has: {vids} Videos")
     return vids < 10
 
@@ -260,15 +254,15 @@ def get_playlist(playlist: dict):
 
 def get_list_yt_playlists():
     playlists = []
-    for p in Playlist.select().where(Playlist.enabled == True).order_by(Playlist.title):
-        playlists.append(p.name)
+    # for p in Playlist.select().where(Playlist.enabled == True).order_by(Playlist.title):
+    #     playlists.append(p.name)
     return playlists
 
 
 def get_list_videos():
     videos = []
-    for v in Video.select().where(Video.private is False).order_by(Video.title):
-        videos.append(v.title)
+    # for v in Video.select().where(Video.private is False).order_by(Video.title):
+    #     videos.append(v.title)
     return videos
 
 
@@ -326,9 +320,3 @@ def update_playlist(playlist, download_path="./downloads", media_path="./media")
 
 def update_playlists(config):
     logger.debug("Updating playlists")
-    playlists = Playlist().select().join(Series).where(Playlist.enabled == True)
-    download_path = WORKING / "downloads"
-    media_path = STORAGE / "media"
-
-    for p in playlists:
-        update_playlist(p, download_path, media_path)
