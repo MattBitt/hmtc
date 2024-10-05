@@ -30,7 +30,7 @@
           <v-toolbar-title>Youtube Series ({{ items.length }})</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-dialog v-model="dialog" max-width="800px">
+          <v-dialog v-model="dialog" max-width="400px">
             <template v-slot:activator="{ on, attrs }">
               <v-btn class="mb-2 button" dark v-bind="attrs" v-on="on">
                 New Item
@@ -44,7 +44,7 @@
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="12">
                       <v-text-field
                         v-model="editedItem.title"
                         label="Title"
@@ -52,13 +52,15 @@
                     </v-col>
                   </v-row>
                   <v-row>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="12">
                       <v-select
                         v-model="selected_series"
                         :items="serieses"
                         item-text="name"
                         item-value="id"
                         label="Series"
+                        clearable
+                        @click:clear="clearSeries(editedItem.id)"
                         return-object
                       ></v-select
                     ></v-col>
@@ -132,7 +134,8 @@ export default {
           align: "start",
           width: "20%",
         },
-        { text: "Series", value: "series", filterable: false },
+
+        { text: "Series", value: "series_name", filterable: false },
         {
           text: "# Videos",
           value: "video_count",
@@ -146,6 +149,7 @@ export default {
       items: [
         {
           title: "Youtube_series Title",
+          series_id: 1,
           series_name: "",
           series: "",
           id: -1,
@@ -193,6 +197,10 @@ export default {
   },
 
   methods: {
+    created() {
+      console.log("created");
+    },
+
     toggleOrder() {
       this.sortDesc = !this.sortDesc;
     },
@@ -208,7 +216,6 @@ export default {
       this.editedItem.series = this.serieses.find(
         (series) => series.name === item.series_name
       );
-
       console.log(this.editedItem);
       this.selected_series = this.editedItem.series || this.selected_series;
       this.dialog = true;
@@ -263,6 +270,11 @@ export default {
         this.items.push(this.editedItem);
       }
       this.close();
+    },
+    clearSeries() {
+      console.log("clearing series");
+      this.editedItem.series = "";
+      this.editedItem.series_name = "";
     },
   },
 };

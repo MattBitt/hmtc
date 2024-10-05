@@ -34,11 +34,6 @@
         <v-spacer></v-spacer>
         <!-- New/Edit Modal Dialog Starts Here -->
         <v-dialog v-model="dialog" max-width="800px">
-          <!-- <template v-slot:activator="{ on, attrs }">
-            <v-btn class="button mb-2" v-bind="attrs" v-on="on">
-              New Item
-            </v-btn>
-          </template> -->
           <v-card>
             <v-card-title>
               <span class="text-h5">{{ formTitle }}</span>
@@ -109,6 +104,7 @@
                       item-text="name"
                       item-value="id"
                       label="Series"
+                      clearable
                       return-object
                     ></v-select
                   ></v-col>

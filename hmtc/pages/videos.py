@@ -165,18 +165,18 @@ def save_video_item(dict_of_items):
     selected_channel = dict_of_items["selectedChannel"]
     selected_series = dict_of_items["selectedSeries"]
     selected_youtube_series = dict_of_items["selectedYoutubeSeries"]
-
     selected_album = dict_of_items["selectedAlbum"]
 
     channel = None
     playlist = None
     youtube_series = None
-    series = None
     album = None
     episode_number = None
 
-    logger.debug(f"Item received from Vue: {item}")
+    # 10/5/24 this is a hack to allow me to delete series from videos
+    new_series = "asdf"
 
+    logger.debug(f"Item received from Vue: {item}")
     video_item = VideoItem.get_by_id(item["id"])
 
     if selected_channel["id"] is not None:
@@ -185,9 +185,11 @@ def save_video_item(dict_of_items):
         ):
             channel = Channel.get_by_id(selected_channel["id"])
 
-    if selected_series["id"] is not None:
+    if selected_series is None:
+        new_series = None
+    elif selected_series["id"] is not None:
         if video_item.series is None or (selected_series["id"] != video_item.series.id):
-            series = Series.get_by_id(selected_series["id"])
+            new_series = Series.get_by_id(selected_series["id"])
 
     if selected_youtube_series["id"] is not None:
         if video_item.youtube_series is None or (
@@ -226,8 +228,8 @@ def save_video_item(dict_of_items):
         new_vid.youtube_series = youtube_series
     if playlist is not None:
         new_vid.playlist = playlist
-    if series is not None:
-        new_vid.series = series
+    if new_series != "asdf":
+        new_vid.series = new_series
     if album is not None:
         new_vid.album = album
     if episode_number is not None:

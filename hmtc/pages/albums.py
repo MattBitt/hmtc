@@ -2,6 +2,7 @@ import time
 from typing import Callable
 
 import pandas as pd
+import peewee
 import solara
 from loguru import logger
 from peewee import fn
@@ -59,9 +60,10 @@ def Page():
         AlbumModel.select(
             AlbumModel.id,
             AlbumModel.title,
+            AlbumModel.release_date,
             fn.COUNT(VideoModel.album_id).coerce(False).alias("video_count"),
         )
-        .join(VideoModel)
+        .join(VideoModel, peewee.JOIN.LEFT_OUTER)
         .group_by(AlbumModel.id, AlbumModel.title)
         .order_by(AlbumModel.title.asc())
     )

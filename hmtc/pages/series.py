@@ -58,6 +58,8 @@ def Page():
         Series.select(
             Series.id,
             Series.name,
+            Series.start_date,
+            Series.end_date,
         )
         .group_by(Series.id, Series.name)
         .order_by(Series.name.asc())

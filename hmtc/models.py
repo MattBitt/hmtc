@@ -464,18 +464,26 @@ class YoutubeSeries(BaseModel):
         return f"YoutubeSeriesModel({self.title=})"
 
     def model_to_dict(self):
-        num_vids = (
-            Video.select(fn.Count(Video.id))
-            .where(
-                (Video.youtube_series_id == self.id)
-                & (Video.contains_unique_content == True)
+        try:
+            num_vids = int(self.video_count)
+        except Exception as e:
+            # if no video count supplied, calculate it
+            # not sure if this should be done here
+            # or if it shoud use only unique videos
+            num_vids = (
+                Video.select(fn.Count(Video.id))
+                .where(
+                    (Video.youtube_series_id == self.id)
+                    & (Video.contains_unique_content == True)
+                )
+                .scalar()
             )
-            .scalar()
-        )
+
         new_dict = {
             "id": self.id,
             "title": self.title,
-            "series": self.series.name if self.series else None,
+            "series_name": self.series.name if self.series else "",
+            "series_id": self.series.id if self.series else 0,
             "video_count": num_vids,
         }
         return new_dict
