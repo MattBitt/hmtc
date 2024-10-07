@@ -6,7 +6,7 @@
         <p>{{ message }}</p>
       </v-chip>
     </template>
-    <span>This is the tooltip for {{ message }}</span>
+    <span>This is the tooltip for {{ message }} does this also reload?</span>
   </v-tooltip>
 </template>
 

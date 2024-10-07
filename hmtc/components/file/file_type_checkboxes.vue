@@ -2,90 +2,42 @@
   <v-container class="" fluid>
     <p class="myheader">Files</p>
     <v-row class="my-4" justify="center">
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-chip
-            class="mx-2"
-            :class="has_info ? 'myprimary' : 'mywarning'"
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon class="">mdi-information</v-icon>
-          </v-chip>
-        </template>
-        <span>Youtube .info.json</span>
-      </v-tooltip>
+      <MyToolTipChip
+        icon="mdi-information"
+        message="Youtube .info.json"
+        :myclass="has_info ? 'myprimary' : 'mywarning'"
+      />
 
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-chip
-            class="mx-2"
-            :class="has_info ? 'myprimary' : 'mywarning'"
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon class="">mdi-panorama</v-icon>
-          </v-chip>
-        </template>
-        <span>Poster</span>
-      </v-tooltip>
-
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-chip
-            class="mx-2"
-            :class="has_info ? 'myprimary' : 'mywarning'"
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon class="">mdi-text</v-icon>
-          </v-chip>
-        </template>
-        <span>Lyrics</span>
-      </v-tooltip>
+      <MyToolTipChip
+        icon="mdi-text"
+        message="Lyrics"
+        :myclass="has_subtitle ? 'myprimary' : 'mywarning'"
+        @myclicked="showMessage"
+      />
+      <MyToolTipChip
+        icon="mdi-panorama"
+        message="Poster"
+        :myclass="has_poster ? 'myprimary' : 'mywarning'"
+      />
     </v-row>
 
     <v-row class="my-4" justify="center">
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-chip
-            class="mx-2"
-            :class="has_audio ? 'myprimary' : 'mywarning'"
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon class="">mdi-music-note</v-icon>
-          </v-chip>
-        </template>
-        <span>Audio</span>
-      </v-tooltip>
-
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-chip
-            class="mx-2"
-            :class="has_video ? 'myprimary' : 'mywarning'"
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon class="">mdi-video</v-icon>
-          </v-chip>
-        </template>
-        <span>Video</span>
-      </v-tooltip>
-
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-chip
-            :class="has_album_nfo ? 'myprimary' : 'mywarning'"
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon class="">mdi-information</v-icon>
-          </v-chip>
-        </template>
-        <span>Album NFO</span>
-      </v-tooltip>
+      <MyToolTipChip
+        icon="mdi-music-note"
+        message="Audio"
+        :myclass="has_audio ? 'myprimary' : 'mywarning'"
+      />
+      <MyToolTipChip
+        icon="mdi-video"
+        message="Video"
+        :myclass="has_video ? 'myprimary' : 'mywarning'"
+        @myclicked="download_video"
+      />
+      <MyToolTipChip
+        icon="mdi-information"
+        message="Album NFO"
+        :myclass="has_album_nfo ? 'myprimary' : 'mywarning'"
+      />
     </v-row>
 
     <v-row justify="center">
@@ -116,29 +68,16 @@ export default {
       overlay: false,
     };
   },
-  methods: {},
+  methods: {
+    showMessage(message) {
+      console.log("Message from child", message);
+    },
+  },
   mounted() {},
 };
 </script>
 
-<style scoped>
-.bottom-gradient {
-  background-image: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.4) 0%,
-    transparent 72px
-  );
-}
-
-.repeating-gradient {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(255, 0, 0, 0.25),
-    rgba(255, 0, 0, 0.25) 5px,
-    rgba(0, 0, 255, 0.25) 5px,
-    rgba(0, 0, 255, 0.25) 10px
-  );
-}
+<style>
 .myheader {
   font-size: 1em;
   font-weight: bold;

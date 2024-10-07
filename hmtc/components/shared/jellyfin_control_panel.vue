@@ -154,7 +154,7 @@ export default {
     getPlayStatus() {
       // GET request using fetch with set headers
       if (this.session_id == "") {
-        console.log("session_id is empty");
+        // console.log("session_id is empty");
         this.logoBackground = "";
         return;
       }

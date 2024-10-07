@@ -1,6 +1,7 @@
 import time
 from typing import Callable
 
+import ipyvue
 import pandas as pd
 import peewee
 import solara
@@ -42,14 +43,9 @@ def save_album(dict_of_items):
         edited_item["id"] = None  # db should assign id
         AlbumModel.create(**edited_item)
         return
-    vid = VideoModel.get_or_none(id=edited_item["video_id"])
-    if vid is None:
-        logger.error("Video Not Found. Cannot save Album")
-        return
 
     album.title = edited_item["title"]
     album.release_date = edited_item["release_date"]
-    album.video_id = edited_item["video_id"]
     album.save()
     force_update_counter.set(force_update_counter.value + 1)
 
@@ -70,6 +66,10 @@ def Page():
 
     router = solara.use_router()
     MySidebar(router)
+
+    ipyvue.register_component_from_file(
+        "MyFirst", "../components/album/myfirst.vue", __file__
+    )
 
     items = pd.DataFrame([item.model_to_dict() for item in base_query]).to_dict(
         "records"

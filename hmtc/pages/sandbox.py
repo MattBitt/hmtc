@@ -1,25 +1,39 @@
-import solara
+import asyncio
+import time
+
 import ipyvue
+import numpy as np
+import solara
+from loguru import logger
+from peewee import fn
+from solara.lab import Task, use_task
+
+from hmtc.components.sandbox_component.sandbox import FancyComponent
 from hmtc.components.shared.sidebar import MySidebar
 
 
-@solara.component_vue("ParentComponent.vue")
-def ParentComponent(myname: str = "", iconName: str = ""):
+def import_vue_components():
+    ipyvue.register_component_from_file(
+        "MyToolTipChip",
+        "/home/matt/programming/hmtc/hmtc/components/my_tooltip_chip.vue",
+        __file__,
+    )
+
+
+@solara.component_vue("sandbox.vue")
+def Sandbox():
     pass
 
 
 @solara.component
 def Page():
-    # Don't use reactivity in Page for this registration to work,
-    # move that to another component if necessary.
+    import_vue_components()
     MySidebar(router=solara.use_router())
-    ipyvue.register_component_from_file(
-        "MyChildComponent", "ChildComponent.vue", __file__
-    )
-    ipyvue.register_component_from_file(
-        "MyNextComponent", "../components/shared/temp_child_component.vue", __file__
-    )
 
-    ParentComponent(myname="matt")
-    ParentComponent(myname="lindsay")
-    ParentComponent(iconName="mdi-account")
+    Sandbox()
+
+
+@solara.component
+def LiveUpdatingComponent(counter):
+    """Component which will be redrawn whenever the counter value changes."""
+    solara.Markdown(f"## Counter: {counter.value}")
