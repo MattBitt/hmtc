@@ -198,24 +198,14 @@
             </v-container>
           </v-tab-item>
           <v-tab-item>
-            <v-container> Beats/Artists Tab</v-container>
+            <v-container>
+              <BeatsInfo />
+              <ArtistsInfo />
+            </v-container>
           </v-tab-item>
 
           <v-tab-item>
-            <v-container>
-              <v-row justify="center">
-                <v-col cols="6">
-                  <v-btn
-                    outlined
-                    class="button mywarning"
-                    block
-                    @click="removeSection(item.id)"
-                  >
-                    Remove Section
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-container>
+            <SectionAdminPanel @deleteSection="removeSection(item.id)" />
           </v-tab-item>
         </v-tabs>
       </v-tab-item>

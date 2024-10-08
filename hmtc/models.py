@@ -498,6 +498,15 @@ class Album(BaseModel):
     series = ForeignKeyField(Series, backref="albums", null=True)
 
     def model_to_dict(self):
+        try:
+            num_vids = int(self.video_count)
+        except Exception as e:
+            num_vids = (
+                Video.select(fn.Count(Video.id))
+                .where((Video.album_id == self.id))
+                .scalar()
+            )
+
         new_dict = {
             "id": self.id,
             "title": self.title,
@@ -505,7 +514,7 @@ class Album(BaseModel):
                 self.release_date.isoformat() if self.release_date else None
             ),
             "series_name": self.series.name if self.series else None,
-            "video_count": self.video_count,
+            "video_count": num_vids,
         }
 
         return new_dict

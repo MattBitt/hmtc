@@ -135,7 +135,7 @@ a {
 .medium-timer {
   font-family: mySevenSegDisplay;
   font-size: 1em;
-  padding: 0.25em;
+  padding: 0.125em;
   color: var(--on-primary);
   background-color: var(--primary);
   text-align: center;

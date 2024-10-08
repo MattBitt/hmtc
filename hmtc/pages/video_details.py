@@ -10,6 +10,7 @@ from loguru import logger
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
+from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     File as FileModel,
 )
@@ -292,10 +293,10 @@ def SectionControlPanel(
                 end=(i + 1) * (video.duration / number_of_even_sections),
                 section_type="instrumental",
             )
-        new_sect = SectionModel.get_by_id(new_id)
-        sections.set(sm.sections + [new_sect])
-        # section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
-        logger.debug(f"New Section ID: {new_id}")
+            new_sect = SectionModel.get_by_id(new_id)
+            sections.set(sm.sections + [new_sect])
+            # section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
+            logger.debug(f"New Section ID: {new_id}")
 
     def create_section_at_0():
         sm = SectionManager.from_video(video)
@@ -448,6 +449,36 @@ def FilesPanel(video):
 
 
 @solara.component
+def AlbumPanel(
+    video,
+):
+    def update_album(*args):
+        logger.debug(f"Updating Album: {args}")
+        album = AlbumModel.select().where(AlbumModel.title == args[0]).get()
+        vid = VideoModel.get_by_id(video.id)
+        vid.album = album
+        vid.save()
+
+    if video.album is None:
+
+        albums = [
+            item.model_to_dict()["title"]
+            for item in AlbumModel.select(AlbumModel.title).order_by(AlbumModel.title)
+        ]
+        album_title = solara.reactive(video.album.title if video.album else None)
+
+        solara.Button(label="Create Album", on_click=None, classes=["button"])
+        solara.Select(
+            label="Album",
+            values=albums,
+            value=album_title,
+            on_value=update_album,
+        )
+    else:
+        solara.Text(f"Album: {video.album.title}")
+
+
+@solara.component
 def InfoPanel(
     video,
 ):
@@ -501,7 +532,7 @@ def InfoPanel(
                 value=youtube_series_title,
                 on_value=update_youtube_series,
             )
-    with solara.Row():
+    with solara.Row(justify="center"):
         solara.Text(
             f"{video.title[:50]}",
             classes=["video-info-text"],
@@ -520,7 +551,6 @@ def InfoPanel(
 
 @solara.component
 def SectionsPanel(
-    sm,
     video,
     reactive_sections,
     jellyfin_status,
@@ -541,22 +571,22 @@ def SectionsPanel(
             [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
         )
 
-    if len(sm.sections) > 0:
-
-        SectionTabs(
-            tabItems=section_dicts[0].value,
-            jellyfin_status=jellyfin_status.value,
-            event_add_item=add_topic,
-            event_remove_item=remove_topic,
-            event_delete_section=delete_section,
-            event_update_times=update_section_times,
-            event_loop_jellyfin=lambda x: loop_jellyfin(jellyfin_status, x),
-            event_update_section_from_jellyfin=update_section_from_jellyfin,
-        )
-
+    if len(reactive_sections.value) > 0:
+        tab_items = section_dicts[0].value
     else:
+        tab_items = []
 
-        solara.Markdown("No Sections Found")
+    SectionTabs(
+        tabItems=tab_items,
+        jellyfin_status=jellyfin_status.value,
+        event_add_item=add_topic,
+        event_remove_item=remove_topic,
+        event_delete_section=delete_section,
+        event_update_times=update_section_times,
+        event_loop_jellyfin=lambda x: loop_jellyfin(jellyfin_status, x),
+        event_update_section_from_jellyfin=update_section_from_jellyfin,
+    )
+
     SectionControlPanel(
         video=video,
         sections=reactive_sections,
@@ -576,6 +606,17 @@ def Page():
         __file__,
     )
 
+    ipyvue.register_component_from_file(
+        "BeatsInfo", "../components/beat/beats_info.vue", __file__
+    )
+    ipyvue.register_component_from_file(
+        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionAdminPanel", "../components/section/admin_panel.vue", __file__
+    )
+
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
     sm = SectionManager.from_video(video)
@@ -588,12 +629,13 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         with solara.Column(classes=["py-0", "px-4", "mysurface"]):
-            with solara.Columns([7, 5]):
+            with solara.Columns([8, 4]):
                 with solara.Column():
                     InfoPanel(
                         video=video,
                     )
-                with solara.Column():
+                    AlbumPanel(video=video)
+                with solara.Column(gap="2px"):
                     JFPanel(
                         video=video,
                         jellyfin_status=jellyfin_status,
@@ -605,7 +647,6 @@ def Page():
                     )
         with solara.Column(classes=["py-0", "px-4", "mysurface"]):
             SectionsPanel(
-                sm=sm,
                 video=video,
                 reactive_sections=reactive_sections,
                 jellyfin_status=jellyfin_status,

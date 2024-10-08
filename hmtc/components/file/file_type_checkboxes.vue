@@ -6,18 +6,20 @@
         icon="mdi-information"
         message="Youtube .info.json"
         :myclass="has_info ? 'myprimary' : 'mywarning'"
+        @myclicked="download_info"
       />
 
       <MyToolTipChip
         icon="mdi-text"
         message="Lyrics"
         :myclass="has_subtitle ? 'myprimary' : 'mywarning'"
-        @myclicked="showMessage"
+        @myclicked="download_info"
       />
       <MyToolTipChip
         icon="mdi-panorama"
         message="Poster"
         :myclass="has_poster ? 'myprimary' : 'mywarning'"
+        @myclicked="download_info"
       />
     </v-row>
 
@@ -26,6 +28,7 @@
         icon="mdi-music-note"
         message="Audio"
         :myclass="has_audio ? 'myprimary' : 'mywarning'"
+        @myclicked="download_video"
       />
       <MyToolTipChip
         icon="mdi-video"
@@ -37,19 +40,8 @@
         icon="mdi-information"
         message="Album NFO"
         :myclass="has_album_nfo ? 'myprimary' : 'mywarning'"
+        @myclicked="create_album_nfo"
       />
-    </v-row>
-
-    <v-row justify="center">
-      <v-btn @click="download_info" class="myprimary">
-        <v-icon>mdi-download</v-icon>
-        <v-icon>mdi-information</v-icon>
-      </v-btn>
-
-      <v-btn @click="download_video" class="myprimary">
-        <v-icon>mdi-download</v-icon>
-        <v-icon>mdi-video</v-icon>
-      </v-btn>
     </v-row>
   </v-container>
 </template>
