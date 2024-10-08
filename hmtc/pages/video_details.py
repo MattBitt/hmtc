@@ -596,10 +596,7 @@ def SectionsPanel(
     )
 
 
-@solara.component
-def Page():
-    router = solara.use_router()
-    MySidebar(router=router)
+def register_vue_components():
     ipyvue.register_component_from_file(
         "MyToolTipChip",
         "../components/my_tooltip_chip.vue",
@@ -617,6 +614,21 @@ def Page():
         "SectionAdminPanel", "../components/section/admin_panel.vue", __file__
     )
 
+    ipyvue.register_component_from_file(
+        "SectionTopicsPanel", "../components/section/topics_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTimePanel", "../components/section/time_panel.vue", __file__
+    )
+
+
+@solara.component
+def Page():
+    router = solara.use_router()
+    MySidebar(router=router)
+
+    register_vue_components()
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
     sm = SectionManager.from_video(video)
@@ -628,27 +640,25 @@ def Page():
         )
 
     with solara.Column(classes=["main-container"]):
-        with solara.Column(classes=["py-0", "px-4", "mysurface"]):
-            with solara.Columns([8, 4]):
-                with solara.Column():
-                    InfoPanel(
-                        video=video,
-                    )
-                    AlbumPanel(video=video)
-                with solara.Column(gap="2px"):
-                    JFPanel(
-                        video=video,
-                        jellyfin_status=jellyfin_status,
-                        router=router,
-                        update_section_from_jellyfin=local_update_from_jellyfin,
-                    )
-                    FilesPanel(
-                        video=video,
-                    )
-        with solara.Column(classes=["py-0", "px-4", "mysurface"]):
-            SectionsPanel(
-                video=video,
-                reactive_sections=reactive_sections,
-                jellyfin_status=jellyfin_status,
-                update_section_from_jellyfin=local_update_from_jellyfin,
-            )
+        with solara.Columns([8, 4]):
+            with solara.Column():
+                InfoPanel(
+                    video=video,
+                )
+                AlbumPanel(video=video)
+            with solara.Column(gap="2px"):
+                JFPanel(
+                    video=video,
+                    jellyfin_status=jellyfin_status,
+                    router=router,
+                    update_section_from_jellyfin=local_update_from_jellyfin,
+                )
+                FilesPanel(
+                    video=video,
+                )
+        SectionsPanel(
+            video=video,
+            reactive_sections=reactive_sections,
+            jellyfin_status=jellyfin_status,
+            update_section_from_jellyfin=local_update_from_jellyfin,
+        )

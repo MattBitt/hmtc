@@ -14,9 +14,7 @@ from hmtc.components.shared.sidebar import MySidebar
 
 def import_vue_components():
     ipyvue.register_component_from_file(
-        "MyToolTipChip",
-        "/home/matt/programming/hmtc/hmtc/components/my_tooltip_chip.vue",
-        __file__,
+        "SectionTimePanel", "../components/section/time_panel.vue", __file__
     )
 
 
@@ -31,9 +29,3 @@ def Page():
     MySidebar(router=solara.use_router())
 
     Sandbox()
-
-
-@solara.component
-def LiveUpdatingComponent(counter):
-    """Component which will be redrawn whenever the counter value changes."""
-    solara.Markdown(f"## Counter: {counter.value}")
