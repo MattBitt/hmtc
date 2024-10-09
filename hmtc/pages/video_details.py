@@ -210,7 +210,7 @@ def update_section_from_jellyfin(section_id, start_or_end, video, reactive_secti
 
 @solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
 def SectionTabs(
-    tabItems,
+    sectionItems,
     jellyfin_status,
     event_add_item,
     event_remove_item,
@@ -577,7 +577,7 @@ def SectionsPanel(
         tab_items = []
 
     SectionTabs(
-        tabItems=tab_items,
+        sectionItems=tab_items,
         jellyfin_status=jellyfin_status.value,
         event_add_item=add_topic,
         event_remove_item=remove_topic,
@@ -587,13 +587,13 @@ def SectionsPanel(
         event_update_section_from_jellyfin=update_section_from_jellyfin,
     )
 
-    SectionControlPanel(
-        video=video,
-        sections=reactive_sections,
-        current_section=None,
-        section_dicts=section_dicts,
-        jellyfin_status=jellyfin_status,
-    )
+    # SectionControlPanel(
+    #     video=video,
+    #     sections=reactive_sections,
+    #     current_section=None,
+    #     section_dicts=section_dicts,
+    #     jellyfin_status=jellyfin_status,
+    # )
 
 
 def register_vue_components():
@@ -620,6 +620,12 @@ def register_vue_components():
 
     ipyvue.register_component_from_file(
         "SectionTimePanel", "../components/section/time_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionControlPanel",
+        "../components/section/section_control_panel.vue",
+        __file__,
     )
 
 

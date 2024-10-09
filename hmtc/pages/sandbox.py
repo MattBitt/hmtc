@@ -17,6 +17,25 @@ def import_vue_components():
         "SectionTimePanel", "../components/section/time_panel.vue", __file__
     )
 
+    ipyvue.register_component_from_file(
+        "BeatsInfo", "../components/beat/beats_info.vue", __file__
+    )
+    ipyvue.register_component_from_file(
+        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionAdminPanel", "../components/section/admin_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTopicsPanel", "../components/section/topics_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTimePanel", "../components/section/time_panel.vue", __file__
+    )
+
 
 @solara.component_vue("sandbox.vue")
 def Sandbox():

@@ -8,59 +8,30 @@
       next-icon="mdi-arrow-right-bold-box-outline"
       prev-icon="mdi-arrow-left-bold-box-outline"
     >
-      <v-tab key="main">Main</v-tab>
-      <v-tab v-for="(item, index) in tabItems" :key="item.id">
-        <span> ({{ item.id }})</span>
+      <v-tab v-for="(section, index) in sectionItems" :key="section.id">
+        <span> ({{ section.id }})</span>
         <span>{{ index + 1 }}</span>
       </v-tab>
+      <v-tab key="main">Main</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tabs">
-      <v-tab-item>
-        <v-container>
-          <h1>
-            <v-icon left> mdi-screw-flat-top </v-icon>
-            Admin
-          </h1>
-        </v-container>
-      </v-tab-item>
-      <v-tab-item v-for="item in tabItems" :key="item.id">
+      <v-tab-item v-for="section in sectionItems" :key="section.id">
         <v-tabs vertical>
-          <v-tab>
-            <v-icon left> mdi-clock-digital </v-icon>
-            Times
-          </v-tab>
-          <v-tab>
-            <v-icon left> mdi-table-of-contents </v-icon>
-            Topics
-          </v-tab>
-          <v-tab>
-            <v-icon left> mdi-music </v-icon>
-            Musical Info
-          </v-tab>
-          <v-tab>
-            <v-icon left> mdi-screw-flat-top </v-icon>
-            Admin
+          <v-tab v-for="sectionTab in sectionTabs" :key="sectionTab.id">
+            <v-icon left>{{ sectionTab.icon }} </v-icon>
+            {{ sectionTab.text }}
           </v-tab>
 
           <v-tab-item>
             <v-container class="px-10">
-              <v-row justify="end">
-                <v-btn
-                  :class="[editingTime ? 'mywarning' : 'myprimary']"
-                  @click="toggleEditMode"
-                  ><span v-if="editingTime"
-                    ><v-icon>mdi-content-save</v-icon></span
-                  ><span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
-                >
-              </v-row>
               <SectionTimePanel
-                :initialTime="item.start"
+                :initialTime="section.start"
                 :isEditing="editingTime"
                 @updateTimes="updateTimes"
                 @updateSectionTimeFromJellyfin="updateSectionTime"
               />
               <SectionTimePanel
-                :initialTime="item.end"
+                :initialTime="section.end"
                 :isEditing="editingTime"
                 @updateTimes="updateTimes"
                 @updateSectionTimeFromJellyfin="updateSectionTime"
@@ -71,23 +42,25 @@
                   x-large
                   fab
                   class="button"
-                  @click="updateTimes(item.id, item.start, item.end)"
+                  @click="updateTimes(section.id, section.start, section.end)"
                 >
                   <v-icon> mdi-content-save </v-icon>
                 </v-btn>
               </v-row>
             </v-container>
           </v-tab-item>
+
           <v-tab-item>
             <v-container>
               <SectionTopicsPanel
-                :topics="item.topics"
-                :item="item"
+                :topics="section.topics"
+                :item="section"
                 @addTopic="addTopic"
                 @removeTopic="removeTopic"
               />
             </v-container>
           </v-tab-item>
+
           <v-tab-item>
             <v-container>
               <BeatsInfo />
@@ -96,9 +69,17 @@
           </v-tab-item>
 
           <v-tab-item>
-            <SectionAdminPanel @deleteSection="removeSection(item.id)" />
+            <SectionAdminPanel @deleteSection="removeSection(section.id)" />
           </v-tab-item>
         </v-tabs>
+      </v-tab-item>
+      <v-tab-item>
+        <v-container>
+          <h1>
+            <v-icon left> mdi-screw-flat-top </v-icon>
+            <SectionControlPanel :video_duration="video_duration" />
+          </h1>
+        </v-container>
       </v-tab-item>
     </v-tabs-items>
   </v-container>
@@ -111,21 +92,13 @@ export default {
       editingTime: false,
       timeFormDirty: false,
       tabs: 0,
-      topic: "",
-      valid: false,
-      error: "",
-      success: "",
-
-      tabItems: [
-        {
-          id: 1,
-          text: "Tab 1",
-          start: 0,
-          end: 123456,
-          topics: [{ id: 1, text: "blue" }],
-        },
-        ,
+      sectionTabs: [
+        { text: "Times", icon: "mdi-clock-digital" },
+        { text: "Topics", icon: "mdi-table-of-contents" },
+        { text: "Musical Info", icon: "mdi-music" },
+        { text: "Admin", icon: "mdi-screw-flat-top" },
       ],
+      video_duration: 0,
     };
   },
   methods: {
@@ -149,11 +122,11 @@ export default {
 
     removeSection(section_id) {
       console.log("Removing section", section_id);
-      const sectionIndex = this.tabItems.findIndex(
+      const sectionIndex = this.sectionItems.findIndex(
         (item) => item.id === section_id
       );
       if (sectionIndex !== -1) {
-        this.tabItems.splice(sectionIndex, 1);
+        this.sectionItems.splice(sectionIndex, 1);
       }
       const args = {
         section_id: section_id,
@@ -166,15 +139,6 @@ export default {
       this.loop_jellyfin(value);
     },
 
-    toggleEditMode() {
-      if (this.timeFormDirty && this.editingTime) {
-        alert("You have unsaved changes");
-        //this.timeFormDirty = false;
-        return;
-      }
-      this.editingTime = !this.editingTime;
-      console.log("Toggled edit mode", this.editingTime);
-    },
     updateTimes(item_id, start, end) {
       console.log("Updating times", item_id, start, end);
       const args = {

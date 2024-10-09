@@ -2,14 +2,22 @@
   <div>
     <v-row justify="center" class="mb-6">
       <span class="seven-seg myprimary">{{ timeString }}</span>
-      <v-btn
+      <v-row justify="end">
+        <v-btn
+          :class="[isEditing ? 'mywarning' : 'myprimary']"
+          @click="toggleEditMode"
+          ><span v-if="isEditing"><v-icon>mdi-cancel<v-icon></span
+          ><span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
+        >
+      </v-row>
+      <!-- <v-btn
         x-large
         fab
         class="button"
         @click="updateSectionTimeFromJellyfin(item.id, 'start')"
       >
         <v-icon>mdi-sync</v-icon>
-      </v-btn>
+      </v-btn> -->
     </v-row>
     <v-row v-if="isEditing" justify="center" class="mt-4">
       <v-btn medium fab class="" @click="adjustTime(-5000)">
@@ -49,6 +57,15 @@ module.exports = {
   },
   emits: ["updateTime", "loopJellyfin", "updateSectionTimeFromJellyfin"],
   methods: {
+    toggleEditMode() {
+      if (this.timeFormDirty && this.isEditing) {
+        alert("You have unsaved changes");
+        //this.timeFormDirty = false;
+        return;
+      }
+      this.isEditing = !this.isEditing;
+    },
+
     loopJellyfinAt(value) {
       this.$emit("loopJellyfin", value);
     },
