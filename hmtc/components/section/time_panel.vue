@@ -3,21 +3,35 @@
     <v-row justify="center" class="mb-6">
       <span class="seven-seg myprimary">{{ timeString }}</span>
       <v-row justify="end">
-        <v-btn
-          :class="[isEditing ? 'mywarning' : 'myprimary']"
-          @click="toggleEditMode"
-          ><span v-if="isEditing"><v-icon>mdi-cancel<v-icon></span
-          ><span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
-        >
+        <v-col cols="3">
+          <v-btn
+            fab
+            :class="[isEditing ? 'mywarning' : 'button']"
+            @click="toggleEditMode"
+            ><span v-if="isEditing"><v-icon>mdi-cancel</v-icon></span>
+            <span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
+          >
+        </v-col>
+        <v-col v-if="isDirty" cols="3">
+          <v-btn fab class="button" @click="updateTime">
+            <v-icon> mdi-content-save </v-icon>
+          </v-btn>
+        </v-col>
+        <v-col cols="3">
+          <v-btn fab class="button" @click="loopJellyfinAt">
+            <v-icon> mdi-play </v-icon>
+          </v-btn>
+        </v-col>
+        <v-col cols="3">
+          <v-btn
+            fab
+            class="button"
+            @click="updateSectionTimeFromJellyfin(item.id, 'start')"
+          >
+            <v-icon>mdi-sync</v-icon>
+          </v-btn>
+        </v-col>
       </v-row>
-      <!-- <v-btn
-        x-large
-        fab
-        class="button"
-        @click="updateSectionTimeFromJellyfin(item.id, 'start')"
-      >
-        <v-icon>mdi-sync</v-icon>
-      </v-btn> -->
     </v-row>
     <v-row v-if="isEditing" justify="center" class="mt-4">
       <v-btn medium fab class="" @click="adjustTime(-5000)">
@@ -39,68 +53,48 @@
         <v-icon>mdi-fast-forward-5</v-icon>
       </v-btn>
     </v-row>
-    <v-row justify="center">
-      <v-btn x-large fab class="button" @click="loopJellyfinAt(this.time)">
-        <v-icon> mdi-play </v-icon>
-      </v-btn>
-    </v-row>
   </div>
 </template>
 <script>
 module.exports = {
   name: "SectionTimePanel",
-  props: { initialTime: Number, isEditing: Boolean },
-  data() {
-    return {
-      time: this.initialTime,
-    };
-  },
+  props: { initialTime: Number, sectionID: Number, video_duration: Number },
+
   emits: ["updateTime", "loopJellyfin", "updateSectionTimeFromJellyfin"],
   methods: {
+    updateTime() {
+      this.$emit("updateTime", this.sectionID, this.time);
+      this.isEditing = false;
+      this.isDirty = false;
+    },
+
     toggleEditMode() {
-      if (this.timeFormDirty && this.isEditing) {
-        alert("You have unsaved changes");
-        //this.timeFormDirty = false;
-        return;
+      if (this.isEditing) {
+        if (this.isDirty) {
+          this.time = this.initialTime;
+          this.isDirty = false;
+        }
       }
       this.isEditing = !this.isEditing;
     },
 
-    loopJellyfinAt(value) {
-      this.$emit("loopJellyfin", value);
+    loopJellyfinAt() {
+      this.$emit("loopJellyfin", this.time);
     },
+
     adjustTime(value) {
-      this.time += value;
-    },
-
-    removeTopic(item_id, topic) {
-      console.log("Removing topic", item_id, topic);
-      const topicIndex = this.topics.findIndex((t) => t.text === topic);
-      if (topicIndex !== -1) {
-        this.topics.splice(topicIndex, 1);
+      const tmp_time = this.time + value;
+      const durationMS = this.video_duration * 1000;
+      if (tmp_time < 0) {
+        this.time = 0;
+      } else if (tmp_time > durationMS) {
+        this.time = durationMS;
+      } else {
+        this.time = tmp_time;
       }
-
-      const args = {
-        item_id: item_id,
-        topic: topic,
-      };
-      // python function
-      this.$emit("removeTopic", args);
+      this.isDirty = true;
     },
 
-    updateTimes(item_id, start, end) {
-      console.log("Updating times", item_id, start, end);
-
-      const args = {
-        item_id: item_id,
-        start: start,
-        end: end,
-      };
-
-      this.editingTime = false;
-      this.timeFormDirty = false;
-      this.$emit("updateTimes", args);
-    },
     updateSectionTimeFromJellyfin(item_id, time) {
       console.log("Updating time from Jellyfin", item_id, time);
       const args = {
@@ -114,6 +108,14 @@ module.exports = {
     timeString() {
       return new Date(this.time).toISOString().slice(11, 19);
     },
+  },
+
+  data() {
+    return {
+      time: this.initialTime,
+      isEditing: false,
+      isDirty: false,
+    };
   },
 };
 </script>

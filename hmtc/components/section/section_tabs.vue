@@ -17,7 +17,7 @@
     <v-tabs-items v-model="tabs">
       <v-tab-item v-for="section in sectionItems" :key="section.id">
         <v-tabs vertical>
-          <v-tab v-for="sectionTab in sectionTabs" :key="sectionTab.id">
+          <v-tab v-for="sectionTab in sectionTabHeaders" :key="sectionTab.id">
             <v-icon left>{{ sectionTab.icon }} </v-icon>
             {{ sectionTab.text }}
           </v-tab>
@@ -25,33 +25,27 @@
           <v-tab-item>
             <v-container class="px-10">
               <SectionTimePanel
+                :sectionID="section.id"
+                :video_duration="video_duration"
                 :initialTime="section.start"
-                :isEditing="editingTime"
-                @updateTimes="updateTimes"
+                @updateTime="updateSectionStart"
                 @updateSectionTimeFromJellyfin="updateSectionTime"
+                @loopJellyfin="loopJellyfinAtStart"
               />
               <SectionTimePanel
+                :sectionID="section.id"
+                :video_duration="video_duration"
                 :initialTime="section.end"
-                :isEditing="editingTime"
-                @updateTimes="updateTimes"
+                @updateTime="updateSectionEnd"
                 @updateSectionTimeFromJellyfin="updateSectionTime"
+                @loopJellyfin="loopJellyfinAtEnd"
               />
-
-              <v-row v-if="editingTime" justify="end">
-                <v-btn
-                  x-large
-                  fab
-                  class="button"
-                  @click="updateTimes(section.id, section.start, section.end)"
-                >
-                  <v-icon> mdi-content-save </v-icon>
-                </v-btn>
-              </v-row>
             </v-container>
           </v-tab-item>
 
           <v-tab-item>
             <v-container>
+              <!-- i think the :topics below is incorrect 10/9/24 -->
               <SectionTopicsPanel
                 :topics="section.topics"
                 :item="section"
@@ -75,10 +69,14 @@
       </v-tab-item>
       <v-tab-item>
         <v-container>
-          <h1>
-            <v-icon left> mdi-screw-flat-top </v-icon>
-            <SectionControlPanel :video_duration="video_duration" />
-          </h1>
+          <SectionControlPanel
+            :video_duration="video_duration"
+            :jellyfin_status="jellyfin_status"
+            @deleteAllSections="deleteSections"
+            @createSection="createSection"
+            @startAtJellyfin="createSectionAtJellyfin('start')"
+            @endAtJellyfin="createSectionAtJellyfin('end')"
+          />
         </v-container>
       </v-tab-item>
     </v-tabs-items>
@@ -89,10 +87,11 @@
 export default {
   data() {
     return {
-      editingTime: false,
-      timeFormDirty: false,
+      video_duration: 0,
+      jellyfin_status: {},
+
       tabs: 0,
-      sectionTabs: [
+      sectionTabHeaders: [
         { text: "Times", icon: "mdi-clock-digital" },
         { text: "Topics", icon: "mdi-table-of-contents" },
         { text: "Musical Info", icon: "mdi-music" },
@@ -108,6 +107,28 @@ export default {
 
     removeTopic(args) {
       this.remove_item(args);
+    },
+
+    createSection(start, end) {
+      console.log("Creating section", start, end);
+
+      const args = {
+        start: start,
+        end: end,
+      };
+      this.create_section(args);
+    },
+    createSectionAtJellyfin(start_or_end) {
+      console.log("Creating section at jellyfin", start_or_end);
+      const args = {
+        start_or_end: start_or_end,
+      };
+      this.create_section_from_jellyfin(args);
+    },
+
+    deleteSections() {
+      console.log("Deleting all sections");
+      this.delete_all_sections();
     },
 
     updateSectionTime(section, start_or_end) {
@@ -134,21 +155,31 @@ export default {
       this.delete_section(args);
     },
 
-    loopJellyfinAt(value) {
+    loopJellyfinAtStart(value) {
+      console.log("Looping Jellyfin at", value, this.jellyfin_status);
+      this.loop_jellyfin(value);
+    },
+    loopJellyfinAtEnd(value) {
       console.log("Looping Jellyfin at", value, this.jellyfin_status);
       this.loop_jellyfin(value);
     },
 
-    updateTimes(item_id, start, end) {
-      console.log("Updating times", item_id, start, end);
+    updateSectionStart(section_id, new_time) {
+      console.log("Updating times", section_id);
       const args = {
-        item_id: item_id,
-        start: start,
-        end: end,
+        item_id: section_id,
+        start: new_time,
+      };
+      console.log(args);
+      this.update_times(args);
+    },
+    updateSectionEnd(section_id, new_time) {
+      console.log("Updating times", section_id);
+      const args = {
+        item_id: section_id,
+        end: new_time,
       };
       this.update_times(args);
-      this.editingTime = false;
-      this.timeFormDirty = false;
     },
   },
 };

@@ -143,7 +143,24 @@ def remove_topic(*args):
 
 def delete_section_from_db(section_id):
     logger.debug(f"Deleting Section: {section_id}")
-    # need to delete topics first (as-needed)
+    # need to delete the topics associated with the section if they aren't referenced elsewhere
+    # the below code is not working
+    #
+    # topics = list(
+    #     SectionTopicsModel.select(SectionTopicsModel.topic_id).where(
+    #         SectionTopicsModel.section_id == section_id
+    #     )
+    # )
+    # for topic_id in topics:
+    #     t = TopicModel.get_by_id(topic_id)
+    #     try:
+    #         t.delete_instance()
+    #     except Exception as e:
+    #         logger.error(e)
+    SectionTopicsModel.delete().where(
+        SectionTopicsModel.section_id == section_id
+    ).execute()
+
     SectionModel.delete_by_id(section_id)
 
 
@@ -172,9 +189,15 @@ def time_ago_string(dt):
 
 def update_section_times(*args):
     logger.debug(f"Updating Section Times: {args}")
-    section = SectionModel.get_by_id(args[0]["item_id"])
-    section.start = args[0]["start"]
-    section.end = args[0]["end"]
+    try:
+        section = SectionModel.get_by_id(args[0]["item_id"])
+    except Exception as e:
+        logger.error(e)
+        return
+    if "start" in args[0].keys():
+        section.start = args[0]["start"]
+    if "end" in args[0].keys():
+        section.end = args[0]["end"]
     section.save()
 
 
@@ -182,6 +205,7 @@ def loop_jellyfin(jellyfin_status, *args):
     logger.debug(f"Looping Jellyfin: {jellyfin_status} {args}")
     jf_client = MyJellyfinClient()
     jf_client.connect()
+    # need to load the video first if its not already loaded
     jf_client.seek_to(args[0])
     jf_client.play_pause()
     time.sleep(1.5)
@@ -212,12 +236,16 @@ def update_section_from_jellyfin(section_id, start_or_end, video, reactive_secti
 def SectionTabs(
     sectionItems,
     jellyfin_status,
+    video_duration,
     event_add_item,
     event_remove_item,
     event_delete_section,
     event_update_times,
     event_loop_jellyfin,
     event_update_section_from_jellyfin,
+    event_create_section,
+    event_delete_all_sections,
+    event_create_section_from_jellyfin,
 ):
     pass
 
@@ -250,121 +278,6 @@ def JellyfinControlPanel(
     api_key,
 ):
     pass
-
-
-@solara.component
-def SectionControlPanel(
-    video,
-    sections,
-    current_section,
-    section_dicts,
-    jellyfin_status,
-):
-    section_type = solara.use_reactive("intro")
-    logger.debug(f"Jellyfin Status at SectionControlPanel: {jellyfin_status.value}")
-    # existing sections
-    num_sections = solara.use_reactive(len(sections.value))
-
-    def clear_all_sections():
-        for section in sections.value:
-            logger.debug(f"Deleting Section: {section}")
-            delete_section_from_db(section.id)
-
-        sections.set([])
-
-    def create_1_section():
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=0, end=video.duration, section_type=section_type.value
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        sections.set(sections.value + [new_sect])
-
-    def split_into():
-        # returns the number of whole sections
-        sm = SectionManager.from_video(video)
-        number_of_even_sections = (
-            video.duration // AVERAGE_SECTION_LENGTH
-        )  # 5 minute sections
-
-        for i in range(number_of_even_sections):
-            new_id = sm.create_section(
-                start=i * (video.duration / number_of_even_sections),
-                end=(i + 1) * (video.duration / number_of_even_sections),
-                section_type="instrumental",
-            )
-            new_sect = SectionModel.get_by_id(new_id)
-            sections.set(sm.sections + [new_sect])
-            # section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
-            logger.debug(f"New Section ID: {new_id}")
-
-    def create_section_at_0():
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=0, end=AVERAGE_SECTION_LENGTH, section_type=section_type.value
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        sections.set(sections.value + [new_sect])
-
-    def create_section_at_jellyfin_position():
-        jf = MyJellyfinClient()
-        jf.connect()
-        status = jf.get_playing_status_from_jellyfin()
-        try:
-            pos = status["position"]
-
-        except Exception as e:
-            logger.error(f"Error getting position from Jellyfin: {e}")
-            return
-
-        sm = SectionManager.from_video(video)
-        section_end = (
-            (pos + AVERAGE_SECTION_LENGTH)
-            if pos + AVERAGE_SECTION_LENGTH < video.duration
-            else video.duration
-        )
-        new_sect_id = sm.create_section(
-            start=pos,
-            end=section_end,
-            section_type=section_type.value,
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        sections.set(sections.value + [new_sect])
-
-    with solara.Column(align="center"):
-        with solara.Row():
-            solara.Button(
-                "1 Section",
-                on_click=create_1_section,
-                classes=["button"],
-                disabled=(video.duration > MAX_SECTION_LENGTH),
-            )
-            solara.Button(
-                f"{video.duration // AVERAGE_SECTION_LENGTH} sections",
-                on_click=split_into,
-                classes=["button"],
-                disabled=(video.duration < AVERAGE_SECTION_LENGTH),
-            )
-            solara.Button(
-                label="Section at 0",
-                classes=["button"],
-                on_click=create_section_at_0,
-                disabled=(video.duration < AVERAGE_SECTION_LENGTH),
-            )
-            # logger.debug(f"Jellyfin Status: {jellyfin_status.value}")
-        with solara.Row():
-            solara.Button(
-                label="Section at Jellyfin",
-                classes=["button"],
-                on_click=create_section_at_jellyfin_position,
-            )
-            if num_sections.value > 0:
-                solara.Button(
-                    "Clear All Sections",
-                    on_click=clear_all_sections,
-                    outlined=True,
-                    classes=["button mywarning"],
-                )
 
 
 @solara.component
@@ -466,14 +379,14 @@ def AlbumPanel(
             for item in AlbumModel.select(AlbumModel.title).order_by(AlbumModel.title)
         ]
         album_title = solara.reactive(video.album.title if video.album else None)
-
-        solara.Button(label="Create Album", on_click=None, classes=["button"])
-        solara.Select(
-            label="Album",
-            values=albums,
-            value=album_title,
-            on_value=update_album,
-        )
+        with solara.Columns([6, 6]):
+            solara.Button(label="Create Album", on_click=None, classes=["button"])
+            solara.Select(
+                label="Choose Existing Album",
+                values=albums,
+                value=album_title,
+                on_value=update_album,
+            )
     else:
         solara.Text(f"Album: {video.album.title}")
 
@@ -547,6 +460,10 @@ def InfoPanel(
             f"Length: {seconds_to_hms(video.duration)}",
             classes=["medium-timer"],
         )
+    with solara.Row():
+        FilesPanel(
+            video=video,
+        )
 
 
 @solara.component
@@ -571,6 +488,122 @@ def SectionsPanel(
             [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
         )
 
+    section_type = solara.use_reactive("intro")
+    logger.debug(f"Jellyfin Status at SectionControlPanel: {jellyfin_status.value}")
+    # existing sections
+    num_sections = solara.use_reactive(len(reactive_sections.value))
+
+    def delete_all_sections(*args):
+        for section in reactive_sections.value:
+            logger.debug(f"Deleting Section: {section}")
+            delete_section_from_db(section.id)
+
+        reactive_sections.set([])
+
+    def create_section(*args):
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(
+            start=args[0]["start"], end=args[0]["end"], section_type=section_type.value
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
+    def create_section_at_jellyfin_position(*args):
+        jf = MyJellyfinClient()
+        jf.connect()
+        status = jf.get_playing_status_from_jellyfin()
+        try:
+            pos = status["position"]
+
+        except Exception as e:
+            logger.error(f"Error getting position from Jellyfin: {e}")
+            return
+
+        sm = SectionManager.from_video(video)
+        section_end = (
+            (pos + AVERAGE_SECTION_LENGTH)
+            if pos + AVERAGE_SECTION_LENGTH < video.duration
+            else video.duration
+        )
+        new_sect_id = sm.create_section(
+            start=pos,
+            end=section_end,
+            section_type=section_type.value,
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
+    def create_1_section():
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(
+            start=0, end=video.duration, section_type=section_type.value
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
+    def split_into():
+        # returns the number of whole sections
+        sm = SectionManager.from_video(video)
+        number_of_even_sections = (
+            video.duration // AVERAGE_SECTION_LENGTH
+        )  # 5 minute sections
+
+        for i in range(number_of_even_sections):
+            new_id = sm.create_section(
+                start=i * (video.duration / number_of_even_sections),
+                end=(i + 1) * (video.duration / number_of_even_sections),
+                section_type="instrumental",
+            )
+            new_sect = SectionModel.get_by_id(new_id)
+            reactive_sections.set(sm.sections + [new_sect])
+            # section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
+            logger.debug(f"New Section ID: {new_id}")
+
+    def create_section_at_0():
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(
+            start=0, end=AVERAGE_SECTION_LENGTH, section_type=section_type.value
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
+    def create_section_at_jellyfin_position(*args):
+        jf = MyJellyfinClient()
+        jf.connect()
+        status = jf.get_playing_status_from_jellyfin()
+        try:
+            pos = status["position"]
+
+        except Exception as e:
+            logger.error(f"Error getting position from Jellyfin: {e}")
+            return
+
+        try:
+            start_or_end = args[0]["start_or_end"]
+        except Exception as e:
+            logger.error(e)
+            return
+
+        sm = SectionManager.from_video(video)
+        if start_or_end == "start":
+            new_start = pos
+            new_end = (
+                (pos + AVERAGE_SECTION_LENGTH)
+                if (pos + AVERAGE_SECTION_LENGTH) < video.duration
+                else video.duration
+            )
+        else:
+            new_start = pos - AVERAGE_SECTION_LENGTH
+            new_end = pos
+
+        new_sect_id = sm.create_section(
+            start=new_start,
+            end=new_end,
+            section_type=section_type.value,
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
     if len(reactive_sections.value) > 0:
         tab_items = section_dicts[0].value
     else:
@@ -579,21 +612,17 @@ def SectionsPanel(
     SectionTabs(
         sectionItems=tab_items,
         jellyfin_status=jellyfin_status.value,
+        video_duration=video.duration,
         event_add_item=add_topic,
         event_remove_item=remove_topic,
         event_delete_section=delete_section,
         event_update_times=update_section_times,
         event_loop_jellyfin=lambda x: loop_jellyfin(jellyfin_status, x),
         event_update_section_from_jellyfin=update_section_from_jellyfin,
+        event_create_section=create_section,
+        event_delete_all_sections=delete_all_sections,
+        event_create_section_from_jellyfin=create_section_at_jellyfin_position,
     )
-
-    # SectionControlPanel(
-    #     video=video,
-    #     sections=reactive_sections,
-    #     current_section=None,
-    #     section_dicts=section_dicts,
-    #     jellyfin_status=jellyfin_status,
-    # )
 
 
 def register_vue_components():
@@ -639,6 +668,13 @@ def Page():
     video = VideoItem.get_details_for_video(video_id)
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
+    jf = MyJellyfinClient()
+    jf.connect()
+    tmp_jf_status = jellyfin_status.value
+    if jf.is_connected:
+        tmp_jf_status["status"] = "connected"
+    if jf.has_active_session():
+        tmp_jf_status["status"] = "active"
 
     def local_update_from_jellyfin(*args):
         update_section_from_jellyfin(
@@ -659,9 +695,7 @@ def Page():
                     router=router,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )
-                FilesPanel(
-                    video=video,
-                )
+
         SectionsPanel(
             video=video,
             reactive_sections=reactive_sections,

@@ -21,9 +21,7 @@
         :myclass="has_poster ? 'myprimary' : 'mywarning'"
         @myclicked="download_info"
       />
-    </v-row>
 
-    <v-row class="my-4" justify="center">
       <MyToolTipChip
         icon="mdi-music-note"
         message="Audio"

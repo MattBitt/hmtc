@@ -39,23 +39,10 @@
 <script>
 module.exports = {
   name: "SectionTopicsPanel",
-  props: { initialText: String, topics: Array, item: Object },
-  data() {
-    return {
-      topic: "",
-      // i think in order to use the following, i need to use the
-      // on-blur events
-      // topicRules: [(v) => !!v || "Topic is required"],
-      topicRules: [],
-      name: this.initialName,
-    };
-  },
-  emits: ["deleteSection"],
+  props: { topics: Array, item: Object },
+  emits: ["addTopic", "removeTopic"],
+
   methods: {
-    emitDeleteSection() {
-      console.log("Emitting in Section Admin");
-      this.$emit("deleteSection", 1);
-    },
     handleSubmitTopic(item_id, topic, num_topics) {
       console.log("Submitted Topic", item_id, topic);
       this.topics.push({ id: 0, text: topic });
@@ -82,6 +69,15 @@ module.exports = {
       // python function
       this.$emit("removeTopic", args);
     },
+  },
+  data() {
+    return {
+      topic: "",
+      // i think in order to use the following, i need to use the
+      // on-blur events
+      // topicRules: [(v) => !!v || "Topic is required"],
+      topicRules: [],
+    };
   },
 };
 </script>
