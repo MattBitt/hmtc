@@ -1,5 +1,6 @@
 import asyncio
 import time
+from typing import Callable
 
 import ipyvue
 import numpy as np
@@ -42,9 +43,36 @@ def Sandbox():
     pass
 
 
+@solara.component_vue("../components/shared/local_storage.vue")
+def LocalStorage(
+    key: str, value: str, on_value: Callable[[str], None] = None, debug: bool = False
+): ...
+
+
+counter = solara.reactive(0)
+
+
+def set_initial_value(value: str):
+    counter.value = int(value)
+
+
+def increment():
+    counter.value += 1
+
+
 @solara.component
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
 
     Sandbox()
+    LocalStorage(
+        key="my-counter",
+        value=str(counter.value),
+        on_value=set_initial_value,
+        debug=True,
+    )
+    solara.Button(f"Clicks: {counter.value}", on_click=increment)
+    solara.Markdown(
+        "Refresh the embedded page to see that we remember the counter value"
+    )

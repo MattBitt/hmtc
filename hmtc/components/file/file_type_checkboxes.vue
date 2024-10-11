@@ -1,6 +1,5 @@
 <template>
   <v-container class="" fluid>
-    <p class="myheader">Files</p>
     <v-row class="my-4" justify="center">
       <MyToolTipChip
         icon="mdi-information"

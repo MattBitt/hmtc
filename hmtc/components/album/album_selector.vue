@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <v-layout wrap>
     <v-flex xs6 md6>
       <v-subheader class="pa-0">Inital Item:{{ initialItem }}</v-subheader>
@@ -33,6 +33,7 @@ export default {
       icon: "mdi-null",
       label: "nulllll",
       initialItem: null,
+      selectedItem: null,
     };
   },
   methods: {
@@ -55,4 +56,4 @@ export default {
     this.initialItem = this.selectedItem;
   },
 };
-</script>
+</script> -->

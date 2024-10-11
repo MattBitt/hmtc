@@ -43,7 +43,7 @@ STORAGE = Path(config["paths"]["storage"]) / "videos"
 MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
 AVERAGE_SECTION_LENGTH = 300
-IMG_WIDTH = "500px"  # this isn't actually true on ipad, but it seems to look good
+IMG_WIDTH = "300px"
 
 loading = solara.reactive(False)
 jellyfin_status = solara.reactive(
@@ -107,6 +107,7 @@ def add_topic(*args):
         section_id=section_id, topic_id=topic.id, order=_order + 1
     )
     logger.debug(f"adding topic {topic} to section {section_id}")
+
     # t, created = TopicModel.get_or_create(text=args[0])
     # if created:
     #     logger.debug(f"Created topic {t.text}")
@@ -265,7 +266,7 @@ def FileTypeCheckboxes(
     pass
 
 
-@solara.component_vue("../components/shared/jellyfin_control_panel.vue")
+@solara.component_vue("../components/video/video_details_jf_bar.vue")
 def JellyfinControlPanel(
     session_id,
     jellyfin_id,
@@ -361,109 +362,98 @@ def FilesPanel(video):
     )
 
 
-@solara.component
-def AlbumPanel(
-    video,
+@solara.component_vue("../components/video/VideoInfoInputCard.vue")
+def VideoInfoInputCard(
+    albums,
+    selectedAlbum,
+    youtube_serieses,
+    selectedYoutubeSeries,
+    serieses,
+    selectedSeries,
+    episode_number,
+    event_update_video,
 ):
-    def update_album(*args):
-        logger.debug(f"Updating Album: {args}")
-        album = AlbumModel.select().where(AlbumModel.title == args[0]).get()
-        vid = VideoModel.get_by_id(video.id)
-        vid.album = album
-        vid.save()
-
-    if video.album is None:
-
-        albums = [
-            item.model_to_dict()["title"]
-            for item in AlbumModel.select(AlbumModel.title).order_by(AlbumModel.title)
-        ]
-        album_title = solara.reactive(video.album.title if video.album else None)
-        with solara.Columns([6, 6]):
-            solara.Button(label="Create Album", on_click=None, classes=["button"])
-            solara.Select(
-                label="Choose Existing Album",
-                values=albums,
-                value=album_title,
-                on_value=update_album,
-            )
-    else:
-        solara.Text(f"Album: {video.album.title}")
+    pass
 
 
 @solara.component
 def InfoPanel(
     video,
 ):
-
-    def update_youtube_series(*args):
-        logger.debug(f"Updating Youtube Series: {args}")
-        youtube_series = (
-            YoutubeSeriesModel.select().where(YoutubeSeriesModel.title == args[0]).get()
-        )
+    def update_video(*args):
+        logger.debug(f"Updating Video: {args}")
         vid = VideoModel.get_by_id(video.id)
-        vid.youtube_series = youtube_series
-        vid.save()
-
-    def update_series(*args):
-        logger.debug(f"Updating Series: {args}")
-        series = SeriesModel.select().where(SeriesModel.name == args[0]).get()
-        vid = VideoModel.get_by_id(video.id)
-        vid.series = series
-        vid.save()
+        try:
+            vid.album = (
+                AlbumModel.select().where(AlbumModel.title == args[0]["album"]).get()
+            )
+            vid.youtube_series = (
+                YoutubeSeriesModel.select()
+                .where(YoutubeSeriesModel.title == args[0]["youtube_series"])
+                .get()
+            )
+            vid.series = (
+                SeriesModel.select().where(SeriesModel.name == args[0]["series"]).get()
+            )
+            vid.episode = args[0]["episode_number"]
+            vid.save()
+        except Exception as e:
+            logger.error(e)
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
-
-    serieses = [
-        item.model_to_dict()["name"]
-        for item in SeriesModel.select(SeriesModel.name).order_by(SeriesModel.name)
+    album_dicts = [
+        dict(id=a.id, title=a.title)
+        for a in AlbumModel.select().order_by(AlbumModel.title)
     ]
-    series_name = solara.reactive(video.series.name if video.series else None)
-    youtube_serieses = [
-        item.model_to_dict()["title"]
-        for item in YoutubeSeriesModel.select(YoutubeSeriesModel.title).order_by(
-            YoutubeSeriesModel.title
-        )
+    youtube_series_dicts = [
+        dict(id=a.id, title=a.title)
+        for a in YoutubeSeriesModel.select().order_by(YoutubeSeriesModel.title)
     ]
-    youtube_series_title = solara.reactive(
-        video.youtube_series.title if video.youtube_series else None
-    )
-
-    with solara.Row():
-        solara.Image(image, width=IMG_WIDTH)
-        with solara.Column():
-            solara.Select(
-                label="Series",
-                values=serieses,
-                value=series_name,
-                on_value=update_series,
-            )
-            solara.Select(
-                label="Youtube Series",
-                values=youtube_serieses,
-                value=youtube_series_title,
-                on_value=update_youtube_series,
-            )
+    series_dicts = [
+        dict(id=a.id, name=a.name)
+        for a in SeriesModel.select().order_by(SeriesModel.name)
+    ]
     with solara.Row(justify="center"):
-        solara.Text(
-            f"{video.title[:50]}",
-            classes=["video-info-text"],
-        )
+        with solara.Columns([6, 6]):
+            with solara.Column():
+                with solara.Row(justify="center"):
+                    solara.Image(image, width=IMG_WIDTH)
+                with solara.Row(justify="center"):
+                    solara.Text(
+                        f"{video.title[:50]}",
+                        classes=["video-info-text"],
+                    )
 
-    with solara.Row():
-        solara.Text(
-            f"Uploaded: {time_ago_string(video.upload_date)}",
-            classes=["medium-timer"],
-        )
-        solara.Text(
-            f"Length: {seconds_to_hms(video.duration)}",
-            classes=["medium-timer"],
-        )
-    with solara.Row():
-        FilesPanel(
-            video=video,
-        )
+                with solara.Row(justify="center"):
+                    solara.Text(
+                        f"Uploaded: {time_ago_string(video.upload_date)}",
+                        classes=["medium-timer"],
+                    )
+                with solara.Row(justify="center"):
+                    solara.Text(
+                        f"Length: {seconds_to_hms(video.duration)}",
+                        classes=["medium-timer"],
+                    )
+                with solara.Row():
+                    FilesPanel(
+                        video=video,
+                    )
+            with solara.Column():
+                with solara.Row():
+
+                    VideoInfoInputCard(
+                        albums=album_dicts,
+                        youtube_serieses=youtube_series_dicts,
+                        selectedAlbum=video.album.title if video.album else None,
+                        selectedYoutubeSeries=(
+                            video.youtube_series.title if video.youtube_series else None
+                        ),
+                        serieses=series_dicts,
+                        selectedSeries=(video.series.name if video.series else None),
+                        episode_number=video.episode,
+                        event_update_video=lambda x: update_video(x),
+                    ),
 
 
 @solara.component
@@ -509,65 +499,7 @@ def SectionsPanel(
         reactive_sections.set(reactive_sections.value + [new_sect])
 
     def create_section_at_jellyfin_position(*args):
-        jf = MyJellyfinClient()
-        jf.connect()
-        status = jf.get_playing_status_from_jellyfin()
-        try:
-            pos = status["position"]
 
-        except Exception as e:
-            logger.error(f"Error getting position from Jellyfin: {e}")
-            return
-
-        sm = SectionManager.from_video(video)
-        section_end = (
-            (pos + AVERAGE_SECTION_LENGTH)
-            if pos + AVERAGE_SECTION_LENGTH < video.duration
-            else video.duration
-        )
-        new_sect_id = sm.create_section(
-            start=pos,
-            end=section_end,
-            section_type=section_type.value,
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
-
-    def create_1_section():
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=0, end=video.duration, section_type=section_type.value
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
-
-    def split_into():
-        # returns the number of whole sections
-        sm = SectionManager.from_video(video)
-        number_of_even_sections = (
-            video.duration // AVERAGE_SECTION_LENGTH
-        )  # 5 minute sections
-
-        for i in range(number_of_even_sections):
-            new_id = sm.create_section(
-                start=i * (video.duration / number_of_even_sections),
-                end=(i + 1) * (video.duration / number_of_even_sections),
-                section_type="instrumental",
-            )
-            new_sect = SectionModel.get_by_id(new_id)
-            reactive_sections.set(sm.sections + [new_sect])
-            # section_dicts.set(sections.value + [SectionManager.get_section_details(new_id)])
-            logger.debug(f"New Section ID: {new_id}")
-
-    def create_section_at_0():
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=0, end=AVERAGE_SECTION_LENGTH, section_type=section_type.value
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
-
-    def create_section_at_jellyfin_position(*args):
         jf = MyJellyfinClient()
         jf.connect()
         status = jf.get_playing_status_from_jellyfin()
@@ -656,6 +588,11 @@ def register_vue_components():
         "../components/section/section_control_panel.vue",
         __file__,
     )
+    ipyvue.register_component_from_file(
+        "AutoComplete",
+        "../components/shared/AutoComplete.vue",
+        __file__,
+    )
 
 
 @solara.component
@@ -682,23 +619,22 @@ def Page():
         )
 
     with solara.Column(classes=["main-container"]):
-        with solara.Columns([8, 4]):
-            with solara.Column():
-                InfoPanel(
-                    video=video,
-                )
-                AlbumPanel(video=video)
-            with solara.Column(gap="2px"):
-                JFPanel(
-                    video=video,
-                    jellyfin_status=jellyfin_status,
-                    router=router,
-                    update_section_from_jellyfin=local_update_from_jellyfin,
-                )
+        with solara.Column(style={"width": "100%"}):
+            JFPanel(
+                video=video,
+                jellyfin_status=jellyfin_status,
+                router=router,
+                update_section_from_jellyfin=local_update_from_jellyfin,
+            )
 
-        SectionsPanel(
-            video=video,
-            reactive_sections=reactive_sections,
-            jellyfin_status=jellyfin_status,
-            update_section_from_jellyfin=local_update_from_jellyfin,
-        )
+        with solara.Column():
+            InfoPanel(
+                video=video,
+            )
+
+            SectionsPanel(
+                video=video,
+                reactive_sections=reactive_sections,
+                jellyfin_status=jellyfin_status,
+                update_section_from_jellyfin=local_update_from_jellyfin,
+            )
