@@ -17,11 +17,20 @@
     <v-tabs-items v-model="tabs">
       <v-tab-item v-for="section in sectionItems" :key="section.id">
         <v-tabs vertical>
+          <v-tab>Summary</v-tab>
           <v-tab v-for="sectionTab in sectionTabHeaders" :key="sectionTab.id">
             <v-icon left>{{ sectionTab.icon }} </v-icon>
             {{ sectionTab.text }}
           </v-tab>
 
+          <v-tab-item>
+            <v-container class="px-10">
+              <SummaryPanel
+                :section="section"
+                :topics="section.topics"
+              ></SummaryPanel>
+            </v-container>
+          </v-tab-item>
           <v-tab-item>
             <v-container class="px-10">
               <SectionTimePanel

@@ -384,17 +384,28 @@ def InfoPanel(
         logger.debug(f"Updating Video: {args}")
         vid = VideoModel.get_by_id(video.id)
         try:
-            vid.album = (
-                AlbumModel.select().where(AlbumModel.title == args[0]["album"]).get()
-            )
-            vid.youtube_series = (
-                YoutubeSeriesModel.select()
-                .where(YoutubeSeriesModel.title == args[0]["youtube_series"])
-                .get()
-            )
-            vid.series = (
-                SeriesModel.select().where(SeriesModel.name == args[0]["series"]).get()
-            )
+
+            if args[0]["album"] != "" and args[0]["album"] is not None:
+                vid.album = (
+                    AlbumModel.select()
+                    .where(AlbumModel.title == args[0]["album"])
+                    .get()
+                )
+            if (
+                args[0]["youtube_series"] != ""
+                and args[0]["youtube_series"] is not None
+            ):
+                vid.youtube_series = (
+                    YoutubeSeriesModel.select()
+                    .where(YoutubeSeriesModel.title == args[0]["youtube_series"])
+                    .get()
+                )
+            if args[0]["series"] != "":
+                vid.series = (
+                    SeriesModel.select()
+                    .where(SeriesModel.name == args[0]["series"])
+                    .get()
+                )
             vid.episode = args[0]["episode_number"]
             vid.save()
         except Exception as e:
@@ -591,6 +602,11 @@ def register_vue_components():
     ipyvue.register_component_from_file(
         "AutoComplete",
         "../components/shared/AutoComplete.vue",
+        __file__,
+    )
+    ipyvue.register_component_from_file(
+        "SummaryPanel",
+        "../components/section/summary_panel.vue",
         __file__,
     )
 

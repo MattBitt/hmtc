@@ -41,13 +41,11 @@ def save_album(dict_of_items):
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Album ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
-        AlbumModel.create(**edited_item)
-        return
+        album = AlbumModel.create(**edited_item)
 
     album.title = edited_item["title"]
     album.release_date = edited_item["release_date"]
     album.save()
-    force_update_counter.set(force_update_counter.value + 1)
 
 
 @solara.component

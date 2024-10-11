@@ -30,6 +30,8 @@ def SeriesTable(
 
 def delete_youtube_series(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
+    youtube_series = YoutubeSeries.get_by_id(item["id"])
+    youtube_series.delete_instance()
 
 
 def remove_series_from_youtube_series(item):
@@ -49,21 +51,11 @@ def save_youtube_series(dict_of_items):
         youtube_series = YoutubeSeries.get_by_id(item["id"])
     except Exception:
         ## this should probably check item for id instead of edited_item
-        logger.error(f"Could not find YoutubeSeries with id: {item['id']}")
-        # edited_item["id"] = None  # db should assign id
-        # YoutubeSeries.create(**edited_item)
-        return
-    if selected_series is not None and selected_series["id"] is not None:
-        if youtube_series.series is not None:
-            logger.debug(f"Selected series: {selected_series}")
-            if selected_series["id"] != youtube_series.series.id:
-                series = SeriesModel.get_by_id(selected_series["id"])
+        logger.debug(f"YoutubeSeries ID not found. Creating {edited_item}")
+        youtube_series = YoutubeSeries.create(title=edited_item["title"])
 
-                logger.debug(
-                    f"Series id is different. Need to update to {series} from {youtube_series.series.name}"
-                )
-        else:
-            youtube_series = SeriesModel.get_by_id(selected_series["id"])
+    if selected_series["id"] is not None:
+        series = SeriesModel.get_by_id(selected_series["id"])
 
     youtube_series.title = edited_item["title"]
     if series is not None:
@@ -73,22 +65,9 @@ def save_youtube_series(dict_of_items):
 
 @solara.component
 def Page():
-    base_query = (
-        YoutubeSeries.select(
-            YoutubeSeries.id,
-            YoutubeSeries.title,
-            YoutubeSeries.series_id,
-            fn.COUNT(VideoModel.youtube_series_id).coerce(False).alias("video_count"),
-        )
-        .join(VideoModel, peewee.JOIN.LEFT_OUTER)
-        .switch(YoutubeSeries)
-        .join(SeriesModel, peewee.JOIN.LEFT_OUTER)
-        .where(VideoModel.contains_unique_content == True)
-        .group_by(YoutubeSeries.id, YoutubeSeries.title)
-        .order_by(
-            YoutubeSeries.title.asc(),
-        )
-    )
+    base_query = YoutubeSeries.select(
+        YoutubeSeries.id, YoutubeSeries.title, YoutubeSeries.series_id
+    ).order_by(YoutubeSeries.title)
     router = solara.use_router()
     MySidebar(router)
     serieses = [
@@ -108,6 +87,6 @@ def Page():
             serieses=serieses,
             selected_series={"id": None, "name": None},
             event_save_youtube_series=save_youtube_series,
-            event_delete_video_item=delete_youtube_series,
+            event_delete_youtube_series=delete_youtube_series,
             event_remove_series_from_youtube_series=remove_series_from_youtube_series,
         )

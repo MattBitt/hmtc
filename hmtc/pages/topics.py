@@ -23,6 +23,8 @@ def TopicTable(
 
 def delete_topic(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
+    topic = TopicModel.get_by_id(item["id"])
+    topic.delete_instance()
 
 
 def save_topic(dict_of_items):
@@ -68,5 +70,5 @@ def Page():
         TopicTable(
             items=items,
             event_save_topic=save_topic,
-            event_delete_video_item=delete_topic,
+            event_delete_topic=delete_topic,
         )

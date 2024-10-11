@@ -11,6 +11,8 @@ from solara.lab import Task, use_task
 
 from hmtc.components.sandbox_component.sandbox import FancyComponent
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Section as SectionModel
+from hmtc.models import SectionTopics as SectionTopicsModel
 
 
 def import_vue_components():
@@ -38,8 +40,8 @@ def import_vue_components():
     )
 
 
-@solara.component_vue("sandbox.vue")
-def Sandbox():
+@solara.component_vue("../components/section/summary_panel.vue")
+def Sandbox(section, topics):
     pass
 
 
@@ -64,8 +66,18 @@ def increment():
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
+    sect = (
+        SectionModel.select(SectionModel.id, SectionModel.start, SectionModel.end)
+        .order_by(fn.Random())
+        .get()
+        .model_to_dict()
+    )
+    topics = SectionTopicsModel.select(SectionTopicsModel.topic_id).where(
+        SectionTopicsModel.section_id == sect["id"]
+    )
+    topic_dicts = [t.topic.model_to_dict() for t in topics]
 
-    Sandbox()
+    Sandbox(section=sect, topics=topic_dicts)
     LocalStorage(
         key="my-counter",
         value=str(counter.value),

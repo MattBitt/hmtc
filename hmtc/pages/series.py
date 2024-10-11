@@ -25,6 +25,8 @@ def SeriesTable(
 
 def delete_series(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
+    series = Series.get_by_id(item["id"])
+    series.delete_instance()
 
 
 def save_series(dict_of_items):
@@ -74,5 +76,5 @@ def Page():
         SeriesTable(
             items=items,
             event_save_series=save_series,
-            event_delete_video_item=delete_series,
+            event_delete_series=delete_series,
         )

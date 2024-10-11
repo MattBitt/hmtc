@@ -1,6 +1,7 @@
 <template>
   <v-autocomplete
     v-model="model"
+    class="selector"
     :items="items"
     :item-text="itemText"
     :filter="customFilter"
@@ -76,3 +77,4 @@ module.exports = {
   },
 };
 </script>
+<style></style>
