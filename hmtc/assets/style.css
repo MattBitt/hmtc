@@ -46,8 +46,8 @@ a {
 
 .main-container {
     background-color: var(--surface) !important;
-    padding: 0px;
-    margin: 0px;
+    padding: 2px;
+    margin: 2px;
   }
 
 

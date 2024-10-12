@@ -17,7 +17,6 @@
     <v-tabs-items v-model="tabs">
       <v-tab-item v-for="section in sectionItems" :key="section.id">
         <v-tabs vertical>
-          <v-tab>Summary</v-tab>
           <v-tab v-for="sectionTab in sectionTabHeaders" :key="sectionTab.id">
             <v-icon left>{{ sectionTab.icon }} </v-icon>
             {{ sectionTab.text }}
@@ -101,9 +100,10 @@ export default {
 
       tabs: 0,
       sectionTabHeaders: [
+        { text: "Summary", icon: "mdi-sigma" },
         { text: "Times", icon: "mdi-clock-digital" },
         { text: "Topics", icon: "mdi-table-of-contents" },
-        { text: "Musical Info", icon: "mdi-music" },
+        { text: "Musical", icon: "mdi-music" },
         { text: "Admin", icon: "mdi-screw-flat-top" },
       ],
       video_duration: 0,
@@ -165,11 +165,9 @@ export default {
     },
 
     loopJellyfinAtStart(value) {
-      console.log("Looping Jellyfin at", value, this.jellyfin_status);
       this.loop_jellyfin(value);
     },
     loopJellyfinAtEnd(value) {
-      console.log("Looping Jellyfin at", value, this.jellyfin_status);
       this.loop_jellyfin(value);
     },
 

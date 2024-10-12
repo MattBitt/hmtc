@@ -106,10 +106,10 @@ class MyJellyfinClient:
                 self.found_users_sessions = True
                 return
         else:
-            pass
-            # logger.debug(f"Number of sessions found: {len(sessions)}")
-            # for s in sessions:
-            # logger.debug(f"Session: {s}")
+
+            logger.debug(f"Number of sessions found: {len(sessions)}")
+            for s in sessions:
+                logger.debug(f"Session: {s}")
 
         user_sessions = [
             x["UserName"]
@@ -155,18 +155,46 @@ class MyJellyfinClient:
                 if self.active_session["PlayState"]["IsPaused"] == True
                 else "playing"
             )
-            return {
-                "jf_id": self.media_item["Id"],
-                "title": self.media_item["Name"],
-                "path": self.media_item["Path"],
-                "status": self.play_status,
-                "position": self.position,
-            }
         else:
             self.media_item = None
             self.position = 0
             self.play_status = "stopped"
-            return None
+        return self.status_dict()
+
+        user: str = field(init=False)
+        url: str = field(init=False)
+        password: str = field(init=False)
+
+        is_connected: bool = False
+        active_session: defaultdict[dict] = field(
+            default_factory=lambda: defaultdict(dict)
+        )
+        can_seek: bool = False
+        found_users_sessions: bool = False
+
+    def status_dict(self):
+        if self.media_item is None:
+            return {
+                "jf_id": None,
+                "title": None,
+                "path": None,
+                "status": "stopped",
+                "position": 0,
+                "is_connected": self.is_connected,
+                "active_session": self.active_session,
+                "session_id": self.session_id,
+            }
+
+        return {
+            "jf_id": self.media_item["Id"],
+            "title": self.media_item["Name"],
+            "path": self.media_item["Path"],
+            "status": self.play_status,
+            "position": self.position,
+            "is_connected": self.is_connected,
+            "active_session": self.active_session,
+            "session_id": self.session_id,
+        }
 
     # def now_playing(self):
     #     pass

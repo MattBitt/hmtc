@@ -56,7 +56,6 @@ module.exports = {
       this.$emit("deleteAllSections");
     },
     createOneSection() {
-      console.log("Jellyfin status", this.jellyfin_status);
       console.log("Creating a new section");
       this.$emit("createSection", 0, this.video_duration);
     },

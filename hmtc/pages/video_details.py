@@ -202,12 +202,18 @@ def update_section_times(*args):
     section.save()
 
 
-def loop_jellyfin(jellyfin_status, *args):
-    logger.debug(f"Looping Jellyfin: {jellyfin_status} {args}")
+def loop_jellyfin(*args):
+
     jf_client = MyJellyfinClient()
     jf_client.connect()
     # need to load the video first if its not already loaded
-    jf_client.seek_to(args[0])
+    try:
+        new_pos = int(args[0])
+    except Exception as e:
+        logger.error(f"Unable to understand postion from args {args} {e}")
+        return
+
+    jf_client.seek_to(new_pos)
     jf_client.play_pause()
     time.sleep(1.5)
     jf_client.play_pause()
@@ -236,7 +242,7 @@ def update_section_from_jellyfin(section_id, start_or_end, video, reactive_secti
 @solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
 def SectionTabs(
     sectionItems,
-    jellyfin_status,
+    jellyfin_status,  # used in section_control_panel
     video_duration,
     event_add_item,
     event_remove_item,
@@ -284,9 +290,9 @@ def JellyfinControlPanel(
 @solara.component
 def JFPanel(
     video,
-    jellyfin_status,
     router,
     update_section_from_jellyfin,
+    jellyfin_status=None,
 ):
     def vue_link_clicked(item):
         # need to add a check to make sure the route is existing
@@ -446,10 +452,7 @@ def InfoPanel(
                         f"Length: {seconds_to_hms(video.duration)}",
                         classes=["medium-timer"],
                     )
-                with solara.Row():
-                    FilesPanel(
-                        video=video,
-                    )
+
             with solara.Column():
                 with solara.Row():
 
@@ -490,7 +493,7 @@ def SectionsPanel(
         )
 
     section_type = solara.use_reactive("intro")
-    logger.debug(f"Jellyfin Status at SectionControlPanel: {jellyfin_status.value}")
+
     # existing sections
     num_sections = solara.use_reactive(len(reactive_sections.value))
 
@@ -560,7 +563,7 @@ def SectionsPanel(
         event_remove_item=remove_topic,
         event_delete_section=delete_section,
         event_update_times=update_section_times,
-        event_loop_jellyfin=lambda x: loop_jellyfin(jellyfin_status, x),
+        event_loop_jellyfin=lambda x: loop_jellyfin(x),
         event_update_section_from_jellyfin=update_section_from_jellyfin,
         event_create_section=create_section,
         event_delete_all_sections=delete_all_sections,
@@ -623,6 +626,7 @@ def Page():
     reactive_sections = solara.use_reactive(sm.sections)
     jf = MyJellyfinClient()
     jf.connect()
+    status_dict = solara.use_reactive(jf.get_playing_status_from_jellyfin())
     tmp_jf_status = jellyfin_status.value
     if jf.is_connected:
         tmp_jf_status["status"] = "connected"
@@ -635,13 +639,17 @@ def Page():
         )
 
     with solara.Column(classes=["main-container"]):
-        with solara.Column(style={"width": "100%"}):
-            JFPanel(
-                video=video,
-                jellyfin_status=jellyfin_status,
-                router=router,
-                update_section_from_jellyfin=local_update_from_jellyfin,
-            )
+        with solara.Columns([5, 7]):
+
+            with solara.Row(gap="0px"):
+                FilesPanel(
+                    video=video,
+                )
+                JFPanel(
+                    video=video,
+                    router=router,
+                    update_section_from_jellyfin=local_update_from_jellyfin,
+                )
 
         with solara.Column():
             InfoPanel(

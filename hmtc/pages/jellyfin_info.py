@@ -11,4 +11,5 @@ def Page():
     solara.Markdown("Hello, Jellyfin!")
     jf = MyJellyfinClient()
     jf.connect()
+
     solara.Text(f"Jellyfin object: {jf}")
