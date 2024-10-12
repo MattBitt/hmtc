@@ -25,44 +25,66 @@
             </v-btn>
           </span>
 
-          <span v-else justify="center">
-            <v-btn class="button" @click="open_video_in_jellyfin(jellyfin_id)"
+          <!-- <span
+            v-else-if=""
+            justify="center"
+          > -->
+          <span
+            v-else-if="
+              (JSON.stringify(this.jellyfin_status.session_id) != '{}') &
+              this.jellyfin_status.is_connected
+            "
+          >
+            <v-btn
+              class="button"
+              @click="open_video_in_jellyfin(this.jellfin_status?.jellyfin_id)"
               >Open in Jellyfin</v-btn
             >
           </span>
         </v-row>
       </v-col>
       <v-col cols="4">
-        <v-row justify="end" class="mr-4 mt-1">
+        <v-row justify="end" class="">
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn v-bind="attrs" v-on="on">
-                <v-badge :color="jellyfinColor" inline>
-                  <span>
-                    <v-img
-                      max-width="40px"
-                      max-height="40px"
-                      src="/static/public/icons/jellyfin.256x256.png"
-                    ></v-img>
-                  </span>
-                </v-badge>
-              </v-btn>
+              <v-badge :color="jellyfinColor" inline>
+                <v-btn text v-bind="attrs" v-on="on">
+                  <v-img
+                    max-width="40px"
+                    max-height="40px"
+                    src="/static/public/icons/jellyfin.256x256.png"
+                  ></v-img>
+                </v-btn>
+              </v-badge>
             </template>
             <v-list>
-              <v-list-item>Page Jellyfin ID</v-list-item>
-              <v-list-item>{{ jellyfin_id }}</v-list-item>
-              <v-list-item>Client Jellyfin id:</v-list-item>
-              <v-list-item>{{ loadedItemJellyfinId }}</v-list-item>
+              <v-list-item
+                >Is Connected:
+                {{ this.jellyfin_status.is_connected }}</v-list-item
+              >
+              <v-list-item
+                >Jellyfin ID:
+                {{ this.jellyfin_status?.jellyfin_id }} (Client)</v-list-item
+              >
+              <v-list-item
+                >Jellyfin ID:{{ page_jellyfin_id }} (Page)</v-list-item
+              >
+              <v-list-item>HaveBothIDs{{ HaveBothIDs }}</v-list-item>
+              <v-list-item>PageMatchesAudio {{ PageMatchesAudio }}</v-list-item>
+              <v-list-item
+                >JF Session: {{ jellyfin_status.session_id }}</v-list-item
+              >
+              <v-list-item>is Paused {{ isPaused }}</v-list-item>
             </v-list>
           </v-menu>
         </v-row>
       </v-col>
     </v-row>
     <v-row id="row2">
-      <v-row v-if="HaveBothIDs & !PageMatchesAudio">
+      <v-row v-if="HaveBothIDs & !PageMatchesAudio & hasItemLoaded">
         <span class="mywarning"> What You See != What You Hear!</span>
 
-        <v-btn text @click="open_detail_page(loadedItemJellyfinId)">Page</v-btn>
+        <v-btn text @click="loadPageForPlayingAudio()">Page</v-btn>
 
         <span>Change?</span>
 
@@ -72,49 +94,34 @@
   </v-container>
 </template>
 <script>
-export default {
+module.exports = {
+  name: "VideoDetailsJFBar",
+  props: { jellyfin_status: Object, page_jellyfin_id: String, api_key: String },
+
   data() {
     return {
-      has_active_session: false,
-      is_server_connected: false,
-      can_seek: false,
-      logoBackground: "",
-      debugMode: false,
-      is_connected: false,
       hasItemLoaded: false,
-      loadedItemJellyfinId: "",
+      debugMode: false,
+      // page_jellyfin_id: "",
+      jellyfin_status: {},
+
       currentPosition: "",
       isPaused: true,
       liveUpdating: false,
-      session_id: "",
-      jellyfin_id: "",
-      api_key: "",
       intervalID: "",
       fetchedResponse: "",
     };
   },
   methods: {
-    demo() {
-      console.log("Function called!!");
-      //return Promise.resolve("Success");
-      // or
-      return Promise.reject("Failure");
-    },
-    example() {
-      this.demo().then(
-        (message) => {
-          console.log("Then success:" + message);
-        },
-        (message) => {
-          console.log("Then failure:" + message);
-        }
-      );
+    loadPageForPlayingAudio() {
+      // BROKEN
+      // if (this.jellyfin_status.jellyfin_id != null) {
+      //   this.open_detail_page(this.jellyfin_status.jellyfin_id);
+      // }
     },
     getPlayStatus() {
       // GET request using fetch with set headers
-      if (this.session_id == "") {
-        // console.log("session_id is empty");
-        this.logoBackground = "";
+      if (this.jellyfin_status.session_id == "") {
         return;
       }
       const fetchPromise = fetch(
@@ -126,27 +133,23 @@ export default {
       fetchPromise.then((response) => {
         if (response.status == 200) {
           response.json().then((data) => {
-            const session = data.find((item) => item.Id === this.session_id);
+            const session = data.find(
+              (item) => item.Id === this.jellyfin_status.session_id
+            );
             if (session) {
               this.fetchedResponse = JSON.stringify(session);
-              this.is_connected = true;
-              this.logoBackground = "mylight";
               if (session.NowPlayingItem) {
                 this.hasItemLoaded = true;
-                this.logoBackground = "";
-                this.loadedItemJellyfinId = session.NowPlayingItem.Id;
+                // this.page_jellyfin_id = session.NowPlayingItem.Id;
+                // shouldn't modify since its a prop, right?
                 this.currentPosition = Math.floor(
                   session.PlayState.PositionTicks / 10_000_000
                 );
                 this.isPaused = session.PlayState.IsPaused;
               } else {
                 this.hasItemLoaded = false;
-                this.logoBackground = "myprimary";
-                // console.log("Nothing is playing");
               }
             } else {
-              this.is_connected = false;
-              this.logoBackground = "mywarning";
               this.turnOffUpdating();
             }
           });
@@ -179,14 +182,11 @@ export default {
     },
   },
   created() {
-    console.log("Jellyfin Control Panel created");
-    if (this.is_server_connected) {
-      console.log("is_server was connected is true");
-      this.is_connected = true;
+    if (this.jellyfin_status.is_connected) {
       this.getPlayStatus();
       this.turnOnUpdating();
     } else {
-      this.logoBackground = "myerror";
+      console.log("Not connected. not updating...");
     }
   },
   computed: {
@@ -202,19 +202,37 @@ export default {
         .substring(11, 19);
     },
     PageMatchesAudio() {
-      return this.jellyfin_id == this.loadedItemJellyfinId;
+      return this.jellyfin_status.jellyfin_id == this.page_jellyfin_id;
     },
     HaveBothIDs() {
-      return this.jellyfin_id != "" && this.loadedItemJellyfinId != "";
+      console.log(
+        this.jellyfin_status.jellyfin_id,
+        this.page_jellyfin_id,
+        this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
+      );
+      return (
+        this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
+      );
     },
     jellyfinColor() {
       if (this.PageMatchesAudio & this.HaveBothIDs) {
-        return "primary";
+        // item is loaded, and matches the page
+        // enable all jellyfin controls on the page
+        return "myprimary";
+      } else if (this.hasItemLoaded) {
+        // item is loaded, a user session was found, but not the same as the page
+        return "mywarning";
+      } else if (this.jellyfin_status.session_id != "") {
+        // jellyfin is connected, a user session was found,
+        // but no item is loaded
+        return "mylight";
+      } else if (this.jellyfin_status.is_connected) {
+        // jellyfin is connected, but no user session was found
+        return "mydark";
+      } else {
+        // jellyfin isn't connected
+        return "myerror";
       }
-      if (this.hasItemLoaded) {
-        return "warning";
-      }
-      return this.is_connected ? "" : "error";
     },
   },
 };

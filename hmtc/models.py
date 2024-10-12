@@ -790,6 +790,17 @@ class File(BaseModel):
         # p = Path(self.path) / (self.filename + self.extension)
         # return str(p)
 
+    # used to serialize model to dict for vue
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "path": self.path,
+            "filename": self.filename,
+            "file_type": self.file_type,
+            "video_id": self.video.id if self.video else None,
+        }
+        return new_dict
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Track(BaseModel):

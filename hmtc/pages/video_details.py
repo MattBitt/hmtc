@@ -9,6 +9,7 @@ from loguru import logger
 
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
@@ -46,15 +47,6 @@ AVERAGE_SECTION_LENGTH = 300
 IMG_WIDTH = "300px"
 
 loading = solara.reactive(False)
-jellyfin_status = solara.reactive(
-    dict(
-        status="initial",
-        color="mylight",
-        client=None,
-        video_jellyfin_id=None,
-        current_position=None,
-    )
-)
 
 
 def parse_url_args():
@@ -239,6 +231,27 @@ def update_section_from_jellyfin(section_id, start_or_end, video, reactive_secti
     loading.set(False)
 
 
+def get_video_files(video_id, youtube_id):
+    db_files = (
+        FileModel.select()
+        .where(FileModel.video_id == video_id)
+        .order_by(FileModel.filename)
+    )
+    if len(db_files) == 0:
+        logger.error(f"No files found for video {video_id}")
+        if youtube_id is None:
+            logger.error("No youtube id found")
+            return [], []
+        folder_to_search = STORAGE / youtube_id
+    else:
+        folder_to_search = Path(db_files[0].path)
+
+    folder_files = [x for x in list(folder_to_search.rglob("*")) if x.is_file()]
+    if folder_files != []:
+        folder_files = sorted(folder_files, key=lambda x: x.name)
+    return db_files, folder_files
+
+
 @solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
 def SectionTabs(
     sectionItems,
@@ -259,6 +272,8 @@ def SectionTabs(
 
 @solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
 def FileTypeCheckboxes(
+    db_files,
+    folder_files,
     has_audio: bool = False,
     has_video: bool = False,
     has_subtitle: bool = False,
@@ -274,10 +289,8 @@ def FileTypeCheckboxes(
 
 @solara.component_vue("../components/video/video_details_jf_bar.vue")
 def JellyfinControlPanel(
-    session_id,
-    jellyfin_id,
-    is_server_connected,
-    has_active_session,
+    jellyfin_status,
+    page_jellyfin_id,
     event_open_detail_page,
     event_open_video_in_jellyfin,
     event_playpause_jellyfin,
@@ -290,12 +303,13 @@ def JellyfinControlPanel(
 @solara.component
 def JFPanel(
     video,
+    jf,
     router,
     update_section_from_jellyfin,
-    jellyfin_status=None,
 ):
     def vue_link_clicked(item):
         # need to add a check to make sure the route is existing
+
         if item is not None:
             try:
                 playing_vid = (
@@ -303,27 +317,25 @@ def JFPanel(
                     .where(VideoModel.jellyfin_id == item)
                     .get_or_none()
                 )
-                router.push(f"/video-details/{playing_vid.id}")
+                if playing_vid is not None:
+                    router.push(f"/video-details/{playing_vid.id}")
+                else:
+                    logger.error(f"Video not found in database: {item}")
             except Exception as e:
                 logger.error(e)
 
-    jf = MyJellyfinClient()
     try:
-        jf.connect()
+        status_dict = jf.get_playing_status_from_jellyfin()
     except Exception as e:
         logger.error(f"Error connecting to Jellyfin from Video Details Page: {e}")
 
-    if jf.has_active_session():
-        session_id = jf.active_session["Id"]
-    else:
-        session_id = ""
-
+    reactive_status = solara.use_reactive(status_dict)
     JellyfinControlPanel(
-        is_server_connected=jf.is_connected,
-        has_active_session=jf.has_active_session(),
-        can_seek=jf.can_seek,
-        session_id=session_id,
-        jellyfin_id=video.jellyfin_id,
+        # is_server_connected=jf.is_connected,
+        # has_active_session=jf.has_active_session(),
+        jellyfin_status=reactive_status.value,
+        # can_seek=jf.can_seek,
+        page_jellyfin_id=video.jellyfin_id,
         event_update_section_from_jellyfin=update_section_from_jellyfin,
         event_open_detail_page=vue_link_clicked,
         event_open_video_in_jellyfin=lambda x: jf.load_media_item(video.jellyfin_id),
@@ -334,12 +346,60 @@ def JFPanel(
     )
 
 
+def remove_existing_files(video_id, youtube_id, file_types):
+    db_files, _ = get_video_files(video_id, youtube_id)
+    existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
+    for vid_file in existing_vid_files:
+        # the below will delete files found in the database from the filesystem
+        try:
+            vid_file.delete_instance()
+            file_to_delete = Path(vid_file.path) / vid_file.filename
+            file_to_delete.unlink()
+
+        except Exception as e:
+            logger.error(f"Error deleting file {e}")
+
+    # the below will delete files found in the video's folder
+    # regardless if they are in the db or not
+
+    extensions = []
+    if "video" in file_types:
+        extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
+    if "audio" in file_types:
+        extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
+    if "info" in file_types:
+        extensions += [".info.json", ".json"]
+    if "subtitle" in file_types:
+        extensions += [".srt", ".en.vtt"]
+    if "poster" in file_types:
+        extensions += [".jpg", ".jpeg", ".png", ".webp"]
+
+    _, folder_files = get_video_files(video_id, youtube_id)
+    for file in folder_files:
+        if file.suffix in extensions:
+            logger.debug(f"Found video file: {file}. Deleting")
+            file.unlink()
+
+
 @solara.component
 def FilesPanel(video):
     files = FileModel.select().where(FileModel.video_id == video.id)
+    loading = solara.use_reactive(False)
+    status_message = solara.use_reactive("")
+
+    def download_info(*args):
+        loading.set(True)
+        remove_existing_files(
+            video.id, video.youtube_id, ["info", "subtitle", "poster"]
+        )
+        VideoItem.refresh_youtube_info(video.id)
+        create_album_nfo()
+        loading.set(False)
 
     def download_video(*args):
+        loading.set(True)
         logger.info(f"Downloading video: {video.title}")
+        remove_existing_files(video.id, video.youtube_id, ["video", "audio"])
         info, files = download_video_file(
             video.youtube_id, WORKING, progress_hook=my_hook
         )
@@ -350,22 +410,40 @@ def FilesPanel(video):
             FileManager.add_path_to_video(file, vid)
             # this is where i need to add the jellyfin id to the database,
             # but, i need to make sure that the video is in jellyfin first
+        loading.set(False)
 
     def create_album_nfo(*args):
+        # need to check if file exists and remove it
+        # and if its alread in the db, remove it
+        loading.set(True)
+        remove_existing_files(video.id, video.youtube_id, ["album_nfo"])
+
         new_file = VideoItem.create_xml_for_jellyfin(video.id)
         FileManager.add_path_to_video(new_file, video)
+        loading.set(False)
 
-    FileTypeCheckboxes(
-        has_audio="audio" in [f.file_type for f in files],
-        has_video="video" in [f.file_type for f in files],
-        has_info="info" in [f.file_type for f in files],
-        has_subtitle="subtitle" in [f.file_type for f in files],
-        has_poster="poster" in [f.file_type for f in files],
-        has_album_nfo="album_nfo" in [f.file_type for f in files],
-        event_download_video=download_video,
-        event_create_album_nfo=create_album_nfo,
-        event_download_info=lambda x: VideoItem.refresh_youtube_info(video.id),
-    )
+    db_files, folder_files = get_video_files(video.id, video.youtube_id)
+    ff_serialized = [dict(name=x.name) for x in folder_files]
+    file_types_found = [x.file_type for x in files]
+    if loading.value:
+        with solara.Row(justify="center"):
+            MySpinner()
+            solara.Text(f"{status_message.value}")
+    else:
+
+        FileTypeCheckboxes(
+            db_files=[x.model_to_dict() for x in db_files],
+            folder_files=ff_serialized,
+            has_audio="audio" in file_types_found,
+            has_video="video" in file_types_found,
+            has_info="info" in file_types_found,
+            has_subtitle="subtitle" in file_types_found,
+            has_poster="poster" in file_types_found,
+            has_album_nfo="album_nfo" in file_types_found,
+            event_download_video=download_video,
+            event_create_album_nfo=create_album_nfo,
+            event_download_info=download_info,
+        )
 
 
 @solara.component_vue("../components/video/VideoInfoInputCard.vue")
@@ -612,6 +690,11 @@ def register_vue_components():
         "../components/section/summary_panel.vue",
         __file__,
     )
+    ipyvue.register_component_from_file(
+        "VideoFilesInfoModal",
+        "../components/video/VideoFilesInfoModal.vue",
+        __file__,
+    )
 
 
 @solara.component
@@ -621,12 +704,26 @@ def Page():
 
     register_vue_components()
     video_id = parse_url_args()
+
     video = VideoItem.get_details_for_video(video_id)
+
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
     jf = MyJellyfinClient()
     jf.connect()
+
     status_dict = solara.use_reactive(jf.get_playing_status_from_jellyfin())
+
+    jellyfin_status = solara.use_reactive(
+        dict(
+            status="initial",
+            color="mylight",
+            client=None,
+            video_jellyfin_id=None,
+            current_position=None,
+        )
+    )
+
     tmp_jf_status = jellyfin_status.value
     if jf.is_connected:
         tmp_jf_status["status"] = "connected"
@@ -647,6 +744,7 @@ def Page():
                 )
                 JFPanel(
                     video=video,
+                    jf=jf,
                     router=router,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )

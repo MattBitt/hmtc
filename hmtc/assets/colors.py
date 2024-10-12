@@ -2,6 +2,7 @@ from enum import Enum
 
 
 # need to make sure to keep these in sync with styles.css
+# using ERROR in VideoFilesInfoModal.vue
 class Colors(Enum):
     LIGHT = "#c8b1e4"
     PRIMARY = "#9b72cf"

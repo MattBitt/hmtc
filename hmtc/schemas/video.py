@@ -568,6 +568,7 @@ class VideoItem(BaseItem):
         vid.duration = info["duration"]
         vid.description = info["description"]
         vid.save()
+        VideoItem.create_xml_for_jellyfin(self.id)
         logger.success(f"Grabbed metadata for {vid.title} from youtube")
 
     def update_series(self, series_name):

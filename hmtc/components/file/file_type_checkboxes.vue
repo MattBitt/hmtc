@@ -1,6 +1,6 @@
 <template>
   <v-container class="" fluid>
-    <v-row class="my-4" justify="center">
+    <v-row class="mx-0" justify="center">
       <MyToolTipChip
         icon="mdi-information"
         message="Youtube .info.json"
@@ -39,6 +39,11 @@
         :myclass="has_album_nfo ? 'myprimary' : 'mywarning'"
         @myclicked="create_album_nfo"
       />
+
+      <VideoFilesInfoModal
+        :folder_files="folder_files"
+        :db_files="db_files"
+      ></VideoFilesInfoModal>
     </v-row>
   </v-container>
 </template>
@@ -46,6 +51,8 @@
 export default {
   data() {
     return {
+      db_files: [],
+      folder_files: [],
       has_audio: false,
       has_video: false,
       has_info: false,

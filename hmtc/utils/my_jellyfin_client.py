@@ -70,78 +70,105 @@ class MyJellyfinClient:
             self.is_connected = True
         except Exception as e:
             self.is_connected = False
+            self.session_id = ""
+            self.supports_media_control = False
+            self.supports_remote_control = False
+            self.user_id = None
             logger.error(f"Error connecting to Jellyfin in MyJellyfinClient: {e}")
+            return
 
         try:
             credentials = client.auth.credentials.get_credentials()
             client.authenticate(credentials, discover=False)
-            if len(credentials["Servers"]) == 0:
-                logger.error("No Jellyfin Servers found")
 
         except Exception as e:
             logger.error(f"Credential Error: {credentials} error: {e}")
+            return
 
-        try:
-            self.set_active_session()
+        if len(credentials["Servers"]) == 0:
+            logger.error("No Jellyfin Servers found")
+            self.session_id = ""
+            self.supports_media_control = False
+            self.supports_remote_control = False
+            self.user_id = None
+            self.is_connected = False
+        else:
+            try:
+                self.set_active_session()
 
-        except Exception as e:
-            logger.error(f"Error setting active section: {e}")
-            return None
+            except Exception as e:
+                logger.error(f"🧬🧬🧬🧬Error setting active section: {e}")
 
-        if self.active_session is not None:
-            self.session_id = self.active_session["Id"]
-            self.supports_media_control = self.active_session["SupportsMediaControl"]
-            self.supports_remote_control = self.active_session["SupportsRemoteControl"]
-            self.user_id = self.active_session["UserId"]
+            if self.active_session is not None:
+                self.session_id = self.active_session["Id"]
+                self.supports_media_control = self.active_session[
+                    "SupportsMediaControl"
+                ]
+                self.supports_remote_control = self.active_session[
+                    "SupportsRemoteControl"
+                ]
+                self.user_id = self.active_session["UserId"]
 
     def set_active_session(self):
-        # this gets controllable sessions, but Roku is not controllable
+        if self.is_connected is False:
+            logger.error("Not connected to Jellyfin.")
+            return
+
         sessions = client.jellyfin.get_sessions()
+        if len(sessions) == 0:
+            logger.error("No sessions found.")
+            self.session_id = ""
+            self.active_session["session_id"] = ""
+            # self.can_seek = False
+            # self.found_users_sessions = False
+            return
+
         if len(sessions) == 1:
             if sessions[0].get("UserName", "") == self.user:
                 logger.debug("Only one session found. Skipping the nonsense.")
                 # logger.debug(f"Session: {sessions[0]}")
+                self.session_id = sessions[0]["Id"]
                 self.active_session = sessions[0]
                 self.can_seek = True
                 self.found_users_sessions = True
                 return
         else:
-
+            logger.debug("Do i ever get here?👣👣👣👣👣👣👣👣👣")
             logger.debug(f"Number of sessions found: {len(sessions)}")
             for s in sessions:
                 logger.debug(f"Session: {s}")
 
-        user_sessions = [
-            x["UserName"]
-            for x in sessions
-            if x.get("UserName", "") == self.user and x.get("Client", "") != "hmtc"
-        ]
-        if len(user_sessions) == 0:
-            # lets check the rest of the sessions
-            # all_sessions = [
-            #     x for x in client.jellyfin.sessions() if x.get("Client", "") != "hmtc"
-            # ]
-            # # I think that the roku sessions will be here
-            # # logger.debug(f"Number of all sessions found: {len(all_sessions)}")
-            # if len(all_sessions) > 0:
-            #     logger.debug(f"Roku TV not currently supported ☹️")
-            self.found_users_sessions = False
-            # self.active_session = None
-            self.can_seek = False
-        elif len(user_sessions) > 1:
-            logger.error(f"More than one session found for {self.user}")
-            self.found_users_sessions = False
-            # self.active_session = None
-            self.can_seek = False
-        else:
-            sess = user_sessions[0]
-            self.found_users_sessions = True
-            # self.active_session = sess
-            self.can_seek = True
+            user_sessions = [
+                x["UserName"]
+                for x in sessions
+                if x.get("UserName", "") == self.user and x.get("Client", "") != "hmtc"
+            ]
+            if len(user_sessions) == 0:
+                # lets check the rest of the sessions
+                # all_sessions = [
+                #     x for x in client.jellyfin.sessions() if x.get("Client", "") != "hmtc"
+                # ]
+                # # I think that the roku sessions will be here
+                # # logger.debug(f"Number of all sessions found: {len(all_sessions)}")
+                # if len(all_sessions) > 0:
+                #     logger.debug(f"Roku TV not currently supported ☹️")
+                self.found_users_sessions = False
+                # self.active_session = None
+                self.can_seek = False
+            elif len(user_sessions) > 1:
+                logger.error(f"More than one session found for {self.user}")
+                self.found_users_sessions = False
+                # self.active_session = None
+                self.can_seek = False
+            else:
+                sess = user_sessions[0]
+                self.found_users_sessions = True
+                # self.active_session = sess
+                self.can_seek = True
         # logger.debug(f"Active Session: {self.active_session}")
 
     def get_playing_status_from_jellyfin(self):
-        if self.has_active_session() is None:
+        if self.active_session is None:
             logger.error(f"No active session found.")
             return None
 
@@ -161,21 +188,10 @@ class MyJellyfinClient:
             self.play_status = "stopped"
         return self.status_dict()
 
-        user: str = field(init=False)
-        url: str = field(init=False)
-        password: str = field(init=False)
-
-        is_connected: bool = False
-        active_session: defaultdict[dict] = field(
-            default_factory=lambda: defaultdict(dict)
-        )
-        can_seek: bool = False
-        found_users_sessions: bool = False
-
     def status_dict(self):
         if self.media_item is None:
             return {
-                "jf_id": None,
+                "jellyfin_id": None,
                 "title": None,
                 "path": None,
                 "status": "stopped",
@@ -186,7 +202,7 @@ class MyJellyfinClient:
             }
 
         return {
-            "jf_id": self.media_item["Id"],
+            "jellyfin_id": self.media_item["Id"],
             "title": self.media_item["Name"],
             "path": self.media_item["Path"],
             "status": self.play_status,
@@ -237,19 +253,24 @@ class MyJellyfinClient:
         # self.pause()
 
     def pause(self):
-        client.jellyfin.remote_pause(self.session_id)
+        if self.is_connected:
+            client.jellyfin.remote_pause(self.session_id)
 
     def play_pause(self):
-        client.jellyfin.remote_playpause(self.session_id)
+        if self.is_connected:
+            client.jellyfin.remote_playpause(self.session_id)
 
     def stop(self):
-        client.jellyfin.remote_stop(self.session_id)
+        if self.is_connected:
+            client.jellyfin.remote_stop(self.session_id)
 
     def search_media(self, query):
-        return client.jellyfin.search_media_items(query)
+        if self.is_connected:
+            return client.jellyfin.search_media_items(query)
 
     def seek_to(self, position):
-        client.jellyfin.remote_seek(self.session_id, position * 10_000)
+        if self.is_connected:
+            client.jellyfin.remote_seek(self.session_id, position * 10_000)
 
 
 if __name__ == "__main__":

@@ -40,7 +40,7 @@ def import_vue_components():
     )
 
 
-@solara.component_vue("../components/section/summary_panel.vue")
+@solara.component_vue("../components/shared/MySpinner.vue")
 def Sandbox(section, topics):
     pass
 
