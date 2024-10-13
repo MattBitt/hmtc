@@ -129,7 +129,6 @@ class SectionManager:
 
     @staticmethod
     def from_video(video) -> "SectionManager":
-        logger.debug("Using staticmethod from_video in SectionManager")
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
             SectionTable.select(SectionTable.id, SectionTable.start, SectionTable.end)

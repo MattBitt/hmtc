@@ -116,7 +116,7 @@ class MyJellyfinClient:
 
         sessions = client.jellyfin.get_sessions()
         if len(sessions) == 0:
-            logger.error("No sessions found.")
+            # logger.error("No sessions found.")
             self.session_id = ""
             self.active_session["session_id"] = ""
             # self.can_seek = False
@@ -125,7 +125,7 @@ class MyJellyfinClient:
 
         if len(sessions) == 1:
             if sessions[0].get("UserName", "") == self.user:
-                logger.debug("Only one session found. Skipping the nonsense.")
+                # logger.debug("Only one session found. Skipping the nonsense.")
                 # logger.debug(f"Session: {sessions[0]}")
                 self.session_id = sessions[0]["Id"]
                 self.active_session = sessions[0]
@@ -199,6 +199,7 @@ class MyJellyfinClient:
                 "is_connected": self.is_connected,
                 "active_session": self.active_session,
                 "session_id": self.session_id,
+                "user": self.user.title(),
             }
 
         return {
@@ -210,6 +211,7 @@ class MyJellyfinClient:
             "is_connected": self.is_connected,
             "active_session": self.active_session,
             "session_id": self.session_id,
+            "user": self.user.title(),
         }
 
     # def now_playing(self):

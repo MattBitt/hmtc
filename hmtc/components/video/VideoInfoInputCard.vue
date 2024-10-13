@@ -1,11 +1,10 @@
 <template>
   <v-card flat class="overflow-hidden" color="">
-    <v-toolbar flat color="">
-      <v-icon>mdi-information</v-icon>
-      <v-toolbar-title class="font-weight-light">
-        Video Information
-      </v-toolbar-title>
+    <v-toolbar flat class="">
       <v-spacer></v-spacer>
+      <v-btn v-if="isEditing" class="myprimary" fab small @click="save">
+        <v-icon>mdi-content-save</v-icon>
+      </v-btn>
       <v-btn class="myprimary" fab small @click="isEditing = !isEditing">
         <v-icon v-if="isEditing"> mdi-close </v-icon>
         <v-icon v-else> mdi-pencil </v-icon>
@@ -51,24 +50,17 @@
           ></v-text-field>
         </v-col>
       </v-row>
-      <AutoComplete
-        v-model="selectedAlbum"
-        :items="albums"
-        label="Album"
-        itemText="title"
-        itemValue="id"
-        icon="mdi-album"
-        :isEditing="isEditing"
-        :placeholder="this.selectedAlbum"
-        @addNewItem="addNewAlbum"
-        @selectItem="selectAlbum"
-        @clearItem="clearAlbum"
-      >
-      </AutoComplete>
+
+      <v-row>
+        <AlbumPanel
+          :items="albums"
+          :isEditing="isEditing"
+          @addNewItem="addNewAlbum2"
+        />
+      </v-row>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn :disabled="!isEditing" class="button" @click="save"> Save </v-btn>
     </v-card-actions>
     <v-snackbar v-model="hasSaved" :timeout="2000" absolute bottom left>
       Video has been updated
@@ -116,6 +108,9 @@ export default {
       this.albums.push({ title: albumTitle, id: this.albums.length + 1 });
       // this.albums.push({ title: 'New Album', id: this.albums.length + 1 })
       // this.model = this.albums[this.albums.length - 1]
+    },
+    addNewAlbum2() {
+      console.log("adding new album 2");
     },
     selectAlbum(val) {
       console.log("selected album (parent)", val);

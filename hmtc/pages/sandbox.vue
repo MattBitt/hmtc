@@ -1,36 +1,65 @@
+<!-- Template created on 10/12/24 as a base for child vue components -->
 <template>
-  <div>
-    <SectionTimePanel
-      :initialTime="3684125000"
-      :isEditing="true"
-      @updateTimes="updateTimes"
-      @updateSectionTimeFromJellyfin="updateSectionTime"
-    />
-  </div>
+  <v-container>
+    <v-row v-if="choosingFromExisting">
+      <AutoComplete
+        v-model="itemModel"
+        :items="items"
+        label="Album"
+        itemText="title"
+        itemValue="id"
+        icon="mdi-album"
+        :isEditing="true"
+        @selectItem="selectAlbum"
+        @clearItem="clearAlbum"
+      >
+      </AutoComplete>
+      <v-btn @click="choosingFromExisting = false"
+        ><v-icon>mdi-cancel</v-icon></v-btn
+      >
+    </v-row>
+    <v-row v-else>
+      <v-col cols="8">
+        <CreateNewAlbumModal @createAlbum="addNewAlbum" />
+      </v-col>
+      <v-col cols="4">
+        <v-btn @click="choosingFromExisting = true"
+          ><v-icon>mdi-cancel</v-icon></v-btn
+        >
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 <script>
-export default {
+module.exports = {
+  name: "AlbumSelectorRow",
+  props: { items: Array, isEditing: Boolean },
+  emits: ["addNewItem", "selectItem", "clearItem"],
+  data() {
+    return {
+      itemModel: null,
+      choosingFromExisting: false,
+      items: [
+        { id: 1, title: "Album 1" },
+        { id: 2, title: "Album 2" },
+        { id: 3, title: "Album 3" },
+      ],
+    };
+  },
   methods: {
-    showMessage(message) {
-      console.log(message);
+    addNewAlbum(val) {
+      console.log("addNewAlbum", val);
+      this.create_album(val);
     },
-    updateTimes(item_id, start, end) {
-      console.log("Updating times", item_id, start, end);
-
-      const args = {
-        item_id: item_id,
-        start: start,
-        end: end,
-      };
-
-      this.editingTime = false;
-      this.timeFormDirty = false;
-      this.$emit("updateTimes", args);
+    selectAlbum(val) {
+      console.log("selectAlbum", val);
     },
-    updateSectionTime(args) {
-      console.log("Updating time from Jellyfin", args.item_id, args.time);
-      this.$emit("updateSectionTime", args);
+    clearAlbum(val) {
+      console.log("clearAlbum", val);
     },
   },
+  created() {},
+  computed: {},
 };
 </script>
+<style></style>

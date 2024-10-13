@@ -10,7 +10,7 @@
             overlap
           >
             <v-btn icon v-bind="attrs" v-on="{ ...tooltip, ...menu }">
-              <v-icon>mdi-dots-vertical</v-icon>
+              <v-icon large>mdi-dots-vertical</v-icon>
             </v-btn>
           </v-badge>
         </template>

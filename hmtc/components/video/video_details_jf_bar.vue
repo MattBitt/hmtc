@@ -1,5 +1,5 @@
 <template>
-  <v-container class="">
+  <v-container class="fill-height">
     <!-- The following cases are considered
   
         1. server not found - disable everything (ERROR)
@@ -10,7 +10,7 @@
         6. 1 client session - playing something different than on the page (jellyfin id NOT in hmtc db)
         7. 1 client session - playing whats on the page - play and pause -->
 
-    <v-row justify="end">
+    <v-row justify="end" class="">
       <v-col cols="8">
         <v-row id="row1" justify="center">
           <span v-if="hasItemLoaded">
@@ -41,17 +41,27 @@
               >Open in Jellyfin</v-btn
             >
           </span>
+          <span v-else class="">
+            <v-row justify="center">
+              <h2>
+                <strong>{{ jellyfin_status.user }}</strong>
+              </h2>
+            </v-row>
+            <v-row justify="center">
+              <h2>server: atlas-HMTC</h2>
+            </v-row>
+          </span>
         </v-row>
       </v-col>
       <v-col cols="4">
-        <v-row justify="end" class="">
+        <v-row justify="center" class="mr-8">
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
-              <v-badge :color="jellyfinColor" inline>
+              <v-badge :color="jellyfinColor" offset-x="20" offset-y="10">
                 <v-btn text v-bind="attrs" v-on="on">
                   <v-img
-                    max-width="40px"
-                    max-height="40px"
+                    max-width="60px"
+                    max-height="60px"
                     src="/static/public/icons/jellyfin.256x256.png"
                   ></v-img>
                 </v-btn>
@@ -120,10 +130,9 @@ module.exports = {
       // }
     },
     getPlayStatus() {
-      // GET request using fetch with set headers
-      if (this.jellyfin_status.session_id == "") {
-        return;
-      }
+      // if (this.jellyfin_status.session_id == "") {
+      //   return;
+      // }
       const fetchPromise = fetch(
         "http://192.168.0.202:8096/Sessions?ActiveWithinSeconds=300",
         {
@@ -149,9 +158,9 @@ module.exports = {
               } else {
                 this.hasItemLoaded = false;
               }
-            } else {
-              this.turnOffUpdating();
             }
+
+            this.refresh_jellyfin_status();
           });
         } else {
           console.log("error: ", response);
@@ -163,7 +172,7 @@ module.exports = {
       this.liveUpdating = true;
       this.intervalID = setInterval(
         this.getPlayStatus,
-        1000,
+        3000,
         "Parameter 1",
         "Parameter 2"
       );
@@ -239,12 +248,12 @@ module.exports = {
 </script>
 <style>
 .border1 {
-  border: 0px solid black;
+  border: 1px solid black;
 }
 .border2 {
   border: 1px solid orange;
 }
 .border3 {
-  border: 0px solid blue;
+  border: 1px solid blue;
 }
 </style>

@@ -9,17 +9,24 @@
       prev-icon="mdi-arrow-left-bold-box-outline"
     >
       <v-tab v-for="(section, index) in sectionItems" :key="section.id">
-        <span> ({{ section.id }})</span>
         <span>{{ index + 1 }}</span>
       </v-tab>
       <v-tab key="main">Main</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tabs">
       <v-tab-item v-for="section in sectionItems" :key="section.id">
-        <v-tabs vertical>
+        <v-tabs vertical grow>
           <v-tab v-for="sectionTab in sectionTabHeaders" :key="sectionTab.id">
-            <v-icon left>{{ sectionTab.icon }} </v-icon>
-            {{ sectionTab.text }}
+            <v-row>
+              <v-col cols="3">
+                <v-icon>{{ sectionTab.icon }} </v-icon>
+              </v-col>
+              <v-col cols="9">
+                <v-row class="ml-1 mt-1" justify="start">
+                  {{ sectionTab.text }}
+                </v-row>
+              </v-col>
+            </v-row>
           </v-tab>
 
           <v-tab-item>

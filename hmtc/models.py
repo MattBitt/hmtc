@@ -495,6 +495,11 @@ class YoutubeSeries(BaseModel):
 class Album(BaseModel):
     title = CharField(unique=True)
     release_date = DateField(null=True)
+
+    # should series be associated with albums?
+    # since videos are associated with series and albums
+    # are associated with videos, it seems like it would be
+    # circular to associate series with albums
     series = ForeignKeyField(Series, backref="albums", null=True)
 
     def model_to_dict(self):

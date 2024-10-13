@@ -159,7 +159,7 @@ def delete_section_from_db(section_id):
 
 def time_ago_string(dt):
     time_ago = datetime.now().date() - dt
-    logger.debug(time_ago)
+
     if time_ago.days == 0:
         return "Today"
     if time_ago.days < 30:
@@ -295,6 +295,7 @@ def JellyfinControlPanel(
     event_open_video_in_jellyfin,
     event_playpause_jellyfin,
     event_stop_jellyfin,
+    event_refresh_jellyfin_status,
     api_key,
 ):
     pass
@@ -304,6 +305,7 @@ def JellyfinControlPanel(
 def JFPanel(
     video,
     jf,
+    status_dict,
     router,
     update_section_from_jellyfin,
 ):
@@ -324,16 +326,16 @@ def JFPanel(
             except Exception as e:
                 logger.error(e)
 
-    try:
-        status_dict = jf.get_playing_status_from_jellyfin()
-    except Exception as e:
-        logger.error(f"Error connecting to Jellyfin from Video Details Page: {e}")
+    def refresh_jellyfin_status(*args):
+        # logger.debug(f"Refreshing Jellyfin Status {args}")
+        _jf = MyJellyfinClient()
+        _jf.connect()
+        status_dict.set(_jf.get_playing_status_from_jellyfin())
 
-    reactive_status = solara.use_reactive(status_dict)
     JellyfinControlPanel(
         # is_server_connected=jf.is_connected,
         # has_active_session=jf.has_active_session(),
-        jellyfin_status=reactive_status.value,
+        jellyfin_status=status_dict.value,
         # can_seek=jf.can_seek,
         page_jellyfin_id=video.jellyfin_id,
         event_update_section_from_jellyfin=update_section_from_jellyfin,
@@ -342,6 +344,7 @@ def JFPanel(
         event_pause_jellyfin=lambda x: jf.pause(),
         event_playpause_jellyfin=lambda x: jf.play_pause(),
         event_stop_jellyfin=lambda x: jf.stop(),
+        event_refresh_jellyfin_status=refresh_jellyfin_status,
         api_key=config["jellyfin"]["api"],
     )
 
@@ -449,6 +452,7 @@ def FilesPanel(video):
 @solara.component_vue("../components/video/VideoInfoInputCard.vue")
 def VideoInfoInputCard(
     albums,
+    event_create_album,
     selectedAlbum,
     youtube_serieses,
     selectedYoutubeSeries,
@@ -465,7 +469,7 @@ def InfoPanel(
     video,
 ):
     def update_video(*args):
-        logger.debug(f"Updating Video: {args}")
+        # logger.debug(f"Updating Video: {args}")
         vid = VideoModel.get_by_id(video.id)
         try:
 
@@ -532,20 +536,21 @@ def InfoPanel(
                     )
 
             with solara.Column():
-                with solara.Row():
-
-                    VideoInfoInputCard(
-                        albums=album_dicts,
-                        youtube_serieses=youtube_series_dicts,
-                        selectedAlbum=video.album.title if video.album else None,
-                        selectedYoutubeSeries=(
-                            video.youtube_series.title if video.youtube_series else None
-                        ),
-                        serieses=series_dicts,
-                        selectedSeries=(video.series.name if video.series else None),
-                        episode_number=video.episode,
-                        event_update_video=lambda x: update_video(x),
+                VideoInfoInputCard(
+                    albums=album_dicts,
+                    event_create_album=lambda x: logger.info(
+                        f"Event create album received in python! args = {x}"
                     ),
+                    youtube_serieses=youtube_series_dicts,
+                    selectedAlbum=video.album.title if video.album else None,
+                    selectedYoutubeSeries=(
+                        video.youtube_series.title if video.youtube_series else None
+                    ),
+                    serieses=series_dicts,
+                    selectedSeries=(video.series.name if video.series else None),
+                    episode_number=video.episode,
+                    event_update_video=lambda x: update_video(x),
+                ),
 
 
 @solara.component
@@ -680,11 +685,7 @@ def register_vue_components():
         "../components/section/section_control_panel.vue",
         __file__,
     )
-    ipyvue.register_component_from_file(
-        "AutoComplete",
-        "../components/shared/AutoComplete.vue",
-        __file__,
-    )
+
     ipyvue.register_component_from_file(
         "SummaryPanel",
         "../components/section/summary_panel.vue",
@@ -693,6 +694,17 @@ def register_vue_components():
     ipyvue.register_component_from_file(
         "VideoFilesInfoModal",
         "../components/video/VideoFilesInfoModal.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "AlbumPanel",
+        "../components/video/AlbumPanel.vue",
+        __file__,
+    )
+    ipyvue.register_component_from_file(
+        "AutoComplete",
+        "../components/shared/AutoComplete.vue",
         __file__,
     )
 
@@ -714,42 +726,25 @@ def Page():
 
     status_dict = solara.use_reactive(jf.get_playing_status_from_jellyfin())
 
-    jellyfin_status = solara.use_reactive(
-        dict(
-            status="initial",
-            color="mylight",
-            client=None,
-            video_jellyfin_id=None,
-            current_position=None,
-        )
-    )
-
-    tmp_jf_status = jellyfin_status.value
-    if jf.is_connected:
-        tmp_jf_status["status"] = "connected"
-    if jf.has_active_session():
-        tmp_jf_status["status"] = "active"
-
     def local_update_from_jellyfin(*args):
         update_section_from_jellyfin(
             args[0]["section"], args[0]["start_or_end"], video, reactive_sections
         )
 
     with solara.Column(classes=["main-container"]):
-        with solara.Columns([5, 7]):
-
-            with solara.Row(gap="0px"):
+        with solara.Card():
+            with solara.Columns([6, 6], gutters=False):
                 FilesPanel(
                     video=video,
                 )
                 JFPanel(
                     video=video,
                     jf=jf,
+                    status_dict=status_dict,
                     router=router,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )
 
-        with solara.Column():
             InfoPanel(
                 video=video,
             )
@@ -757,6 +752,6 @@ def Page():
             SectionsPanel(
                 video=video,
                 reactive_sections=reactive_sections,
-                jellyfin_status=jellyfin_status,
+                jellyfin_status=status_dict,
                 update_section_from_jellyfin=local_update_from_jellyfin,
             )

@@ -1,51 +1,54 @@
 <template>
-  <v-container class="" fluid>
-    <v-row class="mx-0" justify="center">
-      <MyToolTipChip
-        icon="mdi-information"
-        message="Youtube .info.json"
-        :myclass="has_info ? 'myprimary' : 'mywarning'"
-        @myclicked="download_info"
-      />
+  <v-row class="" justify="center">
+    <v-col cols="10">
+      <v-row class="ml-2 mt-1">
+        <MyToolTipChip
+          icon="mdi-information"
+          message="Youtube .info.json"
+          :myclass="has_info ? 'myprimary' : 'mywarning'"
+          @myclicked="download_info"
+        />
 
-      <MyToolTipChip
-        icon="mdi-text"
-        message="Lyrics"
-        :myclass="has_subtitle ? 'myprimary' : 'mywarning'"
-        @myclicked="download_info"
-      />
-      <MyToolTipChip
-        icon="mdi-panorama"
-        message="Poster"
-        :myclass="has_poster ? 'myprimary' : 'mywarning'"
-        @myclicked="download_info"
-      />
+        <MyToolTipChip
+          icon="mdi-text"
+          message="Lyrics"
+          :myclass="has_subtitle ? 'myprimary' : 'mywarning'"
+          @myclicked="download_info"
+        />
+        <MyToolTipChip
+          icon="mdi-panorama"
+          message="Poster"
+          :myclass="has_poster ? 'myprimary' : 'mywarning'"
+          @myclicked="download_info"
+        />
 
-      <MyToolTipChip
-        icon="mdi-music-note"
-        message="Audio"
-        :myclass="has_audio ? 'myprimary' : 'mywarning'"
-        @myclicked="download_video"
-      />
-      <MyToolTipChip
-        icon="mdi-video"
-        message="Video"
-        :myclass="has_video ? 'myprimary' : 'mywarning'"
-        @myclicked="download_video"
-      />
-      <MyToolTipChip
-        icon="mdi-information"
-        message="Album NFO"
-        :myclass="has_album_nfo ? 'myprimary' : 'mywarning'"
-        @myclicked="create_album_nfo"
-      />
-
+        <MyToolTipChip
+          icon="mdi-music-note"
+          message="Audio"
+          :myclass="has_audio ? 'myprimary' : 'mywarning'"
+          @myclicked="download_video"
+        />
+        <MyToolTipChip
+          icon="mdi-video"
+          message="Video"
+          :myclass="has_video ? 'myprimary' : 'mywarning'"
+          @myclicked="download_video"
+        />
+        <MyToolTipChip
+          icon="mdi-information"
+          message="Album NFO"
+          :myclass="has_album_nfo ? 'myprimary' : 'mywarning'"
+          @myclicked="create_album_nfo"
+        />
+      </v-row>
+    </v-col>
+    <v-col class="px-0 mx-0 mt-1">
       <VideoFilesInfoModal
         :folder_files="folder_files"
         :db_files="db_files"
       ></VideoFilesInfoModal>
-    </v-row>
-  </v-container>
+    </v-col>
+  </v-row>
 </template>
 <script>
 export default {
@@ -73,11 +76,4 @@ export default {
 };
 </script>
 
-<style>
-.myheader {
-  font-size: 1em;
-  font-weight: bold;
-  margin-bottom: 6px;
-  text-align: center;
-}
-</style>
+<style></style>

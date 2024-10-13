@@ -39,52 +39,25 @@ def import_vue_components():
         "SectionTimePanel", "../components/section/time_panel.vue", __file__
     )
 
+    ipyvue.register_component_from_file(
+        "AutoComplete",
+        "../components/shared/AutoComplete.vue",
+        __file__,
+    )
 
-@solara.component_vue("../components/shared/MySpinner.vue")
-def Sandbox(section, topics):
+
+@solara.component_vue("../components/video/AlbumPanel.vue")
+def Sandbox(event_create_album):
     pass
-
-
-@solara.component_vue("../components/shared/local_storage.vue")
-def LocalStorage(
-    key: str, value: str, on_value: Callable[[str], None] = None, debug: bool = False
-): ...
-
-
-counter = solara.reactive(0)
-
-
-def set_initial_value(value: str):
-    counter.value = int(value)
-
-
-def increment():
-    counter.value += 1
 
 
 @solara.component
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
-    sect = (
-        SectionModel.select(SectionModel.id, SectionModel.start, SectionModel.end)
-        .order_by(fn.Random())
-        .get()
-        .model_to_dict()
-    )
-    topics = SectionTopicsModel.select(SectionTopicsModel.topic_id).where(
-        SectionTopicsModel.section_id == sect["id"]
-    )
-    topic_dicts = [t.topic.model_to_dict() for t in topics]
 
-    Sandbox(section=sect, topics=topic_dicts)
-    LocalStorage(
-        key="my-counter",
-        value=str(counter.value),
-        on_value=set_initial_value,
-        debug=True,
-    )
-    solara.Button(f"Clicks: {counter.value}", on_click=increment)
-    solara.Markdown(
-        "Refresh the embedded page to see that we remember the counter value"
+    Sandbox(
+        event_create_album=lambda x: logger.info(
+            f"Event create album received in python! args = {x}"
+        )
     )
