@@ -461,6 +461,7 @@ def VideoInfoInputCard(
     episode_number,
     event_update_video,
     event_update_album_for_video,
+    event_remove_album_from_video,
 ):
     pass
 
@@ -469,6 +470,36 @@ def VideoInfoInputCard(
 def InfoPanel(
     video,
 ):
+
+    def create_album(*args):
+        logger.debug(f"Creating Album: {args}")
+        album, created = AlbumModel.get_or_create(title=args[0]["title"])
+        if created:
+            logger.debug(f"Created Album: {album.title}")
+        else:
+            logger.debug(
+                f"Album already exists: {album}. Not sure how to stop this or what to do here..."
+            )
+        vid = VideoModel.get_by_id(video.id)
+        vid.album = album
+        vid.save()
+
+    def update_album(*args):
+        logger.error(f"Assigning Album {args} to video {video.id}")
+        album = AlbumModel.get_or_none(AlbumModel.title == args[0]["title"])
+        if album is None:
+            logger.error(f"Album {args[0]['album']} not found")
+            return
+        vid = VideoModel.get_by_id(video.id)
+        vid.album = album
+        vid.save()
+
+    def remove_album(*args):
+        logger.error(f"Removing Album from video {video.id}")
+        vid = VideoModel.get_by_id(video.id)
+        vid.album = None
+        vid.save()
+
     def update_video(*args):
         # logger.debug(f"Updating Video: {args}")
         vid = VideoModel.get_by_id(video.id)
@@ -539,9 +570,7 @@ def InfoPanel(
             with solara.Column():
                 VideoInfoInputCard(
                     albums=album_dicts,
-                    event_create_album=lambda x: logger.info(
-                        f"Event create album received in python! args = {x}"
-                    ),
+                    event_create_album=create_album,
                     youtube_serieses=youtube_series_dicts,
                     selectedAlbum=video.album.title if video.album else None,
                     selectedYoutubeSeries=(
@@ -551,9 +580,8 @@ def InfoPanel(
                     selectedSeries=(video.series.name if video.series else None),
                     episode_number=video.episode,
                     event_update_video=lambda x: update_video(x),
-                    event_update_album_for_video=lambda x: logger.info(
-                        f"Update Album: {x}"
-                    ),
+                    event_update_album_for_video=update_album,
+                    event_remove_album_from_video=remove_album,
                 ),
 
 

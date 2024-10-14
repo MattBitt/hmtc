@@ -1,4 +1,3 @@
-<!-- Template created on 10/12/24 as a base for child vue components -->
 <template>
   <v-dialog v-model="dialog" transition="dialog-bottom-transition" width="80%">
     <template v-slot:activator="{ on, attrs }">
@@ -11,70 +10,87 @@
       </v-container>
     </template>
     <template v-slot:default="dialog">
-      <v-card height="600px" class="">
-        <v-radio-group v-model="radios">
-          <template v-slot:label>
-            <v-card-title>
-              <strong>Associated Albums</strong>
-            </v-card-title>
-          </template>
-
-          <template v-slot:default="">
-            <v-radio value="selectExisting">
+      <v-card max-height="90%" class="overflow-hidden">
+        <v-row justify="center">
+          <v-col cols="8">
+            <v-radio-group v-model="radios" @change="resetValidation">
               <template v-slot:label>
+                <v-card-title>
+                  <div><strong>Albums</strong></div>
+                </v-card-title>
                 <v-card-text>
-                  Choose
-                  <strong class="primary--text">EXISTING</strong> Album
+                  Choose to create a new album or select an existing one
                 </v-card-text>
               </template>
-            </v-radio>
 
-            <v-radio value="createNew">
-              <template v-slot:label>
-                <v-card-text>
-                  Create a <strong class="primary--text">NEW</strong> Album
-                </v-card-text>
+              <template v-slot:default="">
+                <v-radio value="createNew">
+                  <template v-slot:label>
+                    <v-card-text>
+                      Create a <strong class="primary--text">NEW</strong> Album
+                    </v-card-text>
+                  </template>
+                </v-radio>
+
+                <v-radio value="selectExisting">
+                  <template v-slot:label>
+                    <v-card-text>
+                      Choose
+                      <strong class="primary--text">EXISTING</strong> Album
+                    </v-card-text>
+                  </template>
+                </v-radio>
               </template>
-            </v-radio>
-          </template>
-        </v-radio-group>
+            </v-radio-group>
+          </v-col>
+        </v-row>
+        <v-form ref="myform" v-model="valid">
+          <v-row justify="center">
+            <v-col cols="6">
+              <v-text-field
+                v-model="albumTitle"
+                :rules="radios === 'createNew' ? nameRules : []"
+                :disabled="radios === 'selectExisting'"
+                label="Album Title"
+                required
+              ></v-text-field>
 
-        <template>
-          <v-autocomplete
-            v-model="itemModel"
-            label="Album"
-            :items="items"
-            item-text="title"
-            item-value="id"
-            class="selector"
-            clearable
-            return-object
-            :disabled="radios === 'createNew'"
-          >
-            <template v-slot:no-data>
-              <v-list-item> No Items Found... </v-list-item>
-            </template>
-          </v-autocomplete>
-        </template>
+              <v-text-field
+                v-model="releaseDate"
+                :rules="radios === 'createNew' ? releaseDateRules : []"
+                :disabled="radios === 'selectExisting'"
+                label="Release Date"
+              ></v-text-field>
 
-        <v-text-field
-          label="Album Title"
-          v-model="albumTitle"
-          :disabled="radios != 'createNew'"
-        ></v-text-field>
-
-        <v-text-field
-          label="Release Date"
-          v-model="releaseDate"
-          :disabled="radios != 'createNew'"
-        ></v-text-field>
-
-        <v-spacer></v-spacer>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn class="button" @click="close"> Cancel </v-btn>
-          <v-btn class="button" text @click="saveItemToDB"> Save </v-btn>
-        </v-card-actions>
+              <v-autocomplete
+                v-model="itemModel"
+                label="Album"
+                :items="items"
+                item-text="title"
+                item-value="id"
+                class="selector"
+                clearable
+                :rules="radios === 'selectExisting' ? itemSelectRules : []"
+                :disabled="radios === 'createNew'"
+                return-object
+              >
+                <template v-slot:no-data>
+                  <v-list-item> No Items Found... </v-list-item>
+                </template>
+              </v-autocomplete>
+            </v-col>
+          </v-row>
+          <v-card-actions>
+            <v-btn class="button" @click="removeAlbum" :disabled="!hasAlbum">
+              Remove
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn class="button" @click="close"> Cancel </v-btn>
+            <v-btn class="button" :disabled="!valid" @click="saveItemToDB">
+              Save
+            </v-btn>
+          </v-card-actions>
+        </v-form>
       </v-card>
     </template>
   </v-dialog>
@@ -84,32 +100,48 @@ module.exports = {
   name: "AlbumSelectorRow",
   props: {
     items: Array,
-    isEditing: Boolean,
     hasAlbum: Boolean,
-    albumInfo: String,
+    albumInfo: Object,
   },
-  emits: ["createAlbum", "selectAlbum"],
+  emits: ["createAlbum", "selectAlbum", "removeAlbum"],
   data() {
     return {
       itemModel: null,
-      choosingFromExisting: false,
-      radios: "selectExisting",
+      radios: "createNew",
+      valid: true,
       dialog: false,
       releaseDate: "",
       albumTitle: "",
+      name: "",
+      nameRules: [(v) => !!v || "Title is required"],
+      releaseDate: "",
+      releaseDateRules: [(v) => !!v || "Release Date is required"],
+      select: null,
+      itemSelectRules: [(v) => !!v || "Item is required"],
     };
   },
   methods: {
     close() {
       this.dialog = false;
+      this.select = null;
+      this.albumTitle = "";
+      this.releaseDate = "";
+      this.itemModel = null;
+      this.radios = "createNew";
+      this.resetValidation();
     },
-    saveItemToDB() {
+    removeAlbum() {
+      this.$emit("removeAlbum");
+      this.close();
+    },
+    saveItemToDB(item) {
       if (this.radios === "createNew") {
+        console.log("Creating Album: ", this.$refs.myform);
         const args = {
           title: this.albumTitle,
           release_date: this.releaseDate,
         };
-        console.log("Creating Album: ", args);
+
         this.$emit("createAlbum", args);
       } else {
         const args = {
@@ -121,8 +153,23 @@ module.exports = {
 
       this.close();
     },
+    validate() {
+      this.$refs.myform.validate();
+    },
+    reset() {
+      this.$refs.myform.reset();
+    },
+    resetValidation() {
+      this.$refs.myform.resetValidation();
+    },
   },
-  created() {},
+  created() {
+    if (this.hasAlbum) {
+      this.radios = "selectExisting";
+    } else {
+      this.radios = "createNew";
+    }
+  },
   computed: {},
 };
 </script>

@@ -8,6 +8,7 @@
       <v-btn
         :color="isEditing ? 'primary' : 'warning'"
         fab
+        small
         @click="isEditing = !isEditing"
       >
         <v-icon v-if="isEditing"> mdi-close </v-icon>
@@ -58,12 +59,13 @@
       <v-row justify="center">
         <AlbumPanel
           :items="albums"
-          :isEditing="isEditing"
-          :hasAlbum="false"
-          :albumInfo="albumTitle"
+          :hasAlbum="thisVidHasAlbum"
+          :albumInfo="albumDict"
           @createAlbum="createAlbum"
           @selectAlbum="chooseExistingAlbum"
+          @removeAlbum="removeAlbum"
         />
+        <h3>{{ albumDict }}</h3>
       </v-row>
     </v-card-text>
     <v-card-actions>
@@ -89,8 +91,14 @@ export default {
     };
   },
   computed: {
-    albumTitle() {
-      return this.selectedAlbum;
+    albumDict() {
+      const album = this.albums.find((a) => a.title === this.selectedAlbum);
+      const ad = album ? album : { title: null, release_date: null };
+      console.log("albumDict", ad);
+      return ad;
+    },
+    thisVidHasAlbum() {
+      return this.selectedAlbum !== null;
     },
   },
   methods: {
@@ -105,20 +113,20 @@ export default {
       this.hasSaved = true;
       this.update_video(args);
     },
-    createAlbum() {
-      console.log("adding new album 2");
-      const args = {
-        title: this.albumTitle,
-        release_date: this.releaseDate,
-      };
+    createAlbum(args) {
       this.create_album(args);
+      this.selectedAlbum = args.title;
+    },
+    removeAlbum(args) {
+      this.selectedAlbum = null;
+      this.remove_album_from_video(args);
     },
 
     chooseExistingAlbum(val) {
       console.log("choosing existing album (parent)", val);
       this.selectedAlbum = val.title;
       const args = {
-        album: this.selectedAlbum,
+        title: this.selectedAlbum,
       };
       this.update_album_for_video(args);
     },
