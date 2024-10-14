@@ -49,7 +49,7 @@ module.exports = {
     },
     addNewItem() {
       // notsure how to get the typed text here to add
-      console.log(this.searchQ);
+      console.log("This.searchq", this.searchQ);
       this.$emit("addNewItem", this.searchString);
     },
     clearItem() {
@@ -73,7 +73,7 @@ module.exports = {
   },
   mounted() {
     this.model = this.value;
-    console.log("mounted", this.model, this.value);
+    //console.log("mounted", this.model, this.value);
   },
 };
 </script>

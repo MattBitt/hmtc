@@ -25,13 +25,12 @@ match env:
     case "development":
         color = Colors.ERROR
     case "staging":
-        color = Colors.LIGHT
-    case "testing":
-        color = Colors.ERROR
+        color = Colors.WARNING
     case "production":
-        color = Colors.DARK
+        color = Colors.PRIMARY
     case _:
         color = Colors.PRIMARY
+
 title = f"{config["app"]["name"]} - {env}"
 
 

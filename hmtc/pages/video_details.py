@@ -460,6 +460,7 @@ def VideoInfoInputCard(
     selectedSeries,
     episode_number,
     event_update_video,
+    event_update_album_for_video,
 ):
     pass
 
@@ -550,6 +551,9 @@ def InfoPanel(
                     selectedSeries=(video.series.name if video.series else None),
                     episode_number=video.episode,
                     event_update_video=lambda x: update_video(x),
+                    event_update_album_for_video=lambda x: logger.info(
+                        f"Update Album: {x}"
+                    ),
                 ),
 
 
@@ -702,10 +706,13 @@ def register_vue_components():
         "../components/video/AlbumPanel.vue",
         __file__,
     )
+    # ipyvue.register_component_from_file(
+    #     "AlbumFormPanel",
+    #     "../components/video/AlbumFormPanel.vue",
+    #     __file__,
+    # )
     ipyvue.register_component_from_file(
-        "AutoComplete",
-        "../components/shared/AutoComplete.vue",
-        __file__,
+        "AutoComplete", "../components/shared/AutoComplete.vue", __file__
     )
 
 

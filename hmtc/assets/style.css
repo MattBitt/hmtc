@@ -9,20 +9,21 @@ html, body {
 
 /* need to make sure to keep these in sync with colors.py */
 :root {
-  --light:  #c8b1e4;
-  --primary: #9b72cf;
-  --dark: #532b88;
+  --primary: #6A00F4;
+  --secondary: #532B88;
+  --accent: #BC00DD;
+  --error: #2D00F7;
+  --info: #E500A4;
+  --success: #F20089;
+  --warning: #FFB600;
   --surface: #808080;
-  --background: #F0FF0F;
-  --error: #00B020;
-  --warning: #FFC107;
-  --on-light: #000000;
+  --background: #FF00FF;
+  --light:  #FF0000;
+  --dark: #00FF00;
+
   --on-primary: #FFFFFF;
-  --on-dark: #FFFFFF;
-  --on-surface: #FFFFFF;
-  --on-background: #000000;
-  --on-error: #FFFFFF;
-  --on-warning: #000000;
+  --on-surface: #000000;
+  
   }
 
   @font-face {
@@ -59,16 +60,16 @@ a {
 .button {
   text-decoration: none;
   font-weight: 600;
-  color: var(--on-dark) !important;
-  background-color: var(--dark) !important;
+  color: var(--on-primary) !important;
+  background-color: var(--primary) !important;
   height: 40px !important;
   margin: 4px !important;
   padding: 8px !important;
 }
 
 .button:hover {
-  color: var(--on-dark) !important;
-  background-color: var(--primary) !important;
+  color: var(--on-primary) !important;
+  background-color: var(--secondary) !important;
 }
 
 
@@ -86,15 +87,6 @@ a {
   background-color: var(--on-primary) !important;
 }
 
-.mydark {
-  color: var(--on-dark) !important;
-  background-color: var(--dark) !important;
-}
-
-.mylight {
-  color: var(--on-light) !important;
-  background-color: var(--light) !important;
-}
 
 .mywarning {
   color: var(--on-warning) !important;

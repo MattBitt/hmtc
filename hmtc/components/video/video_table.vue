@@ -181,10 +181,10 @@
       ></v-simple-checkbox>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon x-large class="mylight ml-1 mr-4" @click="editItem(item)">
+      <v-icon x-large class="ml-1 mr-4" @click="editItem(item)">
         mdi-pencil
       </v-icon>
-      <v-icon x-large class="mylight mr-1" @click="link1_clicked(item)">
+      <v-icon x-large class="mr-1" @click="link1_clicked(item)">
         mdi-rhombus-split
       </v-icon>
     </template>
@@ -460,9 +460,9 @@ export default {
 
   methods: {
     getColor(item) {
-      if (item.duration < 60) return "mydark";
-      else if (item.duration < 900) return "mylight";
-      else return "myprimary";
+      if (item.duration < 60) return "secondary";
+      else if (item.duration < 900) return "accent";
+      else return "primary";
     },
     editItem(item) {
       this.editedIndex = this.items.indexOf(item);
@@ -566,7 +566,7 @@ export default {
         ? (action = "forward")
         : (action = "backguard");
       this.currentPage = paginationObject.page;
-      console.log(action);
+      // console.log(action);
       //Write code to call your backend using action...
     },
     // this function captures events for the data table

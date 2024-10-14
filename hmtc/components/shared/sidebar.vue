@@ -1,5 +1,5 @@
 <template>
-  <v-card class="sidebar">
+  <v-card class="sidebar" color="primary">
     <div class="header">
       <span class="sidebarlogo">
         <a href="/">HMTC</a>
@@ -37,7 +37,7 @@
         </v-btn>
       </v-list-item>
     </v-list>
-    <div class="text-center">
+    <div>
       <v-menu offset-y>
         <template v-slot:activator="{ on, attrs }">
           <v-btn class="button" v-bind="attrs" v-on="on"> old functions </v-btn>
@@ -63,7 +63,6 @@ export default {
     items: [
       { text: "Videos", icon: "mdi-video", url: "/videos" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
-      { text: "Jellyfin Info", icon: "mdi-information", url: "/jellyfin-info" },
     ],
     items2: [
       { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
@@ -79,6 +78,7 @@ export default {
       { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
+      { text: "Jellyfin Info", icon: "mdi-information", url: "/jellyfin-info" },
       {
         text: "Playlists",
         icon: "mdi-playlist-music",
@@ -101,15 +101,14 @@ export default {
   font-weight: 600;
   font-size: 20px;
   text-align: center;
-  background-color: var(--light) !important;
-  color: var(--on-light) !important;
+  color: var(--on-primary) !important;
   min-width: 180px;
   min-height: 90vh;
 
   & .header a {
     font-family: "LogoFont";
     text-decoration: none;
-    color: var(--on-dark);
+    color: var(--on-primary);
     font-size: 2em;
     font-weight: 800;
     padding: 0.1em;

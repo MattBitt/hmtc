@@ -1,98 +1,124 @@
 <!-- Template created on 10/12/24 as a base for child vue components -->
 <template>
-  <div>
-    <v-row v-if="choosingFromExisting" class="mt-0">
-      <AutoComplete
-        v-model="itemModel"
-        :items="items"
-        label="Album"
-        itemText="title"
-        itemValue="id"
-        icon="mdi-album"
-        :isEditing="true"
-        @selectItem="selectAlbum"
-        @clearItem="clearAlbum"
-      >
-      </AutoComplete>
-      <v-btn @click="choosingFromExisting = false"
-        ><v-icon>mdi-cancel</v-icon>Add New Album</v-btn
-      >
-    </v-row>
-    <v-row v-else>
-      <v-col cols="8">
-        <v-dialog v-model="dialog" max-width="400px">
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn class="button" v-bind="attrs" v-on="on"
-              >Create a new Album</v-btn
-            >
+  <v-dialog v-model="dialog" transition="dialog-bottom-transition" width="80%">
+    <template v-slot:activator="{ on, attrs }">
+      <v-container>
+        <v-badge :value="!hasAlbum" color="warning">
+          <v-btn class="button" v-bind="attrs" v-on="on"
+            ><v-icon class="mr-2">mdi-album</v-icon>Album</v-btn
+          >
+        </v-badge>
+      </v-container>
+    </template>
+    <template v-slot:default="dialog">
+      <v-card height="600px" class="">
+        <v-radio-group v-model="radios">
+          <template v-slot:label>
+            <v-card-title>
+              <strong>Associated Albums</strong>
+            </v-card-title>
           </template>
-          <v-card>
-            <v-row class="ma-4" justify="center">
-              <v-col cols="10">
-                <v-text-field
-                  label="Album Title"
-                  v-model="albumTitle"
-                ></v-text-field>
 
-                <v-text-field
-                  label="Release Date"
-                  v-model="releaseDate"
-                ></v-text-field>
-              </v-col>
-            </v-row>
+          <template v-slot:default="">
+            <v-radio value="selectExisting">
+              <template v-slot:label>
+                <v-card-text>
+                  Choose
+                  <strong class="primary--text">EXISTING</strong> Album
+                </v-card-text>
+              </template>
+            </v-radio>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn class="button" @click="close"> Cancel </v-btn>
-              <v-btn class="button" text @click="saveItemToDB"> Save </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-col>
-      <v-col cols="4">
-        <v-btn @click="choosingFromExisting = true"
-          ><v-icon>mdi-cancel</v-icon></v-btn
-        >
-      </v-col>
-    </v-row>
-  </div>
+            <v-radio value="createNew">
+              <template v-slot:label>
+                <v-card-text>
+                  Create a <strong class="primary--text">NEW</strong> Album
+                </v-card-text>
+              </template>
+            </v-radio>
+          </template>
+        </v-radio-group>
+
+        <template>
+          <v-autocomplete
+            v-model="itemModel"
+            label="Album"
+            :items="items"
+            item-text="title"
+            item-value="id"
+            class="selector"
+            clearable
+            return-object
+            :disabled="radios === 'createNew'"
+          >
+            <template v-slot:no-data>
+              <v-list-item> No Items Found... </v-list-item>
+            </template>
+          </v-autocomplete>
+        </template>
+
+        <v-text-field
+          label="Album Title"
+          v-model="albumTitle"
+          :disabled="radios != 'createNew'"
+        ></v-text-field>
+
+        <v-text-field
+          label="Release Date"
+          v-model="releaseDate"
+          :disabled="radios != 'createNew'"
+        ></v-text-field>
+
+        <v-spacer></v-spacer>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn class="button" @click="close"> Cancel </v-btn>
+          <v-btn class="button" text @click="saveItemToDB"> Save </v-btn>
+        </v-card-actions>
+      </v-card>
+    </template>
+  </v-dialog>
 </template>
 <script>
 module.exports = {
   name: "AlbumSelectorRow",
-  props: { items: Array, isEditing: Boolean },
-  emits: ["addNewItem", "selectItem", "clearItem"],
+  props: {
+    items: Array,
+    isEditing: Boolean,
+    hasAlbum: Boolean,
+    albumInfo: String,
+  },
+  emits: ["createAlbum", "selectAlbum"],
   data() {
     return {
       itemModel: null,
       choosingFromExisting: false,
+      radios: "selectExisting",
       dialog: false,
       releaseDate: "",
       albumTitle: "",
     };
   },
   methods: {
-    addNewAlbum(val) {
-      console.log("addNewAlbum", val);
-      this.create_item(val);
-    },
-    selectAlbum(val) {
-      console.log("selectAlbum", val);
-    },
-    clearAlbum(val) {
-      console.log("clearAlbum", val);
-    },
     close() {
       this.dialog = false;
     },
-    saveItemToDB(item) {
-      // the function below is 'run' from python
-      // actually saves the item in the db
-      const args = {
-        title: this.albumTitle,
-        release_date: this.releaseDate,
-      };
-      this.$emit("createAlbum", args);
+    saveItemToDB() {
+      if (this.radios === "createNew") {
+        const args = {
+          title: this.albumTitle,
+          release_date: this.releaseDate,
+        };
+        console.log("Creating Album: ", args);
+        this.$emit("createAlbum", args);
+      } else {
+        const args = {
+          title: this.itemModel?.title,
+        };
+        console.log("Existing Album: ", args);
+        this.$emit("selectAlbum", args);
+      }
+
       this.close();
     },
   },

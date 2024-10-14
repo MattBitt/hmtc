@@ -399,12 +399,17 @@ def OldControls():
 status = solara.reactive("")
 
 
+@solara.component_vue("../components/GOBY/ButtonShowcase.vue")
+def ButtonShowCase():
+    pass
+
+
 @solara.component
 def Page():
     MySidebar(
         router=solara.use_router(),
     )
-
+    ButtonShowCase()
     with solara.Column(classes=["main-container"]):
         if PageState.updating.value:
             with solara.Card():

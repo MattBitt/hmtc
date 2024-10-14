@@ -46,8 +46,8 @@ def import_vue_components():
     )
 
 
-@solara.component_vue("../components/video/AlbumPanel.vue")
-def Sandbox(event_create_album):
+@solara.component_vue("../components/GOBY/SimpleFormWithRadios.vue")
+def Sandbox(event_create_new, event_select_existing):
     pass
 
 
@@ -57,7 +57,6 @@ def Page():
     MySidebar(router=solara.use_router())
 
     Sandbox(
-        event_create_album=lambda x: logger.info(
-            f"Event create album received in python! args = {x}"
-        )
+        event_create_new=lambda x: logger.info(f"Submitting.  {x}"),
+        event_select_existing=lambda x: logger.info(f"Selecting.  {x}"),
     )

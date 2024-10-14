@@ -3,7 +3,7 @@
     <v-tooltip bottom>
       <template v-slot:activator="{ on, attrs }">
         <v-chip
-          :class="myclass"
+          :color="color"
           v-bind="attrs"
           v-on="on"
           @click="$emit('myclicked', { message: message })"
@@ -18,7 +18,7 @@
 <script>
 module.exports = {
   name: "MyToolTipChip",
-  props: { icon: String, message: String, myclass: String },
+  props: { icon: String, message: String, color: String },
   emits: ["myclicked"],
 };
 </script>

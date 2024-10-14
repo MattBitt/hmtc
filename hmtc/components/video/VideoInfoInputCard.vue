@@ -2,10 +2,14 @@
   <v-card flat class="overflow-hidden" color="">
     <v-toolbar flat class="">
       <v-spacer></v-spacer>
-      <v-btn v-if="isEditing" class="myprimary" fab small @click="save">
+      <v-btn v-if="isEditing" color="primary" fab small @click="save">
         <v-icon>mdi-content-save</v-icon>
       </v-btn>
-      <v-btn class="myprimary" fab small @click="isEditing = !isEditing">
+      <v-btn
+        :color="isEditing ? 'primary' : 'warning'"
+        fab
+        @click="isEditing = !isEditing"
+      >
         <v-icon v-if="isEditing"> mdi-close </v-icon>
         <v-icon v-else> mdi-pencil </v-icon>
       </v-btn>
@@ -51,11 +55,14 @@
         </v-col>
       </v-row>
 
-      <v-row>
+      <v-row justify="center">
         <AlbumPanel
           :items="albums"
           :isEditing="isEditing"
-          @addNewItem="addNewAlbum2"
+          :hasAlbum="false"
+          :albumInfo="albumTitle"
+          @createAlbum="createAlbum"
+          @selectAlbum="chooseExistingAlbum"
         />
       </v-row>
     </v-card-text>
@@ -81,15 +88,12 @@ export default {
       episode_number: null,
     };
   },
-
-  methods: {
-    customFilter(item, queryText, itemText) {
-      const textOne = item.title.toLowerCase();
-      // const textTwo = item.abbr.toLowerCase()
-      const searchText = queryText.toLowerCase();
-
-      return textOne.indexOf(searchText) > -1;
+  computed: {
+    albumTitle() {
+      return this.selectedAlbum;
     },
+  },
+  methods: {
     save() {
       const args = {
         album: this.selectedAlbum,
@@ -101,24 +105,24 @@ export default {
       this.hasSaved = true;
       this.update_video(args);
     },
-    addNewAlbum(albumTitle) {
-      console.log("adding new album (parent)", albumTitle);
-      // call python here
-      this.searchQ = "";
-      this.albums.push({ title: albumTitle, id: this.albums.length + 1 });
-      // this.albums.push({ title: 'New Album', id: this.albums.length + 1 })
-      // this.model = this.albums[this.albums.length - 1]
-    },
-    addNewAlbum2() {
+    createAlbum() {
       console.log("adding new album 2");
+      const args = {
+        title: this.albumTitle,
+        release_date: this.releaseDate,
+      };
+      this.create_album(args);
     },
-    selectAlbum(val) {
-      console.log("selected album (parent)", val);
+
+    chooseExistingAlbum(val) {
+      console.log("choosing existing album (parent)", val);
       this.selectedAlbum = val.title;
+      const args = {
+        album: this.selectedAlbum,
+      };
+      this.update_album_for_video(args);
     },
-    clearAlbum() {
-      console.log("clearing album (parent)");
-    },
+
     addNewYoutubeSeries(youtubeseriesTitle) {
       console.log("adding new youtubeseries (parent)", youtubeseriesTitle);
       // call python here

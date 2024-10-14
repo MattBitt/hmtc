@@ -216,7 +216,7 @@ export default {
       this.editedItem.series = this.serieses.find(
         (series) => series.name === item.series_name
       );
-      console.log(this.editedItem);
+      console.log("this.editedItem (youtube series)", this.editedItem);
       this.selected_series = this.editedItem.series || this.selected_series;
       this.dialog = true;
     },

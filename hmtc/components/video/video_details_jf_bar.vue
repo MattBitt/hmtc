@@ -215,6 +215,7 @@ module.exports = {
     },
     HaveBothIDs() {
       console.log(
+        "HaveBothIDs",
         this.jellyfin_status.jellyfin_id,
         this.page_jellyfin_id,
         this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""

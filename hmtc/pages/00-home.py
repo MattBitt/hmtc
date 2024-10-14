@@ -59,33 +59,23 @@ def Page():
         .limit(3)
     )
 
-    with solara.Column(classes=["main-container"]):
-        with solara.Row(classes=["mysurface"]):
-            with solara.Columns([10, 2]):
+    with solara.Column(
+        classes=["main-container"], style={"background-color": Colors.BACKGROUND}
+    ):
+        with solara.Row(justify="center", style={"background-color": Colors.SURFACE}):
+            if busy_downloading.value:
+                ProgressCircle()
+            else:
 
-                with solara.Row(
-                    justify="center", style={"background-color": Colors.SURFACE}
-                ):
-                    solara.Button("Videos", classes=["button"], href="/videos")
-                    solara.Button("Tracks", classes=["button"], href="/tracks")
-                    solara.Button(
-                        "What's Playing", classes=["button"], href="/whats-playing"
-                    )
-                with solara.Row(
-                    justify="end", style={"background-color": Colors.SURFACE}
-                ):
-                    if busy_downloading.value:
-                        ProgressCircle()
-                    else:
-                        solara.Button(
-                            "Refresh", classes=["button"], on_click=refresh_from_youtube
-                        )
+                solara.Button("Videos", classes=["button"], href="/videos")
+                solara.Button("Tracks", classes=["button"], href="/tracks")
+
+                solara.Button(
+                    "Refresh", classes=["button"], on_click=refresh_from_youtube
+                )
         with solara.Row():
             with solara.Column(
-                align="center",
-                style={
-                    "background-color": Colors.SURFACE,
-                },
+                align="center", style={"background-color": Colors.SURFACE}
             ):
                 solara.Image(image=image)
 

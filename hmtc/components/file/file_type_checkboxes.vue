@@ -5,39 +5,39 @@
         <MyToolTipChip
           icon="mdi-information"
           message="Youtube .info.json"
-          :myclass="has_info ? 'myprimary' : 'mywarning'"
+          :color="has_info ? 'primary' : 'warning'"
           @myclicked="download_info"
         />
 
         <MyToolTipChip
           icon="mdi-text"
           message="Lyrics"
-          :myclass="has_subtitle ? 'myprimary' : 'mywarning'"
+          :color="has_subtitle ? 'primary' : 'warning'"
           @myclicked="download_info"
         />
         <MyToolTipChip
           icon="mdi-panorama"
           message="Poster"
-          :myclass="has_poster ? 'myprimary' : 'mywarning'"
+          :color="has_poster ? 'primary' : 'warning'"
           @myclicked="download_info"
         />
 
         <MyToolTipChip
           icon="mdi-music-note"
           message="Audio"
-          :myclass="has_audio ? 'myprimary' : 'mywarning'"
+          :color="has_audio ? 'primary' : 'warning'"
           @myclicked="download_video"
         />
         <MyToolTipChip
           icon="mdi-video"
           message="Video"
-          :myclass="has_video ? 'myprimary' : 'mywarning'"
+          :color="has_video ? 'primary' : 'warning'"
           @myclicked="download_video"
         />
         <MyToolTipChip
           icon="mdi-information"
           message="Album NFO"
-          :myclass="has_album_nfo ? 'myprimary' : 'mywarning'"
+          :color="has_album_nfo ? 'primary' : 'warning'"
           @myclicked="create_album_nfo"
         />
       </v-row>

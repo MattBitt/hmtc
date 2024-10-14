@@ -184,7 +184,7 @@ export default {
         item_id: section_id,
         start: new_time,
       };
-      console.log(args);
+      console.log("Args", args);
       this.update_times(args);
     },
     updateSectionEnd(section_id, new_time) {

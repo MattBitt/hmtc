@@ -6,7 +6,7 @@
           <v-badge
             :content="messages"
             :value="folder_files.length != db_files.length"
-            color="#00B020"
+            color="warning"
             overlap
           >
             <v-btn icon v-bind="attrs" v-on="{ ...tooltip, ...menu }">
