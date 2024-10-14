@@ -61,6 +61,7 @@
           :items="albums"
           :hasAlbum="thisVidHasAlbum"
           :albumInfo="albumDict"
+          :possibleAlbumTitle="constructAlbumTitle()"
           @createAlbum="createAlbum"
           @selectAlbum="chooseExistingAlbum"
           @removeAlbum="removeAlbum"
@@ -104,7 +105,7 @@ export default {
   methods: {
     save() {
       const args = {
-        album: this.selectedAlbum,
+        album: null, //deprecated and moved to button
         youtube_series: this.selectedYoutubeSeries,
         series: this.selectedSeries,
         episode_number: this.episode_number,
@@ -118,17 +119,38 @@ export default {
       this.selectedAlbum = args.title;
     },
     removeAlbum(args) {
-      this.selectedAlbum = null;
       this.remove_album_from_video(args);
+      this.selectedAlbum = null;
     },
 
     chooseExistingAlbum(val) {
-      console.log("choosing existing album (parent)", val);
       this.selectedAlbum = val.title;
       const args = {
         title: this.selectedAlbum,
       };
       this.update_album_for_video(args);
+    },
+    constructAlbumTitle() {
+      console.log(
+        "possibleAlbumTfdsafsdfsditle",
+        this.selectedYoutubeSeries,
+        this.episode_number
+      );
+      if (true) {
+        const newName = `${
+          this.selectedYoutubeSeries
+        } ${this.episode_number.padStart(3, "0")}`;
+        console.log("newName", newName);
+        return newName;
+      } else {
+        console.log(
+          "Couldn't create newName",
+          this.selectedYoutubeSeries,
+          " - ",
+          this.episode_number
+        );
+        return null;
+      }
     },
 
     addNewYoutubeSeries(youtubeseriesTitle) {

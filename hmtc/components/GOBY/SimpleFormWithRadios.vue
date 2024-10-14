@@ -1,3 +1,5 @@
+<!-- Check AlbumPanel for an updated version of this -->
+<!-- the below may contain bugs 10/13/24 -->
 <template>
   <div>
     <v-radio-group v-model="radios" @change="resetValidation">

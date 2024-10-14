@@ -16,7 +16,7 @@
             <v-radio-group v-model="radios" @change="resetValidation">
               <template v-slot:label>
                 <v-card-title>
-                  <div><strong>Albums</strong></div>
+                  <div><strong>Albums</strong>({{ possibleAlbumTitle }})</div>
                 </v-card-title>
                 <v-card-text>
                   Choose to create a new album or select an existing one
@@ -102,6 +102,7 @@ module.exports = {
     items: Array,
     hasAlbum: Boolean,
     albumInfo: Object,
+    possibleAlbumTitle: String,
   },
   emits: ["createAlbum", "selectAlbum", "removeAlbum"],
   data() {
@@ -111,7 +112,7 @@ module.exports = {
       valid: true,
       dialog: false,
       releaseDate: "",
-      albumTitle: "",
+      albumTitle: this.possibleAlbumTitle || "",
       name: "",
       nameRules: [(v) => !!v || "Title is required"],
       releaseDate: "",
@@ -166,6 +167,7 @@ module.exports = {
   created() {
     if (this.hasAlbum) {
       this.radios = "selectExisting";
+      console.log("possible new title", this.possibleAlbumTitle);
     } else {
       this.radios = "createNew";
     }
