@@ -17,12 +17,9 @@
       </v-list-item>
       <v-list-item>
         <v-list-item-content>
-          <v-list-item-title>Section Topics:</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item v-for="topic in topics" :key="topic.id">
-        <v-list-item-content>
-          <v-list-item-title>{{ topic.text }}</v-list-item-title>
+          <v-list-item-title
+            >Section Topics: ({{ topics.length }})</v-list-item-title
+          >
         </v-list-item-content>
       </v-list-item>
     </v-list-item-group>

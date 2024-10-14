@@ -8,8 +8,8 @@ import solara
 from loguru import logger
 
 from hmtc.assets.colors import Colors
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.shared.my_spinner import MySpinner
+from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
@@ -473,13 +473,14 @@ def InfoPanel(
 
     def create_album(*args):
         logger.debug(f"Creating Album: {args}")
-        album, created = AlbumModel.get_or_create(title=args[0]["title"])
-        if created:
-            logger.debug(f"Created Album: {album.title}")
-        else:
-            logger.debug(
-                f"Album already exists: {album}. Not sure how to stop this or what to do here..."
-            )
+        try:
+            album = AlbumModel.create(**args[0])
+        except Exception as e:
+            logger.error(e)
+            return
+
+        logger.debug(f"Created Album: {album.title}")
+
         vid = VideoModel.get_by_id(video.id)
         vid.album = album
         vid.save()

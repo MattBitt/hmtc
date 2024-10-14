@@ -66,7 +66,7 @@
           @selectAlbum="chooseExistingAlbum"
           @removeAlbum="removeAlbum"
         />
-        <h3>{{ albumDict }}</h3>
+        <h3>{{ albumDict.title ? albumDict.title : "" }}</h3>
       </v-row>
     </v-card-text>
     <v-card-actions>
@@ -115,7 +115,9 @@ export default {
       this.update_video(args);
     },
     createAlbum(args) {
+      console.log("In VideoInfoInputCard createAlbum", args);
       this.create_album(args);
+      this.albums.push(args);
       this.selectedAlbum = args.title;
     },
     removeAlbum(args) {
@@ -139,7 +141,7 @@ export default {
       if (true) {
         const newName = `${
           this.selectedYoutubeSeries
-        } ${this.episode_number.padStart(3, "0")}`;
+        } ${this.episode_number?.padStart(3, "0")}`;
         console.log("newName", newName);
         return newName;
       } else {

@@ -16,7 +16,7 @@
             <v-radio-group v-model="radios" @change="resetValidation">
               <template v-slot:label>
                 <v-card-title>
-                  <div><strong>Albums</strong>({{ possibleAlbumTitle }})</div>
+                  <div><strong>Albums</strong></div>
                 </v-card-title>
                 <v-card-text>
                   Choose to create a new album or select an existing one
@@ -108,7 +108,7 @@ module.exports = {
   data() {
     return {
       itemModel: null,
-      radios: "createNew",
+      radios: "",
       valid: true,
       dialog: false,
       releaseDate: "",
@@ -123,13 +123,10 @@ module.exports = {
   },
   methods: {
     close() {
-      this.dialog = false;
-      this.select = null;
-      this.albumTitle = "";
-      this.releaseDate = "";
-      this.itemModel = null;
-      this.radios = "createNew";
       this.resetValidation();
+      this.reset();
+      this.albumTitle = this.possibleAlbumTitle || "";
+      this.dialog = false;
     },
     removeAlbum() {
       this.$emit("removeAlbum");
@@ -137,21 +134,18 @@ module.exports = {
     },
     saveItemToDB(item) {
       if (this.radios === "createNew") {
-        console.log("Creating Album: ", this.$refs.myform);
         const args = {
           title: this.albumTitle,
           release_date: this.releaseDate,
         };
-
         this.$emit("createAlbum", args);
       } else {
         const args = {
           title: this.itemModel?.title,
         };
-        console.log("Existing Album: ", args);
+
         this.$emit("selectAlbum", args);
       }
-
       this.close();
     },
     validate() {
@@ -167,7 +161,6 @@ module.exports = {
   created() {
     if (this.hasAlbum) {
       this.radios = "selectExisting";
-      console.log("possible new title", this.possibleAlbumTitle);
     } else {
       this.radios = "createNew";
     }
