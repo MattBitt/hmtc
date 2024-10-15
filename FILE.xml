@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<data>
-	<status date="20210123">
-		<name name="john">some value1</name>
-		<class name="abc">some vlaue2</class>
-	</status>
-</data>

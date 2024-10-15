@@ -95,7 +95,7 @@ def Page():
     files = FileModel.select().where(FileModel.video_id.is_null(False))
     file_tuples = [(x.video_id, x.file_type) for x in files]
 
-    file_types = ["info", "audio", "video", "poster", "album_nfo"]
+    file_types = ["info", "audio", "video", "poster", "album_nfo", "subtitle"]
     missing_files = dict(zip(file_types, [0] * len(file_types)))
     found_files = missing_files.copy()
     for vid in unique_vids:

@@ -500,7 +500,6 @@ class Album(BaseModel):
     # since videos are associated with series and albums
     # are associated with videos, it seems like it would be
     # circular to associate series with albums
-    series = ForeignKeyField(Series, backref="albums", null=True)
 
     def model_to_dict(self):
         try:
@@ -518,7 +517,6 @@ class Album(BaseModel):
             "release_date": (
                 self.release_date.isoformat() if self.release_date else None
             ),
-            "series_name": self.series.name if self.series else None,
             "video_count": num_vids,
         }
 

@@ -514,33 +514,33 @@ class VideoItem(BaseItem):
     def db_object(self):
         return self.db_model.get_or_none(self.db_model.id == self.id)
 
-    def add_file(self, file, file_type=None):
-        logger.debug(f"In VideoItem.add_file: {file}")
-        logger.debug("Fix this 🤡🤡🤡🤡🤡🤡🤡")
-        exit()
-        extension = "".join(Path(file).suffixes)
-        clean_name = Path(file).stem
-        final_name = STORAGE / "videos" / self.youtube_id / (clean_name + extension)
-        # LOL
-        final_name2 = str(final_name.name).replace(".info.info", ".info")
-        if ".info" in str(file):
-            data = read_json_file(file)
-            vid = VideoModel.get(VideoModel.id == self.id)
-            vid.title = data["title"]
-            vid.url = data["webpage_url"]
-            vid.upload_date = data["upload_date"]
-            vid.duration = int(data["duration"])
-            vid.description = data["description"]
-            vid.save()
+    # def add_file(self, file, file_type=None):
+    #     logger.debug(f"In VideoItem.add_file: {file}")
+    #     logger.debug("Fix this 🤡🤡🤡🤡🤡🤡🤡")
+    #     exit()
+    #     extension = "".join(Path(file).suffixes)
+    #     clean_name = Path(file).stem
+    #     final_name = STORAGE / "videos" / self.youtube_id / (clean_name + extension)
+    #     # LOL
+    #     final_name2 = str(final_name.name).replace(".info.info", ".info")
+    #     if ".info" in str(file):
+    #         data = read_json_file(file)
+    #         vid = VideoModel.get(VideoModel.id == self.id)
+    #         vid.title = data["title"]
+    #         vid.url = data["webpage_url"]
+    #         vid.upload_date = data["upload_date"]
+    #         vid.duration = int(data["duration"])
+    #         vid.description = data["description"]
+    #         vid.save()
 
-        File.create(
-            path=final_name.parent,
-            filename=final_name2,
-            move_file=True,
-            video_id=self.id,
-            file_type=file_type,
-        )
-        my_move_file(file, final_name)
+    #     File.create(
+    #         path=final_name.parent,
+    #         filename=final_name2,
+    #         move_file=True,
+    #         video_id=self.id,
+    #         file_type=file_type,
+    #     )
+    #     my_move_file(file, final_name)
 
     def extract_frames(self):
         return extract_frames(self.get_video_file_path(self.id), self.youtube_id)
@@ -656,6 +656,15 @@ class VideoItem(BaseItem):
     @staticmethod
     def from_orm(db_object):
         # logger.debug("Creating VideoItem from ORM DB Object: {db_object}")
+
+        # adding this on 10/14/24. Trying to avoid a crash with an invalid
+        # album id
+        try:
+            alb = db_object.album
+        except Exception as e:
+            logger.error(f"Album not found for {db_object.title}")
+            alb = None
+
         # I'm pretty sure this is the WRONG way to do this... 9/16/24
         return VideoItem(
             title=db_object.title,
@@ -678,7 +687,7 @@ class VideoItem(BaseItem):
             ),
             playlist=db_object.playlist if db_object.playlist else None,
             series=db_object.series if db_object.series else None,
-            album=db_object.album if db_object.album else None,
+            album=alb,
         )
 
     @staticmethod

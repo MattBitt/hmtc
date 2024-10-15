@@ -27,6 +27,9 @@ from hmtc.models import (
 from hmtc.models import (
     Video as VideoModel,
 )
+from hmtc.models import (
+    YoutubeSeries as YoutubeSeriesModel,
+)
 from hmtc.schemas.album import Album
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
@@ -252,28 +255,55 @@ class PageState:
         PageState.updating.set(False)
 
     # this is a temporary function to create albums for videos that are part of a youtube series
+    # still working on this on 10/14/24
+    # need to remove it after ive run it in production
     def create_yts_albums():
         logger.debug("Creating Albums for YT Series")
-        vids = VideoItem.get_vids_with_no_album()
-        logger.debug(f"Found {len(vids)} videos with no album")
-        for v in vids:
-            if v.youtube_series is not None and (
-                v.episode != "" and v.episode is not None
-            ):
-                album_info = dict(
-                    title=v.youtube_series.title + " " + str(v.episode).zfill(3),
-                    release_date=v.upload_date,
-                    series=v.series if v.series else None,
+        vids = (
+            VideoModel.select(
+                VideoModel.id,
+                VideoModel.youtube_series,
+                VideoModel.episode,
+                VideoModel.upload_date,
+            )
+            .join(YoutubeSeriesModel)
+            .where(
+                (
+                    (VideoModel.contains_unique_content == True)
+                    & (VideoModel.album_id.is_null())
+                    & (VideoModel.youtube_series.is_null(False))
+                    & (VideoModel.episode.is_null(False))
                 )
-                album = Album(**album_info)
-                album.create_album()
-                new_album = AlbumModel.get_by_title(album.title)
-                vid = VideoModel.get_by_id(v.id)
+            )
+            .order_by(VideoModel.upload_date)
+        )
+        logger.error(f"Found {len(vids)} videos to create an album for")
+        for v in vids:
+            if v.episode[-1].isalpha():
+                ep_no = v.episode[:-1]
+            else:
+                ep_no = v.episode
+            title = v.youtube_series.title + " " + str(ep_no).zfill(3)
+            album_info = dict(
+                title=title,
+                release_date=v.upload_date,
+            )
+            existing = (
+                AlbumModel.select(AlbumModel.id)
+                .where(AlbumModel.title == title)
+                .get_or_none()
+            )
+            if existing:
+                album = existing
+            else:
+                album = AlbumModel.create(**album_info)
 
-                vid.album = new_album
-                vid.save()
-                logger.debug(f"Created Album {album} for {v}")
-        logger.debug(
+            vid = VideoModel.get_by_id(v.id)
+
+            vid.album = album
+            vid.save()
+            logger.debug(f"Created Album {album} for {v}")
+        logger.error(
             "Finished creating albums Videos with no album, a YT series, and an episode number"
         )
 

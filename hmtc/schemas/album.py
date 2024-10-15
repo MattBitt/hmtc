@@ -15,18 +15,17 @@ class Album:
     title: str = ""
     release_date: str = ""
     # tracks: List[TrackItem]
-    series: SeriesModel = None
 
     def create_album(self):
         # this is being used by the settings temporary function at least, probably more
-        # 9/17/24
+        # 10/14/24
         try:
-            AlbumModel.create(
+            album = AlbumModel.create(
                 title=self.title,
                 release_date=self.release_date,
-                series=self.series,
             )
             logger.info("Album created")
+            return album
         except Exception as e:
             logger.error(e)
             logger.debug(f"Error creating album {self.title}. Skipping")
