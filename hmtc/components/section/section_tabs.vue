@@ -34,6 +34,8 @@
               <SummaryPanel
                 :section="section"
                 :topics="section.topics"
+                :barRange="{ min: 0, max: video_duration }"
+                :sectionRange="[section.start / 1000, section.end / 1000]"
               ></SummaryPanel>
             </v-container>
           </v-tab-item>

@@ -108,7 +108,15 @@ class Section:
 
 @dataclass
 class SectionManager:
-    ALLOWED_TYPES = ["intro", "instrumental", "acapella", "outro", "INITIAL", "track"]
+    ALLOWED_TYPES = [
+        "intro",
+        "instrumental",
+        "acapella",
+        "outro",
+        "INITIAL",
+        "track",
+        "advert",
+    ]
     duration: int  # this is in seconds, the section start and end are in milliseconds
     video_id: int = 1  # probably shouldn't be a default
     _sections: Section = field(init=False, default_factory=list)

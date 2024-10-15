@@ -4,12 +4,14 @@ from enum import Enum
 # need to make sure to keep these in sync with styles.css
 # using ERROR in VideoFilesInfoModal.vue
 class Colors(Enum):
+    # Brand Colors
     PRIMARY = "#6A00F4"
     SECONDARY = "#532B88"
     ACCENT = "#BC00DD"
-    ERROR = "#2D00F7"
+    # Theme Colors
+    ERROR = "#ff0033"
     INFO = "#E500A4"
-    SUCCESS = "#F20089"
+    SUCCESS = "#506d21"
     WARNING = "#FFB600"
 
     SURFACE = "#808080"

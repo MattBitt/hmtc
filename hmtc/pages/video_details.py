@@ -744,6 +744,10 @@ def register_vue_components():
         "AutoComplete", "../components/shared/AutoComplete.vue", __file__
     )
 
+    ipyvue.register_component_from_file(
+        "SectionTimeline", "../components/section/SectionTimeline.vue", __file__
+    )
+
 
 @solara.component
 def Page():

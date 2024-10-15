@@ -46,8 +46,8 @@ def import_vue_components():
     )
 
 
-@solara.component_vue("../components/GOBY/SimpleFormWithRadios.vue")
-def Sandbox(event_create_new, event_select_existing):
+@solara.component_vue("../components/section/SectionTimeline.vue")
+def Sandbox(barRange, sectionRange):
     pass
 
 
@@ -55,8 +55,8 @@ def Sandbox(event_create_new, event_select_existing):
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
-
-    Sandbox(
-        event_create_new=lambda x: logger.info(f"Submitting.  {x}"),
-        event_select_existing=lambda x: logger.info(f"Selecting.  {x}"),
-    )
+    bar_range = dict(min=0, max=100)
+    section_range = [10, 80]
+    Sandbox(barRange=bar_range, sectionRange=section_range)
+    sect2 = [82, 99]
+    Sandbox(barRange=bar_range, sectionRange=sect2)
