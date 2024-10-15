@@ -32,25 +32,25 @@ def Page():
         .limit(10)
     )
 
-    logger.debug(f"videos: {len(videos)}")
     MySidebar(
         router=router,
     )
     seconds = reduce(lambda x, y: x + y.duration, videos, 0)
-    days, hours, minutes, seconds = (
+    days, hours, minutes, _seconds = (
         seconds // (24 * 3600),
         (seconds % (24 * 3600) // 3600),
         (seconds % 3600 // 60),
         (seconds % 60),
     )
     logger.debug(f"seconds: {seconds}")
-    timestr = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+    timestr = f"{days} days, {hours} hours, {minutes} minutes, {_seconds} seconds"
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Info():
                 solara.Markdown("## Unique Content")
                 solara.Markdown(f"### **{len(videos)}** videos")
                 solara.Markdown(f"### Duration: **{timestr}**")
+                solara.Markdown(f"### Duration (s): **{seconds}**")
         with solara.Card():
             solara.Markdown("## Recently Uploaded")
             for vid in recent:

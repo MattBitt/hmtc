@@ -166,6 +166,7 @@ module.exports = {
     }
   },
   computed: {},
+  watch: {},
 };
 </script>
 <style></style>

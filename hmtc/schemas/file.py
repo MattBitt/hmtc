@@ -88,8 +88,21 @@ class FileManager:
                 raise ValueError("Video object is required")
             if not path:
                 raise ValueError("path object is required")
+
             file = File.from_path(path)
             filetype = get_file_type(file.filename)
+
+            if filetype == "album_nfo":
+                existing_files = FileModel.select().where(
+                    (FileModel.video_id == video.id)
+                    & (FileModel.file_type == "album_nfo")
+                )
+                for ef in existing_files:
+
+                    logger.info(f"File {file} already exists for {video}")
+                    logger.debug("Deleting existing album_nfo")
+                    ef.delete_instance()
+
             if filetype == "video":
                 audio = FileManager.extract_audio(file)
                 audio_file = File.from_path(audio)

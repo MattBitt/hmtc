@@ -15,30 +15,17 @@ WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 
-def is_omegle_bars(title: str):
-    if title is None:
-        return False, None
-    if "omegle bars" in title.lower():
-        try:
-            epno = int(title.split(" ")[-1])
-            return True, epno
-        except ValueError:
-            return False, None
-    return False, None
-
-
 @dataclass
 class TrackItem:
+    # this defintely shouldn't be happening here.
     track_folder = STORAGE / "tracks"
     if not track_folder.exists():
         track_folder.mkdir()
 
-    title: str
-    track_number: str
-    video_id: int
-    album_id: int
-    start_time: int
-    end_time: int
+    title: str = None
+    track_number: str = None
+    length: int = None
+    album_id: int = None
     album_title: str = None
 
     @staticmethod
@@ -79,10 +66,8 @@ class TrackItem:
         track = TrackModel(
             title=self.title,
             track_number=self.track_number,
-            video_id=self.video_id,
+            length=self.length,
             album_id=self.album_id,
-            start_time=self.start_time,
-            end_time=self.end_time,
         )
         track.save()
 
@@ -96,4 +81,4 @@ class TrackItem:
             out_folder.mkdir(parents=True)
         dest = str(out_folder / f"{self.track_number} - {self.title}.mp3")
         logger.error(f"Ripping track from {source} to {dest}")
-        rip_track(source, dest, start_time=self.start_time, end_time=self.end_time)
+        # rip_track(source, dest, start_time=self.start_time, end_time=self.end_time)

@@ -9,7 +9,7 @@ from loguru import logger
 from peewee import fn
 from solara.lab import Task, use_task
 
-from hmtc.components.sandbox_component.sandbox import FancyComponent
+from hmtc.components.GOBY.sandbox_component.sandbox import FancyComponent
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section as SectionModel
 from hmtc.models import SectionTopics as SectionTopicsModel

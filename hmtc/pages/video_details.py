@@ -690,7 +690,7 @@ def SectionsPanel(
 def register_vue_components():
     ipyvue.register_component_from_file(
         "MyToolTipChip",
-        "../components/my_tooltip_chip.vue",
+        "../components/shared/MyToolTipChip.vue",
         __file__,
     )
 

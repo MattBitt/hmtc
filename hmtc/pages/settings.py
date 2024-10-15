@@ -66,7 +66,21 @@ def import_tracks():
 def create_album_xmls():
     # added on 9/25/24
     # run in production on ??????
-    vids = VideoModel.select().join(FileModel).where(FileModel.file_type == "video")
+    vids_with_album_xml = (
+        VideoModel.select(VideoModel.id)
+        .join(FileModel)
+        .where(FileModel.file_type == "album_nfo")
+        .distinct()
+    )
+    vids = (
+        VideoModel.select(VideoModel.id, FileModel.file_type)
+        .join(FileModel)
+        .where(
+            (VideoModel.id.not_in(list(vids_with_album_xml)))
+            & ((FileModel.file_type == "video") | (FileModel.file_type == "audio"))
+        )
+    )
+    logger.error(f"Creating Album XMLs for {len(vids)} videos")
     for v in vids:
         album_nfo_path = VideoItem.create_xml_for_jellyfin(v.id)
         # logger.debug(f"Created album.nfo for {v.title} at {album_nfo_path}")
@@ -91,7 +105,7 @@ class PageState:
             )
         )
 
-        logger.debug(f"Found {len(vids)} videos with no jellyfin id and an audio file)")
+        logger.debug(f"Found {len(vids)} videos with no jellyfin id and unique content")
         for v in vids:
             if v.youtube_id is None:
                 logger.error(f"No youtube id found for {v.title}")

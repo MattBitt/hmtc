@@ -5,7 +5,7 @@ import solara
 import solara.lab
 from loguru import logger
 
-from hmtc.components.album.album_info import AlbumInfo
+
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.video import VideoItem
@@ -407,7 +407,6 @@ def Page():
             with solara.Column():
                 with solara.Card(title=f"{model.value}"):
                     VideoInfo(video, refreshing=False)
-                    # AlbumInfo(video)
 
                 with solara.Card():
                     SectionControlPanel(

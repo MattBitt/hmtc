@@ -32,94 +32,6 @@ def count_types(files):
     return num_files
 
 
-@solara.component
-def FileTypesCard(db, folder):
-    db_files_type_counts = count_types(db)
-    folder_files_type_counts = count_types(folder)
-
-    with solara.Card(title="All Files"):
-        with solara.ColumnsResponsive(12, large=6):
-            with solara.Card(title="Files in Database"):
-                solara.Markdown(f"**{len(db)} files**")
-                for key, num in enumerate(sorted(db_files_type_counts)):
-                    if num:
-                        solara.Markdown(f"**{num}** files: {db_files_type_counts[num]}")
-
-            with solara.Card(title="Files in Folder"):
-                solara.Markdown(f"**{len(folder)}** files in folder and subfolders")
-                for key, num in enumerate(sorted(folder_files_type_counts)):
-                    solara.Markdown(f"**{num}** files: {folder_files_type_counts[num]}")
-
-
-@solara.component
-def DBversusFileCards(db_files, folder_files):
-    db_files_list = {Path(file.local_path, file.filename) for file in db_files}
-    folder_files_list = {file for file in folder_files}
-    logger.error("This function is disabled")
-    # video_files = Video.select().join(VideoFile).join(File).distinct()
-
-    def missing_files():
-        # i don't think order matters here
-        return db_files_list.symmetric_difference(folder_files_list)
-
-    missing = missing_files()
-
-    if len(missing) == 0:
-        solara.Markdown("Horray! No differences found!")
-        return
-    solara.Markdown("")
-    with solara.Card(title="File Issues"):
-        solara.Markdown(
-            f"**{len(missing)}** files that are not in BOTH db and folder (not sure which)"
-        )
-
-    FileTypesCard(db_files_list, folder_files_list)
-
-    # with solara.Card():
-
-    #     diff_file_counts = {}
-    #     for file in d1:
-    #         diff_file_counts[file.suffix] = diff_file_counts.get(file.suffix, 0) + 1
-    #     solara.Markdown(f"**{len(d1)}** files that DONT exist in (db AND folder)")
-    #     if len(d1) < 10:
-    #         for file in diff:
-    #             solara.Markdown(f"**{file}**")
-
-    #     for ext in diff_file_counts:
-    #         solara.Markdown(f"**{diff_file_counts[ext]}** files: {ext}")
-
-    # with solara.Card(title="Files in Database (not in Folder)"):
-
-    #     diff = db_files_list - folder_files_list
-    #     if len(diff) < 10:
-    #         for file in diff:
-    #             solara.Markdown(f"**{file}**")
-    #     else:
-    #         solara.Markdown(f"**{len(diff)}** files in db but not in folder")
-
-    # with solara.Card(title="Files in folder not in db"):
-    #     diff = folder_files_list - db_files_list
-    #     solara.Markdown(f"**{len(diff)}** files in folder but not in db")
-
-
-def download_missing_videos():
-    videos = VideoModel.select().where(VideoModel.enabled == True)
-    for video in videos:
-        if not video.has_video:
-            video.download_video()
-            logger.debug("starting sleep")
-            time.sleep(10)
-            logger.debug("finished sleep")
-
-
-def extract_missing_audio():
-    videos = VideoModel.select().where(VideoModel.enabled == True)
-    for video in videos:
-        if video.has_video and not video.has_audio:
-            video.extract_audio()
-            time.sleep(1)
-
-
 def get_folder_files(folder):
     files = [x for x in list(folder.rglob("*")) if x.is_file()]
     return files
@@ -172,63 +84,39 @@ def FileTypeInfoCard(ftype):
         solara.Markdown(f"**{len(db_files)}** files in Database")
         solara.Markdown(f"**{len(folder_files)}** files in Storage Folder")
         solara.Markdown("End of Card")
-    if ftype == "Videos":
-
-        db_file_names = [x.filename for x in db_files]
-        folder_file_names = [x.name for x in folder_files]
-
-        with solara.Card(title=f"DB vs Folder Video Files"):
-            with solara.Column():
-                for file in folder_file_names[:100]:
-                    if file not in folder_file_names:
-                        # logger.error(f"File {file} not found in folder")
-                        solara.Markdown(f"**{file}** not found in folder")
-                for file in folder_file_names[:100]:
-                    if file not in db_file_names:
-                        # logger.debug(f"File {file} not found in db")
-                        solara.Markdown(f"**{file}** not found in db")
-
-
-@solara.component
-def FileTypeCards():
-    ftypes = ["Series", "Playlists", "Channels", "Videos"]
-    for f in ftypes:
-        FileTypeInfoCard(f)
 
 
 @solara.component
 def Page():
-    def add_existing_files():
-        logger.error("deprecate me!!!")
-        # import_existing_video_files_to_db(folder)
+    unique_vids = VideoModel.select(VideoModel.id).where(
+        VideoModel.contains_unique_content == True
+    )
 
-    def add_file(*args):
-        logger.debug(f"This is only for testing 🤠🤠🤠🤠🤠Adding file to video {args}")
-        file = str(STORAGE / "videos" / "test.info.json")
-        f = FileObject.from_path(file)
-        video = VideoModel.get(VideoModel.id == 1)
-        FileManager.add_file_to_video(f, video)
+    files = FileModel.select().where(FileModel.video_id.is_null(False))
+    file_tuples = [(x.video_id, x.file_type) for x in files]
 
+    file_types = ["info", "audio", "video", "poster", "album_nfo"]
+    missing_files = dict(zip(file_types, [0] * len(file_types)))
+    found_files = missing_files.copy()
+    for vid in unique_vids:
+        for ftype in file_types:
+            if (vid.id, ftype) not in file_tuples:
+                missing_files[ftype] += 1
+            else:
+                found_files[ftype] += 1
+
+    logger.error(f"Missing {missing_files} video files")
+    logger.error(f"Found {found_files} videos")
     MySidebar(router=solara.use_router())
     with solara.Column(classes=["main-container"]):
-        with solara.Row():
-            solara.Button("Add File to a Video", on_click=add_file)
-        with solara.ColumnsResponsive(12, large=4):
-            FileTypeCards()
+        ftypes = ["Series", "Channels"]
+        with solara.Columns([6, 6]):
+            for f in ftypes:
+                FileTypeInfoCard(f)
 
-        with solara.Card():
-            solara.Button(
-                "Add existing files to database",
-                on_click=add_existing_files,
-                disabled=True,
-            )
-            solara.Button(
-                "Download all missing videos",
-                on_click=download_missing_videos,
-                disabled=True,
-            )
-            solara.Button(
-                "Extract all missing audio from downloaded videos",
-                on_click=extract_missing_audio,
-                disabled=True,
-            )
+        with solara.Error():
+            solara.Markdown(f"**{len(unique_vids)}** unique videos")
+            for ftype in file_types:
+                solara.Markdown(f"**{missing_files[ftype]}** missing {ftype} files")
+            for ftype in file_types:
+                solara.Markdown(f"**{found_files[ftype]}** found {ftype} files")
