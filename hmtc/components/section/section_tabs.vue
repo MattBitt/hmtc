@@ -1,3 +1,5 @@
+<!-- 10/15/24 Im copying this page into section_carousel  -->
+
 <template>
   <v-container>
     <v-tabs

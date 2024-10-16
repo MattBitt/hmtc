@@ -17,7 +17,11 @@ def FancyComponent():
         "MyChildComponent", "ChildComponent.vue", __file__
     )
     ipyvue.register_component_from_file(
-        "MyNextComponent", "../shared/temp_child_component.vue", __file__
+        "MyNextComponent", "ChildComponent2.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "ANewComponent", "ChildComponent3.vue", __file__
     )
     solara.Button(label="Hi")
     ParentComponent(myname="matt")

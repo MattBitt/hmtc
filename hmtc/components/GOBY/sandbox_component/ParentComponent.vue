@@ -8,6 +8,7 @@
     </div>
     <MyNextComponent :iconName="iconName" :message="myname" />
     <MyChildComponent :message="newName()" />
+    <ANewComponent message="calling a newcomponent from parent" />
   </div>
 </template>
 

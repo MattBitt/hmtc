@@ -4,7 +4,7 @@
 
 <script>
 module.exports = {
-  name: "ChildComponent3",
+  name: "ANewComponent",
   props: {
     message: {
       type: String,

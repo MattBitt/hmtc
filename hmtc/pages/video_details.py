@@ -252,7 +252,7 @@ def get_video_files(video_id, youtube_id):
     return db_files, folder_files
 
 
-@solara.component_vue("../components/section/section_tabs.vue", vuetify=True)
+@solara.component_vue("../components/section/SectionCarousel.vue", vuetify=True)
 def SectionTabs(
     sectionItems,
     jellyfin_status,  # used in section_control_panel

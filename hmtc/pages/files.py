@@ -88,6 +88,36 @@ def FileTypeInfoCard(ftype):
 
 @solara.component
 def Page():
+    messages = solara.use_reactive([])
+    have_files_not_in_db = solara.use_reactive([])
+    files_in_db_not_found = solara.use_reactive([])
+
+    def compare_files_vs_db():
+        db_files, folder_files = get_video_files()
+        messages.set(
+            [
+                f"Found {len(db_files)} files in database.",
+                f"Found {len(folder_files)} files in storage folder",
+            ]
+        )
+        have_files_not_in_db.set(
+            [
+                str(x)
+                for x in folder_files
+                if str(x) not in [y.filename for y in db_files]
+            ]
+        )
+        files_in_db_not_found.set(
+            [
+                str(x.path + "/" + x.filename)
+                for x in db_files
+                if x.filename not in [str(y) for y in folder_files]
+            ]
+        )
+
+        logger.error(f"Files not in DB: {len(have_files_not_in_db.value)}")
+        logger.error(f"Files not in Folder: {len(files_in_db_not_found.value)}")
+
     unique_vids = VideoModel.select(VideoModel.id).where(
         VideoModel.contains_unique_content == True
     )
@@ -113,10 +143,24 @@ def Page():
         with solara.Columns([6, 6]):
             for f in ftypes:
                 FileTypeInfoCard(f)
-
-        with solara.Error():
-            solara.Markdown(f"**{len(unique_vids)}** unique videos")
-            for ftype in file_types:
-                solara.Markdown(f"**{missing_files[ftype]}** missing {ftype} files")
-            for ftype in file_types:
-                solara.Markdown(f"**{found_files[ftype]}** found {ftype} files")
+        with solara.Columns([6, 6]):
+            with solara.Card():
+                with solara.Info():
+                    solara.Markdown(f"**{len(unique_vids)}** unique videos")
+                    for ftype in file_types:
+                        solara.Markdown(
+                            f"**{missing_files[ftype]}** missing {ftype} files"
+                        )
+                    for ftype in file_types:
+                        solara.Markdown(f"**{found_files[ftype]}** found {ftype} files")
+        with solara.Card():
+            solara.Button("Check Files", on_click=compare_files_vs_db)
+            for message in messages.value:
+                solara.Markdown(f"**{message}**")
+        with solara.Columns([6, 6]):
+            with solara.Card(title="Files not in DB"):
+                for message in have_files_not_in_db.value:
+                    solara.Markdown(f"**{message}**")
+            with solara.Card(title="Files not in folder"):
+                for message in files_in_db_not_found.value:
+                    solara.Markdown(f"**{message}**")

@@ -1,20 +1,5 @@
 <template>
   <v-card flat class="overflow-hidden" color="">
-    <v-toolbar flat class="">
-      <v-spacer></v-spacer>
-      <v-btn v-if="isEditing" color="primary" fab small @click="save">
-        <v-icon>mdi-content-save</v-icon>
-      </v-btn>
-      <v-btn
-        :color="isEditing ? 'primary' : 'warning'"
-        fab
-        small
-        @click="isEditing = !isEditing"
-      >
-        <v-icon v-if="isEditing"> mdi-close </v-icon>
-        <v-icon v-else> mdi-pencil </v-icon>
-      </v-btn>
-    </v-toolbar>
     <v-card-text>
       <AutoComplete
         v-model="selectedSeries"
@@ -57,16 +42,34 @@
       </v-row>
 
       <v-row justify="center">
-        <AlbumPanel
-          :items="albums"
-          :hasAlbum="thisVidHasAlbum"
-          :albumInfo="albumDict"
-          :possibleAlbumTitle="constructAlbumTitle()"
-          @createAlbum="createAlbum"
-          @selectAlbum="chooseExistingAlbum"
-          @removeAlbum="removeAlbum"
-        />
-        <h3>{{ albumDict.title ? albumDict.title : "" }}</h3>
+        <v-col cols="6">
+          <h3>{{ albumDict.title ? albumDict.title : "" }}</h3>
+          <AlbumPanel
+            :items="albums"
+            :hasAlbum="thisVidHasAlbum"
+            :albumInfo="albumDict"
+            :possibleAlbumTitle="constructAlbumTitle()"
+            @createAlbum="createAlbum"
+            @selectAlbum="chooseExistingAlbum"
+            @removeAlbum="removeAlbum"
+          />
+        </v-col>
+        <v-col cols="6">
+          <v-row justify="center">
+            <v-btn v-if="isEditing" color="primary" fab small @click="save">
+              <v-icon>mdi-content-save</v-icon>
+            </v-btn>
+            <v-btn
+              :color="isEditing ? 'warning' : 'primary'"
+              fab
+              small
+              @click="isEditing = !isEditing"
+            >
+              <v-icon v-if="isEditing"> mdi-close </v-icon>
+              <v-icon v-else> mdi-pencil </v-icon>
+            </v-btn>
+          </v-row>
+        </v-col>
       </v-row>
     </v-card-text>
     <v-card-actions>

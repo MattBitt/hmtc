@@ -46,17 +46,9 @@ def import_vue_components():
     )
 
 
-@solara.component_vue("../components/section/SectionTimeline.vue")
-def Sandbox(barRange, sectionRange):
-    pass
-
-
 @solara.component
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
-    bar_range = dict(min=0, max=100)
-    section_range = [10, 80]
-    Sandbox(barRange=bar_range, sectionRange=section_range)
-    sect2 = [82, 99]
-    Sandbox(barRange=bar_range, sectionRange=sect2)
+
+    FancyComponent()
