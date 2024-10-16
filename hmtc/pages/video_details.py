@@ -252,10 +252,51 @@ def get_video_files(video_id, youtube_id):
     return db_files, folder_files
 
 
+def remove_existing_files(video_id, youtube_id, file_types):
+    db_files, _ = get_video_files(video_id, youtube_id)
+    existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
+    for vid_file in existing_vid_files:
+        # the below will delete files found in the database from the filesystem
+        try:
+            vid_file.delete_instance()
+            file_to_delete = Path(vid_file.path) / vid_file.filename
+            file_to_delete.unlink()
+
+        except Exception as e:
+            logger.error(f"Error deleting file {e}")
+
+    # the below will delete files found in the video's folder
+    # regardless if they are in the db or not
+
+    extensions = []
+    if "video" in file_types:
+        extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
+    if "audio" in file_types:
+        extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
+    if "info" in file_types:
+        extensions += [".info.json", ".json"]
+    if "subtitle" in file_types:
+        extensions += [".srt", ".en.vtt"]
+    if "poster" in file_types:
+        extensions += [".jpg", ".jpeg", ".png", ".webp"]
+
+    _, folder_files = get_video_files(video_id, youtube_id)
+    for file in folder_files:
+        if file.suffix in extensions:
+            logger.debug(f"Found video file: {file}. Deleting")
+            file.unlink()
+
+
+@solara.component_vue("../components/section/SectionControlPanel.vue", vuetify=True)
+def SectionControlPanel(
+    jellyfin_status, video_duration, event_delete_all_sections, event_create_section
+):
+    pass
+
+
 @solara.component_vue("../components/section/SectionCarousel.vue", vuetify=True)
-def SectionTabs(
+def SectionCarousel(
     sectionItems,
-    jellyfin_status,  # used in section_control_panel
     video_duration,
     event_add_item,
     event_remove_item,
@@ -263,8 +304,6 @@ def SectionTabs(
     event_update_times,
     event_loop_jellyfin,
     event_update_section_from_jellyfin,
-    event_create_section,
-    event_delete_all_sections,
     event_create_section_from_jellyfin,
 ):
     pass
@@ -347,41 +386,6 @@ def JFPanel(
         event_refresh_jellyfin_status=refresh_jellyfin_status,
         api_key=config["jellyfin"]["api"],
     )
-
-
-def remove_existing_files(video_id, youtube_id, file_types):
-    db_files, _ = get_video_files(video_id, youtube_id)
-    existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
-    for vid_file in existing_vid_files:
-        # the below will delete files found in the database from the filesystem
-        try:
-            vid_file.delete_instance()
-            file_to_delete = Path(vid_file.path) / vid_file.filename
-            file_to_delete.unlink()
-
-        except Exception as e:
-            logger.error(f"Error deleting file {e}")
-
-    # the below will delete files found in the video's folder
-    # regardless if they are in the db or not
-
-    extensions = []
-    if "video" in file_types:
-        extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
-    if "audio" in file_types:
-        extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
-    if "info" in file_types:
-        extensions += [".info.json", ".json"]
-    if "subtitle" in file_types:
-        extensions += [".srt", ".en.vtt"]
-    if "poster" in file_types:
-        extensions += [".jpg", ".jpeg", ".png", ".webp"]
-
-    _, folder_files = get_video_files(video_id, youtube_id)
-    for file in folder_files:
-        if file.suffix in extensions:
-            logger.debug(f"Found video file: {file}. Deleting")
-            file.unlink()
 
 
 @solara.component
@@ -671,9 +675,15 @@ def SectionsPanel(
     else:
         tab_items = []
 
-    SectionTabs(
-        sectionItems=tab_items,
+    SectionControlPanel(
         jellyfin_status=jellyfin_status.value,
+        video_duration=video.duration,
+        event_create_section=create_section,
+        event_delete_all_sections=delete_all_sections,
+    )
+
+    SectionCarousel(
+        sectionItems=tab_items,
         video_duration=video.duration,
         event_add_item=add_topic,
         event_remove_item=remove_topic,
@@ -681,13 +691,16 @@ def SectionsPanel(
         event_update_times=update_section_times,
         event_loop_jellyfin=lambda x: loop_jellyfin(x),
         event_update_section_from_jellyfin=update_section_from_jellyfin,
-        event_create_section=create_section,
-        event_delete_all_sections=delete_all_sections,
         event_create_section_from_jellyfin=create_section_at_jellyfin_position,
     )
 
 
 def register_vue_components():
+
+    ipyvue.register_component_from_file(
+        "AutoComplete", "../components/shared/AutoComplete.vue", __file__
+    )
+
     ipyvue.register_component_from_file(
         "MyToolTipChip",
         "../components/shared/MyToolTipChip.vue",
@@ -695,10 +708,20 @@ def register_vue_components():
     )
 
     ipyvue.register_component_from_file(
-        "BeatsInfo", "../components/beat/beats_info.vue", __file__
+        "AlbumPanel",
+        "../components/video/AlbumPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "VideoFilesInfoModal",
+        "../components/video/VideoFilesInfoModal.vue",
+        __file__,
     )
     ipyvue.register_component_from_file(
-        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
+        "SummaryPanel",
+        "../components/section/SummaryPanel.vue",
+        __file__,
     )
 
     ipyvue.register_component_from_file(
@@ -714,45 +737,17 @@ def register_vue_components():
     )
 
     ipyvue.register_component_from_file(
-        "SectionControlPanel",
-        "../components/section/section_control_panel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "SummaryPanel",
-        "../components/section/summary_panel.vue",
-        __file__,
+        "BeatsInfo", "../components/beat/beats_info.vue", __file__
     )
     ipyvue.register_component_from_file(
-        "VideoFilesInfoModal",
-        "../components/video/VideoFilesInfoModal.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "AlbumPanel",
-        "../components/video/AlbumPanel.vue",
-        __file__,
-    )
-    # ipyvue.register_component_from_file(
-    #     "AlbumFormPanel",
-    #     "../components/video/AlbumFormPanel.vue",
-    #     __file__,
-    # )
-    ipyvue.register_component_from_file(
-        "AutoComplete", "../components/shared/AutoComplete.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTimeline", "../components/section/SectionTimeline.vue", __file__
+        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
     )
 
 
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router=router)
+    # MySidebar(router=router)
 
     register_vue_components()
     video_id = parse_url_args()
@@ -774,9 +769,11 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Columns([6, 6], gutters=False):
+                # file_type_checkboxes.vue
                 FilesPanel(
                     video=video,
                 )
+                # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
                     jf=jf,
@@ -784,11 +781,12 @@ def Page():
                     router=router,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )
-
+            # solara component (image and text)
+            # VideoInfoInputCard.vue
             InfoPanel(
                 video=video,
             )
-
+            # SectionCarousel.vue
             SectionsPanel(
                 video=video,
                 reactive_sections=reactive_sections,

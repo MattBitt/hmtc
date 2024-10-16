@@ -51,23 +51,33 @@ module.exports = {
   ],
 
   methods: {
+    createSection(start, end) {
+      console.log("Creating section", start, end);
+
+      const args = {
+        start: start,
+        end: end,
+      };
+      this.create_section(args);
+    },
+
     deleteAllSections() {
       console.log("Deleting all sections");
-      this.$emit("deleteAllSections");
+      this.delete_all_sections();
     },
     createOneSection() {
       console.log("Creating a new section");
-      this.$emit("createSection", 0, this.video_duration);
+      this.createSection(0, this.video_duration);
     },
     createEvenSections() {
       console.log("Creating even sections");
       for (let i = 0; i < this.numEvenSections; i++) {
-        this.$emit("createSection", i * 300, (i + 1) * 300);
+        this.createSection(i * 300, (i + 1) * 300);
       }
     },
     createStdSectionAt0() {
       console.log("Creating a standard section at 0");
-      this.$emit("createSection", 0, 300);
+      this.createSection(0, 300);
     },
     startSectionAtJellyfin() {
       console.log("Creating a section at jellyfin time");

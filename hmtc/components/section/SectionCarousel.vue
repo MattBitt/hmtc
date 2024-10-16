@@ -2,20 +2,10 @@
 
 <template>
   <div>
-    <v-sheet>
-      <SectionControlPanel
-        :video_duration="video_duration"
-        :jellyfin_status="jellyfin_status"
-        @deleteAllSections="deleteSections"
-        @createSection="createSection"
-        @startAtJellyfin="createSectionAtJellyfin('start')"
-        @endAtJellyfin="createSectionAtJellyfin('end')"
-      />
-    </v-sheet>
     <v-carousel v-model="tabs" progress-color="primary">
       <v-carousel-item
         v-for="(section, index) in sectionItems"
-        max-height="400"
+        max-height="300"
         :key="section.id"
       >
         <v-sheet light class="mx-4">
@@ -83,9 +73,9 @@
             </v-tab-item>
           </v-tabs>
 
-          <v-col class="pa-2 mt-auto">
+          <v-row justify="center">
             <h1>Section {{ index + 1 }} {{ section.id }}</h1>
-          </v-col>
+          </v-row>
         </v-sheet>
       </v-carousel-item>
     </v-carousel>
@@ -97,7 +87,6 @@ export default {
   data() {
     return {
       video_duration: 0,
-      jellyfin_status: {},
 
       tabs: 0,
       sectionTabHeaders: [
@@ -119,26 +108,12 @@ export default {
       this.remove_item(args);
     },
 
-    createSection(start, end) {
-      console.log("Creating section", start, end);
-
-      const args = {
-        start: start,
-        end: end,
-      };
-      this.create_section(args);
-    },
     createSectionAtJellyfin(start_or_end) {
       console.log("Creating section at jellyfin", start_or_end);
       const args = {
         start_or_end: start_or_end,
       };
       this.create_section_from_jellyfin(args);
-    },
-
-    deleteSections() {
-      console.log("Deleting all sections");
-      this.delete_all_sections();
     },
 
     updateSectionTime(section, start_or_end) {
