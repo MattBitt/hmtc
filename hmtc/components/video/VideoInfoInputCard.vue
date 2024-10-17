@@ -47,9 +47,6 @@
           />
         </v-col>
       </v-row>
-      <v-row justify="center">
-        <h2>VideoFiles Dialog Should go here when ready.</h2>
-      </v-row>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>

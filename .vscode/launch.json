@@ -13,7 +13,7 @@
             "args": [
                 "run",
                 "hmtc/pages",
-                "--port=8766",
+                "--port=8767",
             ],
             "console": "integratedTerminal",
             "justMyCode": true,
@@ -32,6 +32,7 @@
             "program": ".venv/bin/flask",
             "args": [
                 "run",
+                "--port=8767",
             ],
             "console": "integratedTerminal",
             "justMyCode": true,

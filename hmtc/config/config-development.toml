@@ -19,7 +19,7 @@ logs = "/home/matt/apps/data_for_development/hmtc/development/logs"
 
 [database]
 name = "HMTCdevelopment"
-host = "127.0.0.1"
+host = "localhost"
 user = "postgres"
 password = "postgres"
 port = 5432

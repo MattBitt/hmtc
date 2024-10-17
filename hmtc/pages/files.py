@@ -117,8 +117,12 @@ def Page():
 
         files_in_db_not_found.set(missing_from_disk)
 
-        logger.error(f"Files not in DB: {len(have_files_not_in_db.value)}")
-        logger.error(f"Files not in Folder: {len(files_in_db_not_found.value)}")
+        messages.set(
+            [
+                f"Files not in DB: {len(have_files_not_in_db.value)}",
+                f"Files not in Folder: {len(files_in_db_not_found.value)}",
+            ]
+        )
 
     unique_vids = VideoModel.select(VideoModel.id).where(
         VideoModel.contains_unique_content == True

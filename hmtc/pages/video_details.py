@@ -632,6 +632,11 @@ def InfoPanel(
                     event_remove_youtube_series_from_video=remove_youtube_series,
                     event_update_youtube_series_for_video=update_youtube_series,
                 ),
+                with solara.Row(justify="end"):
+                    # file_type_checkboxes.vue
+                    FilesPanel(
+                        video=video,
+                    )
 
 
 @solara.component
@@ -831,10 +836,7 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Columns([6, 6], gutters=False):
-                # file_type_checkboxes.vue
-                FilesPanel(
-                    video=video,
-                )
+
                 # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
