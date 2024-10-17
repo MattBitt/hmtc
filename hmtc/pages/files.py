@@ -100,20 +100,22 @@ def Page():
                 f"Found {len(folder_files)} files in storage folder",
             ]
         )
-        have_files_not_in_db.set(
-            [
-                str(x)
-                for x in folder_files
-                if str(x) not in [y.filename for y in db_files]
-            ]
-        )
-        files_in_db_not_found.set(
-            [
-                str(x.path + "/" + x.filename)
-                for x in db_files
-                if x.filename not in [str(y) for y in folder_files]
-            ]
-        )
+        db_file_names = [x.filename for x in db_files]
+        folder_file_names = [x.name for x in folder_files]
+
+        missing_from_db = []
+        missing_from_disk = []
+
+        for x in folder_file_names:
+            if x not in db_file_names:
+                missing_from_db.append(x)
+        have_files_not_in_db.set(missing_from_db)
+
+        for x in db_file_names:
+            if x not in folder_file_names:
+                missing_from_disk.append(x)
+
+        files_in_db_not_found.set(missing_from_disk)
 
         logger.error(f"Files not in DB: {len(have_files_not_in_db.value)}")
         logger.error(f"Files not in Folder: {len(files_in_db_not_found.value)}")

@@ -456,7 +456,6 @@ def FilesPanel(video):
 @solara.component_vue("../components/video/VideoInfoInputCard.vue")
 def VideoInfoInputCard(
     albums,
-    event_create_album,
     selectedAlbum,
     youtube_serieses,
     selectedYoutubeSeries,
@@ -464,8 +463,15 @@ def VideoInfoInputCard(
     selectedSeries,
     episode_number,
     event_update_video,
-    event_update_album_for_video,
+    event_create_album,
     event_remove_album_from_video,
+    event_update_album_for_video,
+    event_create_series,
+    event_remove_series_from_video,
+    event_update_series_for_video,
+    event_create_youtube_series,
+    event_remove_youtube_series_from_video,
+    event_update_youtube_series_for_video,
 ):
     pass
 
@@ -476,6 +482,7 @@ def InfoPanel(
 ):
 
     def create_album(*args):
+        # doesn't work yet for release date
         logger.debug(f"Creating Album: {args}")
         try:
             album = AlbumModel.create(**args[0])
@@ -505,36 +512,67 @@ def InfoPanel(
         vid.album = None
         vid.save()
 
-    def update_video(*args):
-        # logger.debug(f"Updating Video: {args}")
-        vid = VideoModel.get_by_id(video.id)
+    def create_series(*args):
+        logger.debug(f"Creating Series: {args}")
         try:
-
-            if args[0]["album"] != "" and args[0]["album"] is not None:
-                vid.album = (
-                    AlbumModel.select()
-                    .where(AlbumModel.title == args[0]["album"])
-                    .get()
-                )
-            if (
-                args[0]["youtube_series"] != ""
-                and args[0]["youtube_series"] is not None
-            ):
-                vid.youtube_series = (
-                    YoutubeSeriesModel.select()
-                    .where(YoutubeSeriesModel.title == args[0]["youtube_series"])
-                    .get()
-                )
-            if args[0]["series"] != "":
-                vid.series = (
-                    SeriesModel.select()
-                    .where(SeriesModel.name == args[0]["series"])
-                    .get()
-                )
-            vid.episode = args[0]["episode_number"]
-            vid.save()
+            series = SeriesModel.create(**args[0])
         except Exception as e:
             logger.error(e)
+            return
+
+        logger.debug(f"Created Series: {series.name}")
+
+        vid = VideoModel.get_by_id(video.id)
+        vid.series = series
+        vid.save()
+
+    def update_series(*args):
+        logger.error(f"Assigning Series {args} to video {video.id}")
+        series = SeriesModel.get_or_none(SeriesModel.name == args[0]["name"])
+        if series is None:
+            logger.error(f"Series {args[0]['series']} not found")
+            return
+        vid = VideoModel.get_by_id(video.id)
+        vid.series = series
+        vid.save()
+
+    def remove_series(*args):
+        logger.error(f"Removing Series from video {video.id}")
+        vid = VideoModel.get_by_id(video.id)
+        vid.series = None
+        vid.save()
+
+    def create_youtube_series(*args):
+        logger.debug(f"Creating Youtube Series: {args}")
+        try:
+            series = YoutubeSeriesModel.create(**args[0])
+        except Exception as e:
+            logger.error(e)
+            return
+
+        logger.debug(f"Created Youtube Series: {series.title}")
+
+        vid = VideoModel.get_by_id(video.id)
+        vid.youtube_series = series
+        vid.save()
+
+    def remove_youtube_series(*args):
+        logger.error(f"Removing Youtube Series from video {video.id}")
+        vid = VideoModel.get_by_id(video.id)
+        vid.youtube_series = None
+        vid.save()
+
+    def update_youtube_series(*args):
+        logger.error(f"Assigning Youtube Series {args} to video {video.id}")
+        youtube_series = YoutubeSeriesModel.get_or_none(
+            YoutubeSeriesModel.title == args[0]["title"]
+        )
+        if youtube_series is None:
+            logger.error(f"Youtube Series {args[0]['youtube_series']} not found")
+            return
+        vid = VideoModel.get_by_id(video.id)
+        vid.youtube_series = youtube_series
+        vid.save()
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
@@ -575,7 +613,6 @@ def InfoPanel(
             with solara.Column():
                 VideoInfoInputCard(
                     albums=album_dicts,
-                    event_create_album=create_album,
                     youtube_serieses=youtube_series_dicts,
                     selectedAlbum=video.album.title if video.album else None,
                     selectedYoutubeSeries=(
@@ -584,9 +621,16 @@ def InfoPanel(
                     serieses=series_dicts,
                     selectedSeries=(video.series.name if video.series else None),
                     episode_number=video.episode,
-                    event_update_video=lambda x: update_video(x),
-                    event_update_album_for_video=update_album,
+                    # event_update_video=lambda x: update_video(x),
+                    event_create_album=create_album,
                     event_remove_album_from_video=remove_album,
+                    event_update_album_for_video=update_album,
+                    event_create_series=create_series,
+                    event_remove_series_from_video=remove_series,
+                    event_update_series_for_video=update_series,
+                    event_create_youtube_series=create_youtube_series,
+                    event_remove_youtube_series_from_video=remove_youtube_series,
+                    event_update_youtube_series_for_video=update_youtube_series,
                 ),
 
 
@@ -714,6 +758,24 @@ def register_vue_components():
     )
 
     ipyvue.register_component_from_file(
+        "SeriesPanel",
+        "../components/video/SeriesPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "YoutubeSeriesPanel",
+        "../components/video/YoutubeSeriesPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "VideoFilesDialog",
+        "../components/file/file_type_checkboxes.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
         "VideoFilesInfoModal",
         "../components/video/VideoFilesInfoModal.vue",
         __file__,
@@ -747,7 +809,7 @@ def register_vue_components():
 @solara.component
 def Page():
     router = solara.use_router()
-    # MySidebar(router=router)
+    MySidebar(router=router)
 
     register_vue_components()
     video_id = parse_url_args()

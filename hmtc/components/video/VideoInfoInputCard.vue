@@ -1,83 +1,59 @@
 <template>
   <v-card flat class="overflow-hidden" color="">
     <v-card-text>
-      <AutoComplete
-        v-model="selectedSeries"
-        :items="serieses"
-        label="Series"
-        itemText="name"
-        itemValue="id"
-        icon="mdi-shape"
-        :isEditing="isEditing"
-        :placeholder="this.selectedSeries"
-        @addNewItem="addNewSeries"
-        @selectItem="selectSeries"
-        @clearItem="clearSeries"
-      >
-      </AutoComplete>
-      <v-row>
-        <v-col cols="12" sm="8">
-          <AutoComplete
-            v-model="selectedYoutubeSeries"
-            :items="youtube_serieses"
-            label="Youtube Series"
-            itemText="title"
-            itemValue="id"
-            icon="mdi-youtube"
-            :isEditing="isEditing"
-            :placeholder="this.selectedYoutubeSeries"
-            @addNewItem="addNewYoutubeSeries"
-            @selectItem="selectYoutubeSeries"
-            @clearItem="clearYoutubeSeries"
-          >
-          </AutoComplete>
+      <v-row justify="center">
+        <v-col cols="8">
+          <h3>{{ albumDict.title ? albumDict.title : "" }}</h3>
         </v-col>
         <v-col cols="4">
-          <v-text-field
-            v-model="episode_number"
-            label="Episode"
-            :disabled="!isEditing"
-          ></v-text-field>
-        </v-col>
-      </v-row>
-
-      <v-row justify="center">
-        <v-col cols="6">
-          <h3>{{ albumDict.title ? albumDict.title : "" }}</h3>
           <AlbumPanel
             :items="albums"
             :hasAlbum="thisVidHasAlbum"
             :albumInfo="albumDict"
             :possibleAlbumTitle="constructAlbumTitle()"
             @createAlbum="createAlbum"
-            @selectAlbum="chooseExistingAlbum"
+            @selectAlbum="selectAlbum"
             @removeAlbum="removeAlbum"
           />
         </v-col>
-        <v-col cols="6">
-          <v-row justify="center">
-            <v-btn v-if="isEditing" color="primary" fab small @click="save">
-              <v-icon>mdi-content-save</v-icon>
-            </v-btn>
-            <v-btn
-              :color="isEditing ? 'warning' : 'primary'"
-              fab
-              small
-              @click="isEditing = !isEditing"
-            >
-              <v-icon v-if="isEditing"> mdi-close </v-icon>
-              <v-icon v-else> mdi-pencil </v-icon>
-            </v-btn>
-          </v-row>
+      </v-row>
+      <v-row justify="center">
+        <v-col cols="8">
+          <h3>{{ this.selectedSeries }}</h3>
         </v-col>
+        <v-col cols="4">
+          <SeriesPanel
+            :items="serieses"
+            :hasSeries="true"
+            :seriesInfo="seriesDict"
+            @createSeries="createSeries"
+            @selectSeries="selectSeries"
+            @removeSeries="removeSeries"
+          />
+        </v-col>
+      </v-row>
+      <v-row justify="center">
+        <v-col cols="8">
+          <h3>{{ this.selectedYoutubeSeries }}</h3>
+        </v-col>
+        <v-col cols="4">
+          <YoutubeSeriesPanel
+            :items="youtube_serieses"
+            :hasYoutubeSeries="true"
+            :youtubeseriesInfo="youtubeSeriesDict"
+            @createYoutubeSeries="createYoutubeSeries"
+            @selectYoutubeSeries="selectYoutubeSeries"
+            @removeYoutubeSeries="removeYoutubeSeries"
+          />
+        </v-col>
+      </v-row>
+      <v-row justify="center">
+        <h2>VideoFiles Dialog Should go here when ready.</h2>
       </v-row>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
     </v-card-actions>
-    <v-snackbar v-model="hasSaved" :timeout="2000" absolute bottom left>
-      Video has been updated
-    </v-snackbar>
   </v-card>
 </template>
 
@@ -85,8 +61,6 @@
 export default {
   data() {
     return {
-      hasSaved: false,
-      isEditing: false,
       model: null,
       selectedAlbum: null,
       selectedYoutubeSeries: null,
@@ -101,98 +75,94 @@ export default {
       console.log("albumDict", ad);
       return ad;
     },
+    seriesDict() {
+      console.log("seriesDict");
+      return { name: this.selectedSeries };
+    },
+
+    youtubeSeriesDict() {
+      console.log("youtubeseriesDict");
+      return { title: this.selectedYoutubeSeries };
+    },
     thisVidHasAlbum() {
       return this.selectedAlbum !== null;
     },
   },
   methods: {
-    save() {
-      const args = {
-        album: null, //deprecated and moved to button
-        youtube_series: this.selectedYoutubeSeries,
-        series: this.selectedSeries,
-        episode_number: this.episode_number,
-      };
-      this.isEditing = !this.isEditing;
-      this.hasSaved = true;
-      this.update_video(args);
-    },
     createAlbum(args) {
       console.log("In VideoInfoInputCard createAlbum", args);
-      this.create_album(args);
+
       this.albums.push(args);
       this.selectedAlbum = args.title;
+      this.create_album(args);
     },
     removeAlbum(args) {
-      this.remove_album_from_video(args);
       this.selectedAlbum = null;
+      this.albums = this.albums.filter((a) => a.title !== args.title);
+      this.remove_album_from_video(args);
     },
 
-    chooseExistingAlbum(val) {
+    selectAlbum(val) {
       this.selectedAlbum = val.title;
       const args = {
         title: this.selectedAlbum,
       };
       this.update_album_for_video(args);
     },
+
+    createYoutubeSeries(youtubeseriesTitle) {
+      console.log("adding new youtubeseries (parent)", youtubeseriesTitle);
+      this.youtube_serieses.push({
+        title: youtubeseriesTitle,
+        id: this.youtube_serieses.length + 1,
+      });
+      this.create_youtube_series(youtubeseriesTitle);
+      // this.youtube_serieses.push({ title: 'New YoutubeSeries', id: this.youtube_serieses.length + 1 })
+      // this.model = this.youtube_serieses[this.youtube_serieses.length - 1]
+    },
+    removeYoutubeSeries() {
+      console.log("clearing youtubeseries (parent)");
+      this.remove_youtube_series_from_video();
+    },
+    selectYoutubeSeries(val) {
+      console.log("selected youtubeseries (parent)", val);
+      this.selectedYoutubeSeries = val.title;
+
+      const args = {
+        title: this.selectedYoutubeSeries,
+      };
+      this.update_youtube_series_for_video(args);
+    },
+
+    createSeries(seriesName) {
+      console.log("adding new series (parent)", seriesName);
+      this.serieses.push({
+        name: seriesName,
+        id: this.serieses.length + 1,
+      });
+      this.create_series(seriesName);
+    },
+    removeSeries() {
+      console.log("clearing series (parent)");
+      this.remove_series_from_video();
+    },
+    selectSeries(val) {
+      console.log("selected series (parent)", val);
+      this.selectedSeries = val.name;
+      this.update_series_for_video(val);
+    },
+
     constructAlbumTitle() {
       console.log(
         "possibleAlbumTfdsafsdfsditle",
         this.selectedYoutubeSeries,
         this.episode_number
       );
-      if (true) {
-        const newName = `${
-          this.selectedYoutubeSeries
-        } ${this.episode_number?.padStart(3, "0")}`;
-        console.log("newName", newName);
-        return newName;
-      } else {
-        console.log(
-          "Couldn't create newName",
-          this.selectedYoutubeSeries,
-          " - ",
-          this.episode_number
-        );
-        return null;
-      }
-    },
-
-    addNewYoutubeSeries(youtubeseriesTitle) {
-      console.log("adding new youtubeseries (parent)", youtubeseriesTitle);
-      // call python here
-      this.searchQ = "";
-      this.youtubeseriess.push({
-        title: youtubeseriesTitle,
-        id: this.youtubeseriess.length + 1,
-      });
-      // this.youtubeseriess.push({ title: 'New YoutubeSeries', id: this.youtubeseriess.length + 1 })
-      // this.model = this.youtubeseriess[this.youtubeseriess.length - 1]
-    },
-    selectYoutubeSeries(val) {
-      console.log("selected youtubeseries (parent)", val);
-      this.selectedYoutubeSeries = val.title;
-    },
-    clearYoutubeSeries() {
-      console.log("clearing youtubeseries (parent)");
-    },
-    addNewSeries(seriesName) {
-      console.log("adding new series (parent)", seriesName);
-      // call python here
-      this.searchQ = "";
-      this.youtubeseriess.push({
-        name: seriesName,
-        id: this.seriess.length + 1,
-      });
-      // this.youtubeseriess.push({ title: 'New YoutubeSeries', id: this.youtubeseriess.length + 1 })
-      // this.model = this.youtubeseriess[this.youtubeseriess.length - 1]
-    },
-    selectSeries(val) {
-      console.log("selected series (parent)", val);
-      this.selectedSeries = val.name;
-    },
-    clearSeries() {
-      console.log("clearing series (parent)");
+      const newName = `${
+        this.selectedYoutubeSeries
+      } ${this.episode_number?.padStart(3, "0")}`;
+      console.log("newName", newName);
+      return newName;
     },
   },
   watch: {},
