@@ -23,29 +23,27 @@
       </v-toolbar>
       <v-card>
         <v-row>
-          <v-col cols="3">
-            <v-btn class="button" @click="createOneSection">Whole</v-btn>
-          </v-col>
-          <v-col cols="3">
-            <v-btn
-              outlined
-              class="button"
-              @click="createEvenSections"
-              :disabled="!(numEvenSections > 0)"
-            >
-              {{ numEvenSections }}
-            </v-btn>
-          </v-col>
-          <v-col cols="3">
-            <v-btn outlined class="button" @click="createStdSectionAt0">
-              at 0</v-btn
-            >
-          </v-col>
-          <v-col cols="3">
-            <v-btn outlined class="button mywarning" @click="deleteAllSections"
-              >Delete All Sections</v-btn
-            >
-          </v-col>
+          <v-btn class="button" @click="createOneSection">Whole</v-btn>
+        </v-row>
+        <v-row>
+          <v-btn
+            outlined
+            class="button"
+            @click="createEvenSections"
+            :disabled="!(numEvenSections > 0)"
+          >
+            {{ numEvenSections }}
+          </v-btn>
+        </v-row>
+        <v-row>
+          <v-btn outlined class="button" @click="createStdSectionAt0">
+            at 0</v-btn
+          >
+        </v-row>
+        <v-row>
+          <v-btn outlined class="button mywarning" @click="deleteAllSections"
+            >Delete All Sections</v-btn
+          >
         </v-row>
         <v-row v-if="enableJellyfin" justify="space-between">
           <v-col cols="3">

@@ -587,6 +587,25 @@ class EpisodeNumberTemplate(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+class Track(BaseModel):
+    title = CharField(null=True)
+    track_number = CharField(null=True)
+    length = IntegerField(null=True)
+    album = ForeignKeyField(Album, backref="tracks", null=True)
+
+    def model_to_dict(self):
+        new_dict = {
+            "id": self.id,
+            "title": self.title,
+            "track_number": self.track_number,
+            "length": self.length,
+            "album_id": self.album.id if self.album else None,
+            "album_title": self.album.title if self.album else None,
+        }
+        return new_dict
+
+
+## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Section(BaseModel):
     start = IntegerField(null=True)
     end = IntegerField(null=True)
@@ -597,6 +616,10 @@ class Section(BaseModel):
 
     video = ForeignKeyField(Video, backref="sections", null=True)
     ordinal = IntegerField(null=True)
+
+    # 10/18/24 adding below, but haven't verified anything above in
+    # a long time
+    track = ForeignKeyField(Track, backref="section", null=True)
 
     @classmethod
     def create_initial_section(cls, video):
@@ -801,25 +824,6 @@ class File(BaseModel):
             "filename": self.filename,
             "file_type": self.file_type,
             "video_id": self.video.id if self.video else None,
-        }
-        return new_dict
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Track(BaseModel):
-    title = CharField(null=True)
-    track_number = CharField(null=True)
-    length = IntegerField(null=True)
-    album = ForeignKeyField(Album, backref="tracks", null=True)
-
-    def model_to_dict(self):
-        new_dict = {
-            "id": self.id,
-            "title": self.title,
-            "track_number": self.track_number,
-            "length": self.length,
-            "album_id": self.album.id if self.album else None,
-            "album_title": self.album.title if self.album else None,
         }
         return new_dict
 

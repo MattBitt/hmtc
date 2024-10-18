@@ -221,13 +221,14 @@ def save_video_item(dict_of_items):
     new_vid = VideoModel.get_by_id(item["id"])
     new_vid.duration = edited_item["duration"]
     new_vid.jellyfin_id = edited_item["jellyfin_id"]
-
+    new_vid.contains_unique_content = edited_item["contains_unique_content"]
     if channel is not None:
         new_vid.channel = channel
     if youtube_series is not None:
         new_vid.youtube_series = youtube_series
     if playlist is not None:
         new_vid.playlist = playlist
+    # 10/18 no idea why and im too scared to ask
     if new_series != "asdf":
         new_vid.series = new_series
     if album is not None:

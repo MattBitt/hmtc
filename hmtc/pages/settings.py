@@ -115,7 +115,9 @@ class PageState:
                 continue
 
             existing = PageState.jf.search_media(v.youtube_id)
-
+            if existing is None:
+                logger.error(f"{v.youtube_id} not found in Jellyfin")
+                continue
             if existing["TotalRecordCount"] == 1:
                 v.jellyfin_id = existing["Items"][0]["Id"]
                 v.save()

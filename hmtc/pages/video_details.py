@@ -305,6 +305,8 @@ def SectionCarousel(
     event_loop_jellyfin,
     event_update_section_from_jellyfin,
     event_create_section_from_jellyfin,
+    event_create_track,
+    event_remove_track,
 ):
     pass
 
@@ -661,10 +663,7 @@ def SectionsPanel(
             [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
         )
 
-    section_type = solara.use_reactive("intro")
-
-    # existing sections
-    num_sections = solara.use_reactive(len(reactive_sections.value))
+    section_type = solara.use_reactive("instrumental")
 
     def create_section_at_jellyfin_position(*args):
 
@@ -709,6 +708,13 @@ def SectionsPanel(
     else:
         tab_items = []
 
+    def create_track(section_id):
+        logger.debug(f"Creating Track: {section_id}")
+        
+
+    def remove_track(section_id):
+        logger.debug(f"Removing Track: {section_id}")
+
     SectionCarousel(
         sectionItems=tab_items,
         video_duration=video.duration,
@@ -719,6 +725,8 @@ def SectionsPanel(
         event_loop_jellyfin=lambda x: loop_jellyfin(x),
         event_update_section_from_jellyfin=update_section_from_jellyfin,
         event_create_section_from_jellyfin=create_section_at_jellyfin_position,
+        event_create_track=create_track,
+        event_remove_track=remove_track,
     )
 
 
@@ -833,16 +841,16 @@ def Page():
                 InfoPanel(
                     video=video,
                 )
+                # file_type_checkboxes.vue
+                FilesPanel(
+                    video=video,
+                )
 
                 SectionControlPanel(
                     jellyfin_status=status_dict.value,
                     video_duration=video.duration,
                     event_create_section=create_section,
                     event_delete_all_sections=delete_all_sections,
-                )
-                # file_type_checkboxes.vue
-                FilesPanel(
-                    video=video,
                 )
 
                 # video_details_jf_bar.vue

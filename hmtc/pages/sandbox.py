@@ -46,9 +46,24 @@ def import_vue_components():
     )
 
 
+@solara.component_vue("../components/GOBY/empty_table.vue", vuetify=True)
+def EmptyTable(
+    items: list = [],
+    event_save_item: Callable = None,
+    event_delete_item: Callable = None,
+):
+    pass
+
+
 @solara.component
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
 
-    FancyComponent()
+    EmptyTable(
+        items=[{"id": 1, "title": "test"}, {"id": 2, "title": "test2"}],
+        event_delete_item=lambda x: logger.debug(
+            f"Deleting Item received from Vue: {x}"
+        ),
+        event_save_item=lambda x: logger.debug(f"Saving Item received from Vue: {x}"),
+    )

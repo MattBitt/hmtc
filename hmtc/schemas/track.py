@@ -15,6 +15,10 @@ WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 
+# 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝
+# 10/18/24 - the below may or not be useful. I think i created it
+# to get some tracks built before our vacation to chicago. leaving it
+# in for now., but don't add anything here
 @dataclass
 class TrackItem:
     # this defintely shouldn't be happening here.

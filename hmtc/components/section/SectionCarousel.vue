@@ -12,75 +12,80 @@
       <v-row justify="center">
         <h1>Section {{ index + 1 }} {{ section.id }}</h1>
       </v-row>
-
-      <v-dialog
-        v-model="dialog[index]"
-        fullscreen
-        hide-overlay
-        transition="dialog-bottom-transition"
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <v-row justify="center" class="mt-10">
+      <v-row justify="center" class="mt-10">
+        <v-dialog
+          v-model="dialog[index]"
+          fullscreen
+          hide-overlay
+          transition="dialog-bottom-transition"
+        >
+          <template v-slot:activator="{ on, attrs }">
             <v-btn color="primary" dark v-bind="attrs" v-on="on">
               <v-icon>mdi-pencil</v-icon>Edit Section
             </v-btn>
-          </v-row>
-        </template>
+          </template>
 
-        <v-toolbar dark color="primary">
-          <v-btn icon dark @click="dialog[index] = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-          <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-toolbar-items>
-            <v-btn dark text :disabled="!valid" @click=""> Save </v-btn>
-          </v-toolbar-items>
-        </v-toolbar>
-        <v-card>
-          <v-container class="px-10">
-            <v-card-title>Start Time</v-card-title>
-            <SectionTimePanel
-              :sectionID="section.id"
-              :video_duration="video_duration"
-              :initialTime="section.start"
-              @updateTime="updateSectionStart"
-              @updateSectionTimeFromJellyfin="updateSectionTime"
-              @loopJellyfin="loopJellyfinAtStart"
-            />
-            <v-divider></v-divider>
-            <v-card-title>End Time</v-card-title>
-            <SectionTimePanel
-              :sectionID="section.id"
-              :video_duration="video_duration"
-              :initialTime="section.end"
-              @updateTime="updateSectionEnd"
-              @updateSectionTimeFromJellyfin="updateSectionTime"
-              @loopJellyfin="loopJellyfinAtEnd"
-            />
+          <v-toolbar dark color="primary">
+            <v-btn icon dark @click="dialog[index] = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+              <v-btn dark text :disabled="!valid" @click=""> Save </v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card>
+            <v-container class="px-10">
+              <v-card-title>Start Time</v-card-title>
+              <SectionTimePanel
+                :sectionID="section.id"
+                :video_duration="video_duration"
+                :initialTime="section.start"
+                @updateTime="updateSectionStart"
+                @updateSectionTimeFromJellyfin="updateSectionTime"
+                @loopJellyfin="loopJellyfinAtStart"
+              />
+              <v-divider></v-divider>
+              <v-card-title>End Time</v-card-title>
+              <SectionTimePanel
+                :sectionID="section.id"
+                :video_duration="video_duration"
+                :initialTime="section.end"
+                @updateTime="updateSectionEnd"
+                @updateSectionTimeFromJellyfin="updateSectionTime"
+                @loopJellyfin="loopJellyfinAtEnd"
+              />
 
-            <v-divider></v-divider>
-            <v-card-title>Topics</v-card-title>
+              <v-divider></v-divider>
+              <v-card-title>Topics</v-card-title>
 
-            <!-- i think the :topics below is incorrect 10/9/24 -->
-            <SectionTopicsPanel
-              :topics="section.topics"
-              :item="section"
-              @addTopic="addTopic"
-              @removeTopic="removeTopic"
-            />
+              <!-- i think the :topics below is incorrect 10/9/24 -->
+              <SectionTopicsPanel
+                :topics="section.topics"
+                :item="section"
+                @addTopic="addTopic"
+                @removeTopic="removeTopic"
+              />
 
-            <v-divider></v-divider>
-            <v-card-title>Musical</v-card-title>
-            <BeatsInfo />
-            <ArtistsInfo />
+              <v-divider></v-divider>
+              <v-card-title>Musical</v-card-title>
+              <BeatsInfo />
+              <ArtistsInfo />
 
-            <v-divider></v-divider>
-            <v-card-title>Admin</v-card-title>
-            <SectionAdminPanel @deleteSection="removeSection(section.id)" />
-          </v-container>
-        </v-card>
-      </v-dialog>
+              <v-divider></v-divider>
+              <v-card-title>Admin</v-card-title>
+              <SectionAdminPanel @deleteSection="removeSection(section.id)" />
+            </v-container>
+          </v-card>
+        </v-dialog>
+        <v-btn @click="createTrack(section.id)" class="button"
+          >Create Track</v-btn
+        >
+        <v-btn @click="removeTrack(section.id)" class="button"
+          >Remove Track</v-btn
+        >
+      </v-row>
     </v-carousel-item>
   </v-carousel>
 </template>
@@ -160,6 +165,20 @@ export default {
         end: new_time,
       };
       this.update_times(args);
+    },
+    createTrack(section_id) {
+      console.log("Creating track", section_id);
+      const args = {
+        section_id: section_id,
+      };
+      this.create_track(args);
+    },
+    removeTrack(section_id) {
+      console.log("Removing track", section_id);
+      const args = {
+        section_id: section_id,
+      };
+      this.remove_track(args);
     },
   },
 };

@@ -71,10 +71,10 @@ class FileManager:
             if not file:
                 raise ValueError("File object is required")
 
-            logger.info(f"Adding {filetype} file ({file}) to {video}")
+            # logger.info(f"Adding {filetype} file ({file}) to {video}")
             # video.files.append(file)
             # video.save()
-            logger.info(f"File added to {video}")
+            logger.info(f"File added to {video.title}")
 
         except ValueError as e:
             logger.error(e)

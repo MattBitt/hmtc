@@ -21,11 +21,9 @@
       </v-row>
     </v-sheet>
     <v-row justify="center" class="mb-6">
-      <span class="seven-seg"
-        >{{ prettyTime(section.start / 1000) }}-{{
-          prettyTime(section.end / 1000)
-        }}</span
-      >
+      <span class="seven-seg">{{ prettyTime(section.start / 1000) }} </span>
+      <h1>-</h1>
+      <span class="seven-seg">{{ prettyTime(section.end / 1000) }}</span>
     </v-row>
     <v-row justify="center" class="mb-6">
       <h3>{{ section.section_type }}</h3>

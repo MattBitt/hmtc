@@ -267,8 +267,10 @@ class MyJellyfinClient:
             client.jellyfin.remote_stop(self.session_id)
 
     def search_media(self, query):
-        if self.is_connected:
-            return client.jellyfin.search_media_items(query)
+        if not self.is_connected:
+            self.connect()
+        response = client.jellyfin.search_media_items(query)
+        return response
 
     def seek_to(self, position):
         if self.is_connected:
