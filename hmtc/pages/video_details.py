@@ -326,7 +326,7 @@ def FileTypeCheckboxes(
     pass
 
 
-@solara.component_vue("../components/video/video_details_jf_bar.vue")
+@solara.component_vue("../components/video/VideoDetailsJFPanel.vue")
 def JellyfinControlPanel(
     jellyfin_status,
     page_jellyfin_id,
@@ -477,6 +477,35 @@ def VideoInfoInputCard(
 
 
 @solara.component
+def VideoInfoPanelLeft(video):
+
+    poster = FileManager.get_file_for_video(video, "poster")
+    image = PIL.Image.open(Path(str(poster)))
+
+    with solara.Columns([6, 6]):
+        with solara.Column():
+            with solara.Row(justify="center"):
+                solara.Image(image, width=IMG_WIDTH)
+        with solara.Column():
+            with solara.Row(justify="center"):
+                solara.Text(
+                    f"{video.title[:50]}",
+                    classes=["video-info-text"],
+                )
+
+            with solara.Row(justify="center"):
+                solara.Text(
+                    f"Uploaded: {time_ago_string(video.upload_date)}",
+                    classes=["medium-timer"],
+                )
+            with solara.Row(justify="center"):
+                solara.Text(
+                    f"Length: {seconds_to_hms(video.duration)}",
+                    classes=["medium-timer"],
+                )
+
+
+@solara.component
 def InfoPanel(
     video,
 ):
@@ -574,8 +603,6 @@ def InfoPanel(
         vid.youtube_series = youtube_series
         vid.save()
 
-    poster = FileManager.get_file_for_video(video, "poster")
-    image = PIL.Image.open(Path(str(poster)))
     album_dicts = [
         dict(id=a.id, title=a.title)
         for a in AlbumModel.select().order_by(AlbumModel.title)
@@ -588,55 +615,28 @@ def InfoPanel(
         dict(id=a.id, name=a.name)
         for a in SeriesModel.select().order_by(SeriesModel.name)
     ]
-    with solara.Row(justify="center"):
-        with solara.Columns([6, 6]):
-            with solara.Column():
-                with solara.Row(justify="center"):
-                    solara.Image(image, width=IMG_WIDTH)
-                with solara.Row(justify="center"):
-                    solara.Text(
-                        f"{video.title[:50]}",
-                        classes=["video-info-text"],
-                    )
 
-                with solara.Row(justify="center"):
-                    solara.Text(
-                        f"Uploaded: {time_ago_string(video.upload_date)}",
-                        classes=["medium-timer"],
-                    )
-                with solara.Row(justify="center"):
-                    solara.Text(
-                        f"Length: {seconds_to_hms(video.duration)}",
-                        classes=["medium-timer"],
-                    )
-
-            with solara.Column():
-                VideoInfoInputCard(
-                    albums=album_dicts,
-                    youtube_serieses=youtube_series_dicts,
-                    selectedAlbum=video.album.title if video.album else None,
-                    selectedYoutubeSeries=(
-                        video.youtube_series.title if video.youtube_series else None
-                    ),
-                    serieses=series_dicts,
-                    selectedSeries=(video.series.name if video.series else None),
-                    episode_number=video.episode,
-                    # event_update_video=lambda x: update_video(x),
-                    event_create_album=create_album,
-                    event_remove_album_from_video=remove_album,
-                    event_update_album_for_video=update_album,
-                    event_create_series=create_series,
-                    event_remove_series_from_video=remove_series,
-                    event_update_series_for_video=update_series,
-                    event_create_youtube_series=create_youtube_series,
-                    event_remove_youtube_series_from_video=remove_youtube_series,
-                    event_update_youtube_series_for_video=update_youtube_series,
-                ),
-                with solara.Row(justify="end"):
-                    # file_type_checkboxes.vue
-                    FilesPanel(
-                        video=video,
-                    )
+    VideoInfoInputCard(
+        albums=album_dicts,
+        youtube_serieses=youtube_series_dicts,
+        selectedAlbum=video.album.title if video.album else None,
+        selectedYoutubeSeries=(
+            video.youtube_series.title if video.youtube_series else None
+        ),
+        serieses=series_dicts,
+        selectedSeries=(video.series.name if video.series else None),
+        episode_number=video.episode,
+        # event_update_video=lambda x: update_video(x),
+        event_create_album=create_album,
+        event_remove_album_from_video=remove_album,
+        event_update_album_for_video=update_album,
+        event_create_series=create_series,
+        event_remove_series_from_video=remove_series,
+        event_update_series_for_video=update_series,
+        event_create_youtube_series=create_youtube_series,
+        event_remove_youtube_series_from_video=remove_youtube_series,
+        event_update_youtube_series_for_video=update_youtube_series,
+    ),
 
 
 @solara.component
@@ -665,21 +665,6 @@ def SectionsPanel(
 
     # existing sections
     num_sections = solara.use_reactive(len(reactive_sections.value))
-
-    def delete_all_sections(*args):
-        for section in reactive_sections.value:
-            logger.debug(f"Deleting Section: {section}")
-            delete_section_from_db(section.id)
-
-        reactive_sections.set([])
-
-    def create_section(*args):
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=args[0]["start"], end=args[0]["end"], section_type=section_type.value
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
 
     def create_section_at_jellyfin_position(*args):
 
@@ -723,13 +708,6 @@ def SectionsPanel(
         tab_items = section_dicts[0].value
     else:
         tab_items = []
-
-    SectionControlPanel(
-        jellyfin_status=jellyfin_status.value,
-        video_duration=video.duration,
-        event_create_section=create_section,
-        event_delete_all_sections=delete_all_sections,
-    )
 
     SectionCarousel(
         sectionItems=tab_items,
@@ -833,9 +811,39 @@ def Page():
             args[0]["section"], args[0]["start_or_end"], video, reactive_sections
         )
 
+    def delete_all_sections(*args):
+        for section in reactive_sections.value:
+            logger.debug(f"Deleting Section: {section}")
+            delete_section_from_db(section.id)
+
+        reactive_sections.set([])
+
+    def create_section(*args):
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(
+            start=args[0]["start"], end=args[0]["end"], section_type="instrumental"
+        )
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
     with solara.Column(classes=["main-container"]):
         with solara.Card():
-            with solara.Columns([6, 6], gutters=False):
+            with solara.Row():
+                # VideoInfoInputCard.vue
+                InfoPanel(
+                    video=video,
+                )
+
+                SectionControlPanel(
+                    jellyfin_status=status_dict.value,
+                    video_duration=video.duration,
+                    event_create_section=create_section,
+                    event_delete_all_sections=delete_all_sections,
+                )
+                # file_type_checkboxes.vue
+                FilesPanel(
+                    video=video,
+                )
 
                 # video_details_jf_bar.vue
                 JFPanel(
@@ -845,11 +853,12 @@ def Page():
                     router=router,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )
-            # solara component (image and text)
-            # VideoInfoInputCard.vue
-            InfoPanel(
-                video=video,
-            )
+
+            with solara.Column():
+
+                # solara component
+                VideoInfoPanelLeft(video=video)
+
             # SectionCarousel.vue
             SectionsPanel(
                 video=video,

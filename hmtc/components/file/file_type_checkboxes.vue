@@ -1,5 +1,5 @@
 <template>
-  <div class="text-center">
+  <div class="mt-4">
     <v-dialog
       v-model="dialog"
       fullscreen
@@ -7,7 +7,7 @@
       transition="dialog-bottom-transition"
     >
       <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" dark v-bind="attrs" v-on="on">
+        <v-btn class="button" v-bind="attrs" v-on="on">
           <v-icon>mdi-folder</v-icon> Files
         </v-btn>
       </template>

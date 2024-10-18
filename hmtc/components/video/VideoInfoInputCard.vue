@@ -1,57 +1,42 @@
 <template>
-  <v-card flat class="overflow-hidden" color="">
-    <v-card-text>
-      <v-row justify="center">
-        <v-col cols="8">
-          <h3>{{ albumDict.title ? albumDict.title : "" }}</h3>
-        </v-col>
-        <v-col cols="4">
-          <AlbumPanel
-            :items="albums"
-            :hasAlbum="thisVidHasAlbum"
-            :albumInfo="albumDict"
-            :possibleAlbumTitle="constructAlbumTitle()"
-            @createAlbum="createAlbum"
-            @selectAlbum="selectAlbum"
-            @removeAlbum="removeAlbum"
-          />
-        </v-col>
-      </v-row>
-      <v-row justify="center">
-        <v-col cols="8">
-          <h3>{{ this.selectedSeries }}</h3>
-        </v-col>
-        <v-col cols="4">
-          <SeriesPanel
-            :items="serieses"
-            :hasSeries="true"
-            :seriesInfo="seriesDict"
-            @createSeries="createSeries"
-            @selectSeries="selectSeries"
-            @removeSeries="removeSeries"
-          />
-        </v-col>
-      </v-row>
-      <v-row justify="center">
-        <v-col cols="8">
-          <h3>{{ this.selectedYoutubeSeries }}</h3>
-        </v-col>
-        <v-col cols="4">
-          <YoutubeSeriesPanel
-            :items="youtube_serieses"
-            :hasYoutubeSeries="true"
-            :youtubeseriesInfo="youtubeSeriesDict"
-            @createYoutubeSeries="createYoutubeSeries"
-            @selectYoutubeSeries="selectYoutubeSeries"
-            @removeYoutubeSeries="removeYoutubeSeries"
-          />
-        </v-col>
-      </v-row>
-    </v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-    </v-card-actions>
-  </v-card>
+  <v-row justify="center">
+    <v-col>
+      <AlbumPanel
+        :items="albums"
+        :hasAlbum="thisVidHasAlbum"
+        :albumInfo="albumDict"
+        :possibleAlbumTitle="constructAlbumTitle()"
+        @createAlbum="createAlbum"
+        @selectAlbum="selectAlbum"
+        @removeAlbum="removeAlbum"
+      />
+      <h4>{{ albumDict.title ? albumDict.title : "" }}</h4>
+    </v-col>
+
+    <v-col>
+      <SeriesPanel
+        :items="serieses"
+        :hasSeries="true"
+        :seriesInfo="seriesDict"
+        @createSeries="createSeries"
+        @selectSeries="selectSeries"
+        @removeSeries="removeSeries"
+      />
+      <h4>{{ this.selectedSeries }}</h4>
+    </v-col>
+
+    <v-col>
+      <YoutubeSeriesPanel
+        :items="youtube_serieses"
+        :hasYoutubeSeries="true"
+        :youtubeseriesInfo="youtubeSeriesDict"
+        @createYoutubeSeries="createYoutubeSeries"
+        @selectYoutubeSeries="selectYoutubeSeries"
+        @removeYoutubeSeries="removeYoutubeSeries"
+      />
+      <h4>{{ this.selectedYoutubeSeries }}</h4>
+    </v-col>
+  </v-row>
 </template>
 
 <script>

@@ -1,39 +1,67 @@
 <template>
-  <div>
-    <v-row justify="space-between">
-      <v-col cols="4">
-        <v-btn class="button" @click="createOneSection">Create 1 Section</v-btn>
-      </v-col>
-      <v-col cols="4">
-        <v-btn outlined class="button" @click="createEvenSections"
-          >Create {{ numEvenSections }} Sections</v-btn
-        >
-      </v-col>
-      <v-col cols="4">
-        <v-btn outlined class="button" @click="createStdSectionAt0"
-          >Create section at 0</v-btn
-        >
-      </v-col>
-    </v-row>
-    <v-row v-if="enableJellyfin" justify="space-between">
-      <v-col cols="4">
-        <v-btn class="button" @click="startSectionAtJellyfin"
-          >Start Section at Jellyfin</v-btn
-        >
-      </v-col>
-      <v-col cols="4">
-        <v-btn class="button" @click="endSectionAtJellyfin"
-          >End Section at Jellyfin</v-btn
-        >
-      </v-col>
-    </v-row>
-    <v-row justify="center">
-      <v-col cols="4">
-        <v-btn outlined class="button mywarning" @click="deleteAllSections"
-          >Delete All Sections</v-btn
-        >
-      </v-col>
-    </v-row>
+  <div class="mt-4">
+    <v-dialog
+      v-model="dialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn class="button" v-bind="attrs" v-on="on">
+          <v-icon>mdi-rhombus-split</v-icon>Sections
+        </v-btn>
+      </template>
+      <v-toolbar dark color="primary">
+        <v-btn icon dark @click="dialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <v-toolbar-title>Sections Editor</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-toolbar-items>
+          <v-btn dark text :disabled="!valid" @click=""> Save </v-btn>
+        </v-toolbar-items>
+      </v-toolbar>
+      <v-card>
+        <v-row>
+          <v-col cols="3">
+            <v-btn class="button" @click="createOneSection">Whole</v-btn>
+          </v-col>
+          <v-col cols="3">
+            <v-btn
+              outlined
+              class="button"
+              @click="createEvenSections"
+              :disabled="!(numEvenSections > 0)"
+            >
+              {{ numEvenSections }}
+            </v-btn>
+          </v-col>
+          <v-col cols="3">
+            <v-btn outlined class="button" @click="createStdSectionAt0">
+              at 0</v-btn
+            >
+          </v-col>
+          <v-col cols="3">
+            <v-btn outlined class="button mywarning" @click="deleteAllSections"
+              >Delete All Sections</v-btn
+            >
+          </v-col>
+        </v-row>
+        <v-row v-if="enableJellyfin" justify="space-between">
+          <v-col cols="3">
+            <v-btn class="button" @click="startSectionAtJellyfin"
+              >Start Section at Jellyfin</v-btn
+            >
+          </v-col>
+          <v-col cols="3">
+            <v-btn class="button" @click="endSectionAtJellyfin"
+              >End Section at Jellyfin</v-btn
+            >
+          </v-col>
+        </v-row>
+        <v-divider></v-divider>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script>
@@ -97,7 +125,10 @@ module.exports = {
     },
   },
   data() {
-    return {};
+    return {
+      dialog: false,
+      valid: false,
+    };
   },
 };
 </script>

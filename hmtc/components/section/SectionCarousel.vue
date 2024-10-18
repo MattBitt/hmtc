@@ -1,7 +1,7 @@
 <!-- 10/15/24 Im copying this page into section_carousel  -->
 
 <template>
-  <v-carousel v-model="slides" progress-color="primary" height="300">
+  <v-carousel v-model="slides" progress-color="primary" height="500">
     <v-carousel-item v-for="(section, index) in sectionItems" :key="section.id">
       <SummaryPanel
         :section="section"
@@ -14,7 +14,7 @@
       </v-row>
 
       <v-dialog
-        v-model="dialog"
+        v-model="dialog[index]"
         fullscreen
         hide-overlay
         transition="dialog-bottom-transition"
@@ -28,7 +28,7 @@
         </template>
 
         <v-toolbar dark color="primary">
-          <v-btn icon dark @click="dialog = false">
+          <v-btn icon dark @click="dialog[index] = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
           <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
@@ -90,7 +90,7 @@ export default {
   data() {
     return {
       video_duration: 0,
-      dialog: false,
+      dialog: {},
       slides: 0,
       // no form implemented yet
       valid: false,

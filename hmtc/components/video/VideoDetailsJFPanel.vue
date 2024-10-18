@@ -1,6 +1,5 @@
 <template>
-  <v-container class="fill-height">
-    <!-- The following cases are considered
+  <!-- The following cases are considered
   
         1. server not found - disable everything (ERROR)
         2. no eligible client sessions - disable everything (WARNING)
@@ -9,9 +8,34 @@
         5. 1 client session - playing something different than on the page (jellyfin id in hmtc db) what you see != what you hear 
         6. 1 client session - playing something different than on the page (jellyfin id NOT in hmtc db)
         7. 1 client session - playing whats on the page - play and pause -->
-
-    <v-row justify="end" class="">
-      <v-col cols="8">
+  <div class="mt-4">
+    <v-menu offset-y>
+      <template v-slot:activator="{ on, attrs }">
+        <div class="mt-4">
+          <v-badge :color="jellyfinColor" offset-x="20" offset-y="10">
+            <v-btn text v-bind="attrs" v-on="on">
+              <v-img
+                max-width="60px"
+                max-height="60px"
+                src="/static/public/icons/jellyfin.256x256.png"
+              ></v-img>
+            </v-btn>
+          </v-badge>
+        </div>
+      </template>
+      <v-list>
+        <v-list-item
+          >Is Connected: {{ this.jellyfin_status.is_connected }}</v-list-item
+        >
+        <v-list-item
+          >Jellyfin ID:
+          {{ this.jellyfin_status?.jellyfin_id }} (Client)</v-list-item
+        >
+        <v-list-item>Jellyfin ID:{{ page_jellyfin_id }} (Page)</v-list-item>
+        <v-list-item>HaveBothIDs{{ HaveBothIDs }}</v-list-item>
+        <v-list-item>PageMatchesAudio {{ PageMatchesAudio }}</v-list-item>
+        <v-list-item>JF Session: {{ jellyfin_status.session_id }}</v-list-item>
+        <v-list-item>is Paused {{ isPaused }}</v-list-item>
         <v-row id="row1" justify="center">
           <span v-if="hasItemLoaded">
             <span class="medium-timer">{{ timeString }}</span>
@@ -52,56 +76,20 @@
             </v-row>
           </span>
         </v-row>
-      </v-col>
-      <v-col cols="4">
-        <v-row justify="center" class="mr-8">
-          <v-menu offset-y>
-            <template v-slot:activator="{ on, attrs }">
-              <v-badge :color="jellyfinColor" offset-x="20" offset-y="10">
-                <v-btn text v-bind="attrs" v-on="on">
-                  <v-img
-                    max-width="60px"
-                    max-height="60px"
-                    src="/static/public/icons/jellyfin.256x256.png"
-                  ></v-img>
-                </v-btn>
-              </v-badge>
-            </template>
-            <v-list>
-              <v-list-item
-                >Is Connected:
-                {{ this.jellyfin_status.is_connected }}</v-list-item
-              >
-              <v-list-item
-                >Jellyfin ID:
-                {{ this.jellyfin_status?.jellyfin_id }} (Client)</v-list-item
-              >
-              <v-list-item
-                >Jellyfin ID:{{ page_jellyfin_id }} (Page)</v-list-item
-              >
-              <v-list-item>HaveBothIDs{{ HaveBothIDs }}</v-list-item>
-              <v-list-item>PageMatchesAudio {{ PageMatchesAudio }}</v-list-item>
-              <v-list-item
-                >JF Session: {{ jellyfin_status.session_id }}</v-list-item
-              >
-              <v-list-item>is Paused {{ isPaused }}</v-list-item>
-            </v-list>
-          </v-menu>
+        <v-row id="row2">
+          <v-row v-if="HaveBothIDs & !PageMatchesAudio & hasItemLoaded">
+            <span class="mywarning"> What You See != What You Hear!</span>
+
+            <v-btn text @click="loadPageForPlayingAudio()">Page</v-btn>
+
+            <span>Change?</span>
+
+            <v-btn text @click="open_video_in_jellyfin()">Audio</v-btn>
+          </v-row>
         </v-row>
-      </v-col>
-    </v-row>
-    <v-row id="row2">
-      <v-row v-if="HaveBothIDs & !PageMatchesAudio & hasItemLoaded">
-        <span class="mywarning"> What You See != What You Hear!</span>
-
-        <v-btn text @click="loadPageForPlayingAudio()">Page</v-btn>
-
-        <span>Change?</span>
-
-        <v-btn text @click="open_video_in_jellyfin()">Audio</v-btn>
-      </v-row>
-    </v-row>
-  </v-container>
+      </v-list>
+    </v-menu>
+  </div>
 </template>
 <script>
 module.exports = {
@@ -214,12 +202,12 @@ module.exports = {
       return this.jellyfin_status.jellyfin_id == this.page_jellyfin_id;
     },
     HaveBothIDs() {
-      console.log(
-        "HaveBothIDs",
-        this.jellyfin_status.jellyfin_id,
-        this.page_jellyfin_id,
-        this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
-      );
+      // console.log(
+      //   "HaveBothIDs",
+      //   this.jellyfin_status.jellyfin_id,
+      //   this.page_jellyfin_id,
+      //   this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
+      // );
       return (
         this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
       );
