@@ -1,13 +1,67 @@
 from typing import Callable
-
+import peewee
 import pandas as pd
 import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Track
+from hmtc.models import Album as AlbumModel
+from hmtc.models import Track as TrackModel
 
 force_update_counter = solara.reactive(0)
+
+
+def create_query_from_url():
+    # url options
+    # each level should accept 'all' for non-unique tracks
+    # /tracks should be a list of all unique tracks (default)
+    # /tracks/all should include non-unique tracks
+    # /tracks/series/<series_id> should be a list of tracks in a series
+    # /tracks/youtube_series/<youtube_series_id> should be a list of tracks in a youtube series
+    # /tracks/channel/<channel_id> should be a list of tracks in a channel
+    # /vidoes/album/<album_id> should be a list of tracks in an album
+
+    all = TrackModel.select(
+        TrackModel,
+        AlbumModel,
+    ).join(AlbumModel, peewee.JOIN.LEFT_OUTER)
+
+    valid_filters = ["album"]
+    router = solara.use_router()
+    # level = solara.use_route_level()
+
+    match router.parts:
+        case [_, "all"]:
+            # should probably show the unique column if all are shown
+            return all, None, None, True
+        case [_, filter, id_to_filter, "all"]:
+            if filter in valid_filters:
+                return (
+                    all.where(getattr(TrackModel, filter) == id_to_filter),
+                    filter,
+                    id_to_filter,
+                    True,
+                )
+            else:
+                logger.debug(f"Invalid filter: {filter}")
+                return None, None, None, False
+        case [_, filter, id_to_filter]:
+            if filter in valid_filters:
+                return (
+                    all.where(getattr(TrackModel, filter) == id_to_filter),
+                    filter,
+                    id_to_filter,
+                    False,
+                )
+            else:
+                logger.debug(f"Invalid filter: {filter}")
+                return None, None, None, False
+        case [_]:
+            # this is the /tracks page view
+            return all, None, None, False
+        case _:
+            logger.error(f"Invalid URL: {router.parts}")
+            raise ValueError("Invalid URL")
 
 
 @solara.component_vue("../components/track/track_table.vue", vuetify=True)
@@ -21,7 +75,7 @@ def TrackTable(
 
 def delete_track(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
-    track = Track.get_by_id(item["id"])
+    track = TrackModel.get_by_id(item["id"])
     track.delete_instance()
 
 
@@ -31,12 +85,12 @@ def save_track(dict_of_items):
     logger.debug(f"Item received from Vue: {item}")
 
     try:
-        track = Track.get_by_id(item["id"])
+        track = TrackModel.get_by_id(item["id"])
     except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Track ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
-        Track.create(**edited_item)
+        TrackModel.create(**edited_item)
         return
 
     track.title = edited_item["title"]
@@ -49,10 +103,10 @@ def save_track(dict_of_items):
 
 @solara.component
 def Page():
-    base_query = Track.select()
+
     router = solara.use_router()
     MySidebar(router)
-
+    base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 
     items = df.to_dict("records")

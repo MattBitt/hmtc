@@ -5,11 +5,17 @@
     </v-row>
 
     <v-row justify="center" class="mb-6">
-      <span class="info--text"
-        ><strong>{{ prettyTime(section.start / 1000) }}</strong>
-      </span>
-      <h1>-</h1>
-      <span class="info--text">{{ prettyTime(section.end / 1000) }}</span>
+      <h2>
+        <span class="primary--text"
+          ><strong>{{ prettyTime(section.start / 1000) }}</strong>
+        </span>
+      </h2>
+      <h2>-</h2>
+      <h2>
+        <span class="primary--text"
+          ><strong>{{ prettyTime(section.end / 1000) }}</strong></span
+        >
+      </h2>
     </v-row>
     <v-row justify="center" class="mb-6">
       <h3>{{ section.section_type }}</h3>
