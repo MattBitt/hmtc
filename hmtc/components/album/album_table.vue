@@ -1,10 +1,5 @@
 <template>
   <div>
-    <!-- <MyFirst
-      initialTitle="ssome crazy title"
-      initialReleaseDate="2024-10-06"
-      @myincrease="increaseCount"
-    /> -->
     <v-card>
       <v-card-title>
         <v-text-field
@@ -104,6 +99,16 @@
             <span v-else>---</span>
           </v-chip>
         </template>
+        <template v-slot:item.track_count="{ item }">
+          <v-chip>
+            <span v-if="item.video_count > 0">
+              <a :href="'/tracks/album/' + item.id">
+                {{ item.track_count }}
+              </a>
+            </span>
+            <span v-else>---</span>
+          </v-chip>
+        </template>
         <template v-slot:item.actions="{ item }">
           <v-icon medium class="mr-2" @click="editItem(item)">
             mdi-pencil
@@ -141,6 +146,12 @@ export default {
         {
           text: "# Videos",
           value: "video_count",
+          filterable: false,
+          sortable: true,
+        },
+        {
+          text: "# Tracks",
+          value: "track_count",
           filterable: false,
           sortable: true,
         },

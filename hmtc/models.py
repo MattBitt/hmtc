@@ -511,6 +511,10 @@ class Album(BaseModel):
                 .scalar()
             )
 
+        num_tracks = (
+            Track.select(fn.Count(Track.id)).where((Track.album_id == self.id)).scalar()
+        )
+
         new_dict = {
             "id": self.id,
             "title": self.title,
@@ -518,6 +522,7 @@ class Album(BaseModel):
                 self.release_date.isoformat() if self.release_date else None
             ),
             "video_count": num_vids,
+            "track_count": num_tracks,
         }
 
         return new_dict
@@ -686,7 +691,10 @@ class Section(BaseModel):
         return breaks
 
     def model_to_dict(self):
-
+        try:
+            _track = self.track.model_to_dict()
+        except Exception as e:
+            _track = None
         new_dict = {
             "id": self.id,
             "start": self.start,
@@ -699,6 +707,7 @@ class Section(BaseModel):
             "section_type": self.section_type,
             "video_id": self.video.id if self.video else None,
             "topics": [t.topic.model_to_dict() for t in self.topics],
+            "track": _track,
         }
         return new_dict
 

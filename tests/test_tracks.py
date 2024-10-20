@@ -31,9 +31,9 @@ def test_album_create_track():
     album = AlbumModel.create(title="test")
     album_item = AlbumItem.from_model(album)
 
-    album_item.create_track(title="test")
-    album_item.create_track(title="test2")
-    album_item.create_track(title="test3")
+    album_item.create_track(title="test", length=100)
+    album_item.create_track(title="test2", length=300)
+    album_item.create_track(title="test3", length=500)
 
     assert album is not None
     assert album.tracks == 3
@@ -49,9 +49,9 @@ def test_album_create_track():
 def test_remove_track():
     album = AlbumModel.create(title="test")
     album_item = AlbumItem.from_model(album)
-    album_item.create_track(title="test")
-    album_item.create_track(title="test2")
-    album_item.create_track(title="test3")
+    album_item.create_track(title="test", length=100)
+    album_item.create_track(title="test2", length=300)
+    album_item.create_track(title="test3", length=500)
     album_item.remove_track(id=album.tracks[1].id)
     assert album.tracks == 2
     assert album.tracks[0].title == "test"

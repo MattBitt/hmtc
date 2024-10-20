@@ -26,11 +26,15 @@ from hmtc.models import (
     Topic as TopicModel,
 )
 from hmtc.models import (
+    Track as TrackModel,
+)
+from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
+from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
@@ -307,6 +311,7 @@ def SectionCarousel(
     event_create_section_from_jellyfin,
     event_create_track,
     event_remove_track,
+    event_refresh_panel,
 ):
     pass
 
@@ -648,13 +653,19 @@ def SectionsPanel(
     jellyfin_status,
     update_section_from_jellyfin,
 ):
-
+    reload = solara.use_reactive(False)
     # not sure why this is a tuple...
     section_dicts = (
         solara.use_reactive(
             [SectionManager.get_section_details(s.id) for s in reactive_sections.value]
         ),
     )
+    section_type = solara.use_reactive("instrumental")
+
+    if len(reactive_sections.value) > 0:
+        tab_items = section_dicts[0].value
+    else:
+        tab_items = []
 
     def delete_section(*args, **kwargs):
         logger.debug(f"Deleting Section: {args}")
@@ -662,8 +673,7 @@ def SectionsPanel(
         reactive_sections.set(
             [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
         )
-
-    section_type = solara.use_reactive("instrumental")
+        reload.set(True)
 
     def create_section_at_jellyfin_position(*args):
 
@@ -702,31 +712,53 @@ def SectionsPanel(
         )
         new_sect = SectionModel.get_by_id(new_sect_id)
         reactive_sections.set(reactive_sections.value + [new_sect])
+        reload.set(True)
 
-    if len(reactive_sections.value) > 0:
-        tab_items = section_dicts[0].value
-    else:
-        tab_items = []
+    def create_track(args):
+        try:
+            album = AlbumModel.get_by_id(video.album.id)
+        except Exception as e:
+            logger.error(e)
+            return
+        album_item = AlbumItem.from_model(album)
+        section_id = args.pop("section_id")
+        section = SectionModel.get_by_id(section_id)
 
-    def create_track(section_id):
-        logger.debug(f"Creating Track: {section_id}")
+        track = album_item.create_track(**args)
+        section.track = track
+        section.save()
+        reload.set(True)
 
     def remove_track(section_id):
-        logger.debug(f"Removing Track: {section_id}")
+        section = SectionModel.get_by_id(section_id)
+        try:
+            track = TrackModel.select().where(TrackModel.id == section.track_id).get()
+            track.delete_instance(recursive=True)
+        except Exception as e:
+            logger.error(e)
+            logger.error(f"Track not found for section {section_id}")
+            return
+        reload.set(True)
 
-    SectionCarousel(
-        sectionItems=tab_items,
-        video_duration=video.duration,
-        event_add_item=add_topic,
-        event_remove_item=remove_topic,
-        event_delete_section=delete_section,
-        event_update_times=update_section_times,
-        event_loop_jellyfin=lambda x: loop_jellyfin(x),
-        event_update_section_from_jellyfin=update_section_from_jellyfin,
-        event_create_section_from_jellyfin=create_section_at_jellyfin_position,
-        event_create_track=create_track,
-        event_remove_track=remove_track,
-    )
+    if not reload.value:
+        if tab_items != []:
+            SectionCarousel(
+                sectionItems=tab_items,
+                video_duration=video.duration,
+                event_add_item=add_topic,
+                event_remove_item=remove_topic,
+                event_delete_section=delete_section,
+                event_update_times=update_section_times,
+                event_loop_jellyfin=lambda x: loop_jellyfin(x),
+                event_update_section_from_jellyfin=update_section_from_jellyfin,
+                event_create_section_from_jellyfin=create_section_at_jellyfin_position,
+                event_create_track=create_track,
+                event_remove_track=remove_track,
+                event_refresh_panel=lambda x: reload.set(True),
+            )
+    else:
+        solara.Markdown(f"## Reloading Panel")
+        reload.set(False)
 
 
 def register_vue_components():
@@ -796,6 +828,10 @@ def register_vue_components():
     )
     ipyvue.register_component_from_file(
         "SectionTrackPanel", "../components/video/SectionTrackPanel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTrackForm", "../components/video/SectionTrackForm.vue", __file__
     )
 
 

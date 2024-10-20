@@ -2,7 +2,7 @@
 
 <template>
   <div>
-    <v-sheet light>
+    <v-sheet light v-if="this.sectionItems.length > 0">
       <v-row justify="center" class="mb-6">
         <v-range-slider
           :value="sectionRange"
@@ -27,25 +27,24 @@
         reverse-transition="fade-transition"
         transition="fade-transition"
       >
-        <v-row> </v-row>
         <v-row class="">
           <v-spacer></v-spacer>
           <v-col cols="5">
             <SummaryPanel
               :section="section"
               :topics="section.topics"
-              :barRange="{ min: 0, max: this.video_duration }"
-              :sectionRange="[section.start / 1000, section.end / 1000]"
             ></SummaryPanel>
           </v-col>
           <v-col cols="5">
-            <SectionTrackPanel />
-            <v-btn @click="createTrack(section.id)" class="button"
-              >Create Track</v-btn
-            >
-            <v-btn @click="removeTrack(section.id)" class="button"
-              >Remove Track</v-btn
-            >
+            <div v-if="section.track == null">
+              <SectionTrackForm :section="section" @saveTrack="createTrack2" />
+            </div>
+            <div v-else>
+              <SectionTrackPanel
+                :section="section"
+                @removeTrack="removeTrack"
+              />
+            </div>
           </v-col>
           <v-spacer></v-spacer>
         </v-row>
@@ -71,7 +70,9 @@
               <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
               <v-spacer></v-spacer>
               <v-toolbar-items>
-                <v-btn dark text :disabled="!valid" @click=""> Save </v-btn>
+                <v-btn dark text :disabled="!valid" @click="refreshPanel">
+                  Save
+                </v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card>
@@ -132,7 +133,7 @@ export default {
       dialog: {},
       slides: 0,
       // no form implemented yet
-      valid: false,
+      valid: true,
     };
   },
   methods: {
@@ -174,6 +175,7 @@ export default {
         section_id: section_id,
       };
       this.delete_section(args);
+      this.refreshPanel();
     },
 
     loopJellyfinAtStart(value) {
@@ -207,20 +209,34 @@ export default {
       };
       this.create_track(args);
     },
-    removeTrack(section_id) {
-      console.log("Removing track", section_id);
-      const args = {
-        section_id: section_id,
-      };
+
+    createTrack2(args) {
+      console.log("Creating track", args);
+
+      this.create_track(args);
+    },
+    removeTrack(args) {
+      console.log("Removing track", args);
       this.remove_track(args);
     },
     prettyTime(time) {
       return new Date(time * 1000).toISOString().substr(11, 8);
     },
+    logIt(args) {
+      console.log("Logging", args);
+    },
+    refreshPanel() {
+      console.log("Refreshing panel");
+      this.dialog[this.slides] = false;
+      this.refresh_panel();
+    },
   },
   computed: {
     sectionRange() {
       const selected = this.sectionItems[this.slides];
+      if (selected === undefined) {
+        return [];
+      }
       return [selected.start / 1000, selected.end / 1000];
     },
   },

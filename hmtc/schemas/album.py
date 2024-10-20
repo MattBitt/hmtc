@@ -65,7 +65,7 @@ class Album:
         # if i was going to renumber them, it would take place here
         logger.info(f"Track {track.title} removed from {self.title}")
 
-    def create_track(self, title):
+    def create_track(self, title, length):
 
         new_track_number = (
             TrackModel.select(fn.Count(TrackModel.id))
@@ -74,7 +74,7 @@ class Album:
             + 1
         )
         track = TrackModel.create(
-            title=title, album_id=self.id, track_number=new_track_number
+            title=title, album_id=self.id, track_number=new_track_number, length=length
         )
         logger.info(f"Track {track.title} created")
         return track

@@ -13,6 +13,9 @@ from hmtc.models import (
 from hmtc.models import (
     Topic as TopicTable,
 )
+from hmtc.models import (
+    Track as TrackTable,
+)
 
 
 @dataclass(frozen=True, order=True)
@@ -198,6 +201,7 @@ class SectionManager:
             )
             .where(SectionTable.id == id)
         ).get_or_none()
+        logger.debug(f"Query Result: {query}")
         if query:
             return query.model_to_dict()
         else:
