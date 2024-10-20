@@ -1,93 +1,127 @@
 <!-- 10/15/24 Im copying this page into section_carousel  -->
 
 <template>
-  <v-carousel v-model="slides" progress-color="primary" height="500">
-    <v-carousel-item v-for="(section, index) in sectionItems" :key="section.id">
-      <SummaryPanel
-        :section="section"
-        :topics="section.topics"
-        :barRange="{ min: 0, max: video_duration }"
-        :sectionRange="[section.start / 1000, section.end / 1000]"
-      ></SummaryPanel>
-      <v-row justify="center">
-        <h1>Section {{ index + 1 }} {{ section.id }}</h1>
-      </v-row>
-      <v-row justify="center" class="mt-10">
-        <v-dialog
-          v-model="dialog[index]"
-          fullscreen
-          hide-overlay
-          transition="dialog-bottom-transition"
+  <div>
+    <v-sheet light>
+      <v-row justify="center" class="mb-6">
+        <v-range-slider
+          :value="sectionRange"
+          :max="video_duration"
+          min="0"
+          show-ticks="always"
+          tick-size="4"
+          readonly
+          color="primary"
         >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn color="primary" dark v-bind="attrs" v-on="on">
-              <v-icon>mdi-pencil</v-icon>Edit Section
-            </v-btn>
+          <template v-slot:append>
+            <h3 color="info">{{ prettyTime(video_duration) }}</h3>
           </template>
-
-          <v-toolbar dark color="primary">
-            <v-btn icon dark @click="dialog[index] = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-            <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-toolbar-items>
-              <v-btn dark text :disabled="!valid" @click=""> Save </v-btn>
-            </v-toolbar-items>
-          </v-toolbar>
-          <v-card>
-            <v-container class="px-10">
-              <v-card-title>Start Time</v-card-title>
-              <SectionTimePanel
-                :sectionID="section.id"
-                :video_duration="video_duration"
-                :initialTime="section.start"
-                @updateTime="updateSectionStart"
-                @updateSectionTimeFromJellyfin="updateSectionTime"
-                @loopJellyfin="loopJellyfinAtStart"
-              />
-              <v-divider></v-divider>
-              <v-card-title>End Time</v-card-title>
-              <SectionTimePanel
-                :sectionID="section.id"
-                :video_duration="video_duration"
-                :initialTime="section.end"
-                @updateTime="updateSectionEnd"
-                @updateSectionTimeFromJellyfin="updateSectionTime"
-                @loopJellyfin="loopJellyfinAtEnd"
-              />
-
-              <v-divider></v-divider>
-              <v-card-title>Topics</v-card-title>
-
-              <!-- i think the :topics below is incorrect 10/9/24 -->
-              <SectionTopicsPanel
-                :topics="section.topics"
-                :item="section"
-                @addTopic="addTopic"
-                @removeTopic="removeTopic"
-              />
-
-              <v-divider></v-divider>
-              <v-card-title>Musical</v-card-title>
-              <BeatsInfo />
-              <ArtistsInfo />
-
-              <v-divider></v-divider>
-              <v-card-title>Admin</v-card-title>
-              <SectionAdminPanel @deleteSection="removeSection(section.id)" />
-            </v-container>
-          </v-card>
-        </v-dialog>
-        <v-btn @click="createTrack(section.id)" class="button"
-          >Create Track</v-btn
-        >
-        <v-btn @click="removeTrack(section.id)" class="button"
-          >Remove Track</v-btn
-        >
+        </v-range-slider>
       </v-row>
-    </v-carousel-item>
-  </v-carousel>
+    </v-sheet>
+
+    <v-carousel v-model="slides" progress-color="primary" height="500">
+      <v-carousel-item
+        v-for="(section, index) in sectionItems"
+        :key="section.id"
+        reverse-transition="fade-transition"
+        transition="fade-transition"
+      >
+        <v-row> </v-row>
+        <v-row class="">
+          <v-spacer></v-spacer>
+          <v-col cols="5">
+            <SummaryPanel
+              :section="section"
+              :topics="section.topics"
+              :barRange="{ min: 0, max: this.video_duration }"
+              :sectionRange="[section.start / 1000, section.end / 1000]"
+            ></SummaryPanel>
+          </v-col>
+          <v-col cols="5">
+            <SectionTrackPanel />
+            <v-btn @click="createTrack(section.id)" class="button"
+              >Create Track</v-btn
+            >
+            <v-btn @click="removeTrack(section.id)" class="button"
+              >Remove Track</v-btn
+            >
+          </v-col>
+          <v-spacer></v-spacer>
+        </v-row>
+        <v-row> </v-row>
+
+        <v-row justify="center" class="mt-10">
+          <v-dialog
+            v-model="dialog[index]"
+            fullscreen
+            hide-overlay
+            transition="dialog-bottom-transition"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn color="primary" dark v-bind="attrs" v-on="on">
+                <v-icon>mdi-pencil</v-icon>Edit Section
+              </v-btn>
+            </template>
+
+            <v-toolbar dark color="primary">
+              <v-btn icon dark @click="dialog[index] = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+              <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <v-toolbar-items>
+                <v-btn dark text :disabled="!valid" @click=""> Save </v-btn>
+              </v-toolbar-items>
+            </v-toolbar>
+            <v-card>
+              <v-container class="px-10">
+                <v-card-title>Start Time</v-card-title>
+                <SectionTimePanel
+                  :sectionID="section.id"
+                  :video_duration="video_duration"
+                  :initialTime="section.start"
+                  @updateTime="updateSectionStart"
+                  @updateSectionTimeFromJellyfin="updateSectionTime"
+                  @loopJellyfin="loopJellyfinAtStart"
+                />
+                <v-divider></v-divider>
+                <v-card-title>End Time</v-card-title>
+                <SectionTimePanel
+                  :sectionID="section.id"
+                  :video_duration="video_duration"
+                  :initialTime="section.end"
+                  @updateTime="updateSectionEnd"
+                  @updateSectionTimeFromJellyfin="updateSectionTime"
+                  @loopJellyfin="loopJellyfinAtEnd"
+                />
+
+                <v-divider></v-divider>
+                <v-card-title>Topics</v-card-title>
+
+                <!-- i think the :topics below is incorrect 10/9/24 -->
+                <SectionTopicsPanel
+                  :topics="section.topics"
+                  :item="section"
+                  @addTopic="addTopic"
+                  @removeTopic="removeTopic"
+                />
+
+                <v-divider></v-divider>
+                <v-card-title>Musical</v-card-title>
+                <BeatsInfo />
+                <ArtistsInfo />
+
+                <v-divider></v-divider>
+                <v-card-title>Admin</v-card-title>
+                <SectionAdminPanel @deleteSection="removeSection(section.id)" />
+              </v-container>
+            </v-card>
+          </v-dialog>
+        </v-row>
+      </v-carousel-item>
+    </v-carousel>
+  </div>
 </template>
 
 <script>
@@ -180,7 +214,20 @@ export default {
       };
       this.remove_track(args);
     },
+    prettyTime(time) {
+      return new Date(time * 1000).toISOString().substr(11, 8);
+    },
+  },
+  computed: {
+    sectionRange() {
+      const selected = this.sectionItems[this.slides];
+      return [selected.start / 1000, selected.end / 1000];
+    },
   },
 };
 </script>
-<style></style>
+<style>
+.border4 {
+  border: 4px solid var(--primary);
+}
+</style>

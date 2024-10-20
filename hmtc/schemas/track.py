@@ -15,22 +15,31 @@ WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 
-# 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝
-# 10/18/24 - the below may or not be useful. I think i created it
-# to get some tracks built before our vacation to chicago. leaving it
-# in for now., but don't add anything here
 @dataclass
 class TrackItem:
     # this defintely shouldn't be happening here.
-    track_folder = STORAGE / "tracks"
-    if not track_folder.exists():
-        track_folder.mkdir()
+    # track_folder = STORAGE / "tracks"
+    # if not track_folder.exists():
+    #     track_folder.mkdir()
 
     title: str = None
-    track_number: str = None
-    length: int = None
+    track_number: int = 0
+    length: int = 0
     album_id: int = None
     album_title: str = None
+
+    def from_model(track: TrackModel) -> "TrackItem":
+        return TrackItem(
+            title=track.title,
+            track_number=track.track_number,
+            length=track.length,
+            album_id=track.album_id,
+        )
+
+    # 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝
+    # 10/18/24 - the code below may or not be useful. I think i created it
+    # to get some tracks built before our vacation to chicago. leaving it
+    # in for now., but don't add anything here
 
     @staticmethod
     def create_from_section(video: VideoItem, album, section: Section) -> "TrackItem":

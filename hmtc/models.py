@@ -588,8 +588,8 @@ class EpisodeNumberTemplate(BaseModel):
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Track(BaseModel):
-    title = CharField(null=True)
-    track_number = CharField(null=True)
+    title = CharField()
+    track_number = IntegerField(null=False)
     length = IntegerField(null=True)
     album = ForeignKeyField(Album, backref="tracks", null=True)
 

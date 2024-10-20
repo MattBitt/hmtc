@@ -710,7 +710,6 @@ def SectionsPanel(
 
     def create_track(section_id):
         logger.debug(f"Creating Track: {section_id}")
-        
 
     def remove_track(section_id):
         logger.debug(f"Removing Track: {section_id}")
@@ -794,6 +793,9 @@ def register_vue_components():
     )
     ipyvue.register_component_from_file(
         "ArtistsInfo", "../components/artist/artists_info.vue", __file__
+    )
+    ipyvue.register_component_from_file(
+        "SectionTrackPanel", "../components/video/SectionTrackPanel.vue", __file__
     )
 
 
