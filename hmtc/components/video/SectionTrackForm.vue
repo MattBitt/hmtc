@@ -26,7 +26,7 @@
 <script>
 module.exports = {
   name: "SectionTrackForm",
-  props: { section: Object },
+  props: { section: Object, defaultTrackTitle: String },
   emits: ["saveTrack"],
   data() {
     return {
@@ -55,7 +55,6 @@ module.exports = {
     },
     reset() {
       this.$refs.myform.reset();
-      this.length = (this.section.end - this.section.start) / 1000;
     },
     resetValidation() {
       this.$refs.myform.resetValidation();
@@ -64,6 +63,8 @@ module.exports = {
   created() {
     console.log("SectionTrackPanel created", this.section);
     this.length = (this.section.end - this.section.start) / 1000;
+    console.log("Default TrackTitle", this.defaultTrackTitle);
+    this.title = this.defaultTrackTitle;
   },
   computed: {},
 };

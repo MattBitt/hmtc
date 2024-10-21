@@ -5,6 +5,8 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.models import Track as TrackModel
+from hmtc.models import Album as AlbumModel
+from hmtc.models import Section as SectionModel
 from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
@@ -17,11 +19,11 @@ STORAGE = Path(config["paths"]["storage"])
 
 @dataclass
 class TrackItem:
-    # this defintely shouldn't be happening here.
-    # track_folder = STORAGE / "tracks"
-    # if not track_folder.exists():
-    #     track_folder.mkdir()
-
+    # this (probably...) shouldn't be happening here.
+    track_folder = STORAGE / "tracks" / "Harry Mack"
+    if not track_folder.exists():
+        track_folder.mkdir()
+    id: int = None
     title: str = None
     track_number: int = 0
     length: int = 0
@@ -30,10 +32,33 @@ class TrackItem:
 
     def from_model(track: TrackModel) -> "TrackItem":
         return TrackItem(
+            id=track.id,
             title=track.title,
             track_number=track.track_number,
             length=track.length,
             album_id=track.album_id,
+        )
+
+    def write_file(self, video_id):
+        source = VideoItem.get_audio_file_path(video_id)
+        album = AlbumModel.get_or_none(AlbumModel.id == self.album_id)
+        section = SectionModel.get_or_none(SectionModel.track_id == self.id)
+
+        if source is None or album is None or section is None:
+            logger.error(f"Could not find audio file for video {video_id}")
+            logger.error(f"source: {source}")
+            logger.error(f"album: {album}")
+            logger.error(f"times: {section}")
+            return
+        out_folder = self.track_folder / f"{album.title}/"
+        if not out_folder.exists():
+            out_folder.mkdir(parents=True)
+        dest = str(out_folder / f"{self.track_number} - {self.title}.mp3")
+        logger.error(
+            f"Ripping track from {source} to {dest} from {section.start} to {section.end}"
+        )
+        rip_track(
+            source, dest, start_time=section.start / 1000, end_time=section.end / 1000
         )
 
     # 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝
@@ -83,15 +108,3 @@ class TrackItem:
             album_id=self.album_id,
         )
         track.save()
-
-    def write_file(self):
-        source = VideoItem.get_audio_file_path(self.video_id)
-        if source is None:
-            logger.error(f"Could not find audio file for video {self.video_id}")
-            return
-        out_folder = self.track_folder / f"{TrackItem.album_title}/"
-        if not out_folder.exists():
-            out_folder.mkdir(parents=True)
-        dest = str(out_folder / f"{self.track_number} - {self.title}.mp3")
-        logger.error(f"Ripping track from {source} to {dest}")
-        # rip_track(source, dest, start_time=self.start_time, end_time=self.end_time)

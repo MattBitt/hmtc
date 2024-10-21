@@ -37,12 +37,17 @@
           </v-col>
           <v-col cols="5">
             <div v-if="section.track == null">
-              <SectionTrackForm :section="section" @saveTrack="createTrack2" />
+              <SectionTrackForm
+                :section="section"
+                @saveTrack="createTrack2"
+                :defaultTrackTitle="computedDefaultTrackTitle"
+              />
             </div>
             <div v-else>
               <SectionTrackPanel
                 :section="section"
                 @removeTrack="removeTrack"
+                @createAudioFile="createAudioFile"
               />
             </div>
           </v-col>
@@ -122,6 +127,26 @@
         </v-row>
       </v-carousel-item>
     </v-carousel>
+    <div class="text-center">
+      <v-snackbar
+        v-model="snackbar"
+        :timeout="timeout"
+        absolute
+        centered
+        left
+        :color="color"
+        elevation="24"
+        class="alertmessage"
+      >
+        {{ text }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn color="blue" text v-bind="attrs" @click="snackbar = false">
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </div>
   </div>
 </template>
 
@@ -134,6 +159,10 @@ export default {
       slides: 0,
       // no form implemented yet
       valid: true,
+      snackbar: false,
+      text: "My timeout is set to 2000.",
+      color: "info",
+      timeout: 2000,
     };
   },
   methods: {
@@ -164,7 +193,7 @@ export default {
     },
 
     removeSection(section_id) {
-      console.log("Removing section", section_id);
+      console.log("Deleted section", section_id);
       const sectionIndex = this.sectionItems.findIndex(
         (item) => item.id === section_id
       );
@@ -212,11 +241,16 @@ export default {
 
     createTrack2(args) {
       console.log("Creating track", args);
-
+      this.text = "Creating track: " + args.title;
+      this.snackbar = true;
+      this.color = "success";
       this.create_track(args);
     },
     removeTrack(args) {
       console.log("Removing track", args);
+      this.text = "Removing track id: " + args;
+      this.snackbar = true;
+      this.color = "warning";
       this.remove_track(args);
     },
     prettyTime(time) {
@@ -230,6 +264,27 @@ export default {
       this.dialog[this.slides] = false;
       this.refresh_panel();
     },
+    constructTrackTitle(section) {
+      console.log("Constructing track title", section);
+      const topicString = section.topics.map(({ text }) => text).join(", ");
+
+      console.log("Somestring", topicString);
+      if (section.topics.length == 0) {
+        return "";
+      }
+      if (topicString.length > 40) {
+        return topicString.substring(0, 40) + "...";
+      } else {
+        return topicString;
+      }
+    },
+    createAudioFile(args) {
+      this.create_audio_file(args);
+      console.log("Creating audio file in parent");
+      this.text = "Creating audio file";
+      this.snackbar = true;
+      this.color = "success";
+    },
   },
   computed: {
     sectionRange() {
@@ -239,11 +294,17 @@ export default {
       }
       return [selected.start / 1000, selected.end / 1000];
     },
+    computedDefaultTrackTitle() {
+      return this.constructTrackTitle(this.sectionItems[this.slides]);
+    },
   },
 };
 </script>
 <style>
 .border4 {
   border: 4px solid var(--primary);
+}
+.alertmessage {
+  font-size: 1.8em;
 }
 </style>

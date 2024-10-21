@@ -38,6 +38,7 @@ from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
+from hmtc.schemas.track import TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from hmtc.utils.youtube_functions import download_video_file
@@ -83,59 +84,6 @@ def my_hook(*args):
     # if p < 1:
     #     logger.info(f"Percent Complete: {d/t*100:.2f}%")
     # current_download_progress.set(p)
-
-
-def add_topic(*args):
-    section_id = args[0]["item_id"]
-    topic = args[0]["topic"]
-    if section_id is None or topic is None:
-        logger.error("Section ID or Topic is None")
-        return
-    topic, created = TopicModel.get_or_create(text=topic)
-    if created:
-        logger.debug(f"Created topic {topic.text}")
-    _order = (
-        SectionTopicsModel.select()
-        .where(SectionTopicsModel.section_id == section_id)
-        .count()
-    )
-    SectionTopicsModel.create(
-        section_id=section_id, topic_id=topic.id, order=_order + 1
-    )
-    logger.debug(f"adding topic {topic} to section {section_id}")
-
-    # t, created = TopicModel.get_or_create(text=args[0])
-    # if created:
-    #     logger.debug(f"Created topic {t.text}")
-    # SectionTopicsModel.create(
-    #     section_id=section.id, topic_id=t.id, order=15
-    # )
-    pass
-
-
-def remove_topic(*args):
-    section_id = args[0]["item_id"]
-    topic = args[0]["topic"]
-    logger.debug(f"remove_topic: {topic} from seciton {section_id}")
-
-    t = TopicModel.select().where(TopicModel.text == topic).get_or_none()
-    if t is None:
-        logger.error(f"Topic {args[0]} not found")
-        return
-
-    SectionTopicsModel.delete().where(
-        (SectionTopicsModel.section_id == section_id)
-        & (SectionTopicsModel.topic_id == t.id)
-    ).execute()
-
-    topic_still_needed = SectionTopicsModel.get_or_none(
-        SectionTopicsModel.topic_id == t.id
-    )
-    if topic_still_needed is None:
-        logger.debug(f"Topic no longer needed {t.text} ({t.id}). Removing.")
-        t.delete_instance()
-
-    logger.error(f"Removed topic {t.text} ({t.id}) from section {section_id}")
 
 
 def delete_section_from_db(section_id):
@@ -312,6 +260,7 @@ def SectionCarousel(
     event_create_track,
     event_remove_track,
     event_refresh_panel,
+    event_create_audio_file,
 ):
     pass
 
@@ -740,6 +689,64 @@ def SectionsPanel(
             return
         reload.set(True)
 
+    def add_topic(*args):
+        section_id = args[0]["item_id"]
+        topic = args[0]["topic"]
+        if section_id is None or topic is None:
+            logger.error("Section ID or Topic is None")
+            return
+        topic, created = TopicModel.get_or_create(text=topic)
+        if created:
+            logger.debug(f"Created topic {topic.text}")
+        _order = (
+            SectionTopicsModel.select()
+            .where(SectionTopicsModel.section_id == section_id)
+            .count()
+        )
+        SectionTopicsModel.create(
+            section_id=section_id, topic_id=topic.id, order=_order + 1
+        )
+        logger.debug(f"adding topic {topic} to section {section_id}")
+        reload.set(True)
+
+    def remove_topic(*args):
+        section_id = args[0]["item_id"]
+        topic = args[0]["topic"]
+        logger.debug(f"remove_topic: {topic} from seciton {section_id}")
+
+        t = TopicModel.select().where(TopicModel.text == topic).get_or_none()
+        if t is None:
+            logger.error(f"Topic {args[0]} not found")
+            return
+
+        SectionTopicsModel.delete().where(
+            (SectionTopicsModel.section_id == section_id)
+            & (SectionTopicsModel.topic_id == t.id)
+        ).execute()
+
+        topic_still_needed = SectionTopicsModel.get_or_none(
+            SectionTopicsModel.topic_id == t.id
+        )
+        if topic_still_needed is None:
+            logger.debug(f"Topic no longer needed {t.text} ({t.id}). Removing.")
+            t.delete_instance()
+
+        logger.error(f"Removed topic {t.text} ({t.id}) from section {section_id}")
+        reload.set(True)
+
+    def create_audio_file(*args):
+        # this is just the beginning
+        # still need to update the id3 properties
+        # and assign a poster image
+        logger.debug(f"Creating audio file {args}")
+        try:
+            tm = TrackModel.get_by_id(args[0]["track_id"])
+        except Exception as e:
+            logger.error(e)
+            return
+        track = TrackItem.from_model(tm)
+        track.write_file(video_id=video.id)
+
     if not reload.value:
         if tab_items != []:
             SectionCarousel(
@@ -755,6 +762,7 @@ def SectionsPanel(
                 event_create_track=create_track,
                 event_remove_track=remove_track,
                 event_refresh_panel=lambda x: reload.set(True),
+                event_create_audio_file=lambda x: create_audio_file(x),
             )
     else:
         solara.Markdown(f"## Reloading Panel")

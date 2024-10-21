@@ -201,7 +201,7 @@ class SectionManager:
             )
             .where(SectionTable.id == id)
         ).get_or_none()
-        logger.debug(f"Query Result: {query}")
+        # logger.debug(f"Query Result: {query}")
         if query:
             return query.model_to_dict()
         else:

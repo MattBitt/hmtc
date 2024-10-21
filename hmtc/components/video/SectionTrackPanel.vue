@@ -1,7 +1,9 @@
 <template>
   <v-sheet light>
     <v-row>
+      <h1>{{ section.track.track_number + ". " }}</h1>
       <h1>{{ section.track.title }}</h1>
+      <h1>ID: {{ section.track.id }}</h1>
     </v-row>
     <v-row>
       <v-btn @click="removeTrack(section.id)" class="button"
@@ -22,7 +24,7 @@
 module.exports = {
   name: "SectionTrackPanel",
   props: { section: Object },
-  emits: ["removeTrack"],
+  emits: ["removeTrack", "createAudioFile"],
   data() {
     return {
       valid: true,
@@ -45,6 +47,15 @@ module.exports = {
     },
     createAudioFile() {
       this.hasAudioFile = true;
+      const args = {
+        section_id: this.section.id,
+        video_id: this.section.video_id,
+        track_id: this.section.track.id,
+        title: this.section.track.title,
+        length: this.length,
+      };
+      console.log("createAudioFile", args);
+      this.$emit("createAudioFile", args);
     },
     deleteAudioFile() {
       this.hasAudioFile = false;
@@ -52,6 +63,7 @@ module.exports = {
   },
   created() {
     console.log("SectionTrackPanel created", this.section);
+
     this.length = (this.section.end - this.section.start) / 1000;
   },
   computed: {},

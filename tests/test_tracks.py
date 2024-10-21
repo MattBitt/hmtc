@@ -1,17 +1,17 @@
 from loguru import logger
+
+from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     Section as SectionModel,
 )
-
-from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     Track as TrackModel,
 )
 from hmtc.models import (
     Video as VideoModel,
 )
-from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.album import Album as AlbumItem
+from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.track import TrackItem
 
 

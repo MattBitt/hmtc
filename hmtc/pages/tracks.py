@@ -1,6 +1,7 @@
 from typing import Callable
-import peewee
+
 import pandas as pd
+import peewee
 import solara
 from loguru import logger
 
@@ -13,13 +14,8 @@ force_update_counter = solara.reactive(0)
 
 def create_query_from_url():
     # url options
-    # each level should accept 'all' for non-unique tracks
-    # /tracks should be a list of all unique tracks (default)
-    # /tracks/all should include non-unique tracks
-    # /tracks/series/<series_id> should be a list of tracks in a series
-    # /tracks/youtube_series/<youtube_series_id> should be a list of tracks in a youtube series
-    # /tracks/channel/<channel_id> should be a list of tracks in a channel
-    # /vidoes/album/<album_id> should be a list of tracks in an album
+    # /tracks should be a list of all tracks (default)
+    # /tracks/album/<album_id> should be a list of tracks in an album
 
     all = TrackModel.select(
         TrackModel,

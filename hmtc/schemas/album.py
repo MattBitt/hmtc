@@ -2,12 +2,12 @@ from dataclasses import dataclass, field
 from typing import List
 
 from loguru import logger
+from peewee import fn
 
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
 from hmtc.schemas.video import VideoItem
-from peewee import fn
 
 
 @dataclass
