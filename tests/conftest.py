@@ -79,6 +79,14 @@ def test_video_filename(test_files):
 
 
 @pytest.fixture(scope="function")
+def test_audio_filename(test_files):
+    audio_file = [x for x in test_files if x.suffix in [".mp3"]][0]
+
+    my_copy_file(audio_file, TARGET_PATH)
+    return TARGET_PATH / audio_file.name
+
+
+@pytest.fixture(scope="function")
 def video():
     return VideoModel.create(
         youtube_id="asbsdrjgkdlsa;",

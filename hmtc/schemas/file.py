@@ -7,6 +7,7 @@ from peewee import fn
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import get_file_type
 from hmtc.utils.ffmpeg_utils import extract_audio
@@ -195,6 +196,81 @@ class FileManager:
                 return File(path="hmtc/assets/images", filename="no-image.png")
 
             return File(path=file.path, filename=file.filename)
+
+        except Exception as e:
+            logger.error(e)
+            raise
+
+    ## 🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵
+    ## copied the below from the same functions above and c
+    ## changed it to tracks instead of videos
+    # 10/20/24
+    @staticmethod
+    def add_file_to_track(file: File, track: TrackModel):
+        filetype = get_file_type(file.filename)
+        try:
+            if not track:
+                raise ValueError("Track object is required")
+            if not file:
+                raise ValueError("File object is required")
+
+            # logger.info(f"Adding {filetype} file ({file}) to {track}")
+            # track.files.append(file)
+            # track.save()
+            logger.info(f"File added to {track.title}")
+
+        except ValueError as e:
+            logger.error(e)
+            raise
+
+    @staticmethod
+    def add_path_to_track(path: Path, track: TrackModel, video: VideoModel):
+        try:
+            album_title = video.album.title
+        except Exception as e:
+            logger.error(e)
+            album_title = "Unknown Album"
+        output_path = Path(STORAGE) / f"tracks/Harry Mack/{album_title}/"
+        try:
+            if not track:
+                raise ValueError("Track object is required")
+            if not path:
+                raise ValueError("path object is required")
+
+            file = File.from_path(path)
+            filetype = get_file_type(file.filename)
+
+            if filetype == "album_nfo":
+                existing_files = FileModel.select().where(
+                    (FileModel.track_id == track.id)
+                    & (FileModel.file_type == "album_nfo")
+                )
+                for ef in existing_files:
+
+                    logger.info(f"File {file} already exists for {track}")
+                    logger.debug("Deleting existing album_nfo")
+                    ef.delete_instance()
+
+            if filetype == "video":
+                audio = FileManager.extract_audio(file)
+                audio_file = File.from_path(audio)
+                audio_file.move_to(output_path)
+                FileModel.create(
+                    path=str(output_path),
+                    filename=audio_file.filename,
+                    file_type="audio",
+                    track_id=track.id,
+                )
+
+            file.move_to(output_path)
+            f = FileModel.create(
+                path=str(output_path),
+                filename=file.filename,
+                file_type=filetype,
+                track_id=track.id,
+            )
+
+            return f
 
         except Exception as e:
             logger.error(e)

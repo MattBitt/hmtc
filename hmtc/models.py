@@ -758,6 +758,7 @@ class File(BaseModel):
     video = ForeignKeyField(Video, backref="files", null=True)
     album = ForeignKeyField(Album, backref="files", null=True)
     youtube_series = ForeignKeyField(YoutubeSeries, backref="files", null=True)
+    track = ForeignKeyField(Track, backref="files", null=True)
 
     @classmethod
     def add_new_file(cls, source, target, move_file=True, **kwargs):
@@ -803,6 +804,9 @@ class File(BaseModel):
         if "youtube_series" in kwargs:
             f.youtube_series = kwargs["youtube_series"]
 
+        if "track" in kwargs:
+            f.track = kwargs["track"]
+
         f.save()
 
         if not target.exists():
@@ -833,6 +837,13 @@ class File(BaseModel):
             "filename": self.filename,
             "file_type": self.file_type,
             "video_id": self.video.id if self.video else None,
+            "album_id": self.album.id if self.album else None,
+            "series_id": self.series.id if self.series else None,
+            "playlist_id": self.playlist.id if self.playlist else None,
+            "youtube_series_id": (
+                self.youtube_series.id if self.youtube_series else None
+            ),
+            "track_id": self.track.id if self.track else None,
         }
         return new_dict
 

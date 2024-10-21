@@ -374,12 +374,14 @@ class PageState:
 
     @staticmethod
     def create_tracks_from_sections():
-        for sect in Section.get_all():
-            vid = VideoItem.get_by_id(sect.video_id)
-            album = VideoItem.get_album(video_id=vid.id)
-            track = TrackItem.create_from_section(video=vid, album=album, section=sect)
-            if track:
-                track.write_file()
+        logger.error(f"☹️☹️☹️☹️☹️")
+        # logger.error(f"Deprecated Function create_tracks_from_sections")
+        # for sect in Section.get_all():
+        #     vid = VideoItem.get_by_id(sect.video_id)
+        #     album = VideoItem.get_album(video_id=vid.id)
+        #     track = TrackItem.create_from_section(video=vid, album=album, section=sect)
+        #     if track:
+        #         track.write_file()
         pass
 
     @staticmethod

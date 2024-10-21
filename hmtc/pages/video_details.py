@@ -745,7 +745,22 @@ def SectionsPanel(
             logger.error(e)
             return
         track = TrackItem.from_model(tm)
-        track.write_file(video_id=video.id)
+        try:
+            input_file = (
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == video.id) & (FileModel.file_type == "audio")
+                )
+                .get()
+            )
+        except:
+            logger.error(f"No input file found for")
+            return
+        input_file_path = Path(input_file.path) / input_file.filename
+        track_path = track.write_file(input_file=input_file_path)
+        new_file = FileManager.add_path_to_track(
+            path=track_path, track=track, video=video
+        )
 
     if not reload.value:
         if tab_items != []:

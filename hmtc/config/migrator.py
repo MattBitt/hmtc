@@ -63,6 +63,12 @@ def migration1(db, migrator):
 # added albums and youtube series columns to the File table
 
 
+# 10/20/24
+# added tracks to the File Table
+# also added some stuff to sections table, but deleted it on production
+# and let it manually repopulate.
+
+
 def run_migrations(db):
     migrator = PostgresqlMigrator(db)
 

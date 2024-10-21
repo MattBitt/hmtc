@@ -4,9 +4,9 @@ from pathlib import Path
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import Track as TrackModel
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
+from hmtc.models import Track as TrackModel
 from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
@@ -20,7 +20,7 @@ STORAGE = Path(config["paths"]["storage"])
 @dataclass
 class TrackItem:
     # this (probably...) shouldn't be happening here.
-    track_folder = STORAGE / "tracks" / "Harry Mack"
+    track_folder = WORKING / "tracks"
     if not track_folder.exists():
         track_folder.mkdir()
     id: int = None
@@ -39,27 +39,33 @@ class TrackItem:
             album_id=track.album_id,
         )
 
-    def write_file(self, video_id):
-        source = VideoItem.get_audio_file_path(video_id)
+    def write_file(self, input_file: Path):
+
         album = AlbumModel.get_or_none(AlbumModel.id == self.album_id)
         section = SectionModel.get_or_none(SectionModel.track_id == self.id)
 
-        if source is None or album is None or section is None:
-            logger.error(f"Could not find audio file for video {video_id}")
-            logger.error(f"source: {source}")
+        if album is None or section is None:
             logger.error(f"album: {album}")
             logger.error(f"times: {section}")
             return
         out_folder = self.track_folder / f"{album.title}/"
         if not out_folder.exists():
             out_folder.mkdir(parents=True)
-        dest = str(out_folder / f"{self.track_number} - {self.title}.mp3")
+        output_file = out_folder / f"{self.track_number} - {self.title}.mp3"
+        if output_file.exists():
+            logger.error(f"File {output_file} already exists. Deleting")
+            output_file.unlink()
+
         logger.error(
-            f"Ripping track from {source} to {dest} from {section.start} to {section.end}"
+            f"Ripping track from {input_file} to {str(output_file)} from {section.start} to {section.end}"
         )
         rip_track(
-            source, dest, start_time=section.start / 1000, end_time=section.end / 1000
+            input_file,
+            str(output_file),
+            start_time=section.start / 1000,
+            end_time=section.end / 1000,
         )
+        return output_file
 
     # 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝
     # 10/18/24 - the code below may or not be useful. I think i created it
