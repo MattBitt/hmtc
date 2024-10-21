@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-
+from peewee import fn
 from loguru import logger
 
 from hmtc.config import init_config
@@ -11,6 +11,7 @@ from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
+from hmtc.utils.mutagen_utils import write_id3_tags
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -43,7 +44,11 @@ class TrackItem:
 
         album = AlbumModel.get_or_none(AlbumModel.id == self.album_id)
         section = SectionModel.get_or_none(SectionModel.track_id == self.id)
-
+        num_tracks = (
+            TrackModel.select(fn.Count(TrackModel.id))
+            .where(TrackModel.album_id == album.id)
+            .scalar()
+        )
         if album is None or section is None:
             logger.error(f"album: {album}")
             logger.error(f"times: {section}")
@@ -65,6 +70,15 @@ class TrackItem:
             start_time=section.start / 1000,
             end_time=section.end / 1000,
         )
+        tags = {
+            "title": self.title,
+            "tracknumber": [f"{self.track_number}", f"{num_tracks}"],
+            "album": album.title,
+            "albumartist": "Harry Mack",
+            "artist": "Harry Mack",
+            "date": str(section.video.upload_date.year),
+        }
+        write_id3_tags(output_file, tags)
         return output_file
 
     # 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝
