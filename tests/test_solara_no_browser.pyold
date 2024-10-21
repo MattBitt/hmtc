@@ -4,6 +4,8 @@ import ipyvuetify as v
 import solara
 import solara.lab
 
+# these tests may or may not work, but im not using them for now 10/21/24
+
 
 def test_docs_no_browser_api_find():
     clicks = solara.reactive(0)
@@ -24,7 +26,7 @@ def test_docs_no_browser_api_find():
     # this find will make the .widget fail, because it matches two buttons
     # finder = rc.find(v.Btn)
     # We can refine our search by adding constraints to attributes of the widget
-    button_locator = rc.find(v.Btn, children=["Clicked: 0"])
+    button_locator = rc.find(v.Btn, children=["Clicked: 0a"])
     # basics asserts are supported, like assert_single(), assert_empty(), assert_not_empty()
     button_locator.assert_single()
     button = button_locator.widget

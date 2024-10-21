@@ -761,6 +761,9 @@ def SectionsPanel(
         new_file = FileManager.add_path_to_track(
             path=track_path, track=track, video=video
         )
+        logger.debug(f"Created audio file {new_file}")
+
+        reload.set(True)
 
     if not reload.value:
         if tab_items != []:

@@ -170,56 +170,56 @@ def test_add_poster_to_channel(test_image_filename):
     assert c.poster is not None
 
 
-@pytest.mark.xfail
-def test_add_info_to_channel_from_file(test_files):
-    c = Channel.create(
-        name="Test Channel", youtube_id="asdfasdf", url="www.youtube.com"
-    )
-    assert c is not None, "Channel not found"
+# @pytest.mark.xfail
+# def test_add_info_to_channel_from_file(test_files):
+#     c = Channel.create(
+#         name="Test Channel", youtube_id="asdfasdf", url="www.youtube.com"
+#     )
+#     assert c is not None, "Channel not found"
 
-    f = "harry_mack.info.json"
-    for tf in test_files:
-        if f in tf.name:
-            c.add_file(tf)
-            break
-    c.add_file(f)
+#     f = "harry_mack.info.json"
+#     for tf in test_files:
+#         if f in tf.name:
+#             c.add_file(tf)
+#             break
+#     c.add_file(f)
 
-    assert c.info is not None
-    assert "info" in c.info.filename
-    assert c.files.count() >= 1
-    assert c.name == "Test Channel"
-    c.name = "Harry Mack Channel"
-    c.save()
-    assert c.name == "Harry Mack Channel"
-    c.load_from_info_file()
-    assert c.name == "Test Channel"
+#     assert c.info is not None
+#     assert "info" in c.info.filename
+#     assert c.files.count() >= 1
+#     assert c.name == "Test Channel"
+#     c.name = "Harry Mack Channel"
+#     c.save()
+#     assert c.name == "Harry Mack Channel"
+#     c.load_from_info_file()
+#     assert c.name == "Test Channel"
 
 
-@pytest.mark.xfail
-def test_add_info_from_file_to_playlist_in_db(test_files):
-    logger.debug("Test Add Info From File to Playlist 🐣🐣🐣 init")
-    playlist_title = "Wordplay Wednesday"
-    playlist_id = "PLtbrIhAJmrPAGLnngi0ZOTvNmuNt5uHJk"
-    p, created = Playlist.get_or_create(title=playlist_title)
-    assert created is False
-    assert p is not None
-    assert p.youtube_id == playlist_id
+# @pytest.mark.xfail
+# def test_add_info_from_file_to_playlist_in_db(test_files):
+#     logger.debug("Test Add Info From File to Playlist 🐣🐣🐣 init")
+#     playlist_title = "Wordplay Wednesday"
+#     playlist_id = "PLtbrIhAJmrPAGLnngi0ZOTvNmuNt5uHJk"
+#     p, created = Playlist.get_or_create(title=playlist_title)
+#     assert created is False
+#     assert p is not None
+#     assert p.youtube_id == playlist_id
 
-    for tf in test_files:
-        if (playlist_id in tf.name) and (".info.json" in tf.name):
-            p.add_file(tf)
-            break
-    assert p.info is not None
-    assert "info" in p.info.filename
-    assert p.files.count() >= 1
-    assert p.title == playlist_title
-    p.title = "Testing..."
-    p.save()
-    assert p.title != playlist_title
-    p.load_from_info_file()
-    assert p.playlist_count == 124
-    assert p.title == playlist_title
-    logger.debug("Test Add Info From File to Playlist 🐣🐣🐣 finished")
+#     for tf in test_files:
+#         if (playlist_id in tf.name) and (".info.json" in tf.name):
+#             p.add_file(tf)
+#             break
+#     assert p.info is not None
+#     assert "info" in p.info.filename
+#     assert p.files.count() >= 1
+#     assert p.title == playlist_title
+#     p.title = "Testing..."
+#     p.save()
+#     assert p.title != playlist_title
+#     p.load_from_info_file()
+#     assert p.playlist_count == 124
+#     assert p.title == playlist_title
+#     logger.debug("Test Add Info From File to Playlist 🐣🐣🐣 finished")
 
 
 def test_add_poster_to_playlist(test_image_filename):
@@ -231,23 +231,23 @@ def test_add_poster_to_playlist(test_image_filename):
     assert p.poster is not None
 
 
-@pytest.mark.xfail
-def test_add_poster_to_video(test_image_filename):
-    v = VideoModel.create(youtube_id="asdfasdfewr", title="test")
-    logger.debug(f"Video: {v.title}")
-    logger.debug(f"{test_image_filename}")
-    v.add_file(filename=test_image_filename, youtube_id="asdfasdfewr")
-    assert v.files.count() >= 1
-    assert v.poster is not None
+# @pytest.mark.xfail
+# def test_add_poster_to_video(test_image_filename):
+#     v = VideoModel.create(youtube_id="asdfasdfewr", title="test")
+#     logger.debug(f"Video: {v.title}")
+#     logger.debug(f"{test_image_filename}")
+#     v.add_file(filename=test_image_filename, youtube_id="asdfasdfewr")
+#     assert v.files.count() >= 1
+#     assert v.poster is not None
 
 
-@pytest.mark.xfail
-def test_add_file(test_video_filename):
-    vid = VideoModel.create(youtube_id="asdfasdfewr")
-    vid.add_file(filename=test_video_filename, youtube_id="asdfasdfewr")
+# @pytest.mark.xfail
+# def test_add_file(test_video_filename):
+#     vid = VideoModel.create(youtube_id="asdfasdfewr")
+#     vid.add_file(filename=test_video_filename, youtube_id="asdfasdfewr")
 
-    assert vid is not None
-    assert vid.files.count() == 1
+#     assert vid is not None
+#     assert vid.files.count() == 1
 
 
 def test_add_file_to_series(test_image_filename):

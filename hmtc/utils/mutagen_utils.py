@@ -12,14 +12,13 @@ from mutagen.mp3 import MP3
 # Check out somewhere at end of above linked file
 
 
-def id3_info(file):
+def read_id3_tags(file):
     try:
         audio = MP3(file, ID3=EasyID3)
-        # audio.pprint()
         return audio.tags
 
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
 def write_id3_tags(file, tags):
