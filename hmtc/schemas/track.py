@@ -7,7 +7,8 @@ from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
-from hmtc.schemas.album import Album as AlbumItem
+
+# from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
@@ -86,38 +87,38 @@ class TrackItem:
     # to get some tracks built before our vacation to chicago. leaving it
     # in for now., but don't add anything here
 
-    @staticmethod
-    def create_from_section(video: VideoItem, album, section: Section) -> "TrackItem":
-        logger.error(f"Creating track from section {section} for video {video}")
-        title = video.title
-        if title is None:
-            logger.error(f"Video {video} has no title. Skipping")
-            return None
-        video_id = video.id
-        track_number = AlbumItem.get_next_track_number(album)
-        epno = None
-        if album is not None:
-            album_id = album.id
-            if TrackItem.album_title is None:
-                is_omegle, epno = is_omegle_bars(video.title)
-                if is_omegle:
-                    TrackItem.album_title = f"Omegle Bars {epno}"
-                else:
-                    TrackItem.album_title = album.title
-        start_time = section.start
-        end_time = section.end
-        if epno is None:
-            epno = 0
-        t = TrackItem(
-            title=f"{epno}.{track_number}",
-            track_number=track_number,
-            video_id=video_id,
-            album_id=album_id,
-            start_time=start_time,
-            end_time=end_time,
-        )
-        t.save_to_db()
-        return t
+    # @staticmethod
+    # def old_create_from_section(video: VideoItem, album, section: Section) -> "TrackItem":
+    #     logger.error(f"Creating track from section {section} for video {video}")
+    #     title = video.title
+    #     if title is None:
+    #         logger.error(f"Video {video} has no title. Skipping")
+    #         return None
+    #     video_id = video.id
+    #     track_number = AlbumItem.get_next_track_number(album)
+    #     epno = None
+    #     if album is not None:
+    #         album_id = album.id
+    #         if TrackItem.album_title is None:
+    #             is_omegle, epno = is_omegle_bars(video.title)
+    #             if is_omegle:
+    #                 TrackItem.album_title = f"Omegle Bars {epno}"
+    #             else:
+    #                 TrackItem.album_title = album.title
+    #     start_time = section.start
+    #     end_time = section.end
+    #     if epno is None:
+    #         epno = 0
+    #     t = TrackItem(
+    #         title=f"{epno}.{track_number}",
+    #         track_number=track_number,
+    #         video_id=video_id,
+    #         album_id=album_id,
+    #         start_time=start_time,
+    #         end_time=end_time,
+    #     )
+    #     t.save_to_db()
+    #     return t
 
     def save_to_db(self):
         logger.error(f"Saving track {self}")

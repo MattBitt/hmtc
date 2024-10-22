@@ -188,6 +188,12 @@ class SectionManager:
 
     @staticmethod
     def get_section_details(id):
+        logger.debug(
+            "🧪🧪🧪🧪 get_section_details Is this is being used? 10/22/24🧪🧪🧪🧪"
+        )
+        logger.debug(
+            "🧪🧪🧪🧪 this is different than get_details_for_section in the SectionItem object"
+        )
         query = (
             SectionTable.select(SectionTable, TopicTable, SectionTopicsTable)
             .join(

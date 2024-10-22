@@ -1,8 +1,11 @@
 import asyncio
 import time
 from typing import Callable
-
+from pathlib import Path
+import peewee
 import ipyvue
+import PIL
+
 import numpy as np
 import solara
 from loguru import logger
@@ -13,6 +16,9 @@ from hmtc.components.GOBY.sandbox_component.sandbox import FancyComponent
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section as SectionModel
 from hmtc.models import SectionTopics as SectionTopicsModel
+from hmtc.models import Album as AlbumModel
+from hmtc.schemas.file import FileManager
+from hmtc.schemas.album import Album as AlbumItem
 
 
 def import_vue_components():
@@ -59,11 +65,16 @@ def EmptyTable(
 def Page():
     import_vue_components()
     MySidebar(router=solara.use_router())
+    album = AlbumModel.get_by_id(698)
+    poster = FileManager.get_file_for_album(album, "poster")
+    image = PIL.Image.open(Path(str(poster)))
+    with solara.Row(justify="center"):
+        solara.Image(image, width="600")
 
-    EmptyTable(
-        items=[{"id": 1, "title": "test"}, {"id": 2, "title": "test2"}],
-        event_delete_item=lambda x: logger.debug(
-            f"Deleting Item received from Vue: {x}"
-        ),
-        event_save_item=lambda x: logger.debug(f"Saving Item received from Vue: {x}"),
+    sections = (
+        SectionModel.select()
+        .join(SectionTopicsModel, join_type=peewee.JOIN.LEFT_OUTER)
+        .where(SectionModel.track_id.is_null())
+        .distinct()
     )
+    logger.info(len(sections))

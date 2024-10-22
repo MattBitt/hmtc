@@ -109,6 +109,10 @@ class BaseModel(Model):
                 return query.where(File.video_id == id).get_or_none()
             case "Series":
                 return query.where(File.series_id == id).get_or_none()
+            case "YoutubeSeries":
+                return query.where(File.youtube_series_id == id).get_or_none()
+            case "Album":
+                return query.where(File.album_id == id).get_or_none()
 
     @classmethod
     def active(cls):
@@ -596,6 +600,7 @@ class Track(BaseModel):
     title = CharField()
     track_number = IntegerField(null=False)
     length = IntegerField(null=True)
+    jellyfin_id = IntegerField(null=True)
     album = ForeignKeyField(Album, backref="tracks", null=True)
 
     def model_to_dict(self):
@@ -772,8 +777,6 @@ class File(BaseModel):
             fname = fname.replace(".en", "")
 
         logger.debug(f"Final Name = {fname}")
-        # if file_type == "poster" and cls.poster is not None:
-        #     cls.delete_poster()
 
         f = cls.create(
             path=target.parent,

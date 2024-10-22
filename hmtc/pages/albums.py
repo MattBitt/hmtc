@@ -59,7 +59,7 @@ def Page():
         )
         .join(VideoModel, peewee.JOIN.LEFT_OUTER)
         .group_by(AlbumModel.id, AlbumModel.title)
-        .order_by(AlbumModel.title.asc())
+        .order_by(AlbumModel.id.desc())
     )
 
     router = solara.use_router()

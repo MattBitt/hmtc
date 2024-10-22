@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-
+import os
 from loguru import logger
 from peewee import fn
 
@@ -11,7 +11,7 @@ from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import get_file_type
 from hmtc.utils.ffmpeg_utils import extract_audio
-from hmtc.utils.general import move_file
+from hmtc.utils.general import move_file, my_copy_file
 
 config = init_config()
 WORKING = config["paths"]["working"]
@@ -32,6 +32,24 @@ class File:
         p = Path(File.folder) / path
         return cls(path=str(p.parent), filename=p.name)
 
+    def copy_to(self, dest: str) -> "File":
+        destination = Path(File.folder) / dest
+        if not destination.exists():
+            logger.info(f"Creating folder {destination}")
+            destination.mkdir(parents=True)
+        old_file = Path(self.path) / self.filename
+        new_file = destination / self.filename
+        my_copy_file(str(old_file), str(new_file))
+        return File(path=str(new_file.parent), filename=new_file.name)
+
+    def make_a_temporary_copy(self) -> "File":
+        temp_folder = Path(WORKING) / "temp"
+        if not temp_folder.exists():
+            temp_folder.mkdir(parents=True)
+        temp_file = temp_folder / self.filename
+        my_copy_file(str(Path(self.path) / self.filename), str(temp_file))
+        return File(path=str(temp_file.parent), filename=temp_file.name)
+
     def move_to(self, dest: str) -> "File":
         destination = Path(File.folder) / dest
         if not destination.exists():
@@ -39,6 +57,12 @@ class File:
             destination.mkdir(parents=True)
         old_file = Path(self.path) / self.filename
         new_file = destination / self.filename
+        move_file(str(old_file), str(new_file))
+        return File(path=str(new_file.parent), filename=new_file.name)
+
+    def rename(self, new_name: str) -> "File":
+        old_file = Path(self.path) / self.filename
+        new_file = Path(self.path) / new_name
         move_file(str(old_file), str(new_file))
         return File(path=str(new_file.parent), filename=new_file.name)
 
@@ -192,7 +216,8 @@ class FileManager:
                 (FileModel.album_id == album.id) & (FileModel.file_type == filetype)
             )
             if not file:
-                # logger.debug(f"No {filetype} file found for {album.title}")
+                # 🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣
+                # need to adjust this for aspect ratio and size of the image
                 return File(path="hmtc/assets/images", filename="no-image.png")
 
             return File(path=file.path, filename=file.filename)
@@ -202,7 +227,7 @@ class FileManager:
             raise
 
     ## 🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵🔵
-    ## copied the below from the same functions above and c
+    ## copied the below from the same functions above and
     ## changed it to tracks instead of videos
     # 10/20/24
     @staticmethod
@@ -275,3 +300,72 @@ class FileManager:
         except Exception as e:
             logger.error(e)
             raise
+
+    # 10/21/24 copied this method again from track and using it for album
+    @staticmethod
+    def add_path_to_album(path: Path, album: AlbumModel):
+        try:
+            album_title = album.title
+        except Exception as e:
+            logger.error(e)
+            album_title = "Unknown Album"
+
+        output_path = Path(STORAGE) / f"tracks/Harry Mack/{album_title}/"
+
+        if not album:
+            raise ValueError("Album object is required")
+        if not path:
+            raise ValueError("path object is required")
+
+        try:
+            file = File.from_path(path)
+            filetype = get_file_type(file.filename)
+            if filetype == "poster":
+                # jellyfin uses cover.jpg for album art
+                ext = Path(file.filename).suffix[1:]
+                if ext not in ["jpg", "jpeg", "png"]:
+                    raise ValueError(f"Invalid file type {ext} for album art")
+                file.rename(f"cover.{ext}")
+        except Exception as e:
+            logger.error(e)
+            raise
+        try:
+
+            file.move_to(output_path)
+        except Exception as e:
+            logger.error(f"Error moving file {file} to {output_path}")
+            logger.error(e)
+        f = FileModel.create(
+            path=str(output_path),
+            filename=file.filename,
+            file_type=filetype,
+            album_id=album.id,
+        )
+
+        return f
+
+    @staticmethod
+    def add_file_item_to_album(file: File, album: AlbumModel):
+        if not album:
+            raise ValueError("album object is required")
+        if not file:
+            raise ValueError("File object is required")
+        output_path = Path(STORAGE) / f"tracks/Harry Mack/{album.title}/"
+        filetype = get_file_type(file.filename)
+
+        file.move_to(output_path)
+        f = FileModel.create(
+            path=str(output_path),
+            filename=file.filename,
+            file_type=filetype,
+            album_id=album.id,
+        )
+        if filetype == "poster":
+            # jellyfin uses cover.xxx for album art
+            ext = Path(file.filename).suffix[1:]
+            if ext not in ["jpg", "jpeg", "png", "webp"]:
+                raise ValueError(f"Invalid file type {ext} for album art")
+            os.rename(f"{output_path}/{file.filename}", f"{output_path}/cover.{ext}")
+        f.filename = f"cover.{ext}"
+        f.save()
+        return f

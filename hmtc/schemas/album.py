@@ -1,13 +1,16 @@
 from dataclasses import dataclass, field
 from typing import List
-
+from pathlib import Path
 from loguru import logger
 from peewee import fn
-
+from hmtc.models import File as FileModel
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
+from hmtc.schemas.file import FileManager, File as FileItem
 from hmtc.schemas.video import VideoItem
+from hmtc.schemas.section import Section as SectionItem
+from hmtc.schemas.track import TrackItem
 
 
 @dataclass
@@ -16,10 +19,11 @@ class Album:
     title: str = ""
     release_date: str = ""
     tracks: list = field(default_factory=list)
+    video_ids: list = field(default_factory=list)
 
     def create_album(self):
-        # this is being used by the settings temporary function at least, probably more
-        # 10/14/24
+        # i should create the folder here
+        # then i should add the album metadata to that folder
         try:
             album = AlbumModel.create(
                 title=self.title,
@@ -27,6 +31,7 @@ class Album:
             )
             logger.info("Album created")
             return album
+
         except Exception as e:
             logger.error(e)
             logger.debug(f"Error creating album {self.title}. Skipping")
@@ -46,6 +51,7 @@ class Album:
             title=album.title,
             release_date=album.release_date,
             tracks=album.tracks,
+            video_ids=[video.id for video in album.videos] if album.videos else [],
         )
 
     def remove_track(self, id):
@@ -78,3 +84,45 @@ class Album:
         )
         logger.info(f"Track {track.title} created")
         return track
+
+    def create_from_section(
+        self, section: SectionItem, video: VideoItem
+    ) -> "TrackItem":
+        if len(section.topics) > 0:
+            topics_string = ", ".join([x.topic.text for x in section.topics])
+            if len(topics_string) > 40:
+                # also defined in SectionCarousel.vue
+                new_title = topics_string[:40] + "..."
+            else:
+                new_title = topics_string
+        else:
+            new_title = video.title
+
+        track = self.create_track(
+            title=new_title, length=(section.end - section.start) / 1000
+        )
+        track_item = TrackItem.from_model(track)
+        return track_item
+
+    def use_video_poster(self):
+
+        try:
+            video_poster = (
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == self.video_ids[0])
+                    & (FileModel.file_type == "poster")
+                )
+                .get()
+            )
+        except Exception as e:
+            logger.error(e)
+            logger.error("Poster not found")
+            return
+        video_poster_path = Path(video_poster.path) / video_poster.filename
+        logger.error(f"Video poster path: {video_poster_path}")
+        file_item = FileItem.from_path(video_poster_path)
+        file_item = file_item.make_a_temporary_copy()
+        album_poster = FileManager.add_file_item_to_album(file=file_item, album=self)
+
+        logger.info(f"Poster added to {album_poster}")

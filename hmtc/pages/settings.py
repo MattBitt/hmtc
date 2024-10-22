@@ -18,6 +18,7 @@ from hmtc.models import Channel
 from hmtc.models import (
     File as FileModel,
 )
+from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
@@ -30,7 +31,7 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
-from hmtc.schemas.album import Album
+from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section, SectionManager
@@ -98,6 +99,23 @@ class PageState:
     i = solara.reactive(0)
     num_to_download = solara.reactive(10)
     jf = MyJellyfinClient()
+
+    @staticmethod
+    def create_tracks_from_sections():
+        # this is another temporary function to auto create tracks
+        # from the original sections
+        logger.error("About to create tracks from sections")
+        sections = SectionModel.select(
+            SectionModel.id, SectionModel.video_id, SectionModel.start, SectionModel.end
+        ).where(SectionModel.track_id.is_null())
+        logger.error(f"Found {len(sections)} sections with no track")
+        for sec in sections:
+            video = VideoModel.get_by_id(sec.video_id)
+            if video.album is not None:
+                album = AlbumModel.get_by_id(video.album.id)
+                album_item = AlbumItem.from_model(album)
+                track_item = album_item.create_from_section(section=sec, video=video)
+                logger.error(f"Created track {track_item.title} for {video.title}")
 
     @staticmethod
     def search_for_jellyfin_ids():
@@ -309,30 +327,42 @@ class PageState:
             "Finished creating albums Videos with no album, a YT series, and an episode number"
         )
 
-    # this is a temporary function to use the video posters for the album posters
-
-    @staticmethod
+    # this is a temporary function to assign video posters to albums
+    # 10/21/24
     def assign_video_posters_to_albums():
-        logger.debug("Assigning Video Posters to Albums")
-        albums = AlbumModel.select()
-        for a in albums:
-            vid = VideoModel.select().where(VideoModel.album_id == a.id).get()
-            poster = (
+        albums_with_posters = FileModel.select(FileModel.album_id).where(
+            (FileModel.file_type == "poster") & (FileModel.album_id.is_null(False))
+        )
+        logger.error(f"Found {albums_with_posters.count()} albums WITH a poster")
+        all_albums = AlbumModel.select(AlbumModel.id)
+        albums_missing_posters = all_albums.where(
+            AlbumModel.id.not_in(albums_with_posters)
+        )
+        logger.error(f"Found {albums_missing_posters.count()} albums with no poster")
+        for album_id in albums_missing_posters:
+            try:
+                album = AlbumModel.get_by_id(album_id)
+            except Exception as e:
+                logger.error(f"{e}: Album with id {album_id} not found")
+                continue
+            try:
+                vid = album.videos[0]
+            except Exception as e:
+                logger.error(f"{e}: No video found for album {album}")
+                continue
+
+            vid_poster = (
                 FileModel.select()
                 .where(
-                    (FileModel.video_id == vid.id) & (FileModel.file_type == "poster")
+                    (FileModel.file_type == "poster") & (FileModel.video_id == vid.id)
                 )
                 .get_or_none()
             )
-            if poster is None:
-                logger.debug(f"No poster for {vid.title}")
-                continue
-
-            poster.album_id = a.id
-            poster.save()
-            logger.debug(f"Assigned {poster} to {a}")
-
-    # this is a temporary function to import track info from a csv file
+            if vid_poster:
+                album_item = AlbumItem.from_model(album)
+                album_item.use_video_poster()
+            else:
+                logger.info(f"No poster found for {vid.title}. Skipping")
 
     @staticmethod
     def import_track_info():
@@ -371,18 +401,6 @@ class PageState:
                             order=num_topics_in_section + 1,
                         )
                 logger.debug(f"Section created: {section}")
-
-    @staticmethod
-    def create_tracks_from_sections():
-        logger.error(f"☹️☹️☹️☹️☹️")
-        # logger.error(f"Deprecated Function create_tracks_from_sections")
-        # for sect in Section.get_all():
-        #     vid = VideoItem.get_by_id(sect.video_id)
-        #     album = VideoItem.get_album(video_id=vid.id)
-        #     track = TrackItem.create_from_section(video=vid, album=album, section=sect)
-        #     if track:
-        #         track.write_file()
-        pass
 
     @staticmethod
     def update_episode_numbers_omegle_exlusive():
@@ -473,8 +491,8 @@ def Page():
             with solara.Card("Reusuable Functions"):
                 with solara.ColumnsResponsive():
                     solara.Button(
-                        label="Check for New Videos",
-                        on_click=PageState.refresh_videos_from_youtube,
+                        label="Create Tracks for Existing Sections",
+                        on_click=PageState.create_tracks_from_sections,
                         classes=["button"],
                     )
                     solara.Button(
@@ -483,7 +501,7 @@ def Page():
                         classes=["button"],
                     )
                     solara.Button(
-                        label="Assign Video Posters to Albums",
+                        label="Assign Video Posters to Albums (10/21/24)",
                         on_click=PageState.assign_video_posters_to_albums,
                         classes=["button"],
                     )

@@ -50,7 +50,11 @@ def my_copy_file(source, target):
     s = str(Path(source))
     t = str(Path(target))
 
-    shutil.copy(s, t)
+    try:
+        shutil.copy(s, t)
+        logger.debug(f"Copying file {source} to {target}")
+    except Exception as e:
+        logger.error(f"Error copying file {source} to {target}: {e}")
 
 
 def my_move_file(source, target):

@@ -480,6 +480,8 @@ def InfoPanel(
         vid = VideoModel.get_by_id(video.id)
         vid.album = album
         vid.save()
+        album_item = AlbumItem.from_model(album)
+        album_item.use_video_poster()
 
     def update_album(*args):
         logger.error(f"Assigning Album {args} to video {video.id}")
