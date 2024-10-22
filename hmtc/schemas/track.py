@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-from peewee import fn
+
 from loguru import logger
+from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel

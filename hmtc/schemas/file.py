@@ -1,6 +1,7 @@
+import os
 from dataclasses import dataclass
 from pathlib import Path
-import os
+
 from loguru import logger
 from peewee import fn
 

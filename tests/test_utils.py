@@ -14,8 +14,7 @@ from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.track import TrackItem
-
-from hmtc.utils.mutagen_utils import write_id3_tags, read_id3_tags
+from hmtc.utils.mutagen_utils import read_id3_tags, write_id3_tags
 
 
 def test_write_id3_tags(test_audio_filename):

@@ -1,11 +1,13 @@
-import pytest
-from hmtc.models import Album as AlbumModel
 from pathlib import Path
-from hmtc.schemas.album import Album as AlbumItem
+
+import pytest
+from loguru import logger
+
+from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
 from hmtc.models import Video as VideoModel
+from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
-from loguru import logger
 
 
 def test_create_album():

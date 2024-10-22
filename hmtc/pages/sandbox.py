@@ -1,12 +1,12 @@
 import asyncio
 import time
-from typing import Callable
 from pathlib import Path
-import peewee
-import ipyvue
-import PIL
+from typing import Callable
 
+import ipyvue
 import numpy as np
+import peewee
+import PIL
 import solara
 from loguru import logger
 from peewee import fn
@@ -14,11 +14,11 @@ from solara.lab import Task, use_task
 
 from hmtc.components.GOBY.sandbox_component.sandbox import FancyComponent
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import SectionTopics as SectionTopicsModel
-from hmtc.models import Album as AlbumModel
-from hmtc.schemas.file import FileManager
 from hmtc.schemas.album import Album as AlbumItem
+from hmtc.schemas.file import FileManager
 
 
 def import_vue_components():

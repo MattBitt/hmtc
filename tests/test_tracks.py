@@ -1,11 +1,11 @@
 from loguru import logger
-from hmtc.models import Section as SectionModel
-from hmtc.models import SectionTopics as SectionTopicsModel
-from hmtc.models import Topic as TopicModel
+
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     Section as SectionModel,
 )
+from hmtc.models import SectionTopics as SectionTopicsModel
+from hmtc.models import Topic as TopicModel
 from hmtc.models import (
     Track as TrackModel,
 )
@@ -74,7 +74,12 @@ def test_new_track_from_section(test_audio_filename):
     assert track_item is not None
     assert track_item.title == video.title
     assert track_item.length == 150
-
+    section_to_check = (
+        SectionModel.select(SectionModel.id, SectionModel.track_id)
+        .where(SectionModel.id == sec.id)
+        .get()
+    )
+    assert section_to_check.track.id == track_item.id
     topic = TopicModel.create(text="bottle")
     topic2 = TopicModel.create(text="orange")
     topic3 = TopicModel.create(text="supercalifragilisticexpialidocious")

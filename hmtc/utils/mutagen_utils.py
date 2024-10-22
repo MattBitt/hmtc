@@ -1,8 +1,9 @@
 # load the libraries that we'll use
 import glob
-from loguru import logger
+
 import mutagen.id3
 import numpy as np
+from loguru import logger
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3, TALB, TIT2, TIT3, TPE1, TRCK, TYER
 from mutagen.mp3 import MP3

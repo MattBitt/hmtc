@@ -1,16 +1,20 @@
 from dataclasses import dataclass, field
-from typing import List
 from pathlib import Path
+from typing import List
+
 from loguru import logger
 from peewee import fn
-from hmtc.models import File as FileModel
+
 from hmtc.models import Album as AlbumModel
+from hmtc.models import File as FileModel
+from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
-from hmtc.schemas.file import FileManager, File as FileItem
-from hmtc.schemas.video import VideoItem
+from hmtc.schemas.file import File as FileItem
+from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.track import TrackItem
+from hmtc.schemas.video import VideoItem
 
 
 @dataclass
@@ -102,6 +106,10 @@ class Album:
             title=new_title, length=(section.end - section.start) / 1000
         )
         track_item = TrackItem.from_model(track)
+        sect = SectionModel.get_by_id(section.id)
+        sect.track = track
+        sect.save()
+
         return track_item
 
     def use_video_poster(self):
