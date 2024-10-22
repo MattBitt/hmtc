@@ -129,7 +129,8 @@ class PageState:
                 # if len(abc) > 0:
                 if video.file:
                     input_file = Path(video.file.path) / video.file.filename
-                    track_item.write_file(input_file=input_file)
+                    output_file = track_item.write_file(input_file=input_file)
+                    FileManager.add_path_to_track(output_file, track_item, video)
                     logger.error(f"Created track {track_item.title} for {video.title}")
                 else:
                     logger.error(
