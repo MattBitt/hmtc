@@ -178,22 +178,19 @@ class SectionManager:
     ##### may not be used functions (9/13/24)
     @staticmethod
     def delete_from_db(section) -> None:
-        logger.debug("🧪🧪🧪🧪 Is this is being used? 9/13/24 🧪🧪🧪🧪")
+        logger.debug("🧪🧪🧪🧪 Is this is being used? delete_from_db 9/13/24 🧪🧪🧪🧪")
         SectionTable.delete().where(SectionTable.id == section.id).execute()
 
     @staticmethod
     def get_by_id(id):
-        logger.debug("🧪🧪🧪🧪 get_by_id Is this is being used? 9/13/24🧪🧪🧪🧪")
+        logger.debug(
+            "🧪🧪🧪🧪 get_by_id Is this is being used? get_by_id 9/13/24🧪🧪🧪🧪"
+        )
         return SectionTable.get_or_none(SectionTable.id == id)
 
     @staticmethod
     def get_section_details(id):
-        logger.debug(
-            "🧪🧪🧪🧪 get_section_details Is this is being used? 10/22/24🧪🧪🧪🧪"
-        )
-        logger.debug(
-            "🧪🧪🧪🧪 this is different than get_details_for_section in the SectionItem object"
-        )
+        # this is being used as of 10/22/24
         query = (
             SectionTable.select(SectionTable, TopicTable, SectionTopicsTable)
             .join(

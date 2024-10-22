@@ -72,6 +72,9 @@ class TrackItem:
             start_time=section.start / 1000,
             end_time=section.end / 1000,
         )
+        # need to actually add the output file to the DB and move it
+        # to the storage location
+        # how did i do it in the tests?
         tags = {
             "title": self.title,
             "tracknumber": [f"{self.track_number}", f"{num_tracks}"],

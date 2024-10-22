@@ -633,7 +633,7 @@ class Section(BaseModel):
 
     @classmethod
     def create_initial_section(cls, video):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 09-10-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 09-10-24")
         return Section.create(
             start=0,
             end=video.duration,
@@ -646,7 +646,7 @@ class Section(BaseModel):
 
     @classmethod
     def create_from_item(cls, item):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 09-10-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 09-10-24")
         return cls.create(
             start=item.start,
             end=item.end,
@@ -656,7 +656,7 @@ class Section(BaseModel):
         )
 
     def is_timestamp_in_this_section(self, timestamp):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 09-10-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 09-10-24")
         return timestamp > self.start and timestamp < self.end
 
     def __repr__(self):
@@ -666,7 +666,7 @@ class Section(BaseModel):
         return f"Section(id={self.id}, start={self.start}, end={self.end},type={self.section_type})"
 
     def find_both_sections(self, timestamp):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         before, after = None, None
         for sect in self.all_sections:
             if sect.start == timestamp:
@@ -678,17 +678,17 @@ class Section(BaseModel):
 
     @property
     def all_sections(self):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         return sorted(self.video.sections, key=lambda x: x.start)
 
     @property
     def num_sections(self):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         return len(self.all_sections)
 
     @property
     def oldbreakpoints(self):
-        logger.debug("Is this used 🧪🧪🧪🧪🧪 8-31-24")
+        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
         breaks = set([])
         for sect in self.sections:
             breaks.add(sect.start)

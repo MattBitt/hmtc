@@ -110,12 +110,33 @@ class PageState:
         ).where(SectionModel.track_id.is_null())
         logger.error(f"Found {len(sections)} sections with no track")
         for sec in sections:
-            video = VideoModel.get_by_id(sec.video_id)
+            video = (
+                VideoModel.select(VideoModel, FileModel)
+                .join(FileModel)
+                .where(
+                    (VideoModel.id == sec.video_id) & (FileModel.file_type == "audio")
+                )
+                .get_or_none()
+            )
+            if video is None:
+                logger.error(f"No audio file found for {sec.video_id}")
+                continue
             if video.album is not None:
                 album = AlbumModel.get_by_id(video.album.id)
                 album_item = AlbumItem.from_model(album)
                 track_item = album_item.create_from_section(section=sec, video=video)
-                logger.error(f"Created track {track_item.title} for {video.title}")
+                # abc = [Path(z.path) / z.filename for z in video.files]
+                # if len(abc) > 0:
+                if video.file:
+                    input_file = Path(video.file.path) / video.file.filename
+                    track_item.write_file(input_file=input_file)
+                    logger.error(f"Created track {track_item.title} for {video.title}")
+                else:
+                    logger.error(
+                        f"In write_file loop. No audio file found for {video.title}"
+                    )
+            else:
+                logger.error(f"No album found for {video.title}")
 
     @staticmethod
     def search_for_jellyfin_ids():
