@@ -1,7 +1,7 @@
 all: run
 
 dev_db:
-	docker-compose -f ~/programming/docker/docker-compose.yaml up -d
+	docker-compose -f ./docker-compose.dev.yml up -d
 
 staging:
 	docker-compose up --build

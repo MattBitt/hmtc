@@ -6,7 +6,7 @@ import ipyvue
 import PIL
 import solara
 from loguru import logger
-
+from hmtc.store import store_in_session_storage, read_from_session_storage
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.shared.sidebar import MySidebar
@@ -869,16 +869,20 @@ def Page():
     MySidebar(router=router)
 
     register_vue_components()
-    video_id = parse_url_args()
 
+    jf_checked = solara.use_reactive(read_from_session_storage("jf_status"))
+
+    video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
 
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
+
     jf = MyJellyfinClient()
     jf.connect()
-
     status_dict = solara.use_reactive(jf.get_playing_status_from_jellyfin())
+    store_in_session_storage("jf_connected", jf.is_connected)
+    store_in_session_storage("jf_logged_in", jf.has_active_session())
 
     def local_update_from_jellyfin(*args):
         update_section_from_jellyfin(
@@ -900,18 +904,25 @@ def Page():
         new_sect = SectionModel.get_by_id(new_sect_id)
         reactive_sections.set(reactive_sections.value + [new_sect])
 
+    jf_connected = solara.use_reactive(read_from_session_storage("jf_connected"))
+    jf_logged_in = solara.use_reactive(read_from_session_storage("jf_logged_in"))
+
     with solara.Column(classes=["main-container"]):
+        solara.Markdown(f"## Connected{jf_connected.value}")
+        solara.Markdown(f"## Logged In {jf_logged_in.value}")
         with solara.Card():
             with solara.Row():
                 # VideoInfoInputCard.vue
+                # Contains Album, Series, and YT Series 'dialog buttons'
                 InfoPanel(
                     video=video,
                 )
-                # file_type_checkboxes.vue
+                # python/vue component - shows full screen file edit dialog
                 FilesPanel(
                     video=video,
                 )
-
+                # python/vue component - shows full screen Sections
+                # Control Panel dialog
                 SectionControlPanel(
                     jellyfin_status=status_dict.value,
                     video_duration=video.duration,

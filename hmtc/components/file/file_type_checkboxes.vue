@@ -7,9 +7,11 @@
       transition="dialog-bottom-transition"
     >
       <template v-slot:activator="{ on, attrs }">
-        <v-btn class="button" v-bind="attrs" v-on="on">
-          <v-icon>mdi-folder</v-icon> Files
-        </v-btn>
+        <v-badge :value="!has_audio" color="warning" overlap>
+          <v-btn class="button" v-bind="attrs" v-on="on">
+            <v-icon>mdi-folder</v-icon> Files
+          </v-btn>
+        </v-badge>
       </template>
       <v-toolbar dark color="primary">
         <v-btn icon dark @click="dialog = false">

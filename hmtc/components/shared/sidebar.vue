@@ -62,13 +62,12 @@ export default {
   data: () => ({
     items: [
       { text: "Videos", icon: "mdi-video", url: "/videos" },
+      { text: "Albums", icon: "mdi-album", url: "/albums" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
     ],
     items2: [
       { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
-      { text: "Albums", icon: "mdi-album", url: "/albums" },
-
       { text: "Series", icon: "mdi-shape", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },

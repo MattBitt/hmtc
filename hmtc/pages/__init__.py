@@ -1,9 +1,9 @@
 from pathlib import Path
-
+from typing import Any, Dict
 import solara
 import solara.lab
 from loguru import logger
-
+from datetime import datetime
 from hmtc.assets.colors import Colors
 from hmtc.config import init_config
 from hmtc.db import (
@@ -15,6 +15,7 @@ from hmtc.db import (
     seed_database,
 )
 from hmtc.models import db_null
+from hmtc.store import store_in_session_storage, read_from_session_storage
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
 
@@ -71,6 +72,7 @@ def setup():
 
 @solara.component
 def Layout(children=[]):
+
     solara.Style(Path("../assets/style.css"))
     solara.lab.theme.dark = False
     return solara.AppLayout(
@@ -83,3 +85,7 @@ def Layout(children=[]):
 
 
 db = setup()
+jf_connected = read_from_session_storage("jf_connected")
+if jf_connected is None:
+    store_in_session_storage("jf_connected", False)
+    store_in_session_storage("jf_logged_in", False)
