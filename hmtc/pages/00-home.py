@@ -1,10 +1,10 @@
 from pathlib import Path
-
+from typing import Dict
 import PIL
 import solara
 import solara.lab
 from loguru import logger
-from hmtc.store import store_in_session_storage, read_from_session_storage
+
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
@@ -53,6 +53,7 @@ def Page():
     MySidebar(
         router=solara.use_router(),
     )
+
     latest_vids = (
         VideoModel.select()
         .where(VideoModel.contains_unique_content == True)

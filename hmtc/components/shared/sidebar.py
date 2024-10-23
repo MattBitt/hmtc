@@ -2,7 +2,7 @@ import solara
 import solara.lab
 from loguru import logger
 from typing import Any, Dict
-from hmtc.store import store_in_session_storage, read_from_session_storage
+
 from datetime import datetime
 
 # program version
@@ -30,16 +30,7 @@ def MySidebar(
         router.push(item)
         return
 
-    jf_connected = solara.use_reactive(read_from_session_storage("jf_connected"))
-    jf_logged_in = solara.use_reactive(read_from_session_storage("jf_logged_in"))
-
     with solara.AppBar():
-        # solara.Button(
-        #     label="Increment app_state",
-        #     icon_name="mdi-plus",
-        #     on_click=lambda: app_state.set(app_state.value + 1),
-        #     outlined=True,
-        # )
         solara.Button(
             icon_name="mdi-home", on_click=lambda: router.push("/"), icon=True
         )
@@ -48,8 +39,6 @@ def MySidebar(
             icon_name=icon_name, on_click=lambda: logger.debug("clicked"), icon=True
         )
         solara.Text(f"{VERSION}", classes=["version-number"])
-        solara.Text(f"Jellyfin connected: {jf_connected.value}")
-        solara.Text(f"Jellyfin logged in: {jf_logged_in.value}")
         # solara.lab.ThemeToggle(enable_auto=False)
         with solara.Sidebar():
             # solara.InputText(label="global", value=app_state.value["value"])

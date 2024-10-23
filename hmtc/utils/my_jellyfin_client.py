@@ -43,7 +43,9 @@ class MyJellyfinClient:
         self.password = config["jellyfin"]["password"]
 
         try:
-            self.configure_client()
+            # no idea what these values are supposed to be used for.
+            client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
+            client.config.data["auth.ssl"] = True
         except Exception as e:
             logger.error(f"Error connecting to Jellyfin: {e}")
 
@@ -57,11 +59,6 @@ class MyJellyfinClient:
         else:
             logger.debug("Checking for active session and FOUND ONE!.")
             return True
-
-    def configure_client(self):
-        # no idea what these values are supposed to be used for.
-        client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")
-        client.config.data["auth.ssl"] = True
 
     def connect(self):
         try:
@@ -125,7 +122,7 @@ class MyJellyfinClient:
 
         if len(sessions) == 1:
             if sessions[0].get("UserName", "") == self.user:
-                # logger.debug("Only one session found. Skipping the nonsense.")
+                # logger.debug("Only one session found. Skipping the checks below.")
                 # logger.debug(f"Session: {sessions[0]}")
                 self.session_id = sessions[0]["Id"]
                 self.active_session = sessions[0]

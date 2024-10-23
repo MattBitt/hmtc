@@ -15,9 +15,10 @@ from hmtc.db import (
     seed_database,
 )
 from hmtc.models import db_null
-from hmtc.store import store_in_session_storage, read_from_session_storage
+
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
+
 
 config = init_config()
 env = config["general"]["environment"]
@@ -84,8 +85,14 @@ def Layout(children=[]):
     )
 
 
+# def main():
+#     logger.debug("Starting main function")
+#     is_app_loaded = read_from_session_storage("is_app_loaded")
+#     if is_app_loaded is None:
+#         jellyfin_status = dict(server_connected=False, client_active=False)
+#         app_state = dict(first_var=1, second_var=2, jellyfin_status=jellyfin_status)
+#         store_in_session_storage("app_state", app_state)
+#         store_in_session_storage("is_app_loaded", True)
+
+
 db = setup()
-jf_connected = read_from_session_storage("jf_connected")
-if jf_connected is None:
-    store_in_session_storage("jf_connected", False)
-    store_in_session_storage("jf_logged_in", False)
