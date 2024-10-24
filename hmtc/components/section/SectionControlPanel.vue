@@ -23,9 +23,10 @@
       </v-toolbar>
       <v-card>
         <v-row>
-          <v-btn class="button" @click="createOneSection">Whole</v-btn>
-        </v-row>
-        <v-row>
+          <v-btn class="button" @click="createOneSection"
+            >Whole Thing as 1 Section</v-btn
+          >
+
           <v-btn
             outlined
             class="button"
@@ -34,29 +35,19 @@
           >
             {{ numEvenSections }}
           </v-btn>
-        </v-row>
-        <v-row>
+
           <v-btn outlined class="button" @click="createStdSectionAt0">
-            at 0</v-btn
+            5 minute section at 0</v-btn
           >
-        </v-row>
-        <v-row>
+          <v-btn outlined class="button" @click="">
+            5 minute section after the last one</v-btn
+          >
+
           <v-btn outlined class="button mywarning" @click="deleteAllSections"
             >Delete All Sections</v-btn
           >
         </v-row>
-        <v-row v-if="enableJellyfin" justify="space-between">
-          <v-col cols="3">
-            <v-btn class="button" @click="startSectionAtJellyfin"
-              >Start Section at Jellyfin</v-btn
-            >
-          </v-col>
-          <v-col cols="3">
-            <v-btn class="button" @click="endSectionAtJellyfin"
-              >End Section at Jellyfin</v-btn
-            >
-          </v-col>
-        </v-row>
+
         <v-divider></v-divider>
       </v-card>
     </v-dialog>

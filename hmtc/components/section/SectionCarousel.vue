@@ -2,131 +2,146 @@
 
 <template>
   <div>
-    <v-sheet light v-if="this.sectionItems.length > 0">
-      <v-row justify="center" class="mb-6">
-        <v-range-slider
-          :value="sectionRange"
-          :max="video_duration"
-          min="0"
-          show-ticks="always"
-          tick-size="4"
-          readonly
-          color="primary"
-        >
-          <template v-slot:append>
-            <h3 color="info">{{ prettyTime(video_duration) }}</h3>
-          </template>
-        </v-range-slider>
-      </v-row>
-    </v-sheet>
-
-    <v-carousel v-model="slides" progress-color="primary" height="500">
-      <v-carousel-item
+    <v-sheet light v-if="this.sectionItems.length > 0"> </v-sheet>
+    <v-expansion-panels focusable popout>
+      <v-expansion-panel
         v-for="(section, index) in sectionItems"
         :key="section.id"
-        reverse-transition="fade-transition"
-        transition="fade-transition"
+        v-model="slides"
       >
-        <v-row class="">
-          <v-spacer></v-spacer>
-          <v-col cols="5">
-            <SummaryPanel
-              :section="section"
-              :topics="section.topics"
-            ></SummaryPanel>
-          </v-col>
-          <v-col cols="5">
-            <div v-if="section.track == null">
-              <SectionTrackForm
+        <v-expansion-panel-header>
+          <v-container>
+            <v-row>
+              <v-col cols="4">
+                <h4 class="primary--text font-weight-bold">
+                  {{ prettyTime(section.start / 1000) }} -
+                  {{ prettyTime(section.end / 1000) }}
+                </h4>
+              </v-col>
+              <v-col cols="8">
+                <v-range-slider
+                  :value="[section.start / 1000, section.end / 1000]"
+                  :max="video_duration"
+                  min="0"
+                  show-ticks="always"
+                  tick-size="4"
+                  readonly
+                  color="primary"
+                >
+                </v-range-slider>
+              </v-col>
+            </v-row>
+            <v-row justify="center">
+              <h4 class="primary--text font-weight-bold">
+                {{ section.topics.map(({ text }) => text).join(", ") }}
+              </h4>
+            </v-row>
+          </v-container>
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <v-row class="">
+            <v-spacer></v-spacer>
+            <v-col cols="5">
+              <SummaryPanel
                 :section="section"
-                @saveTrack="createTrack2"
-                :defaultTrackTitle="computedDefaultTrackTitle"
-              />
-            </div>
-            <div v-else>
-              <SectionTrackPanel
-                :section="section"
-                @removeTrack="removeTrack"
-                @createAudioFile="createAudioFile"
-              />
-            </div>
-          </v-col>
-          <v-spacer></v-spacer>
-        </v-row>
-        <v-row> </v-row>
+                :topics="section.topics"
+              ></SummaryPanel>
+            </v-col>
+            <v-col cols="5">
+              <div v-if="section.track == null">
+                <SectionTrackForm
+                  :section="section"
+                  @saveTrack="createTrack2"
+                  :defaultTrackTitle="computedDefaultTrackTitle"
+                />
+              </div>
+              <div v-else>
+                <SectionTrackPanel
+                  :section="section"
+                  @removeTrack="removeTrack"
+                  @createAudioFile="createAudioFile"
+                />
+              </div>
+            </v-col>
+            <v-spacer></v-spacer>
+          </v-row>
+          <v-row> </v-row>
 
-        <v-row justify="center" class="mt-10">
-          <v-dialog
-            v-model="dialog[index]"
-            fullscreen
-            hide-overlay
-            transition="dialog-bottom-transition"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn color="primary" dark v-bind="attrs" v-on="on">
-                <v-icon>mdi-pencil</v-icon>Edit Section
-              </v-btn>
-            </template>
-
-            <v-toolbar dark color="primary">
-              <v-btn icon dark @click="dialog[index] = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-              <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-toolbar-items>
-                <v-btn dark text :disabled="!valid" @click="refreshPanel">
-                  Save
+          <v-row justify="center" class="mt-10">
+            <v-dialog
+              v-model="dialog[index]"
+              fullscreen
+              hide-overlay
+              transition="dialog-bottom-transition"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn color="primary" dark v-bind="attrs" v-on="on">
+                  <v-icon>mdi-pencil</v-icon>Edit Section
                 </v-btn>
-              </v-toolbar-items>
-            </v-toolbar>
-            <v-card>
-              <v-container class="px-10">
-                <v-card-title>Start Time</v-card-title>
-                <SectionTimePanel
-                  :sectionID="section.id"
-                  :video_duration="video_duration"
-                  :initialTime="section.start"
-                  @updateTime="updateSectionStart"
-                  @updateSectionTimeFromJellyfin="updateSectionTime"
-                  @loopJellyfin="loopJellyfinAtStart"
-                />
-                <v-divider></v-divider>
-                <v-card-title>End Time</v-card-title>
-                <SectionTimePanel
-                  :sectionID="section.id"
-                  :video_duration="video_duration"
-                  :initialTime="section.end"
-                  @updateTime="updateSectionEnd"
-                  @updateSectionTimeFromJellyfin="updateSectionTime"
-                  @loopJellyfin="loopJellyfinAtEnd"
-                />
+              </template>
 
-                <v-divider></v-divider>
-                <v-card-title>Topics</v-card-title>
+              <v-toolbar dark color="primary">
+                <v-btn icon dark @click="dialog[index] = false">
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
+                <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-toolbar-items>
+                  <v-btn dark text :disabled="!valid" @click="refreshPanel">
+                    Save
+                  </v-btn>
+                </v-toolbar-items>
+              </v-toolbar>
+              <v-card>
+                <v-container class="px-10">
+                  <v-card-title>Start Time</v-card-title>
+                  <SectionTimePanel
+                    :sectionID="section.id"
+                    :video_duration="video_duration"
+                    :initialTime="section.start"
+                    @updateTime="updateSectionStart"
+                    @updateSectionTimeFromJellyfin="updateSectionTime"
+                    @loopJellyfin="loopJellyfinAtStart"
+                  />
+                  <v-divider></v-divider>
+                  <v-card-title>End Time</v-card-title>
+                  <SectionTimePanel
+                    :sectionID="section.id"
+                    :video_duration="video_duration"
+                    :initialTime="section.end"
+                    @updateTime="updateSectionEnd"
+                    @updateSectionTimeFromJellyfin="updateSectionTime"
+                    @loopJellyfin="loopJellyfinAtEnd"
+                  />
 
-                <!-- i think the :topics below is incorrect 10/9/24 -->
-                <SectionTopicsPanel
-                  :topics="section.topics"
-                  :item="section"
-                  @addTopic="addTopic"
-                  @removeTopic="removeTopic"
-                />
+                  <v-divider></v-divider>
+                  <v-card-title>Topics</v-card-title>
 
-                <v-divider></v-divider>
-                <v-card-title>Musical</v-card-title>
-                <BeatsInfo />
-                <ArtistsInfo />
+                  <!-- i think the :topics below is incorrect 10/9/24 -->
+                  <SectionTopicsPanel
+                    :topics="section.topics"
+                    :item="section"
+                    @addTopic="addTopic"
+                    @removeTopic="removeTopic"
+                  />
 
-                <v-divider></v-divider>
-                <v-card-title>Admin</v-card-title>
-                <SectionAdminPanel @deleteSection="removeSection(section.id)" />
-              </v-container>
-            </v-card>
-          </v-dialog>
-        </v-row>
-      </v-carousel-item>
-    </v-carousel>
+                  <v-divider></v-divider>
+                  <v-card-title>Musical</v-card-title>
+                  <BeatsInfo />
+                  <ArtistsInfo />
+
+                  <v-divider></v-divider>
+                  <v-card-title>Admin</v-card-title>
+                  <SectionAdminPanel
+                    @deleteSection="removeSection(section.id)"
+                  />
+                </v-container>
+              </v-card>
+            </v-dialog>
+          </v-row>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
     <div class="text-center">
       <v-snackbar
         v-model="snackbar"

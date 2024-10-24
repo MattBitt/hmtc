@@ -7,6 +7,9 @@ from loguru import logger
 
 from hmtc.config import init_config
 
+# user id as of 10/23/24 (user1)
+# 'f6f0fa8013a94ee3a1161bae8af59733'
+
 config = init_config()
 # not sure why but this seems to work better if its a global
 try:
@@ -41,7 +44,7 @@ class MyJellyfinClient:
         self.user = config["jellyfin"]["user"]
         self.url = config["jellyfin"]["url"]
         self.password = config["jellyfin"]["password"]
-
+        self.client_passthrough = client
         try:
             # no idea what these values are supposed to be used for.
             client.config.app("hmtc", "0.0.0.0.0", "zeus", "0.0.0.0.0")

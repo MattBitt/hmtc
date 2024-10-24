@@ -42,6 +42,7 @@ from hmtc.schemas.track import TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from hmtc.utils.youtube_functions import download_video_file
+from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -437,23 +438,24 @@ def VideoInfoPanelLeft(video):
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
-
+    with solara.Row(justify="center"):
+        solara.Text(
+            f"{video.title[:50]}",
+            classes=["video-info-text"],
+        )
     with solara.Columns([6, 6]):
         with solara.Column():
             with solara.Row(justify="center"):
-                solara.Image(image, width=IMG_WIDTH)
-        with solara.Column():
-            with solara.Row(justify="center"):
-                solara.Text(
-                    f"{video.title[:50]}",
-                    classes=["video-info-text"],
-                )
 
+                solara.Image(image, width=IMG_WIDTH)
             with solara.Row(justify="center"):
                 solara.Text(
                     f"Uploaded: {time_ago_string(video.upload_date)}",
                     classes=["medium-timer"],
                 )
+        with solara.Column():
+            with solara.Row(justify="center"):
+                PlotlyFigureComponent()
             with solara.Row(justify="center"):
                 solara.Text(
                     f"Length: {seconds_to_hms(video.duration)}",
