@@ -6,7 +6,7 @@ from typing import Any, Dict
 from datetime import datetime
 
 # program version
-VERSION = "0.0.26"
+VERSION = "0.0.27"
 
 
 @solara.component_vue("./sidebar.vue")
@@ -34,10 +34,17 @@ def MySidebar(
         solara.Button(
             icon_name="mdi-home", on_click=lambda: router.push("/"), icon=True
         )
-        icon_name = "mdi-logout" if False else "mdi-login"
-        solara.Button(
-            icon_name=icon_name, on_click=lambda: logger.debug("clicked"), icon=True
-        )
+        if True:  # logged_id
+            solara.Button(
+                icon_name="mdi-login", on_click=lambda: router.push("/login"), icon=True
+            )
+        else:
+            solara.Button(
+                icon_name="mdi-logout",
+                on_click=lambda: router.push("/logout"),
+                icon=True,
+            )
+
         solara.Text(f"{VERSION}", classes=["version-number"])
         # solara.lab.ThemeToggle(enable_auto=False)
         with solara.Sidebar():

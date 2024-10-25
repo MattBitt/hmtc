@@ -31,7 +31,7 @@ match env:
     case "production":
         color = Colors.PRIMARY
     case _:
-        color = Colors.PRIMARY
+        color = Colors.SUCCESS
 
 title = f"{config["app"]["name"]} - {env}"
 

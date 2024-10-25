@@ -242,7 +242,10 @@ def remove_existing_files(video_id, youtube_id, file_types):
 
 @solara.component_vue("../components/section/SectionControlPanel.vue", vuetify=True)
 def SectionControlPanel(
-    jellyfin_status, video_duration, event_delete_all_sections, event_create_section
+    video,
+    jellyfin_status,
+    event_delete_all_sections,
+    event_create_section,
 ):
     pass
 
@@ -438,6 +441,15 @@ def VideoInfoPanelLeft(video):
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
+    sections = SectionModel.select(
+        SectionModel.start, SectionModel.end, SectionModel.track_id
+    ).where(SectionModel.video_id == video.id)
+    section_durations = [
+        (x.end - x.start) / 1000 for x in sections
+    ]  # list of sections in seconds
+    section_percentage = sum(section_durations) / video.duration * 100
+    tracks_created = len([x for x in sections if x.track_id is not None])
+
     with solara.Row(justify="center"):
         solara.Text(
             f"{video.title[:50]}",
@@ -455,7 +467,15 @@ def VideoInfoPanelLeft(video):
                 )
         with solara.Column():
             with solara.Row(justify="center"):
-                PlotlyFigureComponent()
+                if len(section_durations) > 0:
+                    solara.Markdown(
+                        f"Sections: {len(section_durations)} ({section_percentage:.2f}%)"
+                    )
+                    solara.Markdown(
+                        f"Tracks Created: {tracks_created} ({tracks_created / len(section_durations) * 100:.2f}%)"
+                    )
+                else:
+                    solara.Markdown("No Sections Found")
             with solara.Row(justify="center"):
                 solara.Text(
                     f"Length: {seconds_to_hms(video.duration)}",
@@ -496,10 +516,20 @@ def InfoPanel(
         vid.save()
 
     def remove_album(*args):
-        logger.error(f"Removing Album from video {video.id}")
+
         vid = VideoModel.get_by_id(video.id)
-        vid.album = None
-        vid.save()
+
+        other_videos = VideoModel.select().where(
+            (VideoModel.album_id == vid.album.id) & (VideoModel.id != video.id)
+        )
+        if len(other_videos):
+            logger.error(f"Album {vid.album.title} still in use")
+            vid.album = None
+            vid.save()
+            return
+        else:
+            logger.error(f"Album {vid.album.title} not in use. Deleting")
+            vid.album.delete_instance()
 
     def create_series(*args):
         logger.debug(f"Creating Series: {args}")
@@ -914,11 +944,19 @@ def Page():
                 FilesPanel(
                     video=video,
                 )
-                # python/vue component - shows full screen Sections
+                # vue component - shows full screen Sections
                 # Control Panel dialog
                 SectionControlPanel(
+                    video=dict(
+                        album=(
+                            video.album.model_to_dict()
+                            if video.album
+                            else {"title": ""}
+                        ),
+                        sections=len(reactive_sections.value),
+                        duration=video.duration,
+                    ),
                     jellyfin_status=status_dict.value,
-                    video_duration=video.duration,
                     event_create_section=create_section,
                     event_delete_all_sections=delete_all_sections,
                 )
@@ -937,10 +975,17 @@ def Page():
                 # solara component
                 VideoInfoPanelLeft(video=video)
 
-            # SectionCarousel.vue
-            SectionsPanel(
-                video=video,
-                reactive_sections=reactive_sections,
-                jellyfin_status=status_dict,
-                update_section_from_jellyfin=local_update_from_jellyfin,
-            )
+            if len(reactive_sections.value) == 0:
+                solara.Markdown("No Sections Found")
+                if video.album is not None:
+                    solara.Markdown(f"Album: {video.album.title}")
+                else:
+                    solara.Markdown(f"Please Create an album before adding sections")
+            else:
+                # SectionCarousel.vue
+                SectionsPanel(
+                    video=video,
+                    reactive_sections=reactive_sections,
+                    jellyfin_status=status_dict,
+                    update_section_from_jellyfin=local_update_from_jellyfin,
+                )

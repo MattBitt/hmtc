@@ -78,10 +78,12 @@ export default {
       this.selectedAlbum = args.title;
       this.create_album(args);
     },
-    removeAlbum(args) {
+    removeAlbum() {
+      console.log("In VideoInfoInputCard removeAlbum", this.selectedAlbum);
+      this.albums = this.albums.filter((a) => a.title !== this.selectedAlbum);
       this.selectedAlbum = null;
-      this.albums = this.albums.filter((a) => a.title !== args.title);
-      this.remove_album_from_video(args);
+
+      this.remove_album_from_video();
     },
 
     selectAlbum(val) {
@@ -136,7 +138,7 @@ export default {
 
     constructAlbumTitle() {
       console.log(
-        "possibleAlbumTfdsafsdfsditle",
+        "possibleAlbumTitle:",
         this.selectedYoutubeSeries,
         this.episode_number
       );
