@@ -44,6 +44,13 @@ from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from hmtc.utils.youtube_functions import download_video_file
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 
+from hmtc.utils.jellyfin_functions import (
+    get_user_favorites,
+    can_ping_server,
+    get_user_session,
+)
+
+
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
 STORAGE = Path(config["paths"]["storage"]) / "videos"
@@ -290,12 +297,12 @@ def FileTypeCheckboxes(
 def JellyfinControlPanel(
     jellyfin_status,
     page_jellyfin_id,
-    event_open_detail_page,
-    event_open_video_in_jellyfin,
-    event_playpause_jellyfin,
-    event_stop_jellyfin,
-    event_refresh_jellyfin_status,
     api_key,
+    event_open_detail_page=None,
+    event_open_video_in_jellyfin=None,
+    event_playpause_jellyfin=None,
+    event_stop_jellyfin=None,
+    event_refresh_jellyfin_status=None,
 ):
     pass
 
@@ -303,8 +310,7 @@ def JellyfinControlPanel(
 @solara.component
 def JFPanel(
     video,
-    jf,
-    status_dict,
+    new_jellyfin_dict,
     router,
     update_section_from_jellyfin,
 ):
@@ -327,23 +333,14 @@ def JFPanel(
 
     def refresh_jellyfin_status(*args):
         # logger.debug(f"Refreshing Jellyfin Status {args}")
-        _jf = MyJellyfinClient()
-        _jf.connect()
-        status_dict.set(_jf.get_playing_status_from_jellyfin())
+        pass
+        # _jf = MyJellyfinClient()
+        # _jf.connect()
+        # status_dict.set(_jf.get_playing_status_from_jellyfin())
 
     JellyfinControlPanel(
-        # is_server_connected=jf.is_connected,
-        # has_active_session=jf.has_active_session(),
-        jellyfin_status=status_dict.value,
-        # can_seek=jf.can_seek,
+        jellyfin_status=new_jellyfin_dict,
         page_jellyfin_id=video.jellyfin_id,
-        event_update_section_from_jellyfin=update_section_from_jellyfin,
-        event_open_detail_page=vue_link_clicked,
-        event_open_video_in_jellyfin=lambda x: jf.load_media_item(video.jellyfin_id),
-        event_pause_jellyfin=lambda x: jf.pause(),
-        event_playpause_jellyfin=lambda x: jf.play_pause(),
-        event_stop_jellyfin=lambda x: jf.stop(),
-        event_refresh_jellyfin_status=refresh_jellyfin_status,
         api_key=config["jellyfin"]["api"],
     )
 
@@ -633,7 +630,6 @@ def InfoPanel(
 def SectionsPanel(
     video,
     reactive_sections,
-    jellyfin_status,
     update_section_from_jellyfin,
 ):
     reload = solara.use_reactive(False)
@@ -908,9 +904,7 @@ def Page():
     sm = SectionManager.from_video(video)
     reactive_sections = solara.use_reactive(sm.sections)
 
-    jf = MyJellyfinClient()
-    jf.connect()
-    status_dict = solara.use_reactive(jf.get_playing_status_from_jellyfin())
+    status_dict2 = solara.use_reactive(get_user_session())
 
     def local_update_from_jellyfin(*args):
         update_section_from_jellyfin(
@@ -956,16 +950,15 @@ def Page():
                         sections=len(reactive_sections.value),
                         duration=video.duration,
                     ),
-                    jellyfin_status=status_dict.value,
+                    new_jellyfin_dict=status_dict2.value,
                     event_create_section=create_section,
                     event_delete_all_sections=delete_all_sections,
                 )
 
-                # video_details_jf_bar.vue
+                # # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
-                    jf=jf,
-                    status_dict=status_dict,
+                    new_jellyfin_dict=status_dict2.value,
                     router=router,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )
@@ -986,6 +979,5 @@ def Page():
                 SectionsPanel(
                     video=video,
                     reactive_sections=reactive_sections,
-                    jellyfin_status=status_dict,
                     update_section_from_jellyfin=local_update_from_jellyfin,
                 )

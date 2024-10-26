@@ -20,33 +20,30 @@ from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.my_logging import setup_logging
 
 
+# sets the color of the app bar based on the current dev enviorment
+def get_app_bar_color() -> str:
+    env = config["general"]["environment"]
+    match env:
+        case "development":
+            color = Colors.ERROR
+        case "staging":
+            color = Colors.WARNING
+        case "production":
+            color = Colors.PRIMARY
+        case _:
+            color = Colors.SUCCESS
+    return str(color)
+
+
 config = init_config()
 env = config["general"]["environment"]
-
-match env:
-    case "development":
-        color = Colors.ERROR
-    case "staging":
-        color = Colors.WARNING
-    case "production":
-        color = Colors.PRIMARY
-    case _:
-        color = Colors.SUCCESS
-
-title = f"{config["app"]["name"]} - {env}"
-
-
-@logger.catch
-def setup_to_fail():
-    logger.error("This is a test error message")
-    1 / 0
 
 
 def setup_folders():
     working_folder = Path(config["paths"]["working"])
     storage_folder = Path(config["paths"]["storage"])
     wfs = ["uploads", "downloads", "temp"]
-    sfs = ["channels", "playlists", "series", "videos"]
+    sfs = ["channels", "playlists", "series", "videos", "tracks"]
     for folder in wfs:
         path = Path(working_folder) / folder
         path.mkdir(exist_ok=True)
@@ -71,6 +68,10 @@ def setup():
     return db_instance
 
 
+db = setup()
+
+
+# this is the base of the app
 @solara.component
 def Layout(children=[]):
 
@@ -78,21 +79,8 @@ def Layout(children=[]):
     solara.lab.theme.dark = False
     return solara.AppLayout(
         navigation=False,
-        title=title,
-        color=str(color),
+        title="Main Title",
+        color=get_app_bar_color(),
         sidebar_open=False,
         children=children,
     )
-
-
-# def main():
-#     logger.debug("Starting main function")
-#     is_app_loaded = read_from_session_storage("is_app_loaded")
-#     if is_app_loaded is None:
-#         jellyfin_status = dict(server_connected=False, client_active=False)
-#         app_state = dict(first_var=1, second_var=2, jellyfin_status=jellyfin_status)
-#         store_in_session_storage("app_state", app_state)
-#         store_in_session_storage("is_app_loaded", True)
-
-
-db = setup()

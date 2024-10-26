@@ -1,18 +1,9 @@
 <template>
-  <!-- The following cases are considered
-  
-        1. server not found - disable everything (ERROR)
-        2. no eligible client sessions - disable everything (WARNING)
-        3. found multiple client sessions - disable everything (??)
-        4. 1 client session - not playing anything (Load in Jellyfin)
-        5. 1 client session - playing something different than on the page (jellyfin id in hmtc db) what you see != what you hear 
-        6. 1 client session - playing something different than on the page (jellyfin id NOT in hmtc db)
-        7. 1 client session - playing whats on the page - play and pause -->
   <div class="mt-4">
     <v-menu offset-y>
       <template v-slot:activator="{ on, attrs }">
         <div class="mt-4">
-          <v-badge :color="jellyfinColor" offset-x="20" offset-y="10">
+          <v-badge color="error" offset-x="20" offset-y="10">
             <v-btn text v-bind="attrs" v-on="on">
               <v-img
                 max-width="60px"
@@ -23,71 +14,130 @@
           </v-badge>
         </div>
       </template>
-      <v-list>
-        <v-list-item
-          >Is Connected: {{ this.jellyfin_status.is_connected }}</v-list-item
-        >
-        <v-list-item
-          >Jellyfin ID:
-          {{ this.jellyfin_status?.jellyfin_id }} (Client)</v-list-item
-        >
-        <v-list-item>Jellyfin ID:{{ page_jellyfin_id }} (Page)</v-list-item>
-        <v-list-item>HaveBothIDs{{ HaveBothIDs }}</v-list-item>
-        <v-list-item>PageMatchesAudio {{ PageMatchesAudio }}</v-list-item>
-        <v-list-item>JF Session: {{ jellyfin_status.session_id }}</v-list-item>
-        <v-list-item>is Paused {{ isPaused }}</v-list-item>
-        <v-row id="row1" justify="center">
-          <span v-if="hasItemLoaded">
-            <span class="medium-timer">{{ timeString }}</span>
+      <v-card class="mx-auto" max-width="800" tile>
+        <v-list shaped>
+          <v-subheader>
+            <span>
+              <v-row justify="center">
+                <h2>
+                  <strong>{{ jellyfin_status.UserName }}</strong>
+                </h2>
+              </v-row>
+              <v-row justify="center">
+                <h2>server: atlas-HMTC</h2>
+              </v-row>
+            </span>
+          </v-subheader>
+          <v-list-item-group color="primary">
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title
+                  >JF Session Id:
+                  <strong> {{ jellyfin_status.Id }}</strong></v-list-item-title
+                >
+              </v-list-item-content>
+            </v-list-item>
 
-            <v-btn class="button" @click="playpause_jellyfin()">
-              <v-icon>{{ isPaused ? "mdi-play" : "mdi-pause" }}</v-icon>
-            </v-btn>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  <span
+                    >Now Playing
 
-            <v-btn class="button" @click="stop_jellyfin()">
-              <v-icon>mdi-stop</v-icon>
-            </v-btn>
-          </span>
+                    {{ jellyfin_status.NowPlayingItem?.Name }}</span
+                  ></v-list-item-title
+                >
+              </v-list-item-content>
+            </v-list-item>
 
-          <!-- <span
-            v-else-if=""
-            justify="center"
-          > -->
-          <span
-            v-else-if="
-              (JSON.stringify(this.jellyfin_status.session_id) != '{}') &
-              this.jellyfin_status.is_connected
-            "
-          >
-            <v-btn
-              class="button"
-              @click="open_video_in_jellyfin(this.jellfin_status?.jellyfin_id)"
-              >Open in Jellyfin</v-btn
-            >
-          </span>
-          <span v-else class="">
-            <v-row justify="center">
-              <h2>
-                <strong>{{ jellyfin_status.user }}</strong>
-              </h2>
-            </v-row>
-            <v-row justify="center">
-              <h2>server: atlas-HMTC</h2>
-            </v-row>
-          </span>
-        </v-row>
-        <v-row id="row2">
-          <v-row v-if="HaveBothIDs & !PageMatchesAudio & hasItemLoaded">
-            <span class="mywarning"> What You See != What You Hear!</span>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  jf_id
+                  {{ jellyfin_status.NowPlayingItem?.Id }}</v-list-item-title
+                >
+              </v-list-item-content>
+            </v-list-item>
 
-            <v-btn text @click="loadPageForPlayingAudio()">Page</v-btn>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title
+                  >RunTimeTicks{{
+                    jellyfin_status.NowPlayingItem?.RunTimeTicks
+                  }}</v-list-item-title
+                >
+              </v-list-item-content>
+            </v-list-item>
 
-            <span>Change?</span>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title
+                  >PositionTicks{{
+                    jellyfin_status.PlayState.PositionTicks
+                  }}</v-list-item-title
+                >
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title
+                  >Jellyfin ID:{{ page_jellyfin_id }} (Page)</v-list-item-title
+                >
+              </v-list-item-content>
+            </v-list-item>
 
-            <v-btn text @click="open_video_in_jellyfin()">Audio</v-btn>
-          </v-row>
-        </v-row>
-      </v-list>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>HaveBothIDs</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>mdi-pencil</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>PageMatchesAudio </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-icon>
+                <span v-if="jellyfin_status.PlayState.IsPaused">
+                  <v-icon>mdi-play</v-icon>
+                </span>
+                <span v-else>
+                  <v-icon>mdi-pause</v-icon>
+                </span>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title><<<<<>>>>> </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-card>
     </v-menu>
   </div>
 </template>
@@ -179,7 +229,7 @@ module.exports = {
     },
   },
   created() {
-    if (this.jellyfin_status.is_connected) {
+    if (this.jellyfin_status.NowPlayingItem) {
       this.getPlayStatus();
       this.turnOnUpdating();
     } else {
@@ -198,51 +248,7 @@ module.exports = {
         .toISOString()
         .substring(11, 19);
     },
-    PageMatchesAudio() {
-      return this.jellyfin_status.jellyfin_id == this.page_jellyfin_id;
-    },
-    HaveBothIDs() {
-      // console.log(
-      //   "HaveBothIDs",
-      //   this.jellyfin_status.jellyfin_id,
-      //   this.page_jellyfin_id,
-      //   this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
-      // );
-      return (
-        this.jellyfin_status.jellyfin_id != null && this.page_jellyfin_id != ""
-      );
-    },
-    jellyfinColor() {
-      if (this.PageMatchesAudio & this.HaveBothIDs) {
-        // item is loaded, and matches the page
-        // enable all jellyfin controls on the page
-        return "myprimary";
-      } else if (this.hasItemLoaded) {
-        // item is loaded, a user session was found, but not the same as the page
-        return "mywarning";
-      } else if (this.jellyfin_status.session_id != "") {
-        // jellyfin is connected, a user session was found,
-        // but no item is loaded
-        return "mylight";
-      } else if (this.jellyfin_status.is_connected) {
-        // jellyfin is connected, but no user session was found
-        return "mydark";
-      } else {
-        // jellyfin isn't connected
-        return "myerror";
-      }
-    },
   },
 };
 </script>
-<style>
-.border1 {
-  border: 1px solid black;
-}
-.border2 {
-  border: 1px solid orange;
-}
-.border3 {
-  border: 1px solid blue;
-}
-</style>
+<style></style>
