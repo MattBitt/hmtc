@@ -11,43 +11,42 @@
       >
         <v-expansion-panel-header>
           <v-container>
-            <v-row>
-              <v-col cols="4">
+            <v-range-slider
+              :value="[section.start / 1000, section.end / 1000]"
+              :max="video_duration"
+              min="0"
+              show-ticks="always"
+              tick-size="4"
+              readonly
+              color="primary"
+            >
+              <template v-slot:prepend>
+                <span class="tracknumber">{{ (index + 1).toString() }}</span>
+              </template>
+            </v-range-slider>
+            <v-row justify="center">
+              <v-col cols="3">
                 <h4 class="primary--text font-weight-bold">
-                  {{ prettyTime(section.start / 1000) }} -
-                  {{ prettyTime(section.end / 1000) }}
+                  {{ durationString((section.end - section.start) / 1000) }}
                 </h4>
               </v-col>
-              <v-col cols="8">
-                <v-range-slider
-                  :value="[section.start / 1000, section.end / 1000]"
-                  :max="video_duration"
-                  min="0"
-                  show-ticks="always"
-                  tick-size="4"
-                  readonly
-                  color="primary"
-                >
-                </v-range-slider>
+              <v-col cols="9">
+                <h4 class="primary--text font-weight-bold">
+                  {{ section.topics.map(({ text }) => text).join(", ") }}
+                </h4>
               </v-col>
-            </v-row>
-            <v-row justify="center">
-              <h4 class="primary--text font-weight-bold">
-                {{ section.topics.map(({ text }) => text).join(", ") }}
-              </h4>
             </v-row>
           </v-container>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-row class="">
-            <v-spacer></v-spacer>
-            <v-col cols="5">
+            <v-col cols="6">
               <SummaryPanel
                 :section="section"
                 :topics="section.topics"
               ></SummaryPanel>
             </v-col>
-            <v-col cols="5">
+            <v-col cols="6">
               <div v-if="section.track == null">
                 <SectionTrackForm
                   :section="section"
@@ -58,14 +57,15 @@
               <div v-else>
                 <SectionTrackPanel
                   :section="section"
+                  :hasAudioFile="hasMp3"
                   @removeTrack="removeTrack"
                   @createAudioFile="createAudioFile"
+                  @deleteAudioFile="deleteAudioFile"
                 />
               </div>
             </v-col>
             <v-spacer></v-spacer>
           </v-row>
-          <v-row> </v-row>
 
           <v-row justify="center" class="mt-10">
             <v-dialog
@@ -174,6 +174,7 @@ export default {
       slides: 0,
       // no form implemented yet
       valid: true,
+      hasMp3: false,
       snackbar: false,
       text: "My timeout is set to 2000.",
       color: "info",
@@ -271,6 +272,20 @@ export default {
     prettyTime(time) {
       return new Date(time * 1000).toISOString().substr(11, 8);
     },
+    durationString(duration) {
+      const hrs = ~~(duration / 3600);
+      const mins = ~~((duration % 3600) / 60);
+      const secs = ~~duration % 60;
+      let ret = "";
+      if (hrs > 0) {
+        ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+      }
+
+      ret += "" + mins + ":" + (secs < 10 ? "0" : "");
+      ret += "" + secs;
+
+      return ret;
+    },
     logIt(args) {
       console.log("Logging", args);
     },
@@ -300,6 +315,13 @@ export default {
       this.snackbar = true;
       this.color = "success";
     },
+    deleteAudioFile(args) {
+      this.delete_audio_file(args);
+      console.log("Deleting audio file in parent");
+      this.text = "Deleting audio file";
+      this.snackbar = true;
+      this.color = "warning";
+    },
   },
   computed: {
     sectionRange() {
@@ -321,5 +343,15 @@ export default {
 }
 .alertmessage {
   font-size: 1.8em;
+}
+.tracknumber {
+  font-family: "LogoFont";
+  text-decoration: none;
+  color: var(--primary);
+  font-size: 1.4em;
+  font-weight: 800;
+  padding: 0.1em;
+
+  margin-bottom: 0px;
 }
 </style>

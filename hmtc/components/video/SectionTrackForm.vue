@@ -8,18 +8,9 @@
         required
       ></v-text-field>
 
-      <v-text-field
-        v-model="length"
-        :rules="lengthRules"
-        label="Length"
-        required
-      ></v-text-field>
-
       <v-btn :disabled="!valid" color="primary" class="mr-4" @click="validate">
-        Submit
+        Create Track
       </v-btn>
-
-      <v-btn color="error" class="mr-4" @click="reset"> Reset Form </v-btn>
     </v-form>
   </v-sheet>
 </template>
@@ -31,7 +22,6 @@ module.exports = {
   data() {
     return {
       valid: false,
-      hasAudioFile: false,
       title: "",
       titleRules: [(v) => !!v || "Title is required"],
       length: 0,

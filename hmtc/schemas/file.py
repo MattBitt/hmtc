@@ -370,3 +370,13 @@ class FileManager:
         f.filename = f"cover.{ext}"
         f.save()
         return f
+
+    @staticmethod
+    def delete_audio_file_from_track(track_id, file_type):
+        track = TrackModel.get_by_id(track_id)
+        audio_file = FileModel.get(
+            (FileModel.track_id == track.id) & (FileModel.file_type == file_type)
+        )
+        audio_file_path = Path(audio_file.path) / audio_file.filename
+        audio_file.delete_instance()
+        os.remove(audio_file_path)

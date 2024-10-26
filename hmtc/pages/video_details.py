@@ -245,31 +245,16 @@ def remove_existing_files(video_id, youtube_id, file_types):
             file.unlink()
 
 
+# 🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹
+# Vue Components
+
+
 @solara.component_vue("../components/section/SectionControlPanel.vue", vuetify=True)
 def SectionControlPanel(
     video,
     jellyfin_status,
     event_delete_all_sections,
     event_create_section,
-):
-    pass
-
-
-@solara.component_vue("../components/section/SectionCarousel.vue", vuetify=True)
-def SectionCarousel(
-    sectionItems,
-    video_duration,
-    event_add_item,
-    event_remove_item,
-    event_delete_section,
-    event_update_times,
-    event_loop_jellyfin,
-    event_update_section_from_jellyfin,
-    event_create_section_from_jellyfin,
-    event_create_track,
-    event_remove_track,
-    event_refresh_panel,
-    event_create_audio_file,
 ):
     pass
 
@@ -291,13 +276,105 @@ def FileTypeCheckboxes(
     pass
 
 
-@solara.component_vue("../components/video/JellyfinControlPanel.vue")
-def JellyfinControlPanel(
-    enable_live_updating,
-    jellyfin_status,
-    event_update_play_state=None,
+@solara.component_vue("../components/video/VideoInfoInputCard.vue")
+def VideoInfoInputCard(
+    albums,
+    selectedAlbum,
+    youtube_serieses,
+    selectedYoutubeSeries,
+    serieses,
+    selectedSeries,
+    episode_number,
+    event_update_video,
+    event_create_album,
+    event_remove_album_from_video,
+    event_update_album_for_video,
+    event_create_series,
+    event_remove_series_from_video,
+    event_update_series_for_video,
+    event_create_youtube_series,
+    event_remove_youtube_series_from_video,
+    event_update_youtube_series_for_video,
 ):
     pass
+
+
+def register_vue_components():
+
+    ipyvue.register_component_from_file(
+        "AutoComplete", "../components/shared/AutoComplete.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "MyToolTipChip",
+        "../components/shared/MyToolTipChip.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "AlbumPanel",
+        "../components/video/AlbumPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "SeriesPanel",
+        "../components/video/SeriesPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "YoutubeSeriesPanel",
+        "../components/video/YoutubeSeriesPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "VideoFilesDialog",
+        "../components/file/file_type_checkboxes.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "VideoFilesInfoModal",
+        "../components/video/VideoFilesInfoModal.vue",
+        __file__,
+    )
+    ipyvue.register_component_from_file(
+        "SummaryPanel",
+        "../components/section/SummaryPanel.vue",
+        __file__,
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionAdminPanel", "../components/section/admin_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTopicsPanel", "../components/section/topics_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTimePanel", "../components/section/time_panel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "BeatsInfo", "../components/beat/beats_info.vue", __file__
+    )
+    ipyvue.register_component_from_file(
+        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
+    )
+    ipyvue.register_component_from_file(
+        "SectionTrackPanel", "../components/video/SectionTrackPanel.vue", __file__
+    )
+
+    ipyvue.register_component_from_file(
+        "SectionTrackForm", "../components/video/SectionTrackForm.vue", __file__
+    )
+
+
+# 🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹
+# Python Components
 
 
 @solara.component
@@ -363,29 +440,6 @@ def FilesPanel(video):
             event_create_album_nfo=create_album_nfo,
             event_download_info=download_info,
         )
-
-
-@solara.component_vue("../components/video/VideoInfoInputCard.vue")
-def VideoInfoInputCard(
-    albums,
-    selectedAlbum,
-    youtube_serieses,
-    selectedYoutubeSeries,
-    serieses,
-    selectedSeries,
-    episode_number,
-    event_update_video,
-    event_create_album,
-    event_remove_album_from_video,
-    event_update_album_for_video,
-    event_create_series,
-    event_remove_series_from_video,
-    event_update_series_for_video,
-    event_create_youtube_series,
-    event_remove_youtube_series_from_video,
-    event_update_youtube_series_for_video,
-):
-    pass
 
 
 @solara.component
@@ -750,9 +804,17 @@ def SectionsPanel(
 
         reload.set(True)
 
+    def delete_audio_file(*args):
+        logger.error(f"Deleting audio file {args}")
+        try:
+            FileManager.delete_audio_file_from_track(args[0], "audio")
+        except Exception as e:
+            logger.error(e)
+            return
+
     if not reload.value:
         if tab_items != []:
-            SectionCarousel(
+            SectionSelector(
                 sectionItems=tab_items,
                 video_duration=video.duration,
                 event_add_item=add_topic,
@@ -766,88 +828,44 @@ def SectionsPanel(
                 event_remove_track=remove_track,
                 event_refresh_panel=lambda x: reload.set(True),
                 event_create_audio_file=lambda x: create_audio_file(x),
+                event_delete_audio_file=lambda x: delete_audio_file(x),
             )
     else:
         solara.Markdown(f"## Reloading Panel")
         reload.set(False)
 
 
-def register_vue_components():
-
-    ipyvue.register_component_from_file(
-        "AutoComplete", "../components/shared/AutoComplete.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "MyToolTipChip",
-        "../components/shared/MyToolTipChip.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "AlbumPanel",
-        "../components/video/AlbumPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "SeriesPanel",
-        "../components/video/SeriesPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "YoutubeSeriesPanel",
-        "../components/video/YoutubeSeriesPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "VideoFilesDialog",
-        "../components/file/file_type_checkboxes.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "VideoFilesInfoModal",
-        "../components/video/VideoFilesInfoModal.vue",
-        __file__,
-    )
-    ipyvue.register_component_from_file(
-        "SummaryPanel",
-        "../components/section/SummaryPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionAdminPanel", "../components/section/admin_panel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTopicsPanel", "../components/section/topics_panel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTimePanel", "../components/section/time_panel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "BeatsInfo", "../components/beat/beats_info.vue", __file__
-    )
-    ipyvue.register_component_from_file(
-        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
-    )
-    ipyvue.register_component_from_file(
-        "SectionTrackPanel", "../components/video/SectionTrackPanel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTrackForm", "../components/video/SectionTrackForm.vue", __file__
-    )
-
-
 # started refactor on 10/25/2024
 # components below have been looked at and are working
+
+
+@solara.component_vue("../components/video/SectionSelector.vue", vuetify=True)
+def SectionSelector(
+    sectionItems,
+    video_duration,
+    event_add_item,
+    event_remove_item,
+    event_delete_section,
+    event_update_times,
+    event_loop_jellyfin,
+    event_update_section_from_jellyfin,
+    event_create_section_from_jellyfin,
+    event_create_track,
+    event_remove_track,
+    event_refresh_panel,
+    event_create_audio_file,
+    event_delete_audio_file,
+):
+    pass
+
+
+@solara.component_vue("../components/video/JellyfinControlPanel.vue")
+def JellyfinControlPanel(
+    enable_live_updating,
+    jellyfin_status,
+    event_update_play_state=None,
+):
+    pass
 
 
 @solara.component
@@ -951,7 +969,7 @@ def Page():
                 else:
                     solara.Markdown(f"Please Create an album before adding sections")
             else:
-                # SectionCarousel.vue
+                # SectionSelector.vue
                 SectionsPanel(
                     video=video,
                     reactive_sections=reactive_sections,

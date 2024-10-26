@@ -77,12 +77,13 @@ class TrackItem:
         # how did i do it in the tests?
         tags = {
             "title": self.title,
-            "tracknumber": [f"{self.track_number}", f"{num_tracks}"],
+            "tracknumber": f"{self.track_number}",
             "album": album.title,
             "albumartist": "Harry Mack",
             "artist": "Harry Mack",
             "date": str(section.video.upload_date.year),
         }
+        logger.debug(f"Writing tags {tags} to {output_file}")
         write_id3_tags(output_file, tags)
         return output_file
 

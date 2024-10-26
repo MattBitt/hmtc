@@ -25,7 +25,7 @@ def test_write_id3_tags(test_audio_filename):
     new_tag["albumartist"] = ["Test Artist"]
     new_tag["album"] = "Test Album"
     new_tag["title"] = "Test Title"
-    new_tag["tracknumber"] = ["1", "1"]  # track number/total tracks
+    new_tag["tracknumber"] = "4"  # jellyfin doesn't work with mutli value tracknumber?
     new_tag["albumsort"] = "Test Album"
     new_tag["titlesort"] = "Test Title"
 
@@ -36,7 +36,7 @@ def test_write_id3_tags(test_audio_filename):
     assert mp3file["artist"] == ["Test Artist"]
     assert mp3file["album"] == ["Test Album"]
     assert mp3file["date"] == ["2021"]
-    assert mp3file["tracknumber"] == ["1", "1"]
+    assert mp3file["tracknumber"] == ["4"]
     assert mp3file["albumartist"] == ["Test Artist"]
     assert mp3file["albumsort"] == ["Test Album"]
     assert mp3file["titlesort"] == ["Test Title"]

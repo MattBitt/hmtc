@@ -1,34 +1,43 @@
 <template>
-  <v-sheet light>
+  <v-card>
     <v-row>
-      <h1>{{ section.track.track_number + ". " }}</h1>
-      <h1>{{ section.track.title }}</h1>
-      <h1>ID: {{ section.track.id }}</h1>
+      <v-col cols="6">
+        <span
+          >{{ section.track.track_number + "." }}
+          {{ section.track.title }}</span
+        >
+      </v-col>
+      <v-col cols="6">
+        <v-btn
+          @click="removeTrack(section.id)"
+          class="button mywarning"
+          outlined
+          ><v-icon>mdi-delete</v-icon>Delete</v-btn
+        >
+      </v-col>
     </v-row>
     <v-row>
-      <v-btn @click="removeTrack(section.id)" class="button"
-        >Delete Track</v-btn
-      >
+      <v-card-actions>
+        <div v-if="hasAudioFile">
+          <v-btn @click="deleteAudioFile" class="button mywarning" outlined
+            ><v-icon>mdi-delete</v-icon>Delete File</v-btn
+          >
+        </div>
+        <div v-else>
+          <v-btn @click="createAudioFile" color="primary">Create File</v-btn>
+        </div>
+      </v-card-actions>
     </v-row>
-    <v-row>
-      <div v-if="hasAudioFile">
-        <v-btn @click="deleteAudioFile" color="warning">Delete File</v-btn>
-      </div>
-      <div v-else>
-        <v-btn @click="createAudioFile" color="primary">Create File</v-btn>
-      </div>
-    </v-row>
-  </v-sheet>
+  </v-card>
 </template>
 <script>
 module.exports = {
   name: "SectionTrackPanel",
   props: { section: Object },
-  emits: ["removeTrack", "createAudioFile"],
+  emits: ["removeTrack", "createAudioFile", "deleteAudioFile"],
   data() {
     return {
       valid: true,
-      hasAudioFile: false,
       title: "",
       titleRules: [(v) => !!v || "Title is required"],
       length: 0,
@@ -44,6 +53,7 @@ module.exports = {
   methods: {
     removeTrack(id) {
       this.$emit("removeTrack", id);
+      this.hasAudioFile = false;
     },
     createAudioFile() {
       this.hasAudioFile = true;
@@ -59,11 +69,13 @@ module.exports = {
     },
     deleteAudioFile() {
       this.hasAudioFile = false;
+      this.$emit("deleteAudioFile", this.section.track.id);
     },
   },
   created() {
-    console.log("SectionTrackPanel created", this.section);
-
+    // console.log("SectionTrackPanel created", this.section);
+    console.log(this.section.track);
+    this.hasAudioFile = this.section.track?.has_mp3;
     this.length = (this.section.end - this.section.start) / 1000;
   },
   computed: {},

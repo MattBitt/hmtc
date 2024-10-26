@@ -1,6 +1,6 @@
 <template>
   <div class="mt-4">
-    <v-btn @click="turnOffUpdating" color="primary" dark>Turn Off Live</v-btn>
+    <!-- <v-btn @click="turnOffUpdating" color="primary" dark>Turn Off Live</v-btn> -->
     <v-menu offset-y>
       <template v-slot:activator="{ on, attrs }">
         <div class="mt-4">

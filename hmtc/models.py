@@ -604,6 +604,8 @@ class Track(BaseModel):
     album = ForeignKeyField(Album, backref="tracks", null=True)
 
     def model_to_dict(self):
+        has_mp3 = File.select().where(File.track_id == self.id).get_or_none()
+
         new_dict = {
             "id": self.id,
             "title": self.title,
@@ -611,6 +613,7 @@ class Track(BaseModel):
             "length": self.length,
             "album_id": self.album.id if self.album else None,
             "album_title": self.album.title if self.album else None,
+            "has_mp3": has_mp3 is not None,
         }
         return new_dict
 
