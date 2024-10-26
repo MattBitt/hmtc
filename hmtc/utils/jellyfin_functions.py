@@ -1,11 +1,12 @@
+import json
+
 import requests
+from loguru import logger
 
 # for the 3rd time im restarting the jellyfin functions
 # keeping the my_jellyfin_client for existing code
 # try to use this for future
 from hmtc.config import init_config
-from loguru import logger
-import json
 
 config = init_config()
 
@@ -87,7 +88,9 @@ def all_sessions():
 
 
 def get_user_session():
-    session = [x for x in all_sessions() if x["UserName"] == user]
+    session = [
+        x for x in all_sessions() if (x["UserName"] == user and x["Client"] != "hmtc")
+    ]
     if len(session) == 0:
         return None
     elif len(session) > 1:

@@ -662,7 +662,7 @@ class VideoItem(BaseItem):
         try:
             alb = db_object.album
         except Exception as e:
-            logger.error(f"Album not found for {db_object.title}")
+            # logger.error(f"Album not found for {db_object.title}")
             alb = None
 
         # I'm pretty sure this is the WRONG way to do this... 9/16/24

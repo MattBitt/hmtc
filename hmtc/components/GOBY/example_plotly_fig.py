@@ -1,15 +1,16 @@
+import plotly.express as px
 import solara
 from loguru import logger
-import plotly.express as px
 
 # This dataframe has 244 lines, but 4 distinct values for `day`
 df = px.data.tips()
 fig = px.pie(df, values="tip", names="day")
 
 
-import pandas as pd
-import numpy as np
 from datetime import datetime as dt
+
+import numpy as np
+import pandas as pd
 import plotly.express as px
 
 df = pd.DataFrame(

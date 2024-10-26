@@ -1,9 +1,9 @@
+from datetime import datetime
+from typing import Any, Dict
+
 import solara
 import solara.lab
 from loguru import logger
-from typing import Any, Dict
-
-from datetime import datetime
 
 # program version
 VERSION = "0.0.27"

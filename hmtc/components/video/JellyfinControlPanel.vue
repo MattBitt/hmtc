@@ -1,9 +1,10 @@
 <template>
   <div class="mt-4">
+    <v-btn @click="turnOffUpdating" color="primary" dark>Turn Off Live</v-btn>
     <v-menu offset-y>
       <template v-slot:activator="{ on, attrs }">
         <div class="mt-4">
-          <v-badge color="error" offset-x="20" offset-y="10">
+          <v-badge :color="jellyfinBadgeColor" offset-x="20" offset-y="10">
             <v-btn text v-bind="attrs" v-on="on">
               <v-img
                 max-width="60px"
@@ -17,18 +18,18 @@
       <v-card class="mx-auto" max-width="800" tile>
         <v-list shaped>
           <v-subheader>
-            <span>
-              <v-row justify="center">
-                <h2>
-                  <strong>{{ jellyfin_status.UserName }}</strong>
-                </h2>
-              </v-row>
-              <v-row justify="center">
-                <h2>server: atlas-HMTC</h2>
-              </v-row>
-            </span>
+            <v-row justify="center">
+              <h2>
+                <strong color="primary--text">{{
+                  jellyfin_status.UserName
+                }}</strong>
+              </h2>
+            </v-row>
+            <v-row justify="center">
+              <h2>server: atlas-HMTC</h2>
+            </v-row>
           </v-subheader>
-          <v-list-item-group color="primary">
+          <v-list-item-group>
             <v-list-item>
               <v-list-item-icon>
                 <v-icon>mdi-pencil</v-icon>
@@ -98,27 +99,7 @@
                 <v-icon>mdi-pencil</v-icon>
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title
-                  >Jellyfin ID:{{ page_jellyfin_id }} (Page)</v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
                 <v-list-item-title>HaveBothIDs</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>PageMatchesAudio </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
 
@@ -132,7 +113,17 @@
                 </span>
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title><<<<<>>>>> </v-list-item-title>
+                <v-list-item-title>
+                  <v-row>
+                    <v-col cols="4">
+                      {{ currentPlayState.PositionTicks / 10000000 }}
+                    </v-col>
+                    <v-col cols="4">
+                      {{ currentPlayState.IsPaused }}
+                    </v-col>
+                    <v-col cols="4"> </v-col>
+                  </v-row>
+                </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -144,104 +135,59 @@
 <script>
 module.exports = {
   name: "VideoDetailsJFBar",
-  props: { jellyfin_status: Object, page_jellyfin_id: String, api_key: String },
+  props: {
+    enable_live_updating: Boolean,
+    jellyfin_status: Object,
+    page_jellyfin_id: String,
+  },
 
   data() {
     return {
-      hasItemLoaded: false,
-      debugMode: false,
-      // page_jellyfin_id: "",
       jellyfin_status: {},
-
-      currentPosition: "",
-      isPaused: true,
-      liveUpdating: false,
       intervalID: "",
-      fetchedResponse: "",
     };
   },
   methods: {
-    loadPageForPlayingAudio() {
-      // BROKEN
-      // if (this.jellyfin_status.jellyfin_id != null) {
-      //   this.open_detail_page(this.jellyfin_status.jellyfin_id);
-      // }
-    },
-    getPlayStatus() {
-      // if (this.jellyfin_status.session_id == "") {
-      //   return;
-      // }
-      const fetchPromise = fetch(
-        "http://192.168.0.202:8096/Sessions?ActiveWithinSeconds=300",
-        {
-          headers: this.headers,
-        }
-      );
-      fetchPromise.then((response) => {
-        if (response.status == 200) {
-          response.json().then((data) => {
-            const session = data.find(
-              (item) => item.Id === this.jellyfin_status.session_id
-            );
-            if (session) {
-              this.fetchedResponse = JSON.stringify(session);
-              if (session.NowPlayingItem) {
-                this.hasItemLoaded = true;
-                // this.page_jellyfin_id = session.NowPlayingItem.Id;
-                // shouldn't modify since its a prop, right?
-                this.currentPosition = Math.floor(
-                  session.PlayState.PositionTicks / 10_000_000
-                );
-                this.isPaused = session.PlayState.IsPaused;
-              } else {
-                this.hasItemLoaded = false;
-              }
-            }
-
-            this.refresh_jellyfin_status();
-          });
-        } else {
-          console.log("error: ", response);
-          this.turnOffUpdating();
-        }
-      });
+    updatePlayState() {
+      // console.log("Updating...");
+      this.update_play_state();
     },
     turnOnUpdating() {
-      this.liveUpdating = true;
       this.intervalID = setInterval(
-        this.getPlayStatus,
-        3000,
+        this.updatePlayState,
+        5000,
         "Parameter 1",
         "Parameter 2"
       );
     },
     turnOffUpdating() {
-      this.liveUpdating = false;
-      if (this.intervalID) clearInterval(this.intervalID);
-      this.intervalID = "";
-    },
-    toggleUpdating() {
-      if (this.liveUpdating) {
-        this.turnOffUpdating();
-      } else {
-        this.turnOnUpdating();
+      if (this.intervalID) {
+        console.log("clearing interval");
+        clearInterval(this.intervalID);
       }
+      this.intervalID = "";
     },
   },
   created() {
-    if (this.jellyfin_status.NowPlayingItem) {
-      this.getPlayStatus();
+    if (this.enable_live_updating) {
+      console.log("Connected. updating...");
       this.turnOnUpdating();
     } else {
       console.log("Not connected. not updating...");
     }
   },
   computed: {
-    headers() {
-      return {
-        "Content-Type": "application/json",
-        Authorization: "Mediabrowser Token=" + this.api_key,
-      };
+    currentPlayState() {
+      return this.jellyfin_status.PlayState;
+    },
+    jellyfinBadgeColor() {
+      if (!this.enable_live_updating) {
+        return "error";
+      } else if (this.jellyfin_status.Id != "") {
+        return "primary";
+      } else {
+        return "warning";
+      }
     },
     timeString() {
       return new Date(this.currentPosition * 1000)

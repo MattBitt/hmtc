@@ -1,12 +1,12 @@
 import solara
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from hmtc.utils.jellyfin_functions import (
-    get_user_favorites,
     can_ping_server,
+    get_user_favorites,
     get_user_session,
 )
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 
 @solara.component

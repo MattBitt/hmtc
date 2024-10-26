@@ -8,6 +8,7 @@ import solara
 from loguru import logger
 
 from hmtc.assets.colors import Colors
+from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
@@ -40,16 +41,13 @@ from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
 from hmtc.schemas.track import TrackItem
 from hmtc.schemas.video import VideoItem
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
-from hmtc.utils.youtube_functions import download_video_file
-from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
-
 from hmtc.utils.jellyfin_functions import (
-    get_user_favorites,
     can_ping_server,
+    get_user_favorites,
     get_user_session,
 )
-
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -293,56 +291,13 @@ def FileTypeCheckboxes(
     pass
 
 
-@solara.component_vue("../components/video/VideoDetailsJFPanel.vue")
+@solara.component_vue("../components/video/JellyfinControlPanel.vue")
 def JellyfinControlPanel(
+    enable_live_updating,
     jellyfin_status,
-    page_jellyfin_id,
-    api_key,
-    event_open_detail_page=None,
-    event_open_video_in_jellyfin=None,
-    event_playpause_jellyfin=None,
-    event_stop_jellyfin=None,
-    event_refresh_jellyfin_status=None,
+    event_update_play_state=None,
 ):
     pass
-
-
-@solara.component
-def JFPanel(
-    video,
-    new_jellyfin_dict,
-    router,
-    update_section_from_jellyfin,
-):
-    def vue_link_clicked(item):
-        # need to add a check to make sure the route is existing
-
-        if item is not None:
-            try:
-                playing_vid = (
-                    VideoModel.select(VideoModel.id)
-                    .where(VideoModel.jellyfin_id == item)
-                    .get_or_none()
-                )
-                if playing_vid is not None:
-                    router.push(f"/video-details/{playing_vid.id}")
-                else:
-                    logger.error(f"Video not found in database: {item}")
-            except Exception as e:
-                logger.error(e)
-
-    def refresh_jellyfin_status(*args):
-        # logger.debug(f"Refreshing Jellyfin Status {args}")
-        pass
-        # _jf = MyJellyfinClient()
-        # _jf.connect()
-        # status_dict.set(_jf.get_playing_status_from_jellyfin())
-
-    JellyfinControlPanel(
-        jellyfin_status=new_jellyfin_dict,
-        page_jellyfin_id=video.jellyfin_id,
-        api_key=config["jellyfin"]["api"],
-    )
 
 
 @solara.component
@@ -891,6 +846,29 @@ def register_vue_components():
     )
 
 
+# started refactor on 10/25/2024
+# components below have been looked at and are working
+
+
+@solara.component
+def JFPanel(
+    video,
+    new_jellyfin_dict,
+):
+    connected = solara.use_reactive(can_ping_server())
+
+    def refresh_from_jellyfin(*args):
+        new_jellyfin_dict.set(get_user_session())
+
+    JellyfinControlPanel(
+        enable_live_updating=connected.value,
+        jellyfin_status=new_jellyfin_dict.value,
+        page_jellyfin_id=video.jellyfin_id,
+        api_key=config["jellyfin"]["api"],
+        event_update_play_state=refresh_from_jellyfin,
+    )
+
+
 @solara.component
 def Page():
     router = solara.use_router()
@@ -958,9 +936,7 @@ def Page():
                 # # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
-                    new_jellyfin_dict=status_dict2.value,
-                    router=router,
-                    update_section_from_jellyfin=local_update_from_jellyfin,
+                    new_jellyfin_dict=status_dict2,
                 )
 
             with solara.Column():

@@ -1,6 +1,7 @@
-from loguru import logger
-from pathlib import Path
 import re
+from pathlib import Path
+
+from loguru import logger
 
 # this seems to work pretty well to convert vtt to lrc
 # jellyfin seems to be able to read lrc files, but haven't
