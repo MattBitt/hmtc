@@ -18,12 +18,14 @@ from hmtc.models import (
     Series,
     YoutubeSeries,
 )
+from hmtc.models import Section as SectionModel
 from hmtc.models import File as FileModel
 from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.file import FileManager
+from hmtc.schemas.section import SectionManager
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
@@ -68,6 +70,7 @@ class VideoItem(BaseItem):
     album: AlbumModel = None
     album_title: str = None
     file_count: int = 0
+    sections: SectionModel = None
 
     # has_video_file: bool = False
     # has_audio_file: bool = False
@@ -488,6 +491,7 @@ class VideoItem(BaseItem):
                 Channel,
                 AlbumModel,
                 Series,
+                SectionModel,
             )
             .join(
                 YoutubeSeries,
@@ -500,6 +504,8 @@ class VideoItem(BaseItem):
             .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
             .switch(VideoModel)
             .join(Series, peewee.JOIN.LEFT_OUTER)
+            .switch(VideoModel)
+            .join(SectionModel, peewee.JOIN.LEFT_OUTER)
             .where(VideoModel.id == id)
         ).get()
 
@@ -660,10 +666,12 @@ class VideoItem(BaseItem):
         # adding this on 10/14/24. Trying to avoid a crash with an invalid
         # album id
         try:
-            alb = db_object.album
+            alb = db_object.album.model_to_dict()
+            album_title = alb.title
         except Exception as e:
             # logger.error(f"Album not found for {db_object.title}")
-            alb = None
+            alb = {"title": "No Album"}
+            album_title = "No Album"
 
         # I'm pretty sure this is the WRONG way to do this... 9/16/24
         return VideoItem(
@@ -688,6 +696,10 @@ class VideoItem(BaseItem):
             playlist=db_object.playlist if db_object.playlist else None,
             series=db_object.series if db_object.series else None,
             album=alb,
+            sections=[
+                SectionManager.get_section_details(x.id) for x in db_object.sections
+            ],
+            album_title=album_title,
         )
 
     @staticmethod
@@ -780,3 +792,31 @@ class VideoItem(BaseItem):
         else:
             # logger.debug(f"Could not find episode number for {self.title}")
             return
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "youtube_id": self.youtube_id,
+            "url": self.url,
+            "episode": self.episode,
+            "upload_date": self.upload_date.isoformat(),
+            "private": self.private,
+            "duration": self.duration,
+            "description": self.description,
+            "contains_unique_content": self.contains_unique_content,
+            "has_chapters": self.has_chapters,
+            "manually_edited": self.manually_edited,
+            "channel_id": self.channel_id,
+            "playlist_id": self.playlist_id,
+            "playlist_title": self.playlist_title,
+            "series_id": self.series_id,
+            "youtube_series_id": self.youtube_series_id,
+            "series_name": self.series_name,
+            "channel_name": self.channel_name,
+            "youtube_series_title": self.youtube_series_title,
+            "jellyfin_id": self.jellyfin_id,
+            "album_id": self.album_id,
+            "album_title": self.album_title,
+            "file_count": self.file_count,
+        }

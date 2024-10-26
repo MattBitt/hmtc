@@ -60,6 +60,23 @@ IMG_WIDTH = "300px"
 loading = solara.reactive(False)
 
 
+def loop_jellyfin(*args):
+    logger.debug("🧪🧪🧪🧪🧪🧪 Deprecated 10/26/24")
+    # jf_client = MyJellyfinClient()
+    # jf_client.connect()
+    # # need to load the video first if its not already loaded
+    # try:
+    #     new_pos = int(args[0])
+    # except Exception as e:
+    #     logger.error(f"Unable to understand postion from args {args} {e}")
+    #     return
+
+    # jf_client.seek_to(new_pos)
+    # jf_client.play_pause()
+    # time.sleep(1.5)
+    # jf_client.play_pause()
+
+
 def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
@@ -79,40 +96,6 @@ def seconds_to_hms(seconds):
     minutes = seconds // 60
     seconds %= 60
     return f"{str(hours).zfill(2)}:{str(minutes).zfill(2)}:{str(seconds).zfill(2)}"
-
-
-def my_hook(*args):
-    # this seems to work but not getting the feedback on the page
-    pass
-    # d = args[0]["downloaded_bytes"]
-    # t = args[0]["total_bytes"]
-    # p = d / t * 100
-    # if p < 1:
-    #     logger.info(f"Percent Complete: {d/t*100:.2f}%")
-    # current_download_progress.set(p)
-
-
-def delete_section_from_db(section_id):
-    logger.debug(f"Deleting Section: {section_id}")
-    # need to delete the topics associated with the section if they aren't referenced elsewhere
-    # the below code is not working
-    #
-    # topics = list(
-    #     SectionTopicsModel.select(SectionTopicsModel.topic_id).where(
-    #         SectionTopicsModel.section_id == section_id
-    #     )
-    # )
-    # for topic_id in topics:
-    #     t = TopicModel.get_by_id(topic_id)
-    #     try:
-    #         t.delete_instance()
-    #     except Exception as e:
-    #         logger.error(e)
-    SectionTopicsModel.delete().where(
-        SectionTopicsModel.section_id == section_id
-    ).execute()
-
-    SectionModel.delete_by_id(section_id)
 
 
 def time_ago_string(dt):
@@ -138,6 +121,29 @@ def time_ago_string(dt):
         return f"{years} years ago"
 
 
+def delete_section_from_db(section_id):
+    logger.debug(f"Deleting Section: {section_id}")
+    # need to delete the topics associated with the section if they aren't referenced elsewhere
+    # the below code is not working
+    #
+    # topics = list(
+    #     SectionTopicsModel.select(SectionTopicsModel.topic_id).where(
+    #         SectionTopicsModel.section_id == section_id
+    #     )
+    # )
+    # for topic_id in topics:
+    #     t = TopicModel.get_by_id(topic_id)
+    #     try:
+    #         t.delete_instance()
+    #     except Exception as e:
+    #         logger.error(e)
+    SectionTopicsModel.delete().where(
+        SectionTopicsModel.section_id == section_id
+    ).execute()
+
+    SectionModel.delete_by_id(section_id)
+
+
 def update_section_times(*args):
     logger.debug(f"Updating Section Times: {args}")
     try:
@@ -150,23 +156,6 @@ def update_section_times(*args):
     if "end" in args[0].keys():
         section.end = args[0]["end"]
     section.save()
-
-
-def loop_jellyfin(*args):
-
-    jf_client = MyJellyfinClient()
-    jf_client.connect()
-    # need to load the video first if its not already loaded
-    try:
-        new_pos = int(args[0])
-    except Exception as e:
-        logger.error(f"Unable to understand postion from args {args} {e}")
-        return
-
-    jf_client.seek_to(new_pos)
-    jf_client.play_pause()
-    time.sleep(1.5)
-    jf_client.play_pause()
 
 
 def update_section_from_jellyfin(section_id, start_or_end, video, reactive_sections):
@@ -396,9 +385,7 @@ def FilesPanel(video):
         loading.set(True)
         logger.info(f"Downloading video: {video.title}")
         remove_existing_files(video.id, video.youtube_id, ["video", "audio"])
-        info, files = download_video_file(
-            video.youtube_id, WORKING, progress_hook=my_hook
-        )
+        info, files = download_video_file(video.youtube_id, WORKING, progress_hook=None)
 
         vid = VideoModel.select().where(VideoModel.id == video.id).get()
         for file in files:
@@ -615,11 +602,11 @@ def InfoPanel(
     VideoInfoInputCard(
         albums=album_dicts,
         youtube_serieses=youtube_series_dicts,
-        selectedAlbum=video.album.title if video.album else None,
+        serieses=series_dicts,
+        selectedAlbum=video.album_title,
         selectedYoutubeSeries=(
             video.youtube_series.title if video.youtube_series else None
         ),
-        serieses=series_dicts,
         selectedSeries=(video.series.name if video.series else None),
         episode_number=video.episode,
         # event_update_video=lambda x: update_video(x),
@@ -645,7 +632,10 @@ def SectionsPanel(
     # not sure why this is a tuple...
     section_dicts = (
         solara.use_reactive(
-            [SectionManager.get_section_details(s.id) for s in reactive_sections.value]
+            [
+                SectionManager.get_section_details(s["id"])
+                for s in reactive_sections.value
+            ]
         ),
     )
     section_type = solara.use_reactive("instrumental")
@@ -896,11 +886,8 @@ def Page():
 
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
-
-    sm = SectionManager.from_video(video)
-    reactive_sections = solara.use_reactive(sm.sections)
-
-    status_dict2 = solara.use_reactive(get_user_session())
+    reactive_sections = solara.use_reactive(video.sections)
+    status_dict = solara.use_reactive(get_user_session())
 
     def local_update_from_jellyfin(*args):
         update_section_from_jellyfin(
@@ -937,16 +924,8 @@ def Page():
                 # vue component - shows full screen Sections
                 # Control Panel dialog
                 SectionControlPanel(
-                    video=dict(
-                        album=(
-                            video.album.model_to_dict()
-                            if video.album
-                            else {"title": ""}
-                        ),
-                        sections=len(reactive_sections.value),
-                        duration=video.duration,
-                    ),
-                    new_jellyfin_dict=status_dict2.value,
+                    video=video.serialize(),
+                    jellyfin_status=status_dict.value,
                     event_create_section=create_section,
                     event_delete_all_sections=delete_all_sections,
                 )
@@ -954,7 +933,7 @@ def Page():
                 # # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
-                    new_jellyfin_dict=status_dict2,
+                    new_jellyfin_dict=status_dict,
                 )
 
             with solara.Column():

@@ -2,21 +2,23 @@
   <v-card>
     <v-row>
       <v-col cols="6">
-        <span
-          >{{ section.track.track_number + "." }}
-          {{ section.track.title }}</span
-        >
+        <h3>
+          <span class="primary--text"
+            >{{ section.track.track_number + "." }}
+            {{ section.track.title }}</span
+          >
+        </h3>
       </v-col>
       <v-col cols="6">
         <v-btn
           @click="removeTrack(section.id)"
           class="button mywarning"
           outlined
-          ><v-icon>mdi-delete</v-icon>Delete</v-btn
+          ><v-icon>mdi-delete</v-icon>Delete Track</v-btn
         >
       </v-col>
     </v-row>
-    <v-row>
+    <v-row justify="end">
       <v-card-actions>
         <div v-if="hasAudioFile">
           <v-btn @click="deleteAudioFile" class="button mywarning" outlined

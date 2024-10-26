@@ -7,12 +7,7 @@
       transition="dialog-bottom-transition"
     >
       <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          class="button"
-          v-bind="attrs"
-          v-on="on"
-          :disabled="video.album.title == ''"
-        >
+        <v-btn class="button" v-bind="attrs" v-on="on">
           <v-icon>mdi-rhombus-split</v-icon>Sections
         </v-btn>
       </template>
@@ -52,7 +47,7 @@
             >Delete All Sections</v-btn
           >
         </v-row>
-        <h1>{{ video.album?.title }}</h1>
+        <h1>{{ video.album_title }}</h1>
         <v-divider></v-divider>
       </v-card>
     </v-dialog>
@@ -63,7 +58,7 @@
 // inheritence and how to pass data between them
 module.exports = {
   name: "SectionControlPanel",
-  props: { video: Object, jellyfin_status: Object },
+  props: {},
 
   emits: [
     "deleteAllSections",
@@ -118,8 +113,14 @@ module.exports = {
       return this.jellyfin_status.status === "active";
     },
   },
+  created() {
+    console.log("SectionControlPanel created");
+    console.log(this.video);
+  },
   data() {
     return {
+      jellyfin_status: {},
+      video: {},
       dialog: false,
       valid: false,
     };
