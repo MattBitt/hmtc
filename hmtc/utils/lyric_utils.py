@@ -8,10 +8,10 @@ from loguru import logger
 # seen a way to autoscroll anything
 
 
-def read_vtt(filename):
-    file = Path(filename)
+def convert_vtt_to_lrc(input_file: str, output_file: str):
+    file = Path(input_file)
     if not file.exists():
-        raise FileNotFoundError(f"File not found: {filename}")
+        raise FileNotFoundError(f"File not found: {input_file}")
     useful = []
     brackets = []
     times = []
@@ -22,8 +22,8 @@ def read_vtt(filename):
         line1 = lines[0].strip()  # WEBVTT
         line2 = lines[1].strip()  # Kind: captions
         line3 = lines[2].strip()  # Language: en
-        for line in lines[3:]:
 
+        for line in lines[3:]:
             l = line.strip()
             if l == "":
                 empty.append(l)
@@ -37,7 +37,7 @@ def read_vtt(filename):
                     other.append(l)
                 else:
                     useful.append(l)
-    with open("output.lrc", "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         for line in useful:
             new_line = line.replace("<c>", "").replace("</c>", "")
             modified_text = re.sub(
@@ -56,4 +56,5 @@ def read_vtt(filename):
     logger.debug(f"Useful: {len(useful)}")
 
 
-read_vtt("hmtc/utils/example.vtt")
+if __name__ == "__main__":
+    convert_vtt_to_lrc("hmtc/utils/example.vtt", "hmtc/utils/output.lrc")
