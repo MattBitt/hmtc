@@ -139,7 +139,6 @@ module.exports = {
     items: Array,
     hasAlbum: Boolean,
     albumInfo: Object,
-    possibleAlbumTitle: String,
   },
   emits: ["createAlbum", "selectAlbum", "removeAlbum"],
   data() {
@@ -149,7 +148,7 @@ module.exports = {
       valid: true,
       dialog: false,
       releaseDate: "",
-      albumTitle: this.possibleAlbumTitle || "",
+      albumTitle: "",
       name: "",
       nameRules: [(v) => !!v || "Title is required"],
       releaseDate: "",
@@ -165,7 +164,7 @@ module.exports = {
     close() {
       this.resetValidation();
       this.reset();
-      this.albumTitle = this.possibleAlbumTitle || "";
+      this.albumTitle = "";
       this.dialog = false;
     },
     removeAlbum() {

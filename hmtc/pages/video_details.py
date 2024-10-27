@@ -268,12 +268,12 @@ def FileTypeCheckboxes(
 @solara.component_vue("../components/video/VideoInfoInputCard.vue")
 def VideoInfoInputCard(
     albums,
-    selectedAlbum,
-    youtube_serieses,
-    selectedYoutubeSeries,
     serieses,
+    youtube_serieses,
+    selectedAlbum,
     selectedSeries,
     episode_number,
+    selectedYoutubeSeries,
     event_update_video,
     event_create_album,
     event_remove_album_from_video,
@@ -590,6 +590,7 @@ def InfoPanel(
         dict(id=a.id, title=a.title)
         for a in AlbumModel.select().order_by(AlbumModel.title)
     ]
+
     youtube_series_dicts = [
         dict(id=a.id, title=a.title)
         for a in YoutubeSeriesModel.select().order_by(YoutubeSeriesModel.title)
@@ -599,17 +600,31 @@ def InfoPanel(
         for a in SeriesModel.select().order_by(SeriesModel.name)
     ]
 
+    try:
+        this_album = [a for a in album_dicts if a["id"] == video.album_id][0]
+    except IndexError:
+        this_album = None
+
+    try:
+        this_youtube_series = [
+            x for x in youtube_series_dicts if x["id"] == video.youtube_series_id
+        ][0]
+    except IndexError:
+        this_youtube_series = None
+
+    try:
+        this_series = [x for x in series_dicts if x["id"] == video.series_id][0]
+    except IndexError:
+        this_series = None
+
     VideoInfoInputCard(
         albums=album_dicts,
         youtube_serieses=youtube_series_dicts,
         serieses=series_dicts,
-        selectedAlbum=video.album_title,
-        selectedYoutubeSeries=(
-            video.youtube_series.title if video.youtube_series else None
-        ),
-        selectedSeries=(video.series.name if video.series else None),
+        selectedAlbum=this_album,
+        selectedYoutubeSeries=this_youtube_series,
+        selectedSeries=this_series,
         episode_number=video.episode,
-        # event_update_video=lambda x: update_video(x),
         event_create_album=create_album,
         event_remove_album_from_video=remove_album,
         event_update_album_for_video=update_album,
@@ -632,10 +647,7 @@ def SectionsPanel(
     # not sure why this is a tuple...
     section_dicts = (
         solara.use_reactive(
-            [
-                SectionManager.get_section_details(s["id"])
-                for s in reactive_sections.value
-            ]
+            [SectionManager.get_section_details(s.id) for s in reactive_sections.value]
         ),
     )
     section_type = solara.use_reactive("instrumental")
@@ -877,6 +889,26 @@ def JFPanel(
     )
 
 
+reactive_sections = solara.reactive([])
+
+
+def delete_all_sections(*args):
+    for section in reactive_sections.value:
+        logger.debug(f"Deleting Section: {section}")
+        delete_section_from_db(section.id)
+
+    reactive_sections.set([])
+
+
+def create_section(video, *args):
+    sm = SectionManager.from_video(video)
+    new_sect_id = sm.create_section(
+        start=args[0]["start"], end=args[0]["end"], section_type="instrumental"
+    )
+    new_sect = SectionModel.get_by_id(new_sect_id)
+    reactive_sections.set(reactive_sections.value + [new_sect])
+
+
 @solara.component
 def Page():
     router = solara.use_router()
@@ -886,28 +918,15 @@ def Page():
 
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
-    reactive_sections = solara.use_reactive(video.sections)
-    status_dict = solara.use_reactive(get_user_session())
 
-    def local_update_from_jellyfin(*args):
-        update_section_from_jellyfin(
-            args[0]["section"], args[0]["start_or_end"], video, reactive_sections
-        )
+    # should probably be using video.section_ids (not sure if it matters)
+    sections = SectionModel.select().where(SectionModel.video_id == video.id)
+    reactive_sections.set([s for s in sections])
 
-    def delete_all_sections(*args):
-        for section in reactive_sections.value:
-            logger.debug(f"Deleting Section: {section}")
-            delete_section_from_db(section.id)
+    jellyfin_status_dict = solara.use_reactive(get_user_session())
 
-        reactive_sections.set([])
-
-    def create_section(*args):
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(
-            start=args[0]["start"], end=args[0]["end"], section_type="instrumental"
-        )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
+    def local_create(*args):
+        create_section(video, args)
 
     with solara.Column(classes=["main-container"]):
         with solara.Card():
@@ -925,15 +944,15 @@ def Page():
                 # Control Panel dialog
                 SectionControlPanel(
                     video=video.serialize(),
-                    jellyfin_status=status_dict.value,
-                    event_create_section=create_section,
+                    jellyfin_status=jellyfin_status_dict.value,
+                    event_create_section=local_create,
                     event_delete_all_sections=delete_all_sections,
                 )
 
                 # # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
-                    new_jellyfin_dict=status_dict,
+                    new_jellyfin_dict=jellyfin_status_dict,
                 )
 
             with solara.Column():
@@ -943,14 +962,13 @@ def Page():
 
             if len(reactive_sections.value) == 0:
                 solara.Markdown("No Sections Found")
-                if video.album is not None:
-                    solara.Markdown(f"Album: {video.album.title}")
+                if video.album_id is not None:
+                    solara.Markdown(f"Album: {video.album_id}")
                 else:
                     solara.Markdown(f"Please Create an album before adding sections")
             else:
-                # SectionSelector.vue
                 SectionsPanel(
                     video=video,
                     reactive_sections=reactive_sections,
-                    update_section_from_jellyfin=local_update_from_jellyfin,
+                    update_section_from_jellyfin=None,
                 )

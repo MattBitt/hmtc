@@ -557,6 +557,7 @@ class Video(BaseModel):
         return f"Video({self.title=})"
 
     # used to serialize model to dict for vue
+
     def model_to_dict(self):
         num_files = (
             File.select(fn.Count(File.id)).where((File.video_id == self.id)).scalar()
@@ -568,7 +569,7 @@ class Video(BaseModel):
             "url": self.url,
             "title": self.title,
             "episode": self.episode,
-            "upload_date": self.upload_date.isoformat(),
+            "upload_date": self.upload_date,
             "duration": self.duration,
             "description": self.description,
             "enabled": self.enabled,
@@ -577,13 +578,14 @@ class Video(BaseModel):
             "has_chapters": self.has_chapters,
             "manually_edited": self.manually_edited,
             "jellyfin_id": self.jellyfin_id,
-            "channel_name": self.channel.name if self.channel else None,
-            "series_name": self.series.name if self.series else None,
-            "playlist_title": self.playlist.title if self.playlist else None,
-            "youtube_series_title": (
-                self.youtube_series.title if self.youtube_series else None
+            "channel_id": self.channel.id if self.channel else None,
+            "series_id": self.series.id if self.series else None,
+            "playlist_id": self.playlist.id if self.playlist else None,
+            "youtube_series_id": (
+                self.youtube_series.id if self.youtube_series else None
             ),
-            "album_title": self.album.title if self.album else None,
+            "album_id": self.album.id if self.album else None,
+            "section_ids": [s.id for s in self.sections],
             "file_count": num_files,
         }
         return new_dict

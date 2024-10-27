@@ -3,9 +3,8 @@
     <v-col>
       <AlbumPanel
         :items="albums"
-        :hasAlbum="thisVidHasAlbum"
+        :hasAlbum="true"
         :albumInfo="albumDict"
-        :possibleAlbumTitle="constructAlbumTitle()"
         @createAlbum="createAlbum"
         @selectAlbum="selectAlbum"
         @removeAlbum="removeAlbum"
@@ -22,7 +21,7 @@
         @selectSeries="selectSeries"
         @removeSeries="removeSeries"
       />
-      <h4>{{ this.selectedSeries }}</h4>
+      <h4>{{ this.selectedSeries.name }}</h4>
     </v-col>
 
     <v-col>
@@ -34,7 +33,7 @@
         @selectYoutubeSeries="selectYoutubeSeries"
         @removeYoutubeSeries="removeYoutubeSeries"
       />
-      <h4>{{ this.selectedYoutubeSeries }}</h4>
+      <h4>{{ this.selectedYoutubeSeries.title }}</h4>
     </v-col>
   </v-row>
 </template>
@@ -52,19 +51,17 @@ export default {
   },
   computed: {
     albumDict() {
-      const album = this.albums.find((a) => a.title === this.selectedAlbum);
-      const ad = album ? album : { title: null, release_date: null };
-      console.log("albumDict", ad);
-      return ad;
+      console.log("albumDict");
+      return this.selectedAlbum;
     },
     seriesDict() {
       console.log("seriesDict");
-      return { name: this.selectedSeries };
+      return this.selectedSeries;
     },
 
     youtubeSeriesDict() {
       console.log("youtubeseriesDict");
-      return { title: this.selectedYoutubeSeries };
+      return this.selectedYoutubeSeries;
     },
     thisVidHasAlbum() {
       return this.selectedAlbum !== null;
@@ -135,20 +132,13 @@ export default {
       this.selectedSeries = val.name;
       this.update_series_for_video(val);
     },
-
-    constructAlbumTitle() {
-      console.log(
-        "possibleAlbumTitle:",
-        this.selectedYoutubeSeries,
-        this.episode_number
-      );
-      const newName = `${
-        this.selectedYoutubeSeries
-      } ${this.episode_number?.padStart(3, "0")}`;
-      console.log("newName", newName);
-      return newName;
-    },
   },
   watch: {},
+  created() {
+    console.log("In VideoInfoInputCard created");
+    console.log("selectedAlbum", this.selectedAlbum);
+    console.log("selectedSeries", this.selectedSeries);
+    console.log("selectedYoutubeSeries", this.selectedYoutubeSeries);
+  },
 };
 </script>
