@@ -1,4 +1,5 @@
 import dataclasses
+import re
 from typing import Dict, Optional, cast
 
 import solara
@@ -8,7 +9,6 @@ from solara.alias import rv
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.utils.jellyfin_functions import get_user_favorites
-import re
 
 
 @solara.component_vue("sandbox.vue", vuetify=True)

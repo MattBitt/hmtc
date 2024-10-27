@@ -63,9 +63,24 @@ export default {
   },
   methods: {
     createAlbum(args) {
+      console.log("createAlbum type/args passed in", args);
       this.selectedAlbum = { title: args.title };
       this.albums.push(this.selectedAlbum);
-      this.create_album(this.selectedAlbum);
+      const _args = {
+        type: "album",
+        item: this.selectedAlbum,
+      };
+      this.create(_args);
+    },
+
+    createSeries(args) {
+      this.selectedSeries = { name: args.name };
+      this.serieses.push(this.selectedSeries);
+      const _args = {
+        type: "series",
+        item: this.selectedSeries,
+      };
+      this.create(_args);
     },
 
     createYoutubeSeries(args) {
@@ -73,39 +88,73 @@ export default {
         title: args.title,
       };
       this.youtube_serieses.push(this.selectedYoutubeSeries);
-      this.create_youtube_series(this.selectedYoutubeSeries);
-    },
-    createSeries(args) {
-      this.selectedSeries = { name: args.name };
-      this.serieses.push(this.selectedSeries);
-      this.create_series(this.selectedSeries);
+      const _args = {
+        type: "youtube_series",
+        item: this.selectedYoutubeSeries,
+      };
+      this.create(_args);
     },
 
     selectAlbum(val) {
       this.selectedAlbum = { title: val.title, id: val.id };
-      this.update_album_for_video(this.selectedAlbum);
+      const _args = {
+        type: "album",
+        item: this.selectedAlbum,
+      };
+      this.update(_args);
     },
 
     selectSeries(val) {
       this.selectedSeries = { name: val.name, id: val.id };
-      this.update_series_for_video(this.selectedSeries);
+      const _args = {
+        type: "series",
+        item: this.selectedSeries,
+      };
+      this.update(_args);
     },
     selectYoutubeSeries(val) {
       this.selectedYoutubeSeries = { title: val.title, id: val.id };
-      this.update_youtube_series_for_video(this.selectedYoutubeSeries);
+      const _args = {
+        type: "youtube_series",
+        item: this.selectedYoutubeSeries,
+      };
+      this.update(_args);
     },
     removeAlbum() {
       this.albums = this.albums.filter((a) => a.title !== this.selectedAlbum);
-      this.selectedAlbum = null;
 
-      this.remove_album_from_video();
+      const _args = {
+        type: "album",
+        item: this.selectedAlbum,
+      };
+
+      this.remove(_args);
+      this.selectedAlbum = null;
     },
 
     removeSeries() {
-      this.remove_series_from_video();
+      this.serieses = this.serieses.filter(
+        (a) => a.name !== this.selectedSerieses
+      );
+
+      const _args = {
+        type: "series",
+        item: this.selectedSeries,
+      };
+      this.remove(_args);
+      this.selectedSerieses = null;
     },
     removeYoutubeSeries() {
-      this.remove_youtube_series_from_video();
+      this.youtube_serieses = this.youtube_serieses.filter(
+        (a) => a.title !== this.selectedYoutubeSeries
+      );
+
+      const _args = {
+        type: "youtube_series",
+        item: this.selectedYoutubeSeries,
+      };
+      this.remove(_args);
+      this.selectedYoutubeSeries = null;
     },
   },
   watch: {},

@@ -1,8 +1,5 @@
-import time
-from datetime import datetime, timedelta
 from pathlib import Path
 
-import ipyvue
 import PIL
 import solara
 from loguru import logger
@@ -11,6 +8,7 @@ from hmtc.assets.colors import Colors
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
@@ -47,6 +45,7 @@ from hmtc.utils.jellyfin_functions import (
     get_user_session,
 )
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
@@ -59,6 +58,21 @@ IMG_WIDTH = "300px"
 
 loading = solara.reactive(False)
 reactive_sections = solara.reactive([])
+
+
+def parse_url_args():
+    router = solara.use_router()
+    level = solara.use_route_level()
+
+    if len(router.parts) == 1:
+        # 10/26/24 - not sure what this is doing
+        return None
+
+    return router.parts[level:][0]
+
+
+# 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# Section - Admin Panel
 
 
 def delete_all_sections(*args):
@@ -76,83 +90,8 @@ def create_section(video, start, end, section_type="instrumental"):
     reactive_sections.set(reactive_sections.value + [new_sect])
 
 
-def loop_jellyfin(*args):
-    logger.debug("🧪🧪🧪🧪🧪🧪 Deprecated 10/26/24")
-    # jf_client = MyJellyfinClient()
-    # jf_client.connect()
-    # # need to load the video first if its not already loaded
-    # try:
-    #     new_pos = int(args[0])
-    # except Exception as e:
-    #     logger.error(f"Unable to understand postion from args {args} {e}")
-    #     return
-
-    # jf_client.seek_to(new_pos)
-    # jf_client.play_pause()
-    # time.sleep(1.5)
-    # jf_client.play_pause()
-
-
-def parse_url_args():
-    router = solara.use_router()
-    level = solara.use_route_level()
-
-    if len(router.parts) == 1:
-        # solara.Markdown("No Video Selected")
-        # raise ValueError("No video selected")
-        # use this to view all sections
-        return None
-
-    return router.parts[level:][0]
-
-
-def seconds_to_hms(seconds):
-    hours = seconds // 3600
-    seconds %= 3600
-    minutes = seconds // 60
-    seconds %= 60
-    return f"{str(hours).zfill(2)}:{str(minutes).zfill(2)}:{str(seconds).zfill(2)}"
-
-
-def time_ago_string(dt):
-    time_ago = datetime.now().date() - dt
-
-    if time_ago.days == 0:
-        return "Today"
-    if time_ago.days < 30:
-        if time_ago.days == 1:
-            return "Yesterday"
-        else:
-            return f"{time_ago.days} days ago"
-    if time_ago.days < 365:
-        months = time_ago.days // 30
-        if months == 1:
-            return "Last month"
-        else:
-            return f"{months} months ago"
-    years = time_ago.days // 365
-    if years == 1:
-        return "Last year"
-    else:
-        return f"{years} years ago"
-
-
 def delete_section_from_db(section_id):
     logger.debug(f"Deleting Section: {section_id}")
-    # need to delete the topics associated with the section if they aren't referenced elsewhere
-    # the below code is not working
-    #
-    # topics = list(
-    #     SectionTopicsModel.select(SectionTopicsModel.topic_id).where(
-    #         SectionTopicsModel.section_id == section_id
-    #     )
-    # )
-    # for topic_id in topics:
-    #     t = TopicModel.get_by_id(topic_id)
-    #     try:
-    #         t.delete_instance()
-    #     except Exception as e:
-    #         logger.error(e)
     SectionTopicsModel.delete().where(
         SectionTopicsModel.section_id == section_id
     ).execute()
@@ -175,83 +114,7 @@ def update_section_times(*args):
 
 
 def update_section_from_jellyfin(section_id, start_or_end, video, reactive_sections):
-    jf = MyJellyfinClient()
-    jf.connect()
-    if jf.is_connected:
-        loading.set(True)
-        new_position = jf.get_playing_status_from_jellyfin()["position"]
-        sect = SectionModel.get_by_id(section_id)
-        if start_or_end == "start":
-            sect.start = new_position * 1000
-        else:
-            sect.end = new_position * 1000
-        sect.save()
-        new_sm = SectionManager.from_video(video)
-        reactive_sections.set(new_sm.sections)
-        # logger.debug(f"Updated Section {sect.id} to {new_position}")
-    else:
-        logger.error("No Jellyfin connection. Quitting")
-    loading.set(False)
-
-
-def get_video_files(video_id, youtube_id):
-    db_files = (
-        FileModel.select()
-        .where(FileModel.video_id == video_id)
-        .order_by(FileModel.filename)
-    )
-    if len(db_files) == 0:
-        logger.error(f"No files found for video {video_id}")
-        if youtube_id is None:
-            logger.error("No youtube id found")
-            return [], []
-        folder_to_search = STORAGE / youtube_id
-    else:
-        folder_to_search = Path(db_files[0].path)
-
-    folder_files = [x for x in list(folder_to_search.rglob("*")) if x.is_file()]
-    if folder_files != []:
-        folder_files = sorted(folder_files, key=lambda x: x.name)
-    return db_files, folder_files
-
-
-def remove_existing_files(video_id, youtube_id, file_types):
-    db_files, _ = get_video_files(video_id, youtube_id)
-    existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
-    for vid_file in existing_vid_files:
-        # the below will delete files found in the database from the filesystem
-        try:
-            vid_file.delete_instance()
-            file_to_delete = Path(vid_file.path) / vid_file.filename
-            file_to_delete.unlink()
-
-        except Exception as e:
-            logger.error(f"Error deleting file {e}")
-
-    # the below will delete files found in the video's folder
-    # regardless if they are in the db or not
-
-    extensions = []
-    if "video" in file_types:
-        extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
-    if "audio" in file_types:
-        extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
-    if "info" in file_types:
-        extensions += [".info.json", ".json"]
-    if "subtitle" in file_types:
-        extensions += [".srt", ".en.vtt"]
-    if "poster" in file_types:
-        extensions += [".jpg", ".jpeg", ".png", ".webp"]
-
-    _, folder_files = get_video_files(video_id, youtube_id)
-    for file in folder_files:
-        if file.suffix in extensions:
-            logger.debug(f"Found video file: {file}. Deleting")
-            file.unlink()
-
-
-# 🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹
-# Vue Components
+    logger.error("deprecated 10/26/24")
 
 
 @solara.component_vue("../components/section/SectionControlPanel.vue", vuetify=True)
@@ -262,394 +125,6 @@ def SectionControlPanel(
     event_create_section,
 ):
     pass
-
-
-@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
-def FileTypeCheckboxes(
-    db_files,
-    folder_files,
-    has_audio: bool = False,
-    has_video: bool = False,
-    has_subtitle: bool = False,
-    has_info: bool = False,
-    has_poster: bool = False,
-    has_album_nfo: bool = False,
-    event_download_video: callable = None,
-    event_download_info: callable = None,
-    event_create_album_nfo: callable = None,
-):
-    pass
-
-
-def register_vue_components():
-
-    ipyvue.register_component_from_file(
-        "AutoComplete", "../components/shared/AutoComplete.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "MyToolTipChip",
-        "../components/shared/MyToolTipChip.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "AlbumPanel",
-        "../components/video/AlbumPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "SeriesPanel",
-        "../components/video/SeriesPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "YoutubeSeriesPanel",
-        "../components/video/YoutubeSeriesPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "VideoFilesDialog",
-        "../components/file/file_type_checkboxes.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "VideoFilesInfoModal",
-        "../components/video/VideoFilesInfoModal.vue",
-        __file__,
-    )
-    ipyvue.register_component_from_file(
-        "SummaryPanel",
-        "../components/section/SummaryPanel.vue",
-        __file__,
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionAdminPanel", "../components/section/admin_panel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTopicsPanel", "../components/section/topics_panel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTimePanel", "../components/section/time_panel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "BeatsInfo", "../components/beat/beats_info.vue", __file__
-    )
-    ipyvue.register_component_from_file(
-        "ArtistsInfo", "../components/artist/artists_info.vue", __file__
-    )
-    ipyvue.register_component_from_file(
-        "SectionTrackPanel", "../components/video/SectionTrackPanel.vue", __file__
-    )
-
-    ipyvue.register_component_from_file(
-        "SectionTrackForm", "../components/video/SectionTrackForm.vue", __file__
-    )
-
-
-# 🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹🦹
-# Python Components
-
-
-@solara.component
-def FilesPanel(video):
-    files = FileModel.select().where(FileModel.video_id == video.id)
-    loading = solara.use_reactive(False)
-    status_message = solara.use_reactive("")
-
-    def download_info(*args):
-        loading.set(True)
-        remove_existing_files(
-            video.id, video.youtube_id, ["info", "subtitle", "poster"]
-        )
-        VideoItem.refresh_youtube_info(video.id)
-        create_album_nfo()
-        loading.set(False)
-
-    def download_video(*args):
-        loading.set(True)
-        logger.info(f"Downloading video: {video.title}")
-        remove_existing_files(video.id, video.youtube_id, ["video", "audio"])
-        info, files = download_video_file(video.youtube_id, WORKING, progress_hook=None)
-
-        vid = VideoModel.select().where(VideoModel.id == video.id).get()
-        for file in files:
-            logger.debug(f"Processing files in download_video of the list item {file}")
-            FileManager.add_path_to_video(file, vid)
-            # this is where i need to add the jellyfin id to the database,
-            # but, i need to make sure that the video is in jellyfin first
-        loading.set(False)
-
-    def create_album_nfo(*args):
-        # need to check if file exists and remove it
-        # and if its alread in the db, remove it
-        loading.set(True)
-        remove_existing_files(video.id, video.youtube_id, ["album_nfo"])
-
-        new_file = VideoItem.create_xml_for_jellyfin(video.id)
-        FileManager.add_path_to_video(new_file, video)
-        loading.set(False)
-
-    db_files, folder_files = get_video_files(video.id, video.youtube_id)
-    ff_serialized = [dict(name=x.name) for x in folder_files]
-    file_types_found = [x.file_type for x in files]
-    if loading.value:
-        with solara.Row(justify="center"):
-            MySpinner()
-            solara.Text(f"{status_message.value}")
-    else:
-
-        FileTypeCheckboxes(
-            db_files=[x.model_to_dict() for x in db_files],
-            folder_files=ff_serialized,
-            has_audio="audio" in file_types_found,
-            has_video="video" in file_types_found,
-            has_info="info" in file_types_found,
-            has_subtitle="subtitle" in file_types_found,
-            has_poster="poster" in file_types_found,
-            has_album_nfo="album_nfo" in file_types_found,
-            event_download_video=download_video,
-            event_create_album_nfo=create_album_nfo,
-            event_download_info=download_info,
-        )
-
-
-@solara.component
-def VideoInfoPanelLeft(video):
-
-    poster = FileManager.get_file_for_video(video, "poster")
-    image = PIL.Image.open(Path(str(poster)))
-    sections = SectionModel.select(
-        SectionModel.start, SectionModel.end, SectionModel.track_id
-    ).where(SectionModel.video_id == video.id)
-    section_durations = [
-        (x.end - x.start) / 1000 for x in sections
-    ]  # list of sections in seconds
-    section_percentage = sum(section_durations) / video.duration * 100
-    tracks_created = len([x for x in sections if x.track_id is not None])
-
-    with solara.Row(justify="center"):
-        solara.Text(
-            f"{video.title[:50]}",
-            classes=["video-info-text"],
-        )
-    with solara.Columns([6, 6]):
-        with solara.Column():
-            with solara.Row(justify="center"):
-
-                solara.Image(image, width=IMG_WIDTH)
-            with solara.Row(justify="center"):
-                solara.Text(
-                    f"Uploaded: {time_ago_string(video.upload_date)}",
-                    classes=["medium-timer"],
-                )
-        with solara.Column():
-            with solara.Row(justify="center"):
-                if len(section_durations) > 0:
-                    solara.Markdown(
-                        f"Sections: {len(section_durations)} ({section_percentage:.2f}%)"
-                    )
-                    solara.Markdown(
-                        f"Tracks Created: {tracks_created} ({tracks_created / len(section_durations) * 100:.2f}%)"
-                    )
-                else:
-                    solara.Markdown("No Sections Found")
-            with solara.Row(justify="center"):
-                solara.Text(
-                    f"Length: {seconds_to_hms(video.duration)}",
-                    classes=["medium-timer"],
-                )
-
-
-@solara.component_vue("../components/video/VideoInfoInputCard.vue")
-def VideoInfoInputCard(
-    albums,
-    serieses,
-    youtube_serieses,
-    selectedAlbum,
-    selectedSeries,
-    selectedYoutubeSeries,
-    episode_number,
-    event_update_video,
-    event_create_album,
-    event_remove_album_from_video,
-    event_update_album_for_video,
-    event_create_series,
-    event_remove_series_from_video,
-    event_update_series_for_video,
-    event_create_youtube_series,
-    event_remove_youtube_series_from_video,
-    event_update_youtube_series_for_video,
-):
-    pass
-
-
-@solara.component
-def InfoPanel(
-    video,
-):
-
-    def create_album(*args):
-        logger.debug(f"Creating Album: {args}")
-        try:
-            album = AlbumModel.create(**args[0])
-        except Exception as e:
-            logger.error(e)
-            return
-
-        logger.debug(f"Created Album: {album.title}")
-
-        vid = VideoModel.get_by_id(video.id)
-        vid.album = album
-        vid.save()
-        album_item = AlbumItem.from_model(album)
-        album_item.use_video_poster()
-
-    def create_series(*args):
-
-        try:
-
-            series = SeriesModel.create(**args[0])
-        except Exception as e:
-            logger.error(e)
-            return
-
-        logger.debug(f"Created Series: {series.name}")
-
-        vid = VideoModel.get_by_id(video.id)
-        vid.series = series
-        vid.save()
-
-    def create_youtube_series(*args):
-        logger.debug(f"Creating Youtube Series: {args}")
-
-        try:
-            youtube_series = YoutubeSeriesModel.create(**args[0])
-        except Exception as e:
-            logger.error(e)
-            return
-
-        logger.debug(f"Created Youtube Series: {youtube_series.title}")
-
-        vid = VideoModel.get_by_id(video.id)
-        vid.youtube_series = youtube_series
-        vid.save()
-
-    def update_album(*args):
-        logger.error(f"Assigning Album {args} to video {video.id}")
-        album = AlbumModel.get_or_none(AlbumModel.title == args[0]["title"])
-        if album is None:
-            logger.error(f"Album {args[0]['title']} not found")
-            return
-        vid = VideoModel.get_by_id(video.id)
-        vid.album = album
-        vid.save()
-
-    def update_series(*args):
-        logger.error(f"Assigning Series {args} to video {video.id}")
-        series = SeriesModel.get_or_none(SeriesModel.name == args[0]["name"])
-        if series is None:
-            logger.error(f"Series {args[0]['series']} not found")
-            return
-        vid = VideoModel.get_by_id(video.id)
-        vid.series = series
-        vid.save()
-
-    def update_youtube_series(*args):
-        logger.error(f"Assigning Youtube Series {args} to video {video.id}")
-        youtube_series = YoutubeSeriesModel.get_or_none(
-            YoutubeSeriesModel.title == args[0]["title"]
-        )
-        if youtube_series is None:
-            logger.error(f"Youtube Series {args[0]['youtube_series']} not found")
-            return
-        vid = VideoModel.get_by_id(video.id)
-        vid.youtube_series = youtube_series
-        vid.save()
-
-    def remove_album(*args):
-        vid = VideoModel.get_by_id(video.id)
-        other_videos = VideoModel.select().where(
-            (VideoModel.album_id == vid.album.id) & (VideoModel.id != video.id)
-        )
-        if len(other_videos):
-            logger.error(f"Album {vid.album.title} still in use")
-            vid.album = None
-            vid.save()
-            return
-        else:
-            logger.error(f"Album {vid.album.title} not in use. Deleting")
-            vid.album.delete_instance()
-
-    def remove_series(*args):
-        logger.error(f"Removing Series from video {video.id}")
-        vid = VideoModel.get_by_id(video.id)
-        vid.series = None
-        vid.save()
-
-    def remove_youtube_series(*args):
-        logger.error(f"Removing Youtube Series from video {video.id}")
-        vid = VideoModel.get_by_id(video.id)
-        vid.youtube_series = None
-        vid.save()
-
-    album_dicts = [
-        dict(id=a.id, title=a.title)
-        for a in AlbumModel.select().order_by(AlbumModel.title)
-    ]
-
-    youtube_series_dicts = [
-        dict(id=a.id, title=a.title)
-        for a in YoutubeSeriesModel.select().order_by(YoutubeSeriesModel.title)
-    ]
-    series_dicts = [
-        dict(id=a.id, name=a.name)
-        for a in SeriesModel.select().order_by(SeriesModel.name)
-    ]
-
-    try:
-        this_album = [a for a in album_dicts if a["id"] == video.album_id][0]
-    except IndexError:
-        this_album = None
-
-    try:
-        this_youtube_series = [
-            x for x in youtube_series_dicts if x["id"] == video.youtube_series_id
-        ][0]
-    except IndexError:
-        this_youtube_series = None
-
-    try:
-        this_series = [x for x in series_dicts if x["id"] == video.series_id][0]
-    except IndexError:
-        this_series = None
-
-    VideoInfoInputCard(
-        albums=album_dicts,
-        youtube_serieses=youtube_series_dicts,
-        serieses=series_dicts,
-        selectedAlbum=this_album,
-        selectedYoutubeSeries=this_youtube_series,
-        selectedSeries=this_series,
-        episode_number=video.episode,
-        event_create_album=create_album,
-        event_remove_album_from_video=remove_album,
-        event_update_album_for_video=update_album,
-        event_create_series=create_series,
-        event_remove_series_from_video=remove_series,
-        event_update_series_for_video=update_series,
-        event_create_youtube_series=create_youtube_series,
-        event_remove_youtube_series_from_video=remove_youtube_series,
-        event_update_youtube_series_for_video=update_youtube_series,
-    ),
 
 
 @solara.component
@@ -876,6 +351,400 @@ def SectionSelector(
     pass
 
 
+# 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# Video - File controls
+
+
+def get_video_files(video_id, youtube_id):
+    db_files = (
+        FileModel.select()
+        .where(FileModel.video_id == video_id)
+        .order_by(FileModel.filename)
+    )
+    if len(db_files) == 0:
+        logger.error(f"No files found for video {video_id}")
+        if youtube_id is None:
+            logger.error("No youtube id found")
+            return [], []
+        folder_to_search = STORAGE / youtube_id
+    else:
+        folder_to_search = Path(db_files[0].path)
+
+    folder_files = [x for x in list(folder_to_search.rglob("*")) if x.is_file()]
+    if folder_files != []:
+        folder_files = sorted(folder_files, key=lambda x: x.name)
+    return db_files, folder_files
+
+
+def remove_existing_files(video_id, youtube_id, file_types):
+    db_files, _ = get_video_files(video_id, youtube_id)
+    existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
+    for vid_file in existing_vid_files:
+        # the below will delete files found in the database from the filesystem
+        try:
+            vid_file.delete_instance()
+            file_to_delete = Path(vid_file.path) / vid_file.filename
+            file_to_delete.unlink()
+
+        except Exception as e:
+            logger.error(f"Error deleting file {e}")
+
+    # the below will delete files found in the video's folder
+    # regardless if they are in the db or not
+
+    extensions = []
+    if "video" in file_types:
+        extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
+    if "audio" in file_types:
+        extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
+    if "info" in file_types:
+        extensions += [".info.json", ".json"]
+    if "subtitle" in file_types:
+        extensions += [".srt", ".en.vtt"]
+    if "poster" in file_types:
+        extensions += [".jpg", ".jpeg", ".png", ".webp"]
+
+    _, folder_files = get_video_files(video_id, youtube_id)
+    for file in folder_files:
+        if file.suffix in extensions:
+            logger.debug(f"Found video file: {file}. Deleting")
+            file.unlink()
+
+
+@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
+def FileTypeCheckboxes(
+    db_files,
+    folder_files,
+    has_audio: bool = False,
+    has_video: bool = False,
+    has_subtitle: bool = False,
+    has_info: bool = False,
+    has_poster: bool = False,
+    has_album_nfo: bool = False,
+    event_download_video: callable = None,
+    event_download_info: callable = None,
+    event_create_album_nfo: callable = None,
+):
+    pass
+
+
+@solara.component
+def FilesPanel(video):
+    files = FileModel.select().where(FileModel.video_id == video.id)
+    loading = solara.use_reactive(False)
+    status_message = solara.use_reactive("")
+
+    def download_info(*args):
+        loading.set(True)
+        remove_existing_files(
+            video.id, video.youtube_id, ["info", "subtitle", "poster"]
+        )
+        VideoItem.refresh_youtube_info(video.id)
+        create_album_nfo()
+        loading.set(False)
+
+    def download_video(*args):
+        loading.set(True)
+        logger.info(f"Downloading video: {video.title}")
+        remove_existing_files(video.id, video.youtube_id, ["video", "audio"])
+        info, files = download_video_file(video.youtube_id, WORKING, progress_hook=None)
+
+        vid = VideoModel.select().where(VideoModel.id == video.id).get()
+        for file in files:
+            logger.debug(f"Processing files in download_video of the list item {file}")
+            FileManager.add_path_to_video(file, vid)
+            # this is where i need to add the jellyfin id to the database,
+            # but, i need to make sure that the video is in jellyfin first
+        loading.set(False)
+
+    def create_album_nfo(*args):
+        # need to check if file exists and remove it
+        # and if its alread in the db, remove it
+        loading.set(True)
+        remove_existing_files(video.id, video.youtube_id, ["album_nfo"])
+
+        new_file = VideoItem.create_xml_for_jellyfin(video.id)
+        FileManager.add_path_to_video(new_file, video)
+        loading.set(False)
+
+    db_files, folder_files = get_video_files(video.id, video.youtube_id)
+    ff_serialized = [dict(name=x.name) for x in folder_files]
+    file_types_found = [x.file_type for x in files]
+    if loading.value:
+        with solara.Row(justify="center"):
+            MySpinner()
+            solara.Text(f"{status_message.value}")
+    else:
+
+        FileTypeCheckboxes(
+            db_files=[x.model_to_dict() for x in db_files],
+            folder_files=ff_serialized,
+            has_audio="audio" in file_types_found,
+            has_video="video" in file_types_found,
+            has_info="info" in file_types_found,
+            has_subtitle="subtitle" in file_types_found,
+            has_poster="poster" in file_types_found,
+            has_album_nfo="album_nfo" in file_types_found,
+            event_download_video=download_video,
+            event_create_album_nfo=create_album_nfo,
+            event_download_info=download_info,
+        )
+
+
+@solara.component
+def VideoInfoPanelLeft(video):
+
+    poster = FileManager.get_file_for_video(video, "poster")
+    image = PIL.Image.open(Path(str(poster)))
+    sections = SectionModel.select(
+        SectionModel.start, SectionModel.end, SectionModel.track_id
+    ).where(SectionModel.video_id == video.id)
+    section_durations = [
+        (x.end - x.start) / 1000 for x in sections
+    ]  # list of sections in seconds
+    section_percentage = sum(section_durations) / video.duration * 100
+    tracks_created = len([x for x in sections if x.track_id is not None])
+
+    with solara.Row(justify="center"):
+        solara.Text(
+            f"{video.title[:50]}",
+            classes=["video-info-text"],
+        )
+    with solara.Columns([6, 6]):
+        with solara.Column():
+            with solara.Row(justify="center"):
+
+                solara.Image(image, width=IMG_WIDTH)
+            with solara.Row(justify="center"):
+                solara.Text(
+                    f"Uploaded: {time_ago_string(video.upload_date)}",
+                    classes=["medium-timer"],
+                )
+        with solara.Column():
+            with solara.Row(justify="center"):
+                if len(section_durations) > 0:
+                    solara.Markdown(
+                        f"Sections: {len(section_durations)} ({section_percentage:.2f}%)"
+                    )
+                    solara.Markdown(
+                        f"Tracks Created: {tracks_created} ({tracks_created / len(section_durations) * 100:.2f}%)"
+                    )
+                else:
+                    solara.Markdown("No Sections Found")
+            with solara.Row(justify="center"):
+                solara.Text(
+                    f"Length: {seconds_to_hms(video.duration)}",
+                    classes=["medium-timer"],
+                )
+
+
+@solara.component_vue("../components/video/VideoInfoInputCard.vue")
+def VideoInfoInputCard(
+    albums,
+    serieses,
+    youtube_serieses,
+    selectedAlbum,
+    selectedSeries,
+    selectedYoutubeSeries,
+    episode_number,
+    event_create,
+    event_update,
+    event_remove,
+):
+    pass
+
+
+@solara.component
+def InfoPanel(
+    video,
+):
+    vid_db = VideoModel.get_by_id(video.id)
+
+    def create(*args):
+        logger.debug(f"Generic Create Function: {args}")
+
+        try:
+            _type = args[0]["type"]
+            item = args[0]["item"]
+        except Exception as e:
+            logger.error(e)
+            return
+
+        try:
+            match _type:
+                case "album":
+                    item_id = AlbumModel.create(**item)
+                    vid_db.album = item_id
+                    vid_db.save()
+                    album_item = AlbumItem.from_model(item_id)
+                    album_item.use_video_poster()
+
+                case "series":
+                    item_id = SeriesModel.create(**item)
+                    vid_db.series = item_id
+                    vid_db.save()
+
+                case "youtube_series":
+                    item_id = YoutubeSeriesModel.create(**item)
+                    vid_db.youtube_series = item_id
+                    vid_db.save()
+
+                case _:
+                    logger.error(f"Type {_type} not found")
+                    return
+
+        except Exception as e:
+            logger.error(e)
+            return
+
+    def update(*args):
+        logger.debug(f"Generic Update Function: {args}")
+
+        try:
+            _type = args[0]["type"]
+            item = args[0]["item"]
+
+        except Exception as e:
+            logger.error(e)
+            raise
+
+        try:
+            match _type:
+                case "album":
+                    item_id = AlbumModel.get_by_id(item["id"])
+                    vid_db.album = item_id
+                    vid_db.save()
+                    album_item = AlbumItem.from_model(item_id)
+                    # i think leaving this here will change the album poster
+                    # every time the album is updated
+                    album_item.use_video_poster()
+
+                case "series":
+                    item_id = SeriesModel.get_by_id(item["id"])
+                    vid_db.series = item_id
+                    vid_db.save()
+
+                case "youtube_series":
+                    item_id = YoutubeSeriesModel.get_by_id(item["id"])
+                    vid_db.youtube_series = item_id
+                    vid_db.save()
+
+                case _:
+                    logger.error(f"Type {_type} not found")
+                    return
+
+        except Exception as e:
+            logger.error(e)
+            raise
+
+    def remove(*args):
+        logger.debug(f"Generic Remove Function: {args}")
+
+        try:
+            _type = args[0]["type"]
+            item = args[0]["item"]
+        except Exception as e:
+            logger.error(e)
+            return
+
+        try:
+            match _type:
+                case "album":
+                    other_videos = VideoModel.select().where(
+                        (VideoModel.album_id == vid_db.album_id)
+                        & (VideoModel.id != video.id)
+                    )
+
+                    if len(other_videos) == 0:
+                        logger.error(f"Album {vid_db.album_id} not in use. Deleting")
+                        vid_db.album.delete_instance()
+                    
+                    vid_db.album = None
+
+                case "series":
+                    other_videos = VideoModel.select().where(
+                        (VideoModel.series_id == vid_db.series.id)
+                        & (VideoModel.id != video.id)
+                    )
+                    vid_db.series = None
+                    if len(other_videos) == 0:
+                        logger.error(
+                            f"Series {vid_db.series.name} not in use. Deleting"
+                        )
+                        vid_db.series.delete_instance()
+
+                case "youtube_series":
+                    other_videos = VideoModel.select().where(
+                        (VideoModel.youtube_series_id == vid_db.youtube_series.id)
+                        & (VideoModel.id != video.id)
+                    )
+                    vid_db.youtube_series = None
+                    if len(other_videos) == 0:
+                        logger.error(
+                            f"Series {vid_db.youtube_series.title} not in use. Deleting"
+                        )
+                        vid_db.youtube_series.delete_instance()
+
+                case _:
+                    logger.error(f"Type {_type} not found")
+                    return
+
+        except Exception as e:
+            logger.error(e)
+            return
+
+        vid_db.save()
+        logger.debug(f"Successfully removed item from video {args}")
+
+    album_dicts = [
+        dict(id=a.id, title=a.title)
+        for a in AlbumModel.select().order_by(AlbumModel.title)
+    ]
+
+    youtube_series_dicts = [
+        dict(id=a.id, title=a.title)
+        for a in YoutubeSeriesModel.select().order_by(YoutubeSeriesModel.title)
+    ]
+    series_dicts = [
+        dict(id=a.id, name=a.name)
+        for a in SeriesModel.select().order_by(SeriesModel.name)
+    ]
+
+    try:
+        this_album = [a for a in album_dicts if a["id"] == video.album_id][0]
+    except IndexError:
+        this_album = None
+
+    try:
+        this_youtube_series = [
+            x for x in youtube_series_dicts if x["id"] == video.youtube_series_id
+        ][0]
+    except IndexError:
+        this_youtube_series = None
+
+    try:
+        this_series = [x for x in series_dicts if x["id"] == video.series_id][0]
+    except IndexError:
+        this_series = None
+
+    VideoInfoInputCard(
+        albums=album_dicts,
+        youtube_serieses=youtube_series_dicts,
+        serieses=series_dicts,
+        selectedAlbum=this_album,
+        selectedYoutubeSeries=this_youtube_series,
+        selectedSeries=this_series,
+        episode_number=video.episode,
+        event_create=create,
+        event_update=update,
+        event_remove=remove,
+    ),
+
+
+def loop_jellyfin(*args):
+    logger.debug("🧪🧪🧪🧪🧪🧪 Deprecated 10/26/24")
+
+
 @solara.component_vue("../components/video/JellyfinControlPanel.vue")
 def JellyfinControlPanel(
     enable_live_updating,
@@ -909,7 +778,7 @@ def Page():
     router = solara.use_router()
     MySidebar(router=router)
 
-    register_vue_components()
+    register_vue_components(file=__file__)
 
     video_id = parse_url_args()
     video = VideoItem.get_details_for_video(video_id)
@@ -932,7 +801,7 @@ def Page():
                 InfoPanel(
                     video=video,
                 )
-                # python/vue component - shows full screen file edit dialog
+                # python component - shows full screen file edit dialog
                 FilesPanel(
                     video=video,
                 )

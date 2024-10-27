@@ -18,13 +18,13 @@ from hmtc.models import (
     Series,
     YoutubeSeries,
 )
-from hmtc.models import Section as SectionModel
 from hmtc.models import File as FileModel
+from hmtc.models import Section as SectionModel
 from hmtc.models import (
     Video as VideoModel,
 )
-from hmtc.schemas.channel import ChannelItem
 from hmtc.schemas.base import BaseItem
+from hmtc.schemas.channel import ChannelItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import SectionManager
 from hmtc.utils.general import my_move_file, read_json_file

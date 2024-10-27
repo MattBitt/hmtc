@@ -168,7 +168,11 @@ module.exports = {
       this.dialog = false;
     },
     removeAlbum() {
-      this.$emit("removeAlbum");
+      const args = {
+        id: this.itemModel?.id,
+        title: this.itemModel?.title,
+      };
+      this.$emit("removeAlbum", args);
       this.close();
     },
     saveItemToDB(item) {
@@ -180,6 +184,7 @@ module.exports = {
         this.$emit("createAlbum", args);
       } else {
         const args = {
+          id: this.itemModel?.id,
           title: this.itemModel?.title,
         };
 
