@@ -57,11 +57,11 @@ class VideoItem(BaseItem):
 
     file_count: int = 0
 
-    channel_id: int = None
-    playlist_id: int = None
-    youtube_series_id: int = None
-    series_id: int = None
-    album_id: int = None
+    channel_id: int = 0
+    playlist_id: int = 0
+    youtube_series_id: int = 0
+    series_id: int = 0
+    album_id: int = 0
     section_ids: list = field(default_factory=list)
 
     @staticmethod
@@ -213,7 +213,7 @@ class VideoItem(BaseItem):
             .where(VideoModel.id == id)
         ).get()
         vid_dict = vid.model_to_dict()
-        logger.debug(f"Returning details: {vid_dict}")
+        # logger.debug(f"Returning details: {vid_dict}")
         return VideoItem(**vid_dict)
 
     def update_from_youtube(self):

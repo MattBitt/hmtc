@@ -33,7 +33,7 @@
             <v-col cols="6">
               <div v-if="hasAlbum">
                 <h4>Current:</h4>
-                <strong>{{ albumInfo.title }}</strong>
+                <strong>{{ albumInfo?.title }}</strong>
                 <v-btn color="warning" icon @click="removeAlbum">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>

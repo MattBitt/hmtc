@@ -126,31 +126,6 @@ def create_table_title(filter, id_to_filter):
     return table_title
 
 
-@solara.component_vue("../components/video/video_table.vue", vuetify=True)
-def VideoDisplayTable(
-    items: list = [],
-    table_title: str = "",
-    hide_column: str = "",
-    show_nonunique: bool = False,
-    event_save_video_item=None,
-    channels: list = [],
-    selected_channel: dict = None,
-    serieses: list = [],
-    selected_series: dict = None,
-    youtube_serieses: list = [],
-    selected_youtube_series: dict = None,
-    playlists: list = [],
-    selected_playlist: dict = None,
-    albums: list = [],
-    selected_album: dict = None,
-    event_link1_clicked: Callable = None,
-    event_link2_clicked: Callable = None,
-    event_link3_clicked: Callable = None,
-    event_delete_video_item: Callable = None,
-):
-    pass
-
-
 def view_details(router, item):
     router.push(f"/video-details/{item['id']}")
 
@@ -239,6 +214,21 @@ def save_video_item(dict_of_items):
     new_vid.save()
 
 
+@solara.component_vue("../components/video/video_table.vue", vuetify=True)
+def VideoDisplayTable(
+    items: list = [],
+    table_title: str = "",
+    hide_column: str = "",
+    show_nonunique: bool = False,
+    event_save_video_item=None,
+    event_link1_clicked: Callable = None,
+    event_link2_clicked: Callable = None,
+    event_link3_clicked: Callable = None,
+    event_delete_video_item: Callable = None,
+):
+    pass
+
+
 @solara.component
 def Page():
     router = solara.use_router()
@@ -246,64 +236,23 @@ def Page():
     base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
     table_title = create_table_title(filter, id_to_filter)
 
-    channels = [
-        {"id": channel.id, "name": channel.name}
-        for channel in Channel.select(Channel.id, Channel.name).order_by(Channel.name)
-    ]
-    serieses = [
-        {"id": series.id, "name": series.name}
-        for series in Series.select(Series.id, Series.name).order_by(Series.name)
-    ]
-    youtube_serieses = [
-        {"id": series.id, "title": series.title}
-        for series in YoutubeSeries.select(
-            YoutubeSeries.id, YoutubeSeries.title
-        ).order_by(YoutubeSeries.title)
-    ]
-
-    playlists = [
-        {"id": playlist.id, "title": playlist.title}
-        for playlist in Playlist.select(Playlist.id, Playlist.title).order_by(
-            Playlist.title
-        )
-    ]
-
-    albums = [
-        {"id": album.id, "title": album.title}
-        for album in AlbumModel.select(AlbumModel.id, AlbumModel.title).order_by(
-            AlbumModel.title
-        )
-    ]
-
     if base_query is None:
         solara.Markdown("Invalid Query. Please check the URL.")
         logger.debug("No base query")
         return
 
     item_list = [
-        item.model_to_dict()
+        VideoItem(**item.model_to_dict()).serialize()
         for item in base_query.order_by(VideoModel.upload_date.desc())
     ]
-    df = pd.DataFrame(item_list)
-    items = df.to_dict("records")
 
     with solara.Column(classes=["main-container"]):
         VideoDisplayTable(
-            items=items,
+            items=item_list,
             table_title=table_title,
             hide_column=filter,
             show_nonunique=show_nonunique,
-            channels=channels,
-            selected_channel={"id": None, "name": None},
-            serieses=serieses,
-            selected_series={"id": None, "name": None},
-            youtube_serieses=youtube_serieses,
-            selected_youtube_series={"id": None, "title": None},
-            albums=albums,
-            selected_album={"id": None, "title": None},
-            playlists=playlists,
-            selected_playlist={"id": None, "title": None},
+            event_save_video_item=save_video_item,
             event_link1_clicked=lambda x: view_details(router, x),
             event_delete_video_item=delete_video_item,
-            event_save_video_item=save_video_item,
         )

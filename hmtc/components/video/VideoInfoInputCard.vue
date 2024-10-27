@@ -9,7 +9,7 @@
         @selectAlbum="selectAlbum"
         @removeAlbum="removeAlbum"
       />
-      <h4>{{ albumDict.title ? albumDict.title : "" }}</h4>
+      <h4>{{ albumDict?.title }}</h4>
     </v-col>
 
     <v-col>
@@ -21,7 +21,7 @@
         @selectSeries="selectSeries"
         @removeSeries="removeSeries"
       />
-      <h4>{{ this.selectedSeries.name }}</h4>
+      <h4>{{ this.selectedSeries?.name }}</h4>
     </v-col>
 
     <v-col>
@@ -33,7 +33,7 @@
         @selectYoutubeSeries="selectYoutubeSeries"
         @removeYoutubeSeries="removeYoutubeSeries"
       />
-      <h4>{{ this.selectedYoutubeSeries.title }}</h4>
+      <h4>{{ this.selectedYoutubeSeries?.title }}</h4>
     </v-col>
   </v-row>
 </template>
@@ -43,102 +43,72 @@ export default {
   data() {
     return {
       model: null,
-      selectedAlbum: null,
-      selectedYoutubeSeries: null,
-      selectedSeries: null,
-      episode_number: null,
+      selectedAlbum: 0,
+      selectedYoutubeSeries: 0,
+      selectedSeries: 0,
+      episode_number: 0,
     };
   },
   computed: {
     albumDict() {
-      console.log("albumDict");
       return this.selectedAlbum;
     },
     seriesDict() {
-      console.log("seriesDict");
       return this.selectedSeries;
     },
 
     youtubeSeriesDict() {
-      console.log("youtubeseriesDict");
       return this.selectedYoutubeSeries;
-    },
-    thisVidHasAlbum() {
-      return this.selectedAlbum !== null;
     },
   },
   methods: {
     createAlbum(args) {
-      console.log("In VideoInfoInputCard createAlbum", args);
+      this.selectedAlbum = { title: args.title };
+      this.albums.push(this.selectedAlbum);
+      this.create_album(this.selectedAlbum);
+    },
 
-      this.albums.push(args);
-      this.selectedAlbum = args.title;
-      this.create_album(args);
+    createYoutubeSeries(args) {
+      this.selectedYoutubeSeries = {
+        title: args.title,
+      };
+      this.youtube_serieses.push(this.selectedYoutubeSeries);
+      this.create_youtube_series(this.selectedYoutubeSeries);
+    },
+    createSeries(args) {
+      this.selectedSeries = { name: args.name };
+      this.serieses.push(this.selectedSeries);
+      this.create_series(this.selectedSeries);
+    },
+
+    selectAlbum(val) {
+      this.selectedAlbum = { title: val.title, id: val.id };
+      this.update_album_for_video(this.selectedAlbum);
+    },
+
+    selectSeries(val) {
+      this.selectedSeries = { name: val.name, id: val.id };
+      this.update_series_for_video(this.selectedSeries);
+    },
+    selectYoutubeSeries(val) {
+      this.selectedYoutubeSeries = { title: val.title, id: val.id };
+      this.update_youtube_series_for_video(this.selectedYoutubeSeries);
     },
     removeAlbum() {
-      console.log("In VideoInfoInputCard removeAlbum", this.selectedAlbum);
       this.albums = this.albums.filter((a) => a.title !== this.selectedAlbum);
       this.selectedAlbum = null;
 
       this.remove_album_from_video();
     },
 
-    selectAlbum(val) {
-      this.selectedAlbum = val.title;
-      const args = {
-        title: this.selectedAlbum,
-      };
-      this.update_album_for_video(args);
-    },
-
-    createYoutubeSeries(youtubeseriesTitle) {
-      console.log("adding new youtubeseries (parent)", youtubeseriesTitle);
-      this.youtube_serieses.push({
-        title: youtubeseriesTitle,
-        id: this.youtube_serieses.length + 1,
-      });
-      this.create_youtube_series(youtubeseriesTitle);
-      // this.youtube_serieses.push({ title: 'New YoutubeSeries', id: this.youtube_serieses.length + 1 })
-      // this.model = this.youtube_serieses[this.youtube_serieses.length - 1]
-    },
-    removeYoutubeSeries() {
-      console.log("clearing youtubeseries (parent)");
-      this.remove_youtube_series_from_video();
-    },
-    selectYoutubeSeries(val) {
-      console.log("selected youtubeseries (parent)", val);
-      this.selectedYoutubeSeries = val.title;
-
-      const args = {
-        title: this.selectedYoutubeSeries,
-      };
-      this.update_youtube_series_for_video(args);
-    },
-
-    createSeries(seriesName) {
-      console.log("adding new series (parent)", seriesName);
-      this.serieses.push({
-        name: seriesName,
-        id: this.serieses.length + 1,
-      });
-      this.create_series(seriesName);
-    },
     removeSeries() {
-      console.log("clearing series (parent)");
       this.remove_series_from_video();
     },
-    selectSeries(val) {
-      console.log("selected series (parent)", val);
-      this.selectedSeries = val.name;
-      this.update_series_for_video(val);
+    removeYoutubeSeries() {
+      this.remove_youtube_series_from_video();
     },
   },
   watch: {},
-  created() {
-    console.log("In VideoInfoInputCard created");
-    console.log("selectedAlbum", this.selectedAlbum);
-    console.log("selectedSeries", this.selectedSeries);
-    console.log("selectedYoutubeSeries", this.selectedYoutubeSeries);
-  },
+  created() {},
 };
 </script>

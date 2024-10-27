@@ -58,6 +58,22 @@ AVERAGE_SECTION_LENGTH = 300
 IMG_WIDTH = "300px"
 
 loading = solara.reactive(False)
+reactive_sections = solara.reactive([])
+
+
+def delete_all_sections(*args):
+    for section in reactive_sections.value:
+        logger.debug(f"Deleting Section: {section}")
+        delete_section_from_db(section.id)
+
+    reactive_sections.set([])
+
+
+def create_section(video, start, end, section_type="instrumental"):
+    sm = SectionManager.from_video(video)
+    new_sect_id = sm.create_section(start=start, end=end, section_type="instrumental")
+    new_sect = SectionModel.get_by_id(new_sect_id)
+    reactive_sections.set(reactive_sections.value + [new_sect])
 
 
 def loop_jellyfin(*args):
@@ -265,29 +281,6 @@ def FileTypeCheckboxes(
     pass
 
 
-@solara.component_vue("../components/video/VideoInfoInputCard.vue")
-def VideoInfoInputCard(
-    albums,
-    serieses,
-    youtube_serieses,
-    selectedAlbum,
-    selectedSeries,
-    episode_number,
-    selectedYoutubeSeries,
-    event_update_video,
-    event_create_album,
-    event_remove_album_from_video,
-    event_update_album_for_video,
-    event_create_series,
-    event_remove_series_from_video,
-    event_update_series_for_video,
-    event_create_youtube_series,
-    event_remove_youtube_series_from_video,
-    event_update_youtube_series_for_video,
-):
-    pass
-
-
 def register_vue_components():
 
     ipyvue.register_component_from_file(
@@ -476,13 +469,35 @@ def VideoInfoPanelLeft(video):
                 )
 
 
+@solara.component_vue("../components/video/VideoInfoInputCard.vue")
+def VideoInfoInputCard(
+    albums,
+    serieses,
+    youtube_serieses,
+    selectedAlbum,
+    selectedSeries,
+    selectedYoutubeSeries,
+    episode_number,
+    event_update_video,
+    event_create_album,
+    event_remove_album_from_video,
+    event_update_album_for_video,
+    event_create_series,
+    event_remove_series_from_video,
+    event_update_series_for_video,
+    event_create_youtube_series,
+    event_remove_youtube_series_from_video,
+    event_update_youtube_series_for_video,
+):
+    pass
+
+
 @solara.component
 def InfoPanel(
     video,
 ):
 
     def create_album(*args):
-        # doesn't work yet for release date
         logger.debug(f"Creating Album: {args}")
         try:
             album = AlbumModel.create(**args[0])
@@ -498,35 +513,10 @@ def InfoPanel(
         album_item = AlbumItem.from_model(album)
         album_item.use_video_poster()
 
-    def update_album(*args):
-        logger.error(f"Assigning Album {args} to video {video.id}")
-        album = AlbumModel.get_or_none(AlbumModel.title == args[0]["title"])
-        if album is None:
-            logger.error(f"Album {args[0]['album']} not found")
-            return
-        vid = VideoModel.get_by_id(video.id)
-        vid.album = album
-        vid.save()
-
-    def remove_album(*args):
-
-        vid = VideoModel.get_by_id(video.id)
-
-        other_videos = VideoModel.select().where(
-            (VideoModel.album_id == vid.album.id) & (VideoModel.id != video.id)
-        )
-        if len(other_videos):
-            logger.error(f"Album {vid.album.title} still in use")
-            vid.album = None
-            vid.save()
-            return
-        else:
-            logger.error(f"Album {vid.album.title} not in use. Deleting")
-            vid.album.delete_instance()
-
     def create_series(*args):
-        logger.debug(f"Creating Series: {args}")
+
         try:
+
             series = SeriesModel.create(**args[0])
         except Exception as e:
             logger.error(e)
@@ -536,6 +526,31 @@ def InfoPanel(
 
         vid = VideoModel.get_by_id(video.id)
         vid.series = series
+        vid.save()
+
+    def create_youtube_series(*args):
+        logger.debug(f"Creating Youtube Series: {args}")
+
+        try:
+            youtube_series = YoutubeSeriesModel.create(**args[0])
+        except Exception as e:
+            logger.error(e)
+            return
+
+        logger.debug(f"Created Youtube Series: {youtube_series.title}")
+
+        vid = VideoModel.get_by_id(video.id)
+        vid.youtube_series = youtube_series
+        vid.save()
+
+    def update_album(*args):
+        logger.error(f"Assigning Album {args} to video {video.id}")
+        album = AlbumModel.get_or_none(AlbumModel.title == args[0]["title"])
+        if album is None:
+            logger.error(f"Album {args[0]['title']} not found")
+            return
+        vid = VideoModel.get_by_id(video.id)
+        vid.album = album
         vid.save()
 
     def update_series(*args):
@@ -548,32 +563,6 @@ def InfoPanel(
         vid.series = series
         vid.save()
 
-    def remove_series(*args):
-        logger.error(f"Removing Series from video {video.id}")
-        vid = VideoModel.get_by_id(video.id)
-        vid.series = None
-        vid.save()
-
-    def create_youtube_series(*args):
-        logger.debug(f"Creating Youtube Series: {args}")
-        try:
-            series = YoutubeSeriesModel.create(**args[0])
-        except Exception as e:
-            logger.error(e)
-            return
-
-        logger.debug(f"Created Youtube Series: {series.title}")
-
-        vid = VideoModel.get_by_id(video.id)
-        vid.youtube_series = series
-        vid.save()
-
-    def remove_youtube_series(*args):
-        logger.error(f"Removing Youtube Series from video {video.id}")
-        vid = VideoModel.get_by_id(video.id)
-        vid.youtube_series = None
-        vid.save()
-
     def update_youtube_series(*args):
         logger.error(f"Assigning Youtube Series {args} to video {video.id}")
         youtube_series = YoutubeSeriesModel.get_or_none(
@@ -584,6 +573,32 @@ def InfoPanel(
             return
         vid = VideoModel.get_by_id(video.id)
         vid.youtube_series = youtube_series
+        vid.save()
+
+    def remove_album(*args):
+        vid = VideoModel.get_by_id(video.id)
+        other_videos = VideoModel.select().where(
+            (VideoModel.album_id == vid.album.id) & (VideoModel.id != video.id)
+        )
+        if len(other_videos):
+            logger.error(f"Album {vid.album.title} still in use")
+            vid.album = None
+            vid.save()
+            return
+        else:
+            logger.error(f"Album {vid.album.title} not in use. Deleting")
+            vid.album.delete_instance()
+
+    def remove_series(*args):
+        logger.error(f"Removing Series from video {video.id}")
+        vid = VideoModel.get_by_id(video.id)
+        vid.series = None
+        vid.save()
+
+    def remove_youtube_series(*args):
+        logger.error(f"Removing Youtube Series from video {video.id}")
+        vid = VideoModel.get_by_id(video.id)
+        vid.youtube_series = None
         vid.save()
 
     album_dicts = [
@@ -889,26 +904,6 @@ def JFPanel(
     )
 
 
-reactive_sections = solara.reactive([])
-
-
-def delete_all_sections(*args):
-    for section in reactive_sections.value:
-        logger.debug(f"Deleting Section: {section}")
-        delete_section_from_db(section.id)
-
-    reactive_sections.set([])
-
-
-def create_section(video, *args):
-    sm = SectionManager.from_video(video)
-    new_sect_id = sm.create_section(
-        start=args[0]["start"], end=args[0]["end"], section_type="instrumental"
-    )
-    new_sect = SectionModel.get_by_id(new_sect_id)
-    reactive_sections.set(reactive_sections.value + [new_sect])
-
-
 @solara.component
 def Page():
     router = solara.use_router()
@@ -926,7 +921,8 @@ def Page():
     jellyfin_status_dict = solara.use_reactive(get_user_session())
 
     def local_create(*args):
-        create_section(video, args)
+        logger.debug(f"Creating Section: {args}")
+        create_section(video, args[0]["start"], args[0]["end"])
 
     with solara.Column(classes=["main-container"]):
         with solara.Card():

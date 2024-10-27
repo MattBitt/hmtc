@@ -85,61 +85,6 @@
                     ></v-checkbox>
                   </v-col>
                 </v-row>
-                <v-row>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-select
-                      v-model="selected_channel"
-                      :items="channels"
-                      item-text="name"
-                      item-value="id"
-                      label="Channel"
-                      return-object
-                    ></v-select
-                  ></v-col>
-
-                  <v-col cols="12" sm="6" md="4">
-                    <v-select
-                      v-model="selected_series"
-                      :items="serieses"
-                      item-text="name"
-                      item-value="id"
-                      label="Series"
-                      clearable
-                      return-object
-                    ></v-select
-                  ></v-col>
-
-                  <v-col cols="12" sm="6" md="4">
-                    <v-select
-                      v-model="selected_youtube_series"
-                      :items="youtube_serieses"
-                      item-text="title"
-                      item-value="id"
-                      label="YouTube Series"
-                      return-object
-                    ></v-select
-                  ></v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-select
-                      v-model="selected_playlist"
-                      :items="playlists"
-                      item-text="title"
-                      item-value="id"
-                      label="YouTube Playlist"
-                      return-object
-                    ></v-select
-                  ></v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-select
-                      v-model="selected_album"
-                      :items="albums"
-                      item-text="title"
-                      item-value="id"
-                      label="Album"
-                      return-object
-                    ></v-select
-                  ></v-col>
-                </v-row>
               </v-container>
             </v-card-text>
 
@@ -249,7 +194,7 @@
           </span>
           <span v-else>---</span>
         </v-chip>
-        <v-chip :class="getColor(item)">
+        <v-chip>
           {{ item.duration }}
         </v-chip>
       </td>
@@ -267,7 +212,6 @@ export default {
       sortDesc: true,
       search: "",
       headers: [
-        // { text: "id", value: "id", filterable: true },
         {
           text: "Uploaded",
           value: "upload_date",
@@ -281,23 +225,6 @@ export default {
           value: "title",
           align: "start",
         },
-        // { text: "Duration (s)", value: "duration", filterable: false },
-        // { text: "Series Name", value: "series_name", filterable: true },
-        // {
-        //   text: "Youtube Series",
-        //   value: "youtube_series_title",
-        //   filterable: true,
-        // },
-        // { text: "Episode", value: "episode", filterable: true },
-        // { text: "Jellyfin ID", value: "jellyfin_id", filterable: true },
-        // { text: "Album Title", value: "album_title", filterable: true },
-
-        // { text: "Channel Name", value: "channel_name", filterable: false },
-        // {
-        //   text: "Playlist Title",
-        //   value: "playlist_title",
-        //   filterable: false,
-        // },
         {
           text: "# Files",
           value: "file_count",
@@ -315,77 +242,12 @@ export default {
         },
       ],
 
-      selected_channel: {
-        id: 1,
-        name: "Channel 1",
-      },
-      channels: [
-        {
-          id: 1,
-          name: "Channel 1",
-        },
-      ],
-
-      selected_series: {
-        id: 1,
-        name: "series 1",
-      },
-      serieses: [
-        {
-          id: 1,
-          name: "series 1",
-        },
-      ],
-
-      selected_youtube_series: {
-        id: 1,
-        title: "youtube_series 1",
-      },
-
-      youtube_serieses: [
-        {
-          id: 1,
-          title: "youtube_series 1",
-        },
-      ],
-
-      selected_playlist: {
-        id: 1,
-        title: "youtube_playlist 1",
-      },
-
-      playlists: [
-        {
-          id: 1,
-          title: "youtube_playlist 1",
-        },
-      ],
-
-      albums: [
-        {
-          id: 1,
-          title: "youtube_playlist 1",
-        },
-      ],
-
-      selected_album: {
-        id: 1,
-        title: "youtube_playlist 1",
-      },
-
       items: [
         {
           title: "Title 1",
           youtube_series_title: "Frozen Yogurt",
           episode: "",
           duration: 0,
-          series: "",
-          playlist: "",
-          youtube_series: "",
-          channel: "",
-          series_name: "",
-          playlist_title: "",
-          channel_name: "",
           contains_unique_content: true,
           upload_date: "2021-01-01",
           id: 1,
@@ -398,14 +260,6 @@ export default {
         title: "Video Title",
         episode: "",
         duration: 0,
-        series: "",
-        playlist: "",
-        youtube_series: "",
-        channel: "",
-        series_name: "",
-        playlist_title: "",
-        youtube_series_title: "",
-        channel_name: "",
         contains_unique_content: true,
         upload_date: "",
         youtube_id: "",
@@ -416,14 +270,6 @@ export default {
         title: "",
         episode: "",
         duration: 0,
-        series: "",
-        playlist: "",
-        youtube_series: "",
-        channel: "",
-        series_name: "",
-        playlist_title: "",
-        youtube_series_title: "",
-        channel_name: "",
         contains_unique_content: false,
         upload_date: "",
         youtube_id: "",
@@ -459,46 +305,9 @@ export default {
   },
 
   methods: {
-    getColor(item) {
-      if (item.duration < 60) return "secondary";
-      else if (item.duration < 900) return "accent";
-      else return "primary";
-    },
     editItem(item) {
       this.editedIndex = this.items.indexOf(item);
       this.editedItem = Object.assign({}, item);
-
-      this.editedItem.channel = this.channels.find(
-        (channel) => channel.name === item.channel_name
-      );
-
-      this.editedItem.series = this.serieses.find(
-        (series) => series.name === item.series_name
-      );
-
-      this.editedItem.youtube_series = this.youtube_serieses.find(
-        (youtube_series) => youtube_series.title === item.youtube_series_title
-      );
-
-      this.editedItem.playlist = this.playlists.find(
-        (playlist) => playlist.title === item.playlist_title
-      );
-
-      this.editedItem.album = this.albums.find(
-        (album) => album.title === item.album_title
-      );
-
-      this.selected_channel = this.editedItem.channel || this.selected_channel;
-
-      this.selected_series = this.editedItem.series || this.selected_series;
-
-      this.selected_youtube_series =
-        this.editedItem.youtube_series || this.selected_youtube_series;
-
-      this.selected_playlist =
-        this.editedItem.playlist || this.selected_playlist;
-
-      this.selected_album = this.editedItem.album || this.selected_album;
 
       this.dialog = true;
     },
@@ -521,11 +330,6 @@ export default {
       this.save_video_item({
         item: item,
         editedItem: this.editedItem,
-        selectedChannel: this.selected_channel,
-        selectedSeries: this.selected_series,
-        selectedYoutubeSeries: this.selected_youtube_series,
-        selectedPlaylist: this.selected_playlist,
-        selectedAlbum: this.selected_album,
       });
 
       // update the array in the front end and close the dialog box
@@ -557,25 +361,11 @@ export default {
       }
       this.close();
     },
-    writeLog(paginationObject) {
-      // this is an example of intercepting the pagination event
-      // to perform some action
-      let action;
-      console.log(paginationObject);
-      this.currentPage < paginationObject.page
-        ? (action = "forward")
-        : (action = "backguard");
-      this.currentPage = paginationObject.page;
-      // console.log(action);
-      //Write code to call your backend using action...
+    writeLog() {
+      console.log("Pagination event");
     },
-    // this function captures events for the data table
-    handleClick(row) {
-      // this.items.map((item, index) => {
-      //   item.selected = item === row;
-      //   this.$set(this.items, index, item);
-      // });
-      // console.log(row);
+    handleClick(item) {
+      console.log(item);
     },
   },
 };
