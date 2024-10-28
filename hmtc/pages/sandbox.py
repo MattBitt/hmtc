@@ -8,6 +8,9 @@ from solara.alias import rv
 
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import File as FileModel
+from hmtc.models import Track as TrackModel
+from hmtc.schemas.track import TrackItem
 from hmtc.utils.jellyfin_functions import get_user_favorites
 
 
@@ -29,19 +32,16 @@ def parse_lrc_line(line):
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    lyrics = [
-        {"text": "Hello", "timestamp": 0},
-        {"text": "World", "timestamp": 1},
-        {"text": "!", "timestamp": 2},
-        {"text": "Hello Again", "timestamp": 8},
-    ]
-    with open("hmtc/utils/output.lrc", "r") as f:
+    # track = TrackModel.get_or_none(TrackModel.id == 823)
+    # track_item = TrackItem.from_model(track)
+
+    with open("hmtc/pages/1 - boayncy, implosion, solar system.lrc", "r") as f:
         lyrics = f.readlines()
         raw_text = [line.strip() for line in lyrics]
 
         lyrics = [parse_lrc_line(line) for line in raw_text if parse_lrc_line(line)]
 
-    timestamp = solara.use_reactive(15 * 60)
+    timestamp = solara.use_reactive(0)
 
     def update_timestamp(*args):
         logger.error(f"update_timestamp {timestamp.value}")

@@ -22,11 +22,19 @@
       <v-card-actions>
         <div v-if="hasAudioFile">
           <v-btn @click="deleteAudioFile" class="button mywarning" outlined
-            ><v-icon>mdi-delete</v-icon>Delete File</v-btn
+            ><v-icon>mdi-delete</v-icon>Delete MP3</v-btn
           >
         </div>
         <div v-else>
-          <v-btn @click="createAudioFile" color="primary">Create File</v-btn>
+          <v-btn @click="createAudioFile" color="primary">Create MP3</v-btn>
+        </div>
+        <div v-if="hasLyrics">
+          <v-btn @click="deleteLyricFile" class="button mywarning" outlined
+            ><v-icon>mdi-delete</v-icon>Delete Lyrics</v-btn
+          >
+        </div>
+        <div v-else>
+          <v-btn @click="createLyricsFile" color="primary">Create Lyrics</v-btn>
         </div>
       </v-card-actions>
     </v-row>
@@ -35,8 +43,18 @@
 <script>
 module.exports = {
   name: "SectionTrackPanel",
-  props: { section: Object },
-  emits: ["removeTrack", "createAudioFile", "deleteAudioFile"],
+  props: {
+    section: Object,
+    hasAudioFile: Boolean,
+    hasSubtitle: Boolean,
+  },
+  emits: [
+    "removeTrack",
+    "createAudioFile",
+    "deleteAudioFile",
+    "createLyricsFile",
+    "deleteLyricsFile",
+  ],
   data() {
     return {
       valid: true,
@@ -50,6 +68,7 @@ module.exports = {
       select: null,
       items: ["Item 1", "Item 2", "Item 3", "Item 4"],
       checkbox: false,
+      hasLyrics: false,
     };
   },
   methods: {
@@ -72,6 +91,23 @@ module.exports = {
     deleteAudioFile() {
       this.hasAudioFile = false;
       this.$emit("deleteAudioFile", this.section.track.id);
+    },
+    createLyricsFile() {
+      const args = {
+        section_id: this.section.id,
+        video_id: this.section.video_id,
+        track_id: this.section.track.id,
+        title: this.section.track.title,
+        length: this.length,
+      };
+      this.hasLyrics = true;
+      console.log("createLyricsFile", args);
+      this.$emit("createLyricsFile", args);
+    },
+    deleteLyricFile() {
+      console.log("deleteLyricsFile");
+      this.hasLyrics = false;
+      this.$emit("deleteLyricsFile", this.section.track.id);
     },
   },
   created() {

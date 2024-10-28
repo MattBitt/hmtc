@@ -13,6 +13,7 @@ from hmtc.models import Track as TrackModel
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
+from hmtc.utils.lyric_utils import create_lyrics_file
 from hmtc.utils.mutagen_utils import write_id3_tags
 
 config = init_config()
@@ -85,6 +86,30 @@ class TrackItem:
         }
         logger.debug(f"Writing tags {tags} to {output_file}")
         write_id3_tags(output_file, tags)
+        return output_file
+
+    def write_lyrics_file(self, input_file: Path):
+        album = AlbumModel.get_or_none(AlbumModel.id == self.album_id)
+        section = SectionModel.get_or_none(SectionModel.track_id == self.id)
+        if album is None or section is None:
+            logger.error(f"album: {album}")
+            logger.error(f"times: {section}")
+            return
+        out_folder = self.track_folder / f"{album.title}/"
+        if not out_folder.exists():
+            out_folder.mkdir(parents=True)
+        # this needs to match the mp3 name for jellyfin to pick it up
+        output_file = out_folder / f"{self.track_number} - {self.title}.lrc"
+        if output_file.exists():
+            logger.error(f"File {output_file} already exists. Deleting")
+            output_file.unlink()
+
+        logger.error(
+            f"Creating lyrics file from {input_file} to {str(output_file)} from {section.start} to {section.end}"
+        )
+        create_lyrics_file(
+            input_file=input_file, output_file=output_file, section=section
+        )
         return output_file
 
     # 🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝🥝

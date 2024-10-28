@@ -58,9 +58,13 @@
                 <SectionTrackPanel
                   :section="section"
                   :hasAudioFile="hasMp3"
+                  :hasSubtitle="hasSubtitle"
+                  :hasLyrics="hasLyrics"
                   @removeTrack="removeTrack"
                   @createAudioFile="createAudioFile"
                   @deleteAudioFile="deleteAudioFile"
+                  @createLyricsFile="createLyricsFile"
+                  @deleteLyricsFile="deleteLyricsFile"
                 />
               </div>
             </v-col>
@@ -175,6 +179,8 @@ export default {
       // no form implemented yet
       valid: true,
       hasMp3: false,
+      hasSubtitle: true,
+      hasLyrics: false,
       snackbar: false,
       text: "My timeout is set to 2000.",
       color: "info",
@@ -261,6 +267,21 @@ export default {
       this.snackbar = true;
       this.color = "success";
       this.create_track(args);
+    },
+    createLyricsFile(args) {
+      console.log("Creating lyrics file");
+      this.text = "Creating lyrics file";
+      this.snackbar = true;
+      this.color = "success";
+      this.create_lyrics_file(args);
+    },
+
+    deleteLyricsFile(args) {
+      console.log("Deleting lyrics file");
+      this.text = "Deleting lyrics file";
+      this.snackbar = true;
+      this.color = "warning";
+      this.delete_lyrics_file(args);
     },
     removeTrack(args) {
       console.log("Removing track", args);

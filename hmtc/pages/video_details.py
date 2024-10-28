@@ -196,7 +196,7 @@ def SectionsPanel(
 
     def create_track(args):
         try:
-            album = AlbumModel.get_by_id(video.album.id)
+            album = AlbumModel.get_by_id(video.album_id)
         except Exception as e:
             logger.error(e)
             return
@@ -304,6 +304,39 @@ def SectionsPanel(
             logger.error(e)
             return
 
+    def create_lyrics_file(*args):
+        logger.debug(f"Creating lyrics file {args}")
+        try:
+            input_file = (
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == video.id)
+                    & (FileModel.file_type == "subtitle")
+                )
+                .get()
+            )
+        except:
+            logger.error(f"No input file found for")
+            return
+        input_file_path = Path(input_file.path) / input_file.filename
+        track_item = TrackItem.from_model(TrackModel.get_by_id(args[0]["track_id"]))
+        lyrics_path = track_item.write_lyrics_file(input_file=input_file_path)
+
+        new_file = FileManager.add_path_to_track(
+            path=lyrics_path, track=track_item, video=video
+        )
+        logger.debug(f"Created lyrics file {new_file}")
+
+        reload.set(True)
+
+    def delete_lyrics_file(*args):
+        logger.error(f"Deleting lyrics file {args}")
+        try:
+            FileManager.delete_lyrics_file_from_track(args[0])
+        except Exception as e:
+            logger.error(e)
+            return
+
     if not reload.value:
         if tab_items != []:
             SectionSelector(
@@ -313,7 +346,6 @@ def SectionsPanel(
                 event_remove_item=remove_topic,
                 event_delete_section=delete_section,
                 event_update_times=update_section_times,
-                event_loop_jellyfin=lambda x: loop_jellyfin(x),
                 event_update_section_from_jellyfin=update_section_from_jellyfin,
                 event_create_section_from_jellyfin=create_section_at_jellyfin_position,
                 event_create_track=create_track,
@@ -321,6 +353,8 @@ def SectionsPanel(
                 event_refresh_panel=lambda x: reload.set(True),
                 event_create_audio_file=lambda x: create_audio_file(x),
                 event_delete_audio_file=lambda x: delete_audio_file(x),
+                event_create_lyrics_file=lambda x: create_lyrics_file(x),
+                event_delete_lyrics_file=lambda x: delete_lyrics_file(x),
             )
     else:
         solara.Markdown(f"## Reloading Panel")
@@ -339,7 +373,6 @@ def SectionSelector(
     event_remove_item,
     event_delete_section,
     event_update_times,
-    event_loop_jellyfin,
     event_update_section_from_jellyfin,
     event_create_section_from_jellyfin,
     event_create_track,
@@ -347,6 +380,8 @@ def SectionSelector(
     event_refresh_panel,
     event_create_audio_file,
     event_delete_audio_file,
+    event_create_lyrics_file,
+    event_delete_lyrics_file,
 ):
     pass
 
@@ -491,6 +526,10 @@ def FilesPanel(video):
         )
 
 
+# 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# Video Info
+
+
 @solara.component
 def VideoInfoPanelLeft(video):
 
@@ -507,13 +546,12 @@ def VideoInfoPanelLeft(video):
 
     with solara.Row(justify="center"):
         solara.Text(
-            f"{video.title[:50]}",
+            f"{video.title[:80]}",
             classes=["video-info-text"],
         )
     with solara.Columns([6, 6]):
         with solara.Column():
             with solara.Row(justify="center"):
-
                 solara.Image(image, width=IMG_WIDTH)
             with solara.Row(justify="center"):
                 solara.Text(
@@ -658,7 +696,7 @@ def InfoPanel(
                     if len(other_videos) == 0:
                         logger.error(f"Album {vid_db.album_id} not in use. Deleting")
                         vid_db.album.delete_instance()
-                    
+
                     vid_db.album = None
 
                 case "series":
@@ -741,8 +779,8 @@ def InfoPanel(
     ),
 
 
-def loop_jellyfin(*args):
-    logger.debug("🧪🧪🧪🧪🧪🧪 Deprecated 10/26/24")
+# 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
+# Jellyfin
 
 
 @solara.component_vue("../components/video/JellyfinControlPanel.vue")

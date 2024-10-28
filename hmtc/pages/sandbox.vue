@@ -1,9 +1,13 @@
 <template>
-  <div>
-    <div class="faded">{{ previousLyric.text }}</div>
-    <div>{{ closestLyric.text }}</div>
-    <div class="faded">{{ nextLyric.text }}</div>
-  </div>
+  <v-sheet>
+    <div>
+      <div class="faded">{{ previousLyric.text }}</div>
+      <div>
+        <span class="primary--text">{{ closestLyric.text }}</span>
+      </div>
+      <div class="faded">{{ nextLyric.text }}</div>
+    </div>
+  </v-sheet>
 </template>
 
 <script>
@@ -49,7 +53,7 @@ export default {
 
 <style scoped>
 div {
-  font-size: 1.2em;
+  font-size: 12px;
   padding: 10px;
 }
 .faded {

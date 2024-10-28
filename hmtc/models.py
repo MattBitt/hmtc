@@ -63,6 +63,9 @@ def get_file_type(file: str, override=None):
         filetype = "video"
     elif ext in [".mp3", ".wav"]:
         filetype = "audio"
+    elif ext in [".lrc"]:
+        filetype = "lyrics"
+
     elif ext in [".srt", ".en.vtt"]:
         filetype = "subtitle"
     elif ext in [".nfo", ".info.json", ".json"]:
@@ -335,32 +338,6 @@ class Playlist(BaseModel):
             return None
 
         return cls.create(**info, channel=channel)
-
-    @classmethod
-    def download_playlist_info(
-        cls, youtube_id=None, thumbnail=True, subtitle=True, info=True
-    ):
-        def download_playlist_info_from_id(*args, **kwargs):
-            logger.error("Deprecated download_playlist_info ... from_id")
-            return None
-
-        logger.error("This function can't work anymore.... need to fix")
-        return
-        download_path = config.get("PATHS", "DOWNLOAD")
-        media_path = config.get("PATHS", "MEDIA")
-        playlist_info, files = download_playlist_info_from_id(
-            youtube_id, download_path, thumbnail=thumbnail, subtitle=subtitle, info=info
-        )
-        if playlist_info["error"] or files is None:
-            logger.error(f"{playlist_info['error_info']}")
-            return None, None
-        else:
-            new_path = Path(Path(media_path) / playlist_info["upload_date"][0:4])
-            if not new_path.exists():
-                new_path.mkdir(parents=True, exist_ok=True)
-
-            playlist_info["file_path"] = new_path
-            return playlist_info, files
 
     def get_video_list_from_yt(self):
         download_path = WORKING / "downloads"

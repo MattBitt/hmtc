@@ -252,7 +252,8 @@ class FileManager:
     @staticmethod
     def add_path_to_track(path: Path, track: TrackModel, video: VideoModel):
         try:
-            album_title = video.album.title
+            album = AlbumModel.get_by_id(track.album_id)
+            album_title = album.title
         except Exception as e:
             logger.error(e)
             album_title = "Unknown Album"
@@ -379,4 +380,14 @@ class FileManager:
         )
         audio_file_path = Path(audio_file.path) / audio_file.filename
         audio_file.delete_instance()
+        os.remove(audio_file_path)
+
+    @staticmethod
+    def delete_lyrics_file_from_track(track_id):
+        track = TrackModel.get_by_id(track_id)
+        lyrics_file = FileModel.get(
+            (FileModel.track_id == track.id) & (FileModel.file_type == "lyrics")
+        )
+        audio_file_path = Path(lyrics_file.path) / lyrics_file.filename
+        lyrics_file.delete_instance()
         os.remove(audio_file_path)
