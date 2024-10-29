@@ -1,13 +1,22 @@
 <template>
-  <v-row>
-    <v-col class="lyrics" cols="12">
-      <p class="faded">{{ previousLyric.text }}</p>
-      <p>
-        <span class="primary--text">{{ closestLyric.text }}</span>
+  <div>
+    <transition-group
+      name="slide"
+      mode="out-in"
+      tag="div"
+      class="lyrics"
+      hide-on-leave
+    >
+      <p
+        v-for="(lyric, index) in displayedLyrics"
+        :key="lyric.timestamp"
+        :class="{ faded: index !== 1 }"
+      >
+        <span v-if="index === 1" class="primary--text">{{ lyric.text }}</span>
+        <span v-else>{{ lyric.text }}</span>
       </p>
-      <p class="faded">{{ nextLyric.text }}</p>
-    </v-col>
-  </v-row>
+    </transition-group>
+  </div>
 </template>
 
 <script>
@@ -34,29 +43,38 @@ export default {
           : prev;
       });
     },
-    previousLyric() {
+    displayedLyrics() {
       const index = this.lyrics.indexOf(this.closestLyric);
-      return index > 0 ? this.lyrics[index - 1] : { text: "" };
-    },
-    nextLyric() {
-      const index = this.lyrics.indexOf(this.closestLyric);
-      return index < this.lyrics.length - 1
-        ? this.lyrics[index + 1]
-        : { text: "" };
+      return [
+        index > 0 ? this.lyrics[index - 1] : { text: "", timestamp: -1 },
+        this.closestLyric,
+        ...this.lyrics.slice(index + 1, index + 2),
+      ];
     },
   },
   mounted() {
-    this.intervalID = setInterval(this.update, 1000);
+    this.intervalID = setInterval(this.update, 500);
   },
 };
 </script>
 
 <style>
 .lyrics {
-  font-size: 1.7em;
+  font-size: 2em;
   text-align: center;
+  font-weight: 700;
 }
 .faded {
   color: rgba(128, 128, 128, 0.8);
+  font-weight: 300;
+}
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 1s;
+}
+.slide-enter,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
 }
 </style>

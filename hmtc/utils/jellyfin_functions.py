@@ -95,7 +95,7 @@ def get_user_session():
     if len(session) == 0:
         return None
     elif len(session) > 1:
-        logger.error("More than one session found")
+        # logger.error("More than one session found")
         return session[0]
     else:
         return session[0]
@@ -158,12 +158,11 @@ def search_for_media(title):
         return None
 
     elif res.json()["TotalRecordCount"] == 0:
-        logger.error("No media found")
-        logger.debug(f"Search for media results {res.json()}")
+        logger.error(f"No media found {res.json()}")
         return None
     elif res.json()["TotalRecordCount"] > 1:
-        logger.error("More than one media found")
-        logger.debug(f"Too many results {res.json()}")
+        # logger.error("More than one media found")
+        logger.error(f"Too many results {res.json()}")
         return None
     else:
         logger.debug(f"Only 1 result found! {res.json()}")

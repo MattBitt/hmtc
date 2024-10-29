@@ -13,9 +13,9 @@ from hmtc.models import Track as TrackModel
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
+from hmtc.utils.jellyfin_functions import refresh_library
 from hmtc.utils.lyric_utils import create_lyrics_file
 from hmtc.utils.mutagen_utils import write_id3_tags
-from hmtc.utils.jellyfin_functions import refresh_library
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

@@ -15,8 +15,8 @@ from hmtc.schemas.track import TrackItem
 from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 
 
-@solara.component_vue("../components/track/LyricsScroller.vue", vuetify=True)
-def Sandbox(lyrics, currentTimestamp, event_update):
+@solara.component_vue("sandbox.vue", vuetify=True)
+def Sandbox(start=10):
     pass
 
 
@@ -24,4 +24,4 @@ def Sandbox(lyrics, currentTimestamp, event_update):
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    # track = TrackModel.get_or_none(TrackModel.id == 823)
+    Sandbox()

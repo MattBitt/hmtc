@@ -29,10 +29,10 @@ from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import SectionManager
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
+from hmtc.utils.jellyfin_functions import refresh_library
 from hmtc.utils.opencv.second import extract_frames
 from hmtc.utils.xml_creator import create_album_xml
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
-from hmtc.utils.jellyfin_functions import refresh_library
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"

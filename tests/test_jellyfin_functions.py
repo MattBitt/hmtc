@@ -1,18 +1,20 @@
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+from hmtc.utils.jellyfin_functions import (
+    can_ping_server,
+    create_jellyfin_playlist,
+    get_jellyfin_playlist_items,
+    get_user_favorites,
+    get_user_session,
+    refresh_library,
+)
 
 
-# def test_connection():
-#     jf = MyJellyfinClient()
-#     jf.connect()
-#     assert jf.is_connected == True
-#     assert jf.client_passthrough is not None
-#     users = jf.client_passthrough.jellyfin.get_users()
-#     assert users is not None
-#     assert len(users) > 0
-#     items = jf.client_passthrough.jellyfin.user_items()
-#     assert items is not None
-#     playlists = jf.client_passthrough.jellyfin._get()
+def test_can_ping_server():
+    assert can_ping_server() is True
 
 
-# def test_create_playlist():
-#     pass
+def test_refresh_library():
+    assert refresh_library().status_code == 204
+
+
+def test_get_user_favorites():
+    assert get_user_favorites() is not None

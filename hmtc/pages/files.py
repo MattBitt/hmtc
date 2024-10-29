@@ -9,6 +9,7 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Channel, Playlist, Series
 from hmtc.models import File as FileModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import File as FileObject
 from hmtc.schemas.file import FileManager
@@ -86,6 +87,37 @@ def FileTypeInfoCard(ftype):
         solara.Markdown("End of Card")
 
 
+def get_track_files():
+    db_files = FileModel.select().where(FileModel.track_id.is_null(False))
+    folder_files = get_folder_files(STORAGE / "tracks")
+    return db_files, folder_files
+
+
+@solara.component
+def TrackInfoCard():
+    db_files, folder_files = get_track_files()
+    tracks = TrackModel.select()
+    file_types = ["audio", "lyrics"]
+
+    file_tuples = [(x.track_id, x.file_type) for x in db_files]
+
+    missing_files = dict(zip(file_types, [0] * len(file_types)))
+    found_files = missing_files.copy()
+    for track in tracks:
+        for ftype in file_types:
+            if (track.id, ftype) not in file_tuples:
+                missing_files[ftype] += 1
+            else:
+                found_files[ftype] += 1
+
+    with solara.Card(title="Tracks"):
+        solara.Markdown(f"**{len(db_files)}** files in Database")
+        solara.Markdown(f"**{len(folder_files)}** files in Storage Folder")
+        solara.Markdown(f"Missing Files: {missing_files}")
+        solara.Markdown(f"Found Files: {found_files}")
+        solara.Markdown("End of Card")
+
+
 @solara.component
 def Page():
     messages = solara.use_reactive([])
@@ -118,7 +150,8 @@ def Page():
         files_in_db_not_found.set(missing_from_disk)
 
         messages.set(
-            [
+            messages.value
+            + [
                 f"Files not in DB: {len(have_files_not_in_db.value)}",
                 f"Files not in Folder: {len(files_in_db_not_found.value)}",
             ]
@@ -132,7 +165,7 @@ def Page():
     file_tuples = [(x.video_id, x.file_type) for x in files]
 
     # need to standardize this
-    file_types = ["info", "audio", "video", "poster", "album_nfo", "subtitle", "lyrics"]
+    file_types = ["info", "audio", "video", "poster", "album_nfo", "subtitle"]
     missing_files = dict(zip(file_types, [0] * len(file_types)))
     found_files = missing_files.copy()
     for vid in unique_vids:
@@ -144,11 +177,11 @@ def Page():
 
     logger.error(f"Missing {missing_files} video files")
     logger.error(f"Found {found_files} videos")
+
     MySidebar(router=solara.use_router())
     with solara.Column(classes=["main-container"]):
-        ftypes = ["Series", "Channels"]
         with solara.Columns([6, 6]):
-            for f in ftypes:
+            for f in ["Series", "Channels"]:
                 FileTypeInfoCard(f)
         with solara.Columns([6, 6]):
             with solara.Card():
@@ -160,6 +193,7 @@ def Page():
                         )
                     for ftype in file_types:
                         solara.Markdown(f"**{found_files[ftype]}** found {ftype} files")
+                TrackInfoCard()
         with solara.Card():
             solara.Button("Check Files", on_click=compare_files_vs_db)
             for message in messages.value:

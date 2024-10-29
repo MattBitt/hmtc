@@ -64,6 +64,7 @@ export default {
       { text: "Videos", icon: "mdi-video", url: "/videos" },
       { text: "Albums", icon: "mdi-album", url: "/albums" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
+      { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
     ],
     items2: [
       { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
