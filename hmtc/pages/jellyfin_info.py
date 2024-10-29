@@ -1,18 +1,20 @@
 import re
-import solara
 from pathlib import Path
-from hmtc.models import Video as VideoModel
-from hmtc.models import Track as TrackModel
+
+import solara
 from loguru import logger
+
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import File as FileModel
+from hmtc.models import Track as TrackModel
+from hmtc.models import Video as VideoModel
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
+    get_current_user_timestamp,
+    get_currently_playing,
     get_user_favorites,
     get_user_session,
-    get_currently_playing,
 )
-from hmtc.utils.jellyfin_functions import get_current_user_timestamp
-from hmtc.models import File as FileModel
 
 
 @solara.component_vue("../components/track/LyricsScroller.vue", vuetify=True)

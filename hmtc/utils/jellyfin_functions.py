@@ -1,8 +1,8 @@
 import json
+from urllib.parse import quote
 
 import requests
 from loguru import logger
-from urllib.parse import quote
 
 # for the 3rd time im restarting the jellyfin functions
 # keeping the my_jellyfin_client for existing code

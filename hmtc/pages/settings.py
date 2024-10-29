@@ -26,7 +26,6 @@ from hmtc.models import (
     Topic as TopicModel,
 )
 from hmtc.models import Track as TrackModel
-
 from hmtc.models import (
     Video as VideoModel,
 )
@@ -39,8 +38,8 @@ from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.track import TrackItem
 from hmtc.schemas.video import VideoItem
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from hmtc.utils.jellyfin_functions import search_for_media
+from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
@@ -213,6 +212,34 @@ class PageState:
         logger.error(f"Found {len(total_tracks)} tracks in total")
         logger.error(f"Found {len(tracks_with_lyrics)} tracks with lyrics file")
         logger.error(f"Found {len(tracks)} tracks with no lyrics file")
+        for track in tracks:
+            section = track.section.get_or_none()
+            if section is None:
+                logger.error(f"No video found for {track}")
+                continue
+            video_id = section.video.id
+
+            video = VideoModel.get_by_id(video_id)
+            try:
+                input_file = (
+                    FileModel.select()
+                    .where(
+                        (FileModel.video_id == video_id)
+                        & (FileModel.file_type == "subtitle")
+                    )
+                    .get()
+                )
+            except:
+                logger.error(f"No input file found for")
+                continue
+            input_file_path = Path(input_file.path) / input_file.filename
+            track_item = TrackItem.from_model(TrackModel.get_by_id(track.id))
+            lyrics_path = track_item.write_lyrics_file(input_file=input_file_path)
+
+            new_file = FileManager.add_path_to_track(
+                path=lyrics_path, track=track_item, video=video
+            )
+            logger.debug(f"Created lyrics file {new_file}")
 
     @staticmethod
     def download_empty_video_info():

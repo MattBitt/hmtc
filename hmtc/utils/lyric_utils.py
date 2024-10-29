@@ -54,7 +54,7 @@ def convert_vtt_to_lrc(input_file: str, output_file: str, time_range=(0, 1000000
             timestamp = re.search(r"\[(\d{2}:\d{2}:\d{2}\.\d{3})\]", modified_text)
             if timestamp:
                 orig_time_string = timestamp.group(1)
-                logger.debug(f"Time: {orig_time_string}")
+                # logger.debug(f"Time: {orig_time_string}")
                 time_parts = orig_time_string.split(":")
                 time_seconds = (
                     int(time_parts[0]) * 3600
