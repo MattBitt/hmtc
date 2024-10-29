@@ -32,6 +32,7 @@ from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.opencv.second import extract_frames
 from hmtc.utils.xml_creator import create_album_xml
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
+from hmtc.utils.jellyfin_functions import refresh_library
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -269,6 +270,7 @@ class VideoItem(BaseItem):
         for file in files:
             logger.debug(f"Processing files in download_video of the list item {file}")
             FileManager.add_path_to_video(file, vid)
+        refresh_library()
 
     def save_to_database(self):
         logger.debug(f"Not sure if this is used 🧪🧪🧪🧪🧪🧪 10/26/24")

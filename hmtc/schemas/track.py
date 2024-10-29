@@ -15,6 +15,7 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
 from hmtc.utils.lyric_utils import create_lyrics_file
 from hmtc.utils.mutagen_utils import write_id3_tags
+from hmtc.utils.jellyfin_functions import refresh_library
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -86,6 +87,7 @@ class TrackItem:
         }
         logger.debug(f"Writing tags {tags} to {output_file}")
         write_id3_tags(output_file, tags)
+        refresh_library()
         return output_file
 
     def write_lyrics_file(self, input_file: Path):

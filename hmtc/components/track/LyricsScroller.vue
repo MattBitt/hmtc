@@ -53,7 +53,7 @@ export default {
 
 <style>
 .lyrics {
-  font-size: 1.5em;
+  font-size: 1.7em;
   text-align: center;
 }
 .faded {

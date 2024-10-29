@@ -50,6 +50,7 @@ def parse_lrc_line(line):
         hours, minutes, seconds, text = match.groups()
         timestamp = int(hours) * 3600 + int(minutes) * 60 + float(seconds)
         return {"text": text.strip(), "timestamp": timestamp}
+    logger.error(f"Could not parse line: {line}")
     return None
 
 
@@ -57,7 +58,6 @@ def read_lyrics(path):
     with open(path, "r") as f:
         lyrics = f.readlines()
         raw_text = [line.strip() for line in lyrics]
-
         lyrics = [parse_lrc_line(line) for line in raw_text if parse_lrc_line(line)]
     return lyrics
 
@@ -106,3 +106,7 @@ def Page():
             Lyrics(lyrics=lyrics, currentTimestamp=timestamp)
         else:
             solara.Markdown("### No lyrics found. Add some to see them")
+    elif library == "video":
+        video = VideoModel.select().where(VideoModel.jellyfin_id == jf_id).get()
+        solara.Markdown("### Video")
+        solara.Markdown(f"#### {video.title}")

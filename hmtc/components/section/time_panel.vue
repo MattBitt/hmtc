@@ -34,6 +34,12 @@
       </v-row>
     </v-row>
     <v-row v-if="isEditing" justify="center" class="mt-4">
+      <v-btn medium fab class="" @click="adjustTime(-60_000)">
+        <v-icon>mdi-menu-left</v-icon>
+      </v-btn>
+      <v-btn medium fab class="" @click="adjustTime(-30_000)">
+        <v-icon>mdi-rewind-30</v-icon>
+      </v-btn>
       <v-btn medium fab class="" @click="adjustTime(-5000)">
         <v-icon>mdi-rewind-5</v-icon>
       </v-btn>
@@ -51,6 +57,13 @@
       </v-btn>
       <v-btn medium fab class="" @click="adjustTime(5000)">
         <v-icon>mdi-fast-forward-5</v-icon>
+      </v-btn>
+
+      <v-btn medium fab class="" @click="adjustTime(30_000)">
+        <v-icon>mdi-fast-forward-30</v-icon>
+      </v-btn>
+      <v-btn medium fab class="" @click="adjustTime(60_000)">
+        <v-icon>mdi-menu-right</v-icon>
       </v-btn>
     </v-row>
   </div>
