@@ -592,7 +592,8 @@ class Track(BaseModel):
             "length": self.length,
             "album_id": self.album.id if self.album else None,
             "album_title": self.album.title if self.album else None,
-            "has_mp3": has_mp3 is not None,
+            "has_mp3": False,  # need to fix this
+            "files": [f.model_to_dict() for f in self.files],
         }
         return new_dict
 

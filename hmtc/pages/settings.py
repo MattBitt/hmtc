@@ -25,6 +25,8 @@ from hmtc.models import (
 from hmtc.models import (
     Topic as TopicModel,
 )
+from hmtc.models import Track as TrackModel
+
 from hmtc.models import (
     Video as VideoModel,
 )
@@ -38,6 +40,7 @@ from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.track import TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+from hmtc.utils.jellyfin_functions import search_for_media
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
@@ -173,6 +176,45 @@ class PageState:
                 logger.error(f"No results found for {v.youtube_id}")
 
     @staticmethod
+    def search_for_track_jellyfin_ids():
+        tracks = (
+            TrackModel.select(TrackModel, FileModel)
+            .join(
+                FileModel,
+                peewee.JOIN.LEFT_OUTER,
+                on=TrackModel.id == FileModel.track_id,
+            )
+            .where(TrackModel.jellyfin_id.is_null())
+        )
+
+        logger.debug(f"Found {len(tracks)} tracks with no jellyfin id")
+        for t in tracks:
+            existing_item = search_for_media(str(t.title))
+            if existing_item is None:
+                logger.error(f"No media found for {t.title}")
+                continue
+            t.jellyfin_id = existing_item["Id"]
+            t.save()
+
+    @staticmethod
+    def create_lyrics_files_for_existing_tracks():
+        tracks_with_lyrics = (
+            TrackModel.select(TrackModel.id)
+            .join(
+                FileModel,
+                peewee.JOIN.LEFT_OUTER,
+                on=TrackModel.id == FileModel.track_id,
+            )
+            .where(FileModel.file_type == "lyrics")
+        ).distinct()
+        total_tracks = TrackModel.select(TrackModel.id)
+
+        tracks = total_tracks.where(TrackModel.id.not_in(tracks_with_lyrics))
+        logger.error(f"Found {len(total_tracks)} tracks in total")
+        logger.error(f"Found {len(tracks_with_lyrics)} tracks with lyrics file")
+        logger.error(f"Found {len(tracks)} tracks with no lyrics file")
+
+    @staticmethod
     def download_empty_video_info():
         logger.debug("Downloading empty video info")
         PageState.updating.set(True)
@@ -211,44 +253,6 @@ class PageState:
             PageState.i.set(PageState.i.value + 1)
         logger.info("finished updating videos")
         PageState.i.set(0)
-        PageState.updating.set(False)
-
-    @staticmethod
-    def refresh_videos_from_youtube():
-        logger.debug("Refreshing videos from youtube")
-        PageState.updating.set(True)
-
-        existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
-        logger.debug(f"Database currently has {len(existing_ids)} videos")
-
-        # only want to automatically update videos from channels
-        # Harry Mack and Harry Mack Clips
-        channels = Channel.select().where((Channel.name.contains("Harry")))
-
-        num_new_vids = 0
-
-        for c in channels:
-            status.set(f"Checking Channel {c.name}")
-            yt_ids = c.grab_ids()
-            logger.debug(f"Found {len(yt_ids)} videos in channel {c.name}")
-            ids_to_update = [id for id in yt_ids if id not in existing_ids]
-            logger.debug(f"Updating {len(ids_to_update)} videos")
-            status.set(f"Found {len(yt_ids)} videos, {len(ids_to_update)} new")
-            num_new_vids += len(ids_to_update)
-            for id in ids_to_update:
-                logger.debug(
-                    f"Found a new video. Adding to Database from YouTube  {id}"
-                )
-                VideoItem.create_from_youtube_id(id)
-                logger.debug("Finished creating new video.")
-                PageState.i.set(PageState.i.value + 1)
-
-        if num_new_vids == 0:
-            t = "No new videos found"
-        else:
-            t = f"Found {num_new_vids} new videos"
-        status.set(f"Finished Updating Videos. {t}")
-
         PageState.updating.set(False)
 
     @staticmethod
@@ -530,6 +534,16 @@ def Page():
                     solara.Button(
                         label="Search for Jellyfin IDs",
                         on_click=PageState.search_for_jellyfin_ids,
+                        classes=["button"],
+                    )
+                    solara.Button(
+                        label="Assign jellyfin ids to tracks (10/28/24)",
+                        on_click=PageState.search_for_track_jellyfin_ids,
+                        classes=["button"],
+                    )
+                    solara.Button(
+                        label="Create Lyrics Files for Existing Tracks",
+                        on_click=PageState.create_lyrics_files_for_existing_tracks,
                         classes=["button"],
                     )
 

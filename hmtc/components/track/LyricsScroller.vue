@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col cols="12">
+    <v-col class="lyrics" cols="12">
       <p class="faded">{{ previousLyric.text }}</p>
       <p>
         <span class="primary--text">{{ closestLyric.text }}</span>
@@ -52,6 +52,10 @@ export default {
 </script>
 
 <style>
+.lyrics {
+  font-size: 1.5em;
+  text-align: center;
+}
 .faded {
   color: rgba(128, 128, 128, 0.8);
 }

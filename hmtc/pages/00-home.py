@@ -22,12 +22,18 @@ busy_downloading = solara.reactive(False)
 
 def refresh_from_youtube():
     busy_downloading.set(True)
-    existing_ids = [v.youtube_id for v in VideoItem.get_youtube_ids()]
+    existing_ids = [
+        v.youtube_id
+        for v in VideoModel.select(VideoModel.youtube_id).where(
+            VideoModel.youtube_id.is_null(False)
+        )
+    ]
     channels = ChannelModel.select().where((ChannelModel.name.contains("Harry")))
 
     num_new_vids = 0
 
     for c in channels:
+        logger.debug(f"Checking channel {c.name}")
         yt_ids = c.grab_ids()
         ids_to_update = [id for id in yt_ids if id not in existing_ids]
         num_new_vids += len(ids_to_update)

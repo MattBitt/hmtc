@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import peewee
 from loguru import logger
-
+from hmtc.models import File as FileTable
 from hmtc.models import (
     Section as SectionTable,
 )
@@ -190,9 +190,11 @@ class SectionManager:
 
     @staticmethod
     def get_section_details(id):
-        # this is being used as of 10/22/24
+        # 10/28/24 - adding Track object and files to the query
         query = (
-            SectionTable.select(SectionTable, TopicTable, SectionTopicsTable)
+            SectionTable.select(
+                SectionTable, TopicTable, SectionTopicsTable, TrackTable, FileTable
+            )
             .join(
                 SectionTopicsTable,
                 on=(SectionTable.id == SectionTopicsTable.section_id),
@@ -201,6 +203,17 @@ class SectionManager:
             .join(
                 TopicTable,
                 join_type=peewee.JOIN.LEFT_OUTER,
+            )
+            .switch(SectionTable)
+            .join(
+                TrackTable,
+                peewee.JOIN.LEFT_OUTER,
+                on=(SectionTable.track_id == TrackTable.id),
+            )
+            .join(
+                FileTable,
+                peewee.JOIN.LEFT_OUTER,
+                on=(TrackTable.id == FileTable.track_id),
             )
             .where(SectionTable.id == id)
         ).get_or_none()

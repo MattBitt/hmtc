@@ -2,6 +2,7 @@ import json
 
 import requests
 from loguru import logger
+from urllib.parse import quote
 
 # for the 3rd time im restarting the jellyfin functions
 # keeping the my_jellyfin_client for existing code
@@ -100,7 +101,87 @@ def get_user_session():
         return session[0]
 
 
+def get_current_user_timestamp():
+    session = get_user_session()
+    if session is None:
+        return None
+    if "NowPlayingItem" not in session.keys():
+        return None
+    return session["PlayState"]["PositionTicks"] / 10000000
+
+
+def get_currently_playing():
+    session = get_user_session()
+    if session is None:
+        return None
+    if "NowPlayingItem" not in session.keys():
+        return None
+    return session["NowPlayingItem"]["Id"]
+
+
+def get_user_libraries():
+    url = f"/Users/{user_jf_id}/Items"
+    try:
+        res = jf_get(url=url)
+    except Exception as e:
+        return None
+    libraries = [x for x in res.json()["Items"]]
+    return libraries
+
+
+def sources_library_id():
+    libraries = get_user_libraries()
+    for lib in libraries:
+        if lib["Name"] == "HarryMackSources":
+            return lib["Id"]
+    return None
+
+
+def tracks_library_id():
+    libraries = get_user_libraries()
+    for lib in libraries:
+        if lib["Name"] == "HarryMackTracks":
+            return lib["Id"]
+    return None
+
+
+import re
+
+
+def search_for_media(title):
+    library_id = tracks_library_id()
+    url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
+    res = jf_get(url)
+
+    if res.status_code != 200:
+        logger.error(f"Error searching for media: {res.status_code}")
+        return None
+
+    elif res.json()["TotalRecordCount"] == 0:
+        logger.error("No media found")
+        logger.debug(f"Search for media results {res.json()}")
+        return None
+    elif res.json()["TotalRecordCount"] > 1:
+        logger.error("More than one media found")
+        logger.debug(f"Too many results {res.json()}")
+        return None
+    else:
+        logger.debug(f"Only 1 result found! {res.json()}")
+        return res.json()["Items"][0]
+
+
+def refresh_library():
+    url = f"/Library/Refresh"
+    res = jf_post(url)
+    return res
+
+
 if __name__ == "__main__":
     favs = get_user_favorites()
     print([x["Name"] for x in favs])
+    refresh_library()
     print(len(favs))
+    print(f"videos {sources_library_id()}")
+    print(f"tracks {tracks_library_id()}")
+    x = search_for_media("pineapple, birthday, city")
+    print(x)

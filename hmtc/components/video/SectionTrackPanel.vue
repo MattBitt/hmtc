@@ -8,6 +8,13 @@
             {{ section.track.title }}</span
           >
         </h3>
+        <h4>Files starts here</h4>
+        <ul>
+          <li v-for="file in section.track.files" :key="file.id">
+            <span>{{ file.filename }}</span>
+          </li>
+        </ul>
+        <h4>and ends here</h4>
       </v-col>
       <v-col cols="6">
         <v-btn

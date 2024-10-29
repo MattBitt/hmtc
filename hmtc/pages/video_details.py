@@ -306,6 +306,7 @@ def SectionsPanel(
 
     def create_lyrics_file(*args):
         logger.debug(f"Creating lyrics file {args}")
+        # args is a dict with 'track_id' as the key
         try:
             input_file = (
                 FileModel.select()
