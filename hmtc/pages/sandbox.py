@@ -16,7 +16,7 @@ from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 
 
 @solara.component_vue("sandbox.vue", vuetify=True)
-def Sandbox(start=10):
+def Sandbox(inviteList=["matthew", "mark", "luke", "john"]):
     pass
 
 

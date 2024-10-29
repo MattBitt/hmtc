@@ -1,12 +1,6 @@
 <template>
   <div>
-    <transition-group
-      name="slide"
-      mode="out-in"
-      tag="div"
-      class="lyrics"
-      hide-on-leave
-    >
+    <transition-group name="fade" mode="out-in" tag="div" class="lyrics">
       <p
         v-for="(lyric, index) in displayedLyrics"
         :key="lyric.timestamp"
@@ -53,7 +47,7 @@ export default {
     },
   },
   mounted() {
-    this.intervalID = setInterval(this.update, 500);
+    this.intervalID = setInterval(this.update, 1000);
   },
 };
 </script>
@@ -68,13 +62,16 @@ export default {
   color: rgba(128, 128, 128, 0.8);
   font-weight: 300;
 }
-.slide-enter-active,
-.slide-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: all 1s;
 }
-.slide-enter,
-.slide-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
-  transform: translateY(30px);
+}
+
+.fade-leave-active {
+  position: absolute;
 }
 </style>
