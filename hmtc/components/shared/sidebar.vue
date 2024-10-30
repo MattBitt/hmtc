@@ -67,6 +67,7 @@ export default {
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
     ],
     items2: [
+      { text: "Stats", icon: "mdi-graph", url: "/stats" },
       { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
       { text: "Series", icon: "mdi-shape", url: "/series" },

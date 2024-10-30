@@ -34,6 +34,7 @@
       </v-row>
     </v-row>
     <v-row v-if="isEditing" justify="center" class="mt-4">
+      <v-icon>mdi-menu-left</v-icon>
       <v-btn medium fab class="" @click="adjustTime(-60_000)">
         <v-icon>mdi-menu-left</v-icon>
       </v-btn>
@@ -99,9 +100,9 @@ module.exports = {
       const tmp_time = this.time + value;
       const durationMS = this.video_duration * 1000;
       if (tmp_time < 0) {
-        this.time = 0;
+        this.time = durationMS; // Loop to end
       } else if (tmp_time > durationMS) {
-        this.time = durationMS;
+        this.time = 0;
       } else {
         this.time = tmp_time;
       }

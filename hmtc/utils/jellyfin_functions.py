@@ -175,6 +175,18 @@ def refresh_library():
     return res
 
 
+def get_user_id(user_name):
+    # use this to get the user id for the user_name
+    url = f"/Users/Public"
+    res = jf_get(url)
+    if res.status_code != 200:
+        logger.error(f"Error getting user ids: {res.status_code}")
+        return None
+    for item in res.json():
+        if item["Name"] == user_name:
+            return item["Id"]
+
+
 if __name__ == "__main__":
     favs = get_user_favorites()
     print([x["Name"] for x in favs])
@@ -183,4 +195,4 @@ if __name__ == "__main__":
     print(f"videos {sources_library_id()}")
     print(f"tracks {tracks_library_id()}")
     x = search_for_media("pineapple, birthday, city")
-    print(x)
+    print(get_user_id("mizzle"))

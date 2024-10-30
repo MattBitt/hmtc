@@ -2,6 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.channel import ChannelItem
 from hmtc.schemas.video import VideoItem
 
@@ -37,7 +38,7 @@ def add_video():
 
     logger.error(f"Adding video ID: {id}")
 
-    existing = VideoItem.get_by_youtube_id(id)
+    existing = VideoModel.select().where(VideoModel.youtube_id == id).first()
     if existing:
         logger.error(f"Video already exists in DB: {existing}")
         status.set("Video already exists in DB")

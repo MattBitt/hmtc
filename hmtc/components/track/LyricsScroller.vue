@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <transition-group name="fade" mode="out-in" tag="div" class="lyrics">
+  <v-row class="lyrics" justify="center">
+    <div>
       <p
         v-for="(lyric, index) in displayedLyrics"
         :key="lyric.timestamp"
@@ -9,8 +9,8 @@
         <span v-if="index === 1" class="primary--text">{{ lyric.text }}</span>
         <span v-else>{{ lyric.text }}</span>
       </p>
-    </transition-group>
-  </div>
+    </div>
+  </v-row>
 </template>
 
 <script>
@@ -64,11 +64,12 @@ export default {
 }
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 1s;
+  transition: all 0.5s ease;
 }
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+  transform: translateY(-80px);
 }
 
 .fade-leave-active {

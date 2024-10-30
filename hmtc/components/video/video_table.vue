@@ -119,17 +119,29 @@
         {{ item.file_count }}
       </v-chip>
     </template>
-
+    <template v-slot:item.section_count="{ item }">
+      <v-chip>
+        {{ item.section_count }}
+      </v-chip>
+    </template>
+    <template v-slot:item.track_count="{ item }">
+      <v-chip>
+        {{ item.track_count }}
+      </v-chip>
+    </template>
+    <template v-slot:item.my_new_column="{ item }">
+      <v-chip>
+        {{ (item.my_new_column * 100).toFixed(2) }}
+      </v-chip>
+    </template>
     <template v-slot:item.contains_unique_content="{ item }">
       <v-simple-checkbox
         v-model="item.contains_unique_content"
       ></v-simple-checkbox>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon x-large class="ml-1 mr-4" @click="editItem(item)">
-        mdi-pencil
-      </v-icon>
-      <v-icon x-large class="mr-1" @click="link1_clicked(item)">
+      <v-icon class="ml-1 mr-4" @click="editItem(item)"> mdi-pencil </v-icon>
+      <v-icon class="mr-1" @click="link1_clicked(item)">
         mdi-rhombus-split
       </v-icon>
     </template>
@@ -216,18 +228,37 @@ export default {
           text: "Uploaded",
           value: "upload_date",
           filterable: false,
-          width: "20%",
+          width: "5%",
           align: "start",
         },
 
         {
           text: "Title",
           value: "title",
+          width: "40%",
           align: "start",
         },
         {
           text: "# Files",
           value: "file_count",
+          filterable: false,
+          sortable: true,
+        },
+        {
+          text: "# Sections",
+          value: "section_count",
+          filterable: false,
+          sortable: true,
+        },
+        {
+          text: "# Tracks",
+          value: "track_count",
+          filterable: false,
+          sortable: true,
+        },
+        {
+          text: "My New Column",
+          value: "my_new_column",
           filterable: false,
           sortable: true,
         },
@@ -237,7 +268,7 @@ export default {
           value: "actions",
           sortable: false,
           filterable: false,
-          width: "30%",
+          width: "20%",
           align: "end",
         },
       ],

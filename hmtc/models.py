@@ -533,11 +533,20 @@ class Video(BaseModel):
     def __repr__(self):
         return f"Video({self.title=})"
 
-    # used to serialize model to dict for vue
-
     def model_to_dict(self):
         num_files = (
             File.select(fn.Count(File.id)).where((File.video_id == self.id)).scalar()
+        )
+        num_sections = (
+            Section.select(fn.Count(Section.id))
+            .where((Section.video_id == self.id))
+            .scalar()
+        )
+        num_tracks = (
+            Track.select(fn.Count(Track.id))
+            .join(Section)
+            .where((Section.track_id == self.id))
+            .scalar()
         )
 
         new_dict = {
@@ -564,6 +573,8 @@ class Video(BaseModel):
             "album_id": self.album.id if self.album else None,
             "section_ids": [s.id for s in self.sections],
             "file_count": num_files,
+            "section_count": num_sections,
+            "track_count": num_tracks,
         }
         return new_dict
 

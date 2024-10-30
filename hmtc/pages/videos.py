@@ -16,6 +16,12 @@ from hmtc.models import (
     YoutubeSeries,
 )
 from hmtc.models import (
+    Section as SectionModel,
+)
+from hmtc.models import (
+    Track as TrackModel,
+)
+from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.schemas.video import VideoItem
@@ -203,9 +209,11 @@ def save_video_item(dict_of_items):
         new_vid.youtube_series = youtube_series
     if playlist is not None:
         new_vid.playlist = playlist
+
     # 10/18 no idea why and im too scared to ask
     if new_series != "asdf":
         new_vid.series = new_series
+
     if album is not None:
         new_vid.album = album
     if episode_number is not None:
@@ -241,14 +249,14 @@ def Page():
         logger.debug("No base query")
         return
 
-    item_list = [
-        VideoItem(**item.model_to_dict()).serialize()
+    items = [
+        VideoItem.from_model(item).serialize()
         for item in base_query.order_by(VideoModel.upload_date.desc())
     ]
 
     with solara.Column(classes=["main-container"]):
         VideoDisplayTable(
-            items=item_list,
+            items=items,
             table_title=table_title,
             hide_column=filter,
             show_nonunique=show_nonunique,

@@ -20,6 +20,7 @@ from hmtc.models import (
 )
 from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import (
     Video as VideoModel,
 )
@@ -57,6 +58,8 @@ class VideoItem(BaseItem):
     jellyfin_id: str = None
 
     file_count: int = 0
+    section_count: int = 0
+    track_count: int = 0
 
     channel_id: int = 0
     playlist_id: int = 0
@@ -64,6 +67,42 @@ class VideoItem(BaseItem):
     series_id: int = 0
     album_id: int = 0
     section_ids: list = field(default_factory=list)
+
+    @staticmethod
+    def from_model(video: VideoModel) -> "VideoItem":
+        num_files = (
+            File.select(fn.Count(File.id)).where((File.video_id == video.id)).scalar()
+        )
+        num_sections = (
+            SectionModel.select(fn.Count(SectionModel.id))
+            .where((SectionModel.video_id == video.id))
+            .scalar()
+        )
+        num_tracks = (
+            TrackModel.select(fn.Count(TrackModel.id))
+            .join(SectionModel)
+            .where(SectionModel.video_id == video.id)
+            .scalar()
+        )
+
+        return VideoItem(
+            id=video.id,
+            title=video.title,
+            youtube_id=video.youtube_id,
+            url=video.url,
+            episode=video.episode,
+            upload_date=video.upload_date,
+            private=video.private,
+            duration=video.duration,
+            description=video.description,
+            contains_unique_content=video.contains_unique_content,
+            has_chapters=video.has_chapters,
+            manually_edited=video.manually_edited,
+            jellyfin_id=video.jellyfin_id,
+            file_count=num_files,
+            section_count=num_sections,
+            track_count=num_tracks,
+        )
 
     @staticmethod
     def get_downloaded_stats_by_series():
@@ -309,7 +348,15 @@ class VideoItem(BaseItem):
             logger.error(f"Error creating album xml: {e}")
             return None
 
-    def serialize(self):
+    def serialize(self) -> dict:
+        # logger.debug(f"Serializing videoitemid = {self.id}")
+        sections = SectionModel.select(SectionModel.start, SectionModel.end).where(
+            SectionModel.video_id == self.id
+        )
+        total_section_durations = sum(
+            [(section.end - section.start) / 1000 for section in sections]
+        )
+        sectionalized_ratio = total_section_durations / self.duration
         return {
             "id": self.id,
             "title": self.title,
@@ -326,6 +373,9 @@ class VideoItem(BaseItem):
             "manually_edited": self.manually_edited,
             "jellyfin_id": self.jellyfin_id,
             "file_count": self.file_count,
+            "section_count": self.section_count,
+            "track_count": self.track_count,
+            "my_new_column": sectionalized_ratio,
             "channel_id": self.channel_id,
             "playlist_id": self.playlist_id,
             "youtube_series_id": self.youtube_series_id,
