@@ -14,6 +14,10 @@ from hmtc.utils.jellyfin_functions import (
     get_currently_playing,
     get_user_favorites,
     get_user_session,
+    jf_pause,
+    jf_play,
+    jf_playpause,
+    jf_stop,
 )
 
 
@@ -78,14 +82,13 @@ def find_jellyfin_id_in_db(jf_id):
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    timestamp = solara.use_reactive(0)
 
     jf_id = get_currently_playing()
 
     if jf_id is None:
         solara.Markdown("### No Jellyfin id found/Not playing anything")
         return
-
+    session = get_user_session()
     solara.Markdown(f"### Currently Playing id: {jf_id}")
     library, item = find_jellyfin_id_in_db(jf_id)
     if library is None:
@@ -96,6 +99,18 @@ def Page():
         return
     solara.Markdown(f"### Found in db: {library} {item.title}")
     if library == "track":
+        with solara.Row(justify="end"):
+            solara.Button(
+                icon_name="mdi-heart",
+                color="primary",
+                on_click=lambda: logger.debug("favorite"),
+            )
+            solara.Button(
+                icon_name="mdi-flag",
+                color="primary",
+                on_click=lambda: logger.debug("flagged"),
+            )
+        timestamp = solara.use_reactive(0)
         file = (
             FileModel.select()
             .where((FileModel.file_type == "lyrics") & (FileModel.track_id == item.id))
@@ -107,6 +122,19 @@ def Page():
             Lyrics(lyrics=lyrics, currentTimestamp=timestamp)
         else:
             solara.Markdown("### No lyrics found. Add some to see them")
+
+        with solara.Row(justify="center"):
+            solara.Button(
+                "Play/Pause",
+                color="primary",
+                on_click=jf_playpause,
+            )
+            solara.Button(
+                "Stop",
+                color="primary",
+                on_click=jf_stop,
+            )
+
     elif library == "video":
         video = VideoModel.select().where(VideoModel.jellyfin_id == jf_id).get()
         solara.Markdown("### Video")

@@ -60,7 +60,7 @@ class VideoItem(BaseItem):
     file_count: int = 0
     section_count: int = 0
     track_count: int = 0
-
+    album: AlbumModel = None
     channel_id: int = 0
     playlist_id: int = 0
     youtube_series_id: int = 0
@@ -102,6 +102,12 @@ class VideoItem(BaseItem):
             file_count=num_files,
             section_count=num_sections,
             track_count=num_tracks,
+            album=video.album,
+            album_id=video.album_id,
+            channel_id=video.channel_id,
+            youtube_series_id=video.youtube_series_id,
+            playlist_id=video.playlist_id,
+            series_id=video.series_id,
         )
 
     @staticmethod

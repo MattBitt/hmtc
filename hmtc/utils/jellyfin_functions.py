@@ -1,4 +1,5 @@
 import json
+import re
 from urllib.parse import quote
 
 import requests
@@ -89,8 +90,15 @@ def all_sessions():
 
 
 def get_user_session():
+    x = all_sessions()
+    if len(x) == 0:
+        logger.debug(f"No sessions found")
+        return None
+
     session = [
-        x for x in all_sessions() if (x["UserName"] == user and x["Client"] != "hmtc")
+        x
+        for x in all_sessions()
+        if (x["Client"] != "hmtc-dev " and x.get("UserName", "") == user)
     ]
     if len(session) == 0:
         return None
@@ -145,9 +153,6 @@ def tracks_library_id():
     return None
 
 
-import re
-
-
 def search_for_media(library, title):
     if library == "videos":
         library_id = sources_library_id()
@@ -171,6 +176,34 @@ def search_for_media(library, title):
     else:
         logger.debug(f"Only 1 result found! {res.json()}")
         return res.json()["Items"][0]
+
+
+def jf_playpause():
+    session = get_user_session()
+    url = f"/Sessions/{session['Id']}/Playing/PlayPause"
+    res = jf_post(url)
+    return res
+
+
+def jf_play():
+    session = get_user_session()
+    url = f"/Sessions/{session['Id']}/Playing/Play"
+    res = jf_post(url)
+    return res
+
+
+def jf_pause():
+    session = get_user_session()
+    url = f"/Sessions/{session['Id']}/Playing/Pause"
+    res = jf_post(url)
+    return res
+
+
+def jf_stop():
+    session = get_user_session()
+    url = f"/Sessions/{session['Id']}/Playing/Stop"
+    res = jf_post(url)
+    return res
 
 
 def refresh_library():
@@ -198,5 +231,6 @@ if __name__ == "__main__":
     print(len(favs))
     print(f"videos {sources_library_id()}")
     print(f"tracks {tracks_library_id()}")
-    x = search_for_media(library="track", title="pineapple, birthday, city")
+    # x = search_for_media(library="track", title="pineapple, birthday, city")
     print(get_user_id("mizzle"))
+    jf_playpause()
