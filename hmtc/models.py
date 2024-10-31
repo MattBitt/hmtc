@@ -533,51 +533,6 @@ class Video(BaseModel):
     def __repr__(self):
         return f"Video({self.title=})"
 
-    def model_to_dict(self):
-        num_files = (
-            File.select(fn.Count(File.id)).where((File.video_id == self.id)).scalar()
-        )
-        num_sections = (
-            Section.select(fn.Count(Section.id))
-            .where((Section.video_id == self.id))
-            .scalar()
-        )
-        num_tracks = (
-            Track.select(fn.Count(Track.id))
-            .join(Section)
-            .where((Section.track_id == self.id))
-            .scalar()
-        )
-
-        new_dict = {
-            "id": self.id,
-            "youtube_id": self.youtube_id,
-            "url": self.url,
-            "title": self.title,
-            "episode": self.episode,
-            "upload_date": self.upload_date,
-            "duration": self.duration,
-            "description": self.description,
-            "enabled": self.enabled,
-            "private": self.private,
-            "contains_unique_content": self.contains_unique_content,
-            "has_chapters": self.has_chapters,
-            "manually_edited": self.manually_edited,
-            "jellyfin_id": self.jellyfin_id,
-            "channel_id": self.channel.id if self.channel else None,
-            "series_id": self.series.id if self.series else None,
-            "playlist_id": self.playlist.id if self.playlist else None,
-            "youtube_series_id": (
-                self.youtube_series.id if self.youtube_series else None
-            ),
-            "album_id": self.album.id if self.album else None,
-            "section_ids": [s.id for s in self.sections],
-            "file_count": num_files,
-            "section_count": num_sections,
-            "track_count": num_tracks,
-        }
-        return new_dict
-
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class EpisodeNumberTemplate(BaseModel):
@@ -595,12 +550,18 @@ class Track(BaseModel):
 
     def model_to_dict(self):
         has_mp3 = File.select().where(File.track_id == self.id).get_or_none()
-
+        section = self.section.get_or_none()
+        if section:
+            video_id = int(section.video.id)
+        else:
+            video_id = 0
         new_dict = {
             "id": self.id,
             "title": self.title,
             "track_number": self.track_number,
             "length": self.length,
+            "video_id": video_id,
+            "jellyfin_id": self.jellyfin_id,
             "album_id": self.album.id if self.album else None,
             "album_title": self.album.title if self.album else None,
             "has_mp3": False,  # need to fix this

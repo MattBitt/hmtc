@@ -11,6 +11,7 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Channel as ChannelModel
 from hmtc.models import Video as VideoModel
+from hmtc.pages.settings import PageState
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.video import VideoItem
 
@@ -44,6 +45,7 @@ def refresh_from_youtube():
         logger.debug("No new videos found")
     else:
         logger.debug(f"Found {num_new_vids} new videos")
+
     busy_downloading.set(False)
 
 

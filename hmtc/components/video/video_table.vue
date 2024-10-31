@@ -8,12 +8,9 @@
     :search="search"
     :items-per-page="30"
     class="elevation-1"
-    :single-expand="true"
-    expanded.sync="expanded"
     item-key="title"
     @pagination="writeLog"
     @click:row="handleClick"
-    show-expand
   >
     <template v-slot:top="{ pagination, options, updateOptions }">
       <v-toolbar flat>
@@ -114,25 +111,87 @@
       </v-toolbar>
     </template>
     <!-- Custom cell contents for each column-->
+
+    <template v-slot:item.upload_date="{ item }">
+      <v-chip color="info">{{ item.upload_date }}</v-chip>
+    </template>
+    <template v-slot:item.title="{ item }">
+      <span>{{ item.title }}</span>
+    </template>
+    <template v-slot:item.duration="{ item }">
+      <v-chip color="info">{{
+        new Date(item.duration * 1000).toISOString().substr(11, 8)
+      }}</v-chip>
+    </template>
+    <template v-slot:item.jellyfin_id="{ item }">
+      <span v-if="item.jellyfin_id == null">
+        <v-chip color="error">
+          <v-icon>mdi-alpha-x</v-icon>
+        </v-chip>
+      </span>
+      <span v-else>
+        <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+      </span>
+    </template>
+    <template v-slot:item.section_info.section_count="{ item }">
+      <v-chip color="primary">{{ item.section_info.section_count }}</v-chip>
+    </template>
     <template v-slot:item.file_count="{ item }">
-      <v-chip>
-        {{ item.file_count }}
-      </v-chip>
+      <span v-if="item.file_count == 6">
+        <v-chip color="success">
+          <v-icon>mdi-check</v-icon>
+        </v-chip>
+      </span>
+      <span v-else-if="item.file_count == 0">
+        <v-chip color="error">
+          <v-icon>mdi-alpha-x</v-icon>
+        </v-chip>
+      </span>
+      <span v-else>
+        <v-chip color="warning">
+          {{ item.file_count }}
+        </v-chip>
+      </span>
     </template>
-    <template v-slot:item.section_count="{ item }">
-      <v-chip>
-        {{ item.section_count }}
-      </v-chip>
-    </template>
-    <template v-slot:item.track_count="{ item }">
-      <v-chip>
-        {{ item.track_count }}
-      </v-chip>
-    </template>
-    <template v-slot:item.my_new_column="{ item }">
-      <v-chip>
-        {{ (item.my_new_column * 100).toFixed(2) }}
-      </v-chip>
+    <template v-slot:item.section_info="{ item }">
+      <div v-if="item.section_info.section_count <= 0">
+        <v-chip color="warning">
+          <v-icon>mdi-alpha-x</v-icon>
+        </v-chip>
+        <v-chip color="warning">
+          <v-icon>mdi-alpha-x</v-icon>
+        </v-chip>
+      </div>
+      <div v-else>
+        <span
+          v-if="
+            item.section_info.section_count == item.section_info.track_count
+          "
+        >
+          <v-chip color="success">
+            <v-icon>mdi-check</v-icon>
+          </v-chip>
+        </span>
+        <span v-else>
+          <v-col class="text--center">
+            <v-chip color="error">
+              <span>
+                {{ item.section_info.section_count }}
+              </span>
+              <span> / </span>
+              <span>
+                {{ item.section_info.track_count }}
+              </span>
+            </v-chip>
+          </v-col>
+        </span>
+
+        <span>
+          <v-chip color="success">
+            {{ (item.section_info.my_new_column * 100).toFixed(2) }}%
+          </v-chip>
+        </span>
+      </div>
     </template>
     <template v-slot:item.contains_unique_content="{ item }">
       <v-simple-checkbox
@@ -140,76 +199,15 @@
       ></v-simple-checkbox>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon class="ml-1 mr-4" @click="editItem(item)"> mdi-pencil </v-icon>
-      <v-icon class="mr-1" @click="link1_clicked(item)">
+      <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
+        mdi-pencil
+      </v-icon>
+      <v-icon x-large color="primary" class="mb-4" @click="link1_clicked(item)">
         mdi-rhombus-split
       </v-icon>
     </template>
     <template v-slot:no-data>
       <v-btn class="button" @click=""> Reset </v-btn>
-    </template>
-    <template v-slot:expanded-item="{ headers, item }">
-      <td :colspan="headers.length">
-        <v-chip>
-          <span v-if="item.channel_name">
-            <a
-              :href="
-                '/videos/channel/' +
-                channels.find((channel) => channel.name === item.channel_name)
-                  .id
-              "
-            >
-              {{ item.channel_name }}
-            </a>
-          </span>
-          <span v-else>---</span>
-        </v-chip>
-        <v-chip>
-          <span v-if="item.youtube_series_title">
-            <a
-              :href="
-                '/videos/series/' +
-                youtube_serieses.find(
-                  (youtube_series) =>
-                    youtube_series.title === item.youtube_series_title
-                ).id
-              "
-            >
-              {{ item.youtube_series_title }}
-            </a>
-          </span>
-          <span v-else>---</span>
-        </v-chip>
-        <v-chip>
-          <span v-if="item.album_title">
-            <a
-              :href="
-                '/videos/album/' +
-                albums.find((album) => album.title === item.album_title).id
-              "
-            >
-              {{ item.album_title }}
-            </a>
-          </span>
-          <span v-else>---</span>
-        </v-chip>
-        <v-chip>
-          <span v-if="item.series_name">
-            <a
-              :href="
-                '/videos/series/' +
-                serieses.find((series) => series.name === item.series_name).id
-              "
-            >
-              {{ item.series_name }}
-            </a>
-          </span>
-          <span v-else>---</span>
-        </v-chip>
-        <v-chip>
-          {{ item.duration }}
-        </v-chip>
-      </td>
     </template>
   </v-data-table>
 </template>
@@ -235,31 +233,40 @@ export default {
         {
           text: "Title",
           value: "title",
-          width: "40%",
+          width: "20%",
           align: "start",
         },
         {
-          text: "# Files",
+          text: "Duration",
+          value: "duration",
+          filterable: false,
+          sortable: true,
+        },
+        {
+          text: "Sections",
+          value: "section_info.section_count",
+          filterable: false,
+          sortable: true,
+        },
+        {
+          text: "Files",
           value: "file_count",
           filterable: false,
           sortable: true,
         },
+
         {
-          text: "# Sections",
-          value: "section_count",
+          text: "Sectionilization",
+          value: "section_info",
           filterable: false,
-          sortable: true,
+          width: "30%",
+          sortable: false,
+          align: "center",
         },
         {
-          text: "# Tracks",
-          value: "track_count",
-          filterable: false,
-          sortable: true,
-        },
-        {
-          text: "My New Column",
-          value: "my_new_column",
-          filterable: false,
+          text: "JF ID",
+          value: "jellyfin_id",
+          filterable: true,
           sortable: true,
         },
         { text: "Unique", value: "contains_unique_content", filterable: false },
@@ -268,7 +275,7 @@ export default {
           value: "actions",
           sortable: false,
           filterable: false,
-          width: "20%",
+          width: "5%",
           align: "end",
         },
       ],
@@ -401,4 +408,10 @@ export default {
   },
 };
 </script>
-<style></style>
+<style>
+.wrapclass {
+  max-width: 99%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

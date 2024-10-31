@@ -597,6 +597,7 @@ def VideoInfoInputCard(
 def InfoPanel(
     video,
 ):
+    force_update_counter = solara.use_reactive(0)
     vid_db = VideoModel.get_by_id(video.id)
 
     def create(*args):
@@ -631,6 +632,7 @@ def InfoPanel(
                 case _:
                     logger.error(f"Type {_type} not found")
                     return
+            force_update_counter.set(force_update_counter.value + 1)
 
         except Exception as e:
             logger.error(e)
@@ -671,6 +673,7 @@ def InfoPanel(
                 case _:
                     logger.error(f"Type {_type} not found")
                     return
+            force_update_counter.set(force_update_counter.value + 1)
 
         except Exception as e:
             logger.error(e)
@@ -765,19 +768,19 @@ def InfoPanel(
         this_series = [x for x in series_dicts if x["id"] == video.series_id][0]
     except IndexError:
         this_series = None
-
-    VideoInfoInputCard(
-        albums=album_dicts,
-        youtube_serieses=youtube_series_dicts,
-        serieses=series_dicts,
-        selectedAlbum=this_album,
-        selectedYoutubeSeries=this_youtube_series,
-        selectedSeries=this_series,
-        episode_number=video.episode,
-        event_create=create,
-        event_update=update,
-        event_remove=remove,
-    ),
+    if force_update_counter.value >= 0:
+        VideoInfoInputCard(
+            albums=album_dicts,
+            youtube_serieses=youtube_series_dicts,
+            serieses=series_dicts,
+            selectedAlbum=this_album,
+            selectedYoutubeSeries=this_youtube_series,
+            selectedSeries=this_series,
+            episode_number=video.episode,
+            event_create=create,
+            event_update=update,
+            event_remove=remove,
+        ),
 
 
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬

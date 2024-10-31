@@ -100,7 +100,6 @@ class PageState:
     updating = solara.reactive(False)
     i = solara.reactive(0)
     num_to_download = solara.reactive(10)
-    jf = MyJellyfinClient()
 
     @staticmethod
     def create_tracks_from_sections():
@@ -175,6 +174,28 @@ class PageState:
                 logger.error(f"No results found for {v.youtube_id}")
 
     @staticmethod
+    def search_for_video_jellyfin_ids():
+        videos = (
+            VideoModel.select(VideoModel, FileModel)
+            .join(
+                FileModel,
+                peewee.JOIN.LEFT_OUTER,
+                on=VideoModel.id == FileModel.video_id,
+            )
+            .where(VideoModel.jellyfin_id.is_null())
+        )
+        found_videos = 0
+        logger.debug(f"Found {len(videos)} videos with no jellyfin id")
+        for v in videos:
+            existing_item = search_for_media(library="videos", title=str(v.youtube_id))
+            if existing_item is None:
+                continue
+            found_videos += 1
+            v.jellyfin_id = existing_item["Id"]
+            v.save()
+        logger.error(f"Found jellyfin ids for {found_videos} videos")
+
+    @staticmethod
     def search_for_track_jellyfin_ids():
         tracks = (
             TrackModel.select(TrackModel, FileModel)
@@ -188,9 +209,8 @@ class PageState:
 
         logger.debug(f"Found {len(tracks)} tracks with no jellyfin id")
         for t in tracks:
-            existing_item = search_for_media(str(t.title))
+            existing_item = search_for_media(library="tracks", title=str(t.title))
             if existing_item is None:
-                logger.error(f"No media found for {t.title}")
                 continue
             t.jellyfin_id = existing_item["Id"]
             t.save()
@@ -559,8 +579,8 @@ def Page():
                         classes=["button"],
                     )
                     solara.Button(
-                        label="Search for Jellyfin IDs",
-                        on_click=PageState.search_for_jellyfin_ids,
+                        label="Assign jellyfin ids to videos (10/30/24)",
+                        on_click=PageState.search_for_video_jellyfin_ids,
                         classes=["button"],
                     )
                     solara.Button(

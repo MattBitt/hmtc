@@ -148,8 +148,12 @@ def tracks_library_id():
 import re
 
 
-def search_for_media(title):
-    library_id = tracks_library_id()
+def search_for_media(library, title):
+    if library == "videos":
+        library_id = sources_library_id()
+    else:
+        library_id = tracks_library_id()
+
     url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
     res = jf_get(url)
 
@@ -158,11 +162,11 @@ def search_for_media(title):
         return None
 
     elif res.json()["TotalRecordCount"] == 0:
-        logger.error(f"No media found {res.json()}")
+        logger.error(f"No results for {title}")
         return None
     elif res.json()["TotalRecordCount"] > 1:
         # logger.error("More than one media found")
-        logger.error(f"Too many results {res.json()}")
+        logger.error(f"Too many results {title}")
         return None
     else:
         logger.debug(f"Only 1 result found! {res.json()}")
@@ -194,5 +198,5 @@ if __name__ == "__main__":
     print(len(favs))
     print(f"videos {sources_library_id()}")
     print(f"tracks {tracks_library_id()}")
-    x = search_for_media("pineapple, birthday, city")
+    x = search_for_media(library="track", title="pineapple, birthday, city")
     print(get_user_id("mizzle"))

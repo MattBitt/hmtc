@@ -65,6 +65,7 @@ def TrackTable(
     items: list = [],
     event_save_track=None,
     event_delete_track: Callable = None,
+    event_link1_clicked: Callable = None,
 ):
     pass
 
@@ -97,6 +98,10 @@ def save_track(dict_of_items):
     force_update_counter.set(force_update_counter.value + 1)
 
 
+def view_details(router, item_id):
+    router.push(f"/video-details/{str(item_id)}")
+
+
 @solara.component
 def Page():
 
@@ -111,4 +116,5 @@ def Page():
             items=items,
             event_save_track=save_track,
             event_delete_track=delete_track,
+            event_link1_clicked=lambda x: view_details(router, x),
         )

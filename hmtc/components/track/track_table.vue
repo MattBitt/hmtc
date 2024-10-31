@@ -90,13 +90,27 @@
           </v-dialog>
         </v-toolbar>
       </template>
-
+      <template v-slot:item.jellyfin_id="{ item }">
+        <span v-if="item.jellyfin_id == null">
+          <v-chip color="error">
+            <v-icon>mdi-alpha-x</v-icon>
+          </v-chip>
+        </span>
+        <span v-else>
+          <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+        </span>
+      </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon medium class="mr-2" @click="editItem(item)">
+        <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <v-icon medium color="red" @click="deleteItem(item)">
-          mdi-delete
+        <v-icon
+          x-large
+          color="primary"
+          class="mb-4"
+          @click="link1_clicked(item.video_id)"
+        >
+          mdi-rhombus-split
         </v-icon>
       </template>
       <template v-slot:no-data>
@@ -124,8 +138,13 @@ export default {
       { text: "Album", value: "album_title", filterable: false },
 
       { text: "Track Number", value: "track_number", filterable: true },
-      { text: "Video", value: "video_title", filterable: true },
-      // { text: 'Unique', value: 'contains_unique_content', filterable: false },
+      {
+        text: "JF ID",
+        value: "jellyfin_id",
+        filterable: true,
+        sortable: true,
+      },
+
       { text: "Actions", value: "actions", sortable: false },
     ],
 

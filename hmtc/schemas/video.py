@@ -252,9 +252,7 @@ class VideoItem(BaseItem):
             )
             .where(VideoModel.id == id)
         ).get()
-        vid_dict = vid.model_to_dict()
-        # logger.debug(f"Returning details: {vid_dict}")
-        return VideoItem(**vid_dict)
+        return VideoItem.from_model(vid)
 
     def update_from_youtube(self):
         # download files to temp folder
@@ -373,9 +371,11 @@ class VideoItem(BaseItem):
             "manually_edited": self.manually_edited,
             "jellyfin_id": self.jellyfin_id,
             "file_count": self.file_count,
-            "section_count": self.section_count,
-            "track_count": self.track_count,
-            "my_new_column": sectionalized_ratio,
+            "section_info": {
+                "section_count": self.section_count,
+                "track_count": self.track_count,
+                "my_new_column": sectionalized_ratio,
+            },
             "channel_id": self.channel_id,
             "playlist_id": self.playlist_id,
             "youtube_series_id": self.youtube_series_id,
