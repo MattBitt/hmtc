@@ -3,9 +3,12 @@ from pathlib import Path
 from PIL import Image
 
 
-def convert_webp_to_png(file):
+def convert_webp_to_png(file, path=None) -> Path:
     im = Image.open(file).convert("RGB")
-    new_file = Path(file.parent / (file.stem + ".png"))
+    if path is None:
+        new_file = Path(file.parent / (file.stem + ".png"))
+    else:
+        new_file = Path(path) / (file.stem + ".png")
     im.save(new_file, "png")
     return new_file
 

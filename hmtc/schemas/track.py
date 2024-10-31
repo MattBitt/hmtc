@@ -15,7 +15,7 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
 from hmtc.utils.jellyfin_functions import refresh_library
 from hmtc.utils.lyric_utils import create_lyrics_file
-from hmtc.utils.mutagen_utils import write_id3_tags
+from hmtc.utils.mutagen_utils import embed_image, write_id3_tags
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -44,7 +44,7 @@ class TrackItem:
             album_id=track.album_id,
         )
 
-    def write_file(self, input_file: Path):
+    def write_audio_file(self, audio_file: Path, image_file: Path):
 
         album = AlbumModel.get_or_none(AlbumModel.id == self.album_id)
         section = SectionModel.get_or_none(SectionModel.track_id == self.id)
@@ -66,10 +66,10 @@ class TrackItem:
             output_file.unlink()
 
         logger.error(
-            f"Ripping track from {input_file} to {str(output_file)} from {section.start} to {section.end}"
+            f"Ripping track from {audio_file} to {str(output_file)} from {section.start} to {section.end}"
         )
         rip_track(
-            input_file,
+            audio_file,
             str(output_file),
             start_time=section.start / 1000,
             end_time=section.end / 1000,
@@ -87,6 +87,7 @@ class TrackItem:
         }
         logger.debug(f"Writing tags {tags} to {output_file}")
         write_id3_tags(output_file, tags)
+        embed_image(audio_file=output_file, image_file=image_file)
         refresh_library()
         return output_file
 

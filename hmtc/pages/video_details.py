@@ -288,7 +288,11 @@ def SectionsPanel(
             logger.error(f"No input file found for")
             return
         input_file_path = Path(input_file.path) / input_file.filename
-        track_path = track.write_file(input_file=input_file_path)
+        image_file_path = FileManager.get_file_for_video(video, "poster")
+        im_file = Path(image_file_path.path) / image_file_path.filename
+        track_path = track.write_audio_file(
+            audio_file=input_file_path, image_file=im_file
+        )
         new_file = FileManager.add_path_to_track(
             path=track_path, track=track, video=video
         )
