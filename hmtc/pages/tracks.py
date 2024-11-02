@@ -27,37 +27,13 @@ def create_query_from_url():
     # level = solara.use_route_level()
 
     match router.parts:
-        case [_, "all"]:
-            # should probably show the unique column if all are shown
-            return all, None, None, True
-        case [_, filter, id_to_filter, "all"]:
-            if filter in valid_filters:
-                return (
-                    all.where(getattr(TrackModel, filter) == id_to_filter),
-                    filter,
-                    id_to_filter,
-                    True,
-                )
-            else:
-                logger.debug(f"Invalid filter: {filter}")
-                return None, None, None, False
-        case [_, filter, id_to_filter]:
-            if filter in valid_filters:
-                return (
-                    all.where(getattr(TrackModel, filter) == id_to_filter),
-                    filter,
-                    id_to_filter,
-                    False,
-                )
-            else:
-                logger.debug(f"Invalid filter: {filter}")
-                return None, None, None, False
-        case [_]:
-            # this is the /tracks page view
-            return all, None, None, False
+        case ["tracks"]:
+            return all, None, None
+        case ["tracks", "album", album_id]:
+            tracks = all.where(TrackModel.album_id == album_id)
+            return tracks, "album", album_id
         case _:
-            logger.error(f"Invalid URL: {router.parts}")
-            raise ValueError("Invalid URL")
+            logger.error(f"Invalid URL: {router.url}")
 
 
 @solara.component_vue("../components/track/track_table.vue", vuetify=True)
@@ -66,6 +42,7 @@ def TrackTable(
     event_save_track=None,
     event_delete_track: Callable = None,
     event_link1_clicked: Callable = None,
+    event_link2_clicked: Callable = None,
 ):
     pass
 
@@ -102,12 +79,17 @@ def view_details(router, item_id):
     router.push(f"/video-details/{str(item_id)}")
 
 
+def album_details(router, album_title):
+    album = AlbumModel.select().where(AlbumModel.title == album_title).get()
+    router.push(f"/album-details/{str(album.id)}")
+
+
 @solara.component
 def Page():
 
     router = solara.use_router()
     MySidebar(router)
-    base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
+    base_query, filter, id_to_filter = create_query_from_url()
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 
     items = df.to_dict("records")
@@ -117,4 +99,5 @@ def Page():
             event_save_track=save_track,
             event_delete_track=delete_track,
             event_link1_clicked=lambda x: view_details(router, x),
+            event_link2_clicked=lambda x: album_details(router, x),
         )

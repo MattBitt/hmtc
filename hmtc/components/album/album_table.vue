@@ -66,7 +66,11 @@
                 </v-card-text>
 
                 <v-card-actions>
-                  <v-btn color="warning" outlined @click="dialogDelete = true">
+                  <v-btn
+                    color="button mywarning"
+                    outlined
+                    @click="dialogDelete = true"
+                  >
                     Delete
                   </v-btn>
                   <v-spacer></v-spacer>

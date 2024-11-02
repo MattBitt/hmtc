@@ -551,7 +551,7 @@ class Track(BaseModel):
     def model_to_dict(self):
         has_mp3 = File.select().where(File.track_id == self.id).get_or_none()
         section = self.section.get_or_none()
-        if section:
+        if section and section.video:
             video_id = int(section.video.id)
         else:
             video_id = 0

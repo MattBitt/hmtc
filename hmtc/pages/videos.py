@@ -37,7 +37,8 @@ def create_query_from_url():
     # /videos/channel/<channel_id> should be a list of videos in a channel
     # /vidoes/album/<album_id> should be a list of videos in an album
     # /videos/playlist/<playlist_id> should be a list of videos in a playlist
-
+    # /videos/sections/none should be a list of videos with no sections
+    # /videos/sections/some should be a list of videos with sections
     all = (
         VideoModel.select(
             VideoModel.id,
@@ -67,13 +68,27 @@ def create_query_from_url():
 
     unique = all.where(VideoModel.contains_unique_content == True)
 
-    valid_filters = ["series", "youtube_series", "channel", "album", "playlist"]
+    valid_filters = [
+        "series",
+        "youtube_series",
+        "channel",
+        "album",
+        "playlist",
+        "sections",
+    ]
     router = solara.use_router()
     # level = solara.use_route_level()
+    vids_with_sections = SectionModel.select(SectionModel.video_id).distinct()
+    vids_with_sections_ids = [x.video_id for x in vids_with_sections]
+    all_vids = VideoModel.select(VideoModel.id).where(
+        VideoModel.contains_unique_content == True
+    )
 
+    vids_without_sections = [
+        x.id for x in all_vids if x.id not in vids_with_sections_ids
+    ]
     match router.parts:
         case [_, "all"]:
-            # should probably show the unique column if all are shown
             return all, None, None, True
         case [_, filter, id_to_filter, "all"]:
             if filter in valid_filters:
@@ -88,12 +103,31 @@ def create_query_from_url():
                 return None, None, None, False
         case [_, filter, id_to_filter]:
             if filter in valid_filters:
-                return (
-                    unique.where(getattr(VideoModel, filter) == id_to_filter),
-                    filter,
-                    id_to_filter,
-                    False,
-                )
+                if filter == "sections":
+                    if id_to_filter == "none":
+                        return (
+                            unique.where(VideoModel.id.in_(vids_without_sections)),
+                            filter,
+                            id_to_filter,
+                            False,
+                        )
+                    elif id_to_filter == "some":
+                        return (
+                            unique.where(VideoModel.id.in_(vids_with_sections_ids)),
+                            filter,
+                            id_to_filter,
+                            False,
+                        )
+                    else:
+                        logger.debug(f"Invalid section filter: {id_to_filter}")
+                        return None, None, None, False
+                else:
+                    return (
+                        unique.where(getattr(VideoModel, filter) == id_to_filter),
+                        filter,
+                        id_to_filter,
+                        False,
+                    )
             else:
                 logger.debug(f"Invalid filter: {filter}")
                 return None, None, None, False
@@ -143,55 +177,15 @@ def delete_video_item(item):
 def save_video_item(dict_of_items):
     item = dict_of_items["item"]
     edited_item = dict_of_items["editedItem"]
-    selected_channel = dict_of_items["selectedChannel"]
-    selected_series = dict_of_items["selectedSeries"]
-    selected_youtube_series = dict_of_items["selectedYoutubeSeries"]
-    selected_album = dict_of_items["selectedAlbum"]
 
-    channel = None
-    playlist = None
-    youtube_series = None
-    album = None
     episode_number = None
 
-    # 10/5/24 this is a hack to allow me to delete series from videos
-    new_series = "asdf"
-
     logger.debug(f"Item received from Vue: {item}")
-    video_item = VideoItem.get_by_id(item["id"])
 
-    if selected_channel["id"] is not None:
-        if video_item.channel is None or (
-            selected_channel["id"] != video_item.channel.id
-        ):
-            channel = Channel.get_by_id(selected_channel["id"])
-
-    if selected_series is None:
-        new_series = None
-    elif selected_series["id"] is not None:
-        if video_item.series is None or (selected_series["id"] != video_item.series.id):
-            new_series = Series.get_by_id(selected_series["id"])
-
-    if selected_youtube_series["id"] is not None:
-        if video_item.youtube_series is None or (
-            selected_youtube_series["id"] != video_item.youtube_series.id
-        ):
-            youtube_series = YoutubeSeries.get_by_id(selected_youtube_series["id"])
-
-    # starting to deprecate (youtube) playlists 9/27/24
-    # if selected_playlist["id"] is not None:
-    #     if video_item.playlist is None or (
-    #         selected_playlist["id"] != video_item.playlist.id
-    #     ):
-    #         playlist = Playlist.get_by_id(selected_playlist["id"])
-
-    if selected_album["id"] is not None:
-        if (video_item.album is None) or (selected_album["id"] != video_item.album.id):
-            album = AlbumModel.get_by_id(selected_album["id"])
-
+    video = VideoModel.get(VideoModel.id == item["id"])
     if edited_item["episode"] is not None:
-        if (video_item.episode is None) or (
-            int(edited_item["episode"]) != int(video_item.episode)
+        if (video.episode is None) or (
+            int(edited_item["episode"]) != int(video.episode)
         ):
             if not edited_item["episode"].isdigit():
                 logger.debug("Episode number is not a digit")
@@ -203,19 +197,6 @@ def save_video_item(dict_of_items):
     new_vid.duration = edited_item["duration"]
     new_vid.jellyfin_id = edited_item["jellyfin_id"]
     new_vid.contains_unique_content = edited_item["contains_unique_content"]
-    if channel is not None:
-        new_vid.channel = channel
-    if youtube_series is not None:
-        new_vid.youtube_series = youtube_series
-    if playlist is not None:
-        new_vid.playlist = playlist
-
-    # 10/18 no idea why and im too scared to ask
-    if new_series != "asdf":
-        new_vid.series = new_series
-
-    if album is not None:
-        new_vid.album = album
     if episode_number is not None:
         new_vid.episode = episode_number
 

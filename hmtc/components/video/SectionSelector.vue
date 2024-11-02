@@ -36,12 +36,21 @@
                 </h4>
               </v-col>
               <v-col cols="2">
-                <span v-if="section.track == null">
-                  <v-chip color="error"><v-icon>mdi-close</v-icon></v-chip>
-                </span>
-                <span v-else>
-                  <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
-                </span>
+                <v-row>
+                  <span v-if="section.track == null">
+                    <v-chip color="error"><v-icon>mdi-close</v-icon></v-chip>
+                  </span>
+                  <span v-else>
+                    <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+                  </span>
+
+                  <span v-if="section.track?.files.length == 2">
+                    <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+                  </span>
+                  <span v-else>
+                    <v-chip color="error"><v-icon>mdi-close</v-icon></v-chip>
+                  </span>
+                </v-row>
               </v-col>
             </v-row>
           </v-container>

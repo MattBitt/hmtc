@@ -17,6 +17,7 @@ from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.track import TrackItem
 from hmtc.schemas.video import VideoItem
+from hmtc.utils.general import clean_filename
 
 
 @dataclass
@@ -97,9 +98,12 @@ class Album:
         self, section: SectionItem, video: VideoItem
     ) -> "TrackItem":
         if len(section.topics) > 0:
+            # Default Track title
+            # its also defined in SectionSelector.vue
+
             topics_string = ", ".join([x.topic.text for x in section.topics])
             if len(topics_string) > 40:
-                # also defined in SectionCarousel.vue
+
                 new_title = topics_string[:40] + "..."
             else:
                 new_title = topics_string
@@ -107,14 +111,13 @@ class Album:
             new_title = video.title[:40]
 
         track = self.create_track(
-            title=new_title, length=(section.end - section.start) / 1000
+            title=clean_filename(new_title), length=(section.end - section.start) / 1000
         )
         track_item = TrackItem.from_model(track)
-
         sect = SectionModel.get_by_id(section.id)
         sect.track = track
         sect.save()
-
+        track_item.create_all_files(video)
         return track_item
 
     def use_video_poster(self):

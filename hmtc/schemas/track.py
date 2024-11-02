@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from loguru import logger
@@ -6,10 +6,11 @@ from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
+from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
-
-# from hmtc.schemas.album import Album as AlbumItem
+from hmtc.models import Video as VideoModel
+from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
@@ -34,6 +35,7 @@ class TrackItem:
     length: int = 0
     album_id: int = None
     album_title: str = None
+    section_id: int = None
 
     def from_model(track: TrackModel) -> "TrackItem":
         return TrackItem(
@@ -42,22 +44,69 @@ class TrackItem:
             track_number=track.track_number,
             length=track.length,
             album_id=track.album_id,
+            section_id=track.section,
         )
 
-    def write_audio_file(self, audio_file: Path, image_file: Path):
+    def create_all_files(self, video: VideoItem):
+        self.create_audio_file(video)
+        self.create_lyrics_file(video)
 
-        album = AlbumModel.get_or_none(AlbumModel.id == self.album_id)
-        section = SectionModel.get_or_none(SectionModel.track_id == self.id)
-        num_tracks = (
-            TrackModel.select(fn.Count(TrackModel.id))
-            .where(TrackModel.album_id == album.id)
-            .scalar()
-        )
-        if album is None or section is None:
-            logger.error(f"album: {album}")
-            logger.error(f"times: {section}")
+    def create_audio_file(self, video: VideoItem):
+
+        try:
+            input_file = (
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == video.id) & (FileModel.file_type == "audio")
+                )
+                .get()
+            )
+        except:
+            logger.error(f"No input audo file found for {video.title}")
             return
-        out_folder = self.track_folder / f"{album.title}/"
+
+        input_file_path = Path(input_file.path) / input_file.filename
+        image_file_path = FileManager.get_file_for_video(video, "poster")
+        im_file = Path(image_file_path.path) / image_file_path.filename
+        track_path = self.write_audio_file(
+            input_file=input_file_path, image_file=im_file
+        )
+        new_audio_file = FileManager.add_path_to_track(
+            path=track_path, track=self, video=video
+        )
+        logger.debug(f"Created audio file {new_audio_file}")
+
+    def create_lyrics_file(self, video: VideoItem):
+        try:
+            input_file = (
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == video.id)
+                    & (FileModel.file_type == "subtitle")
+                )
+                .get()
+            )
+        except:
+            logger.error(f"No input file found for")
+            return
+        input_file_path = Path(input_file.path) / input_file.filename
+        lyrics_path = self.write_lyrics_file(input_file_path)
+        new_lyrics_file = FileManager.add_path_to_track(
+            path=lyrics_path, track=self, video=video
+        )
+        logger.debug(f"Created lyrics file {new_lyrics_file}")
+
+    def write_audio_file(self, input_file: Path, image_file: Path):
+        album_title = AlbumModel.get_or_none(AlbumModel.id == self.album_id).title
+        section = (
+            SectionModel.select().where(SectionModel.track_id == self.id).get_or_none()
+        )
+        if section is None or album_title is None:
+            logger.error(f"section: {section}")
+            logger.error(f"album_title: {album_title}")
+            return
+
+        out_folder = self.track_folder / f"{album_title}/"
         if not out_folder.exists():
             out_folder.mkdir(parents=True)
         output_file = out_folder / f"{self.track_number} - {self.title}.mp3"
@@ -66,10 +115,10 @@ class TrackItem:
             output_file.unlink()
 
         logger.error(
-            f"Ripping track from {audio_file} to {str(output_file)} from {section.start} to {section.end}"
+            f"Ripping track from {input_file} to {str(output_file)} from {section.start} to {section.end}"
         )
         rip_track(
-            audio_file,
+            input_file,
             str(output_file),
             start_time=section.start / 1000,
             end_time=section.end / 1000,
@@ -80,7 +129,7 @@ class TrackItem:
         tags = {
             "title": self.title,
             "tracknumber": f"{self.track_number}",
-            "album": album.title,
+            "album": album_title,
             "albumartist": "Harry Mack",
             "artist": "Harry Mack",
             "date": str(section.video.upload_date.year),

@@ -126,7 +126,7 @@
     <template v-slot:item.jellyfin_id="{ item }">
       <span v-if="item.jellyfin_id == null">
         <v-chip color="error">
-          <v-icon>mdi-alpha-x</v-icon>
+          <v-icon>mdi-close</v-icon>
         </v-chip>
       </span>
       <span v-else>
@@ -144,7 +144,7 @@
       </span>
       <span v-else-if="item.file_count == 0">
         <v-chip color="error">
-          <v-icon>mdi-alpha-x</v-icon>
+          <v-icon>mdi-close</v-icon>
         </v-chip>
       </span>
       <span v-else>
@@ -156,10 +156,10 @@
     <template v-slot:item.section_info="{ item }">
       <div v-if="item.section_info.section_count <= 0">
         <v-chip color="warning">
-          <v-icon>mdi-alpha-x</v-icon>
+          <v-icon>mdi-close</v-icon>
         </v-chip>
         <v-chip color="warning">
-          <v-icon>mdi-alpha-x</v-icon>
+          <v-icon>mdi-close</v-icon>
         </v-chip>
       </div>
       <div v-else>

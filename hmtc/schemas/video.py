@@ -196,9 +196,7 @@ class VideoItem(BaseItem):
             )
             FileManager.add_path_to_video(file, vid)
 
-        vid_dict = vid.model_to_dict()
-        logger.info(f"Finished creating video from youtube : {vid_dict}")
-        return VideoItem(**vid_dict)
+        return VideoItem.from_model(vid)
 
     @staticmethod
     def grab_info_from_youtube(youtube_id):

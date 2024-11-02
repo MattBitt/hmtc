@@ -266,37 +266,14 @@ def SectionsPanel(
         reload.set(True)
 
     def create_audio_file(*args):
-        # this is just the beginning
-        # still need to update the id3 properties
-        # and assign a poster image
         logger.debug(f"Creating audio file {args}")
         try:
             tm = TrackModel.get_by_id(args[0]["track_id"])
+            track = TrackItem.from_model(tm)
+            track.create_audio_file(video=video)
         except Exception as e:
             logger.error(e)
             return
-        track = TrackItem.from_model(tm)
-        try:
-            input_file = (
-                FileModel.select()
-                .where(
-                    (FileModel.video_id == video.id) & (FileModel.file_type == "audio")
-                )
-                .get()
-            )
-        except:
-            logger.error(f"No input file found for")
-            return
-        input_file_path = Path(input_file.path) / input_file.filename
-        image_file_path = FileManager.get_file_for_video(video, "poster")
-        im_file = Path(image_file_path.path) / image_file_path.filename
-        track_path = track.write_audio_file(
-            audio_file=input_file_path, image_file=im_file
-        )
-        new_file = FileManager.add_path_to_track(
-            path=track_path, track=track, video=video
-        )
-        logger.debug(f"Created audio file {new_file}")
 
         reload.set(True)
 
@@ -310,29 +287,14 @@ def SectionsPanel(
             return
 
     def create_lyrics_file(*args):
-        logger.debug(f"Creating lyrics file {args}")
-        # args is a dict with 'track_id' as the key
+        logger.debug(f"Creating audio file {args}")
         try:
-            input_file = (
-                FileModel.select()
-                .where(
-                    (FileModel.video_id == video.id)
-                    & (FileModel.file_type == "subtitle")
-                )
-                .get()
-            )
-        except:
-            logger.error(f"No input file found for")
+            tm = TrackModel.get_by_id(args[0]["track_id"])
+            track = TrackItem.from_model(tm)
+            track.create_lyrics_file(video=video)
+        except Exception as e:
+            logger.error(e)
             return
-        input_file_path = Path(input_file.path) / input_file.filename
-        track_item = TrackItem.from_model(TrackModel.get_by_id(args[0]["track_id"]))
-        lyrics_path = track_item.write_lyrics_file(input_file=input_file_path)
-
-        new_file = FileManager.add_path_to_track(
-            path=lyrics_path, track=track_item, video=video
-        )
-        logger.debug(f"Created lyrics file {new_file}")
-
         reload.set(True)
 
     def delete_lyrics_file(*args):
@@ -848,6 +810,10 @@ def Page():
     register_vue_components(file=__file__)
 
     video_id = parse_url_args()
+    if video_id is None or video_id == 0:
+        with solara.Error():
+            solara.Markdown(f"No Video Found {video_id}")
+        return
     video = VideoItem.get_details_for_video(video_id)
 
     # should probably be using video.section_ids (not sure if it matters)

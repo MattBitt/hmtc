@@ -17,7 +17,7 @@
       :search="search"
       :items-per-page="30"
       class="elevation-1"
-      item-key="title"
+      item-key="id"
     >
       <template v-slot:top>
         <v-toolbar flat>
@@ -67,6 +67,13 @@
               </v-card-text>
 
               <v-card-actions>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="dialogDelete = true"
+                >
+                  <v-icon>mdi-delete</v-icon> Delete
+                </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn class="button" @click="close"> Cancel </v-btn>
                 <v-btn class="button" @click="saveItemToDB(editedItem)">
@@ -83,17 +90,34 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-                <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-card>
           </v-dialog>
         </v-toolbar>
       </template>
+      <template v-slot:item.album_title="{ item }">
+        <span v-if="item.album_title == null">---</span>
+        <span v-else>{{ item.album_title }}</span>
+      </template>
+      <template v-slot:item.files="{ item }">
+        <v-chip color="success" v-if="item.files.length == 2">
+          <span><v-icon>mdi-check</v-icon> </span>
+        </v-chip>
+        <v-chip color="error" v-else>
+          <span><v-icon>mdi-close</v-icon> ({{ item.files.length }})</span>
+        </v-chip>
+      </template>
       <template v-slot:item.jellyfin_id="{ item }">
         <span v-if="item.jellyfin_id == null">
           <v-chip color="error">
-            <v-icon>mdi-alpha-x</v-icon>
+            <v-icon>mdi-close</v-icon>
           </v-chip>
         </span>
         <span v-else>
@@ -103,6 +127,14 @@
       <template v-slot:item.actions="{ item }">
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
+        </v-icon>
+        <v-icon
+          x-large
+          color="primary"
+          class="mb-4"
+          @click="link2_clicked(item.album_title)"
+        >
+          mdi-album
         </v-icon>
         <v-icon
           x-large
@@ -130,14 +162,26 @@ export default {
     search: "",
     headers: [
       {
+        text: "ID",
+        value: "id",
+        filterable: true,
+        sortable: true,
+        width: "5%",
+      },
+      {
+        text: "Track Number",
+        value: "track_number",
+        filterable: true,
+        width: "5%",
+      },
+      {
         text: "Title",
         value: "title",
         align: "start",
         width: "20%",
       },
       { text: "Album", value: "album_title", filterable: false },
-
-      { text: "Track Number", value: "track_number", filterable: true },
+      { text: "Files", value: "files", filterable: false, sortable: true },
       {
         text: "JF ID",
         value: "jellyfin_id",
@@ -214,6 +258,7 @@ export default {
       this.items.splice(this.editedIndex, 1);
       this.delete_track(this.editedItem);
       this.closeDelete();
+      this.close();
     },
 
     saveItemToDB(item) {
