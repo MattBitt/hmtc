@@ -66,6 +66,9 @@
                 </v-card-text>
 
                 <v-card-actions>
+                  <v-btn color="warning" outlined @click="dialogDelete = true">
+                    Delete
+                  </v-btn>
                   <v-spacer></v-spacer>
                   <v-btn class="button" @click="close"> Cancel </v-btn>
                   <v-btn class="button" text @click="saveItemToDB(editedItem)">
@@ -110,11 +113,16 @@
           </v-chip>
         </template>
         <template v-slot:item.actions="{ item }">
-          <v-icon medium class="mr-2" @click="editItem(item)">
+          <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
             mdi-pencil
           </v-icon>
-          <v-icon medium color="red" @click="deleteItem(item)">
-            mdi-delete
+          <v-icon
+            x-large
+            color="primary"
+            class="mb-4"
+            @click="link1_clicked(item)"
+          >
+            mdi-album
           </v-icon>
         </template>
         <template v-slot:no-data>
@@ -244,6 +252,7 @@ export default {
       this.items.splice(this.editedIndex, 1);
       this.delete_album(this.editedItem);
       this.closeDelete();
+      this.close();
     },
 
     saveItemToDB(item) {

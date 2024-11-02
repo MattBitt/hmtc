@@ -85,10 +85,9 @@ def Page():
 
     jf_id = get_currently_playing()
 
-    if jf_id is None:
+    if jf_id == "":
         solara.Markdown("### No Jellyfin id found/Not playing anything")
         return
-    session = get_user_session()
     solara.Markdown(f"### Currently Playing id: {jf_id}")
     library, item = find_jellyfin_id_in_db(jf_id)
     if library is None:
@@ -114,8 +113,11 @@ def Page():
         file = (
             FileModel.select()
             .where((FileModel.file_type == "lyrics") & (FileModel.track_id == item.id))
-            .get()
+            .get_or_none()
         )
+        if file is None:
+            solara.Markdown("### No lyrics found. Add some to see them")
+            return
         logger.debug(f"File has lyrics: {file.filename}")
         lyrics = read_lyrics(Path(file.path) / file.filename)
         if lyrics:

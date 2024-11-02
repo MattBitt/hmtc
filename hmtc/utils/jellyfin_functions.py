@@ -101,12 +101,37 @@ def get_user_session():
         if (x["Client"] != "hmtc-dev " and x.get("UserName", "") == user)
     ]
     if len(session) == 0:
-        return None
-    elif len(session) > 1:
-        # logger.error("More than one session found")
-        return session[0]
+        # logger.error("No sessions found")
+        return {
+            "Id": "",
+            "PlayState": {"PositionTicks": 0},
+            "NowPlayingItem": {"Id": 0, "Name": "", "RunTimeTicks": 0},
+            "UserName": user,
+            "DeviceName": "no-device",
+        }
     else:
-        return session[0]
+        if len(session) > 1:
+            logger.error(
+                f"More than one session found: {session}. Using the most recent one"
+            )
+            last_activity = session[0]["LastActivityDate"]
+            for s in session:
+                logger.debug(f"Session Devices: {s['DeviceName']}")
+                if s["LastActivityDate"] > last_activity:
+                    sess = s
+                    last_activity = s["LastActivityDate"]
+
+        else:
+            sess = session[0]
+        if "PositionTicks" not in sess["PlayState"].keys():
+            sess["PlayState"]["PositionTicks"] = 0
+        if "NowPlayingItem" not in sess.keys():
+            sess["NowPlayingItem"] = {
+                "Id": 0,
+                "Name": "no-name",
+                "RunTimeTicks": 0,
+            }
+        return sess
 
 
 def get_current_user_timestamp():
@@ -121,9 +146,11 @@ def get_current_user_timestamp():
 def get_currently_playing():
     session = get_user_session()
     if session is None:
-        return None
+        return ""
     if "NowPlayingItem" not in session.keys():
-        return None
+        return ""
+    if session["NowPlayingItem"]["Id"] == 0:
+        return ""
     return session["NowPlayingItem"]["Id"]
 
 

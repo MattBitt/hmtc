@@ -89,12 +89,12 @@ module.exports = {
     createEvenSections() {
       console.log("Creating even sections");
       for (let i = 0; i < this.numEvenSections; i++) {
-        this.createSection(i * 300, (i + 1) * 300);
+        this.createSection(i * 180, (i + 1) * 180);
       }
     },
     createStdSectionAt0() {
       console.log("Creating a standard section at 0");
-      this.createSection(0, 300);
+      this.createSection(0, 180);
     },
     startSectionAtJellyfin() {
       console.log("Creating a section at jellyfin time");
@@ -107,7 +107,7 @@ module.exports = {
   },
   computed: {
     numEvenSections() {
-      return Math.floor(this.video.duration / 300); //AVERAGE_SECTION_LENGTH
+      return Math.floor(this.video.duration / 180); //AVERAGE_SECTION_LENGTH
     },
     enableJellyfin() {
       return this.jellyfin_status.status === "active";

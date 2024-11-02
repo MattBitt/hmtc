@@ -216,7 +216,7 @@ class FileManager:
             file = FileModel.get_or_none(
                 (FileModel.album_id == album.id) & (FileModel.file_type == filetype)
             )
-            if not file:
+            if not file and filetype == "poster":
                 # 🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣
                 # need to adjust this for aspect ratio and size of the image
                 return File(path="hmtc/assets/images", filename="no-image.png")
@@ -373,21 +373,31 @@ class FileManager:
         return f
 
     @staticmethod
-    def delete_audio_file_from_track(track_id, file_type):
-        track = TrackModel.get_by_id(track_id)
-        audio_file = FileModel.get(
-            (FileModel.track_id == track.id) & (FileModel.file_type == file_type)
+    def delete_track_file(track: TrackModel, filetype: str):
+
+        track_file = (
+            FileModel.select()
+            .where((FileModel.track_id == track.id) & (FileModel.file_type == filetype))
+            .get_or_none()
         )
-        audio_file_path = Path(audio_file.path) / audio_file.filename
-        audio_file.delete_instance()
-        os.remove(audio_file_path)
+        if not track_file:
+            logger.error(f"No {filetype} file found for {track.title}")
+            return
+        track_file_path = Path(track_file.path) / track_file.filename
+        track_file.delete_instance()
+        os.remove(track_file_path)
 
     @staticmethod
-    def delete_lyrics_file_from_track(track_id):
-        track = TrackModel.get_by_id(track_id)
-        lyrics_file = FileModel.get(
-            (FileModel.track_id == track.id) & (FileModel.file_type == "lyrics")
+    def delete_album_file(album: TrackModel, filetype: str):
+
+        album_file = (
+            FileModel.select()
+            .where((FileModel.album_id == album.id) & (FileModel.file_type == filetype))
+            .get_or_none()
         )
-        audio_file_path = Path(lyrics_file.path) / lyrics_file.filename
-        lyrics_file.delete_instance()
-        os.remove(audio_file_path)
+        if not album_file:
+            logger.error(f"No {filetype} file found for {album.title}")
+            return
+        album_file_path = Path(album_file.path) / album_file.filename
+        album_file.delete_instance()
+        os.remove(album_file_path)

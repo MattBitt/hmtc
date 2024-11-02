@@ -53,7 +53,7 @@ WORKING = Path(config["paths"]["working"]) / "downloads"
 STORAGE = Path(config["paths"]["storage"]) / "videos"
 MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
-AVERAGE_SECTION_LENGTH = 300
+AVERAGE_SECTION_LENGTH = 180
 IMG_WIDTH = "300px"
 
 loading = solara.reactive(False)
@@ -303,7 +303,8 @@ def SectionsPanel(
     def delete_audio_file(*args):
         logger.error(f"Deleting audio file {args}")
         try:
-            FileManager.delete_audio_file_from_track(args[0], "audio")
+            track = TrackModel.select().where(TrackModel.id == args[0]).get()
+            FileManager.delete_track_file(track, "audio")
         except Exception as e:
             logger.error(e)
             return
@@ -337,7 +338,8 @@ def SectionsPanel(
     def delete_lyrics_file(*args):
         logger.error(f"Deleting lyrics file {args}")
         try:
-            FileManager.delete_lyrics_file_from_track(args[0])
+            track = TrackModel.select().where(TrackModel.id == args[0]).get()
+            FileManager.delete_track_file(track, "lyrics")
         except Exception as e:
             logger.error(e)
             return
@@ -803,16 +805,17 @@ def JellyfinControlPanel(
 @solara.component
 def JFPanel(
     video,
-    new_jellyfin_dict,
 ):
-    connected = solara.use_reactive(can_ping_server())
 
     def refresh_from_jellyfin(*args):
-        new_jellyfin_dict.set(get_user_session())
+        jellyfin_status_dict.set(get_user_session())
+
+    connected = solara.use_reactive(can_ping_server())
+    jellyfin_status_dict = solara.use_reactive(get_user_session())
 
     JellyfinControlPanel(
         enable_live_updating=connected.value,
-        jellyfin_status=new_jellyfin_dict.value,
+        jellyfin_status=jellyfin_status_dict.value,
         page_jellyfin_id=video.jellyfin_id,
         api_key=config["jellyfin"]["api"],
         event_update_play_state=refresh_from_jellyfin,
@@ -863,7 +866,6 @@ def Page():
                 # # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
-                    new_jellyfin_dict=jellyfin_status_dict,
                 )
 
             with solara.Column():

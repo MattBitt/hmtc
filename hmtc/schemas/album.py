@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
+import peewee
 from loguru import logger
 from peewee import fn
 
@@ -10,6 +11,7 @@ from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
@@ -24,6 +26,7 @@ class Album:
     release_date: str = ""
     tracks: list = field(default_factory=list)
     video_ids: list = field(default_factory=list)
+    videos: list = field(default_factory=list)
 
     def create_album(self):
         # i should create the folder here
@@ -49,13 +52,14 @@ class Album:
         logger.info("Album deleted")
 
     @staticmethod
-    def from_model(album):
+    def from_model(album: AlbumModel) -> "Album":
         return Album(
             id=album.id,
             title=album.title,
             release_date=album.release_date,
             tracks=album.tracks,
             video_ids=[video.id for video in album.videos] if album.videos else [],
+            videos=[VideoItem.from_model(video) for video in album.videos],
         )
 
     def remove_track(self, id):
@@ -134,3 +138,25 @@ class Album:
         album_poster = FileManager.add_file_item_to_album(file=file_item, album=self)
 
         logger.info(f"Poster added to {album_poster}")
+
+    def get_details_for_album_id(album_id: int) -> "Album":
+        album = (
+            AlbumModel.select(
+                AlbumModel,
+                VideoModel,
+                TrackModel,
+            )
+            .join(
+                VideoModel,
+                peewee.JOIN.LEFT_OUTER,
+                on=(AlbumModel.id == VideoModel.album_id),
+            )
+            .switch(AlbumModel)
+            .join(
+                TrackModel,
+                peewee.JOIN.LEFT_OUTER,
+                on=(AlbumModel.id == TrackModel.album_id),
+            )
+            .where(AlbumModel.id == album_id)
+        ).get()
+        return Album.from_model(album)

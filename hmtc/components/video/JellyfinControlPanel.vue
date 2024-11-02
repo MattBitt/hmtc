@@ -15,118 +15,135 @@
           </v-badge>
         </div>
       </template>
-      <v-card class="mx-auto" max-width="800" tile>
+      <v-card class="mx-auto" width="800" tile>
         <v-list shaped>
           <v-subheader>
             <v-row justify="center">
-              <h2>
-                <strong color="primary--text">{{
-                  jellyfin_status.UserName
-                }}</strong>
+              <h2 class="primary--text">
+                <strong>{{ jellyfin_status.UserName }} </strong>
+                <span v-if="jellyfin_status.DeviceName != 'no-device'">
+                  ({{ jellyfin_status.DeviceName }})
+                </span>
               </h2>
             </v-row>
             <v-row justify="center">
               <h2>server: atlas-HMTC</h2>
             </v-row>
           </v-subheader>
-          <v-list-item-group>
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title
-                  >JF Session Id:
-                  <strong> {{ jellyfin_status.Id }}</strong></v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
+          <div v-if="jellyfin_status.Id != ''">
+            <v-list-item-group>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title
+                    >JF Session Id:
+                    <strong>
+                      {{ jellyfin_status.Id }}</strong
+                    ></v-list-item-title
+                  >
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  <span
-                    >Now Playing
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <span
+                      >Now Playing
 
-                    {{ jellyfin_status.NowPlayingItem?.Name }}</span
-                  ></v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
+                      {{ jellyfin_status.NowPlayingItem.Name }}</span
+                    ></v-list-item-title
+                  >
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  jf_id
-                  {{ jellyfin_status.NowPlayingItem?.Id }}</v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    jf_id
+                    {{ jellyfin_status.NowPlayingItem.Id }}</v-list-item-title
+                  >
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title
-                  >RunTimeTicks{{
-                    jellyfin_status.NowPlayingItem?.RunTimeTicks
-                  }}</v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title
+                    >RunTimeTicks{{
+                      jellyfin_status.NowPlayingItem.RunTimeTicks
+                    }}</v-list-item-title
+                  >
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title
-                  >PositionTicks{{
-                    jellyfin_status.PlayState.PositionTicks
-                  }}</v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-pencil</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>HaveBothIDs</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title
+                    >PositionTicks{{
+                      jellyfin_status?.PlayState.PositionTicks
+                    }}</v-list-item-title
+                  >
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>HaveBothIDs</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item>
-              <v-list-item-icon>
-                <span v-if="jellyfin_status.PlayState.IsPaused">
-                  <v-icon>mdi-play</v-icon>
-                </span>
-                <span v-else>
-                  <v-icon>mdi-pause</v-icon>
-                </span>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  <v-row>
-                    <v-col cols="4">
-                      {{ currentPlayState.PositionTicks / 10000000 }}
-                    </v-col>
-                    <v-col cols="4">
-                      {{ currentPlayState.IsPaused }}
-                    </v-col>
-                    <v-col cols="4"> </v-col>
-                  </v-row>
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
+              <v-list-item>
+                <v-list-item-icon>
+                  <span v-if="jellyfin_status?.PlayState.IsPaused">
+                    <v-icon>mdi-play</v-icon>
+                  </span>
+                  <span v-else>
+                    <v-icon>mdi-pause</v-icon>
+                  </span>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <v-row>
+                      <v-col cols="4">
+                        {{ currentPlayState.PositionTicks / 10000000 }}
+                      </v-col>
+                      <v-col cols="4">
+                        {{ currentPlayState.IsPaused }}
+                      </v-col>
+                      <v-col cols="4"> </v-col>
+                    </v-row>
+                  </v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </div>
+          <div v-else>
+            <v-list-item-group>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>No Active Session Found</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </div>
         </v-list>
       </v-card>
     </v-menu>
