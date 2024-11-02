@@ -543,13 +543,22 @@ def VideoInfoPanelLeft(video):
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
     sections = SectionModel.select(
-        SectionModel.start, SectionModel.end, SectionModel.track_id
+        SectionModel.id, SectionModel.start, SectionModel.end, SectionModel.track_id
     ).where(SectionModel.video_id == video.id)
     section_durations = [
         (x.end - x.start) / 1000 for x in sections
     ]  # list of sections in seconds
     section_percentage = sum(section_durations) / video.duration * 100
     tracks_created = len([x for x in sections if x.track_id is not None])
+
+    def auto_create_tracks(*args):
+        for section in sections:
+            if section.track_id is None:
+                album = AlbumModel.get_by_id(video.album_id)
+                album_item = AlbumItem.from_model(album)
+                track = album_item.create_from_section(section=section, video=video)
+                section.track_id = track.id
+                section.save()
 
     with solara.Row(justify="center"):
         solara.Text(
@@ -580,6 +589,15 @@ def VideoInfoPanelLeft(video):
                 solara.Text(
                     f"Length: {seconds_to_hms(video.duration)}",
                     classes=["medium-timer"],
+                )
+            with solara.Row(justify="center"):
+                solara.Button(
+                    label=f"Create {len(sections)} Tracks",
+                    classes=["button"],
+                    disabled=(
+                        (len(sections) <= tracks_created) or video.album_id is None
+                    ),
+                    on_click=auto_create_tracks,
                 )
 
 

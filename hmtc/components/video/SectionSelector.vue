@@ -25,15 +25,23 @@
               </template>
             </v-range-slider>
             <v-row justify="center">
-              <v-col cols="3">
+              <v-col cols="2">
                 <h4 class="primary--text font-weight-bold">
                   {{ durationString((section.end - section.start) / 1000) }}
                 </h4>
               </v-col>
-              <v-col cols="9">
+              <v-col cols="8">
                 <h4 class="primary--text font-weight-bold">
                   {{ section.topics.map(({ text }) => text).join(", ") }}
                 </h4>
+              </v-col>
+              <v-col cols="2">
+                <span v-if="section.track == null">
+                  <v-chip color="error"><v-icon>mdi-close</v-icon></v-chip>
+                </span>
+                <span v-else>
+                  <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+                </span>
               </v-col>
             </v-row>
           </v-container>

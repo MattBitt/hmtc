@@ -104,12 +104,13 @@ class Album:
             else:
                 new_title = topics_string
         else:
-            new_title = video.title
+            new_title = video.title[:40]
 
         track = self.create_track(
             title=new_title, length=(section.end - section.start) / 1000
         )
         track_item = TrackItem.from_model(track)
+
         sect = SectionModel.get_by_id(section.id)
         sect.track = track
         sect.save()
