@@ -51,11 +51,17 @@ def get_file_type(file: str, override=None):
     if override is not None:
         return override
 
-    logger.debug(f"File = {file}")
     f = Path(file)
-    logger.debug(f"Path object {f}")
-
-    ext = "".join(f.suffixes)
+    if len(f.suffixes) == 0:
+        logger.error(f"No extensions found on file {file}")
+        return None
+    elif len(f.suffixes) > 1:
+        ext = ""
+        for x in f.suffixes:
+            if len(x) > 1 and x.rfind(" ") == -1:
+                ext += x
+    else:
+        ext = f.suffixes[0]
 
     logger.debug(f"Getting file type for {file} ext = {ext}")
 

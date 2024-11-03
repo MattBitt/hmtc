@@ -67,11 +67,11 @@
 
                 <v-card-actions>
                   <v-btn
-                    color="button mywarning"
+                    class="button mywarning"
                     outlined
                     @click="dialogDelete = true"
                   >
-                    Delete
+                    <v-icon>mdi-delete</v-icon> Delete
                   </v-btn>
                   <v-spacer></v-spacer>
                   <v-btn class="button" @click="close"> Cancel </v-btn>
@@ -89,7 +89,12 @@
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-                  <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
+                  <v-btn
+                    class="button mywarning"
+                    outlined
+                    @click="deleteItemConfirm"
+                    >OK</v-btn
+                  >
                   <v-spacer></v-spacer>
                 </v-card-actions>
               </v-card>
@@ -300,7 +305,7 @@ export default {
       // this is an example of intercepting the pagination event
       // to perform some action
       let action;
-      //console.log(paginationObject);
+      console.log(paginationObject);
       this.currentPage < paginationObject.page
         ? (action = "forward")
         : (action = "backguard");

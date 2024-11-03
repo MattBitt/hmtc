@@ -285,6 +285,7 @@ def SectionsPanel(
         except Exception as e:
             logger.error(e)
             return
+        reload.set(True)
 
     def create_lyrics_file(*args):
         logger.debug(f"Creating audio file {args}")
@@ -305,6 +306,7 @@ def SectionsPanel(
         except Exception as e:
             logger.error(e)
             return
+        reload.set(True)
 
     if not reload.value:
         if tab_items != []:

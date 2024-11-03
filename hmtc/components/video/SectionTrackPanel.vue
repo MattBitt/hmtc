@@ -4,14 +4,16 @@
       <v-col cols="6">
         <h3>
           <span class="primary--text"
-            >{{ section.track.track_number + "." }}
-            {{ section.track.title }}</span
+            >{{ track.track_number + "." }} {{ track.title }}</span
           >
         </h3>
-        <h4>Files starts here</h4>
+        <h4>hasMp3 {{ checkFilesExist().audio }}</h4>
+        <h4>hasLyrics {{ checkFilesExist().lyrics }}</h4>
+        <h4><strong>Files</strong></h4>
         <ul>
-          <li v-for="file in section.track.files" :key="file.id">
+          <li v-for="file in track.files" :key="file.id">
             <span>{{ file.filename }}</span>
+            <span>{{ file.file_type }}</span>
           </li>
         </ul>
         <h4>and ends here</h4>
@@ -27,7 +29,7 @@
     </v-row>
     <v-row justify="end">
       <v-card-actions>
-        <div v-if="hasAudioFile">
+        <div v-if="hasMp3()">
           <v-btn @click="deleteAudioFile" class="button mywarning" outlined
             ><v-icon>mdi-delete</v-icon>Delete MP3</v-btn
           >
@@ -35,7 +37,7 @@
         <div v-else>
           <v-btn @click="createAudioFile" color="primary">Create MP3</v-btn>
         </div>
-        <div v-if="hasLyrics">
+        <div v-if="hasLyrics()">
           <v-btn @click="deleteLyricFile" class="button mywarning" outlined
             ><v-icon>mdi-delete</v-icon>Delete Lyrics</v-btn
           >
@@ -52,8 +54,7 @@ module.exports = {
   name: "SectionTrackPanel",
   props: {
     section: Object,
-    hasAudioFile: Boolean,
-    hasSubtitle: Boolean,
+    track: Object,
   },
   emits: [
     "removeTrack",
@@ -75,52 +76,55 @@ module.exports = {
       select: null,
       items: ["Item 1", "Item 2", "Item 3", "Item 4"],
       checkbox: false,
-      hasLyrics: false,
     };
   },
   methods: {
     removeTrack(id) {
       this.$emit("removeTrack", id);
-      this.hasAudioFile = false;
     },
     createAudioFile() {
-      this.hasAudioFile = true;
       const args = {
         section_id: this.section.id,
         video_id: this.section.video_id,
-        track_id: this.section.track.id,
-        title: this.section.track.title,
+        track_id: this.track.id,
+        title: this.track.title,
         length: this.length,
       };
-      console.log("createAudioFile", args);
       this.$emit("createAudioFile", args);
     },
     deleteAudioFile() {
-      this.hasAudioFile = false;
-      this.$emit("deleteAudioFile", this.section.track.id);
+      this.$emit("deleteAudioFile", this.track.id);
     },
     createLyricsFile() {
       const args = {
         section_id: this.section.id,
         video_id: this.section.video_id,
-        track_id: this.section.track.id,
-        title: this.section.track.title,
+        track_id: this.track.id,
+        title: this.track.title,
         length: this.length,
       };
-      this.hasLyrics = true;
-      console.log("createLyricsFile", args);
       this.$emit("createLyricsFile", args);
     },
     deleteLyricFile() {
-      console.log("deleteLyricsFile");
-      this.hasLyrics = false;
-      this.$emit("deleteLyricsFile", this.section.track.id);
+      this.$emit("deleteLyricsFile", this.track.id);
+    },
+    checkFilesExist() {
+      _has_audio = this.track.files.some((file) => file.file_type === "audio");
+      _has_lyrics = this.track.files.some(
+        (file) => file.file_type === "lyrics"
+      );
+
+      return { audio: _has_audio, lyrics: _has_lyrics };
+    },
+    hasMp3() {
+      return this.checkFilesExist().audio;
+    },
+    hasLyrics() {
+      return this.checkFilesExist().lyrics;
     },
   },
+  computed: {},
   created() {
-    // console.log("SectionTrackPanel created", this.section);
-    console.log(this.section.track);
-    this.hasAudioFile = this.section.track?.has_mp3;
     this.length = (this.section.end - this.section.start) / 1000;
   },
   computed: {},

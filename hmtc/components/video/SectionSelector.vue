@@ -38,17 +38,25 @@
               <v-col cols="2">
                 <v-row>
                   <span v-if="section.track == null">
-                    <v-chip color="error"><v-icon>mdi-close</v-icon></v-chip>
+                    <v-chip color="warning"
+                      ><v-icon>mdi-close</v-icon> Track</v-chip
+                    >
                   </span>
                   <span v-else>
-                    <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+                    <v-chip color="success"
+                      ><v-icon>mdi-check</v-icon> Track</v-chip
+                    >
                   </span>
 
                   <span v-if="section.track?.files.length == 2">
-                    <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+                    <v-chip color="success"
+                      ><v-icon>mdi-check</v-icon>Files</v-chip
+                    >
                   </span>
                   <span v-else>
-                    <v-chip color="error"><v-icon>mdi-close</v-icon></v-chip>
+                    <v-chip color="warning"
+                      ><v-icon>mdi-close</v-icon>Files</v-chip
+                    >
                   </span>
                 </v-row>
               </v-col>
@@ -74,9 +82,7 @@
               <div v-else>
                 <SectionTrackPanel
                   :section="section"
-                  :hasAudioFile="hasMp3"
-                  :hasSubtitle="hasSubtitle"
-                  :hasLyrics="hasLyrics"
+                  :track="section.track"
                   @removeTrack="removeTrack"
                   @createAudioFile="createAudioFile"
                   @deleteAudioFile="deleteAudioFile"
@@ -195,9 +201,6 @@ export default {
       slides: 0,
       // no form implemented yet
       valid: true,
-      hasMp3: false,
-      hasSubtitle: true,
-      hasLyrics: false,
       snackbar: false,
       text: "My timeout is set to 2000.",
       color: "info",
@@ -333,10 +336,8 @@ export default {
       this.refresh_panel();
     },
     constructTrackTitle(section) {
-      console.log("Constructing track title", section);
       const topicString = section.topics.map(({ text }) => text).join(", ");
 
-      console.log("Somestring", topicString);
       if (section.topics.length == 0) {
         return "";
       }
@@ -348,7 +349,6 @@ export default {
     },
     createAudioFile(args) {
       this.create_audio_file(args);
-      console.log("Creating audio file in parent");
       this.text = "Creating audio file";
       this.snackbar = true;
       this.color = "success";

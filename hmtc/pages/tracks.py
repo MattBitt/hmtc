@@ -1,5 +1,5 @@
 from typing import Callable
-
+from pathlib import Path
 import pandas as pd
 import peewee
 import solara
@@ -8,6 +8,7 @@ from loguru import logger
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Track as TrackModel
+from hmtc.models import File as FileModel
 
 force_update_counter = solara.reactive(0)
 
@@ -49,6 +50,11 @@ def TrackTable(
 
 def delete_track(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
+    for file in item["files"]:
+        file = FileModel.get_by_id(file["id"])
+        file_path = Path(file.path) / file.filename
+        file_path.unlink()
+        file.delete_instance()
     track = TrackModel.get_by_id(item["id"])
     track.delete_instance()
 

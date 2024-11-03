@@ -108,7 +108,7 @@ class Album:
             else:
                 new_title = topics_string
         else:
-            new_title = video.title[:40]
+            new_title = str(section.id) + video.title[:40]
 
         track = self.create_track(
             title=clean_filename(new_title), length=(section.end - section.start) / 1000
