@@ -122,7 +122,17 @@
               </v-list>
             </v-col>
             <v-col cols="6">
-              <h1>Right Side of modal dialog</h1>
+              <v-row
+                ><span>Details: </span>
+                <a :href="'/album-details/' + albumInfo.id">
+                  <v-chip v-if="albumInfo.id > 0" color="primary">
+                    <v-icon>mdi-album</v-icon>
+                    <span>
+                      {{ albumInfo.title }}
+                    </span>
+                  </v-chip>
+                </a>
+              </v-row>
             </v-col>
           </v-row>
         </v-card>

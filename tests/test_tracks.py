@@ -74,7 +74,7 @@ def test_new_track_from_section(test_audio_filename):
 
     track_item = album_item.create_from_section(section=sec, video=video)
     assert track_item is not None
-    assert track_item.title == video.title
+    assert track_item.title == str(track_item.id) + video.title
     assert track_item.length == 150
     section_to_check = (
         SectionModel.select(SectionModel.id, SectionModel.track_id)

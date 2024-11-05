@@ -743,7 +743,7 @@ def InfoPanel(
     try:
         this_album = [a for a in album_dicts if a["id"] == video.album_id][0]
     except IndexError:
-        this_album = None
+        this_album = {"id": 0, "title": "None"}
 
     try:
         this_youtube_series = [

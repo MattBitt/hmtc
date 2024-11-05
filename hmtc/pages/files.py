@@ -77,7 +77,7 @@ def get_track_files():
 def get_album_files():
     db_files = FileModel.select().where(FileModel.album_id.is_null(False))
     folder_files = get_folder_files(STORAGE / "tracks")
-    # hack for now
+    # hack for now (check for cover album art in the folder)
     folder_files = [f for f in folder_files if f.name[:5] == "cover"]
     return db_files, folder_files
 
@@ -113,7 +113,7 @@ def SeriesFilesInfoCard():
 
 
 @solara.component
-def TrackInfoCard():
+def TrackFilesInfoCard():
     db_files, folder_files = get_track_files()
     tracks = TrackModel.select()
     albums = AlbumModel.select()
@@ -146,6 +146,13 @@ def TrackInfoCard():
                 missing_files[ftype] += 1
             else:
                 found_files[ftype] += 1
+    GenericFilesInfoCard(in_db_not_folder, in_folder_not_db, file_types, missing_files)
+
+
+@solara.component
+def GenericFilesInfoCard(
+    in_db_not_folder=[], in_folder_not_db=[], file_types=[], missing_files={}
+):
 
     def delete_file_rows():
         for file in in_db_not_folder:
@@ -155,79 +162,61 @@ def TrackInfoCard():
         for file in in_folder_not_db:
             file.unlink()
 
-    with solara.Card(title="Tracks"):
-        with solara.Info(label="Tracks"):
-            solara.Markdown(f"**{len(tracks)}** tracks")
-            solara.Markdown(f"**Missing Files**")
-            with solara.Row():
-                with solara.ColumnsResponsive():
-                    for ftype in file_types:
-                        with solara.Card():
+    solara.Markdown(f"**Missing Files**")
+    with solara.Row():
+        with solara.ColumnsResponsive():
+            for ftype in file_types:
+                with solara.Card():
+                    if missing_files[ftype] > 0:
+                        with solara.Error():
                             solara.Markdown(f"**{ftype}**")
                             solara.Markdown(f"**{missing_files[ftype]}**")
+                    else:
+                        with solara.Success():
+                            solara.Markdown(f"**{ftype}**")
+                            solara.Markdown(f"**0**")
 
-        with solara.Card(title="In DB but not folder"):
-            if len(in_db_not_folder) == 0:
-                with solara.Success("All DB Files accounted for !"):
-                    solara.Markdown("You're all set!")
-            elif len(in_db_not_folder) > 10:
-                with solara.Error("Too many files to list. Showing first 50"):
-                    for file in in_db_not_folder[:50]:
-                        solara.Markdown(f"**{file.path + '/' + file.filename}**")
-            else:
-                with solara.Info(f"Files not found on Disk {len(in_db_not_folder)}"):
-                    for file in in_db_not_folder:
-                        solara.Markdown(f"**{file.path + file.filename}**")
-            solara.Button(
-                f"Delete All ({len(in_db_not_folder)}) File Rows from the Database",
-                on_click=delete_file_rows,
-                classes=["button", "mydanger"],
-                disabled=len(in_db_not_folder) == 0,
-            )
+    with solara.Card(title="In DB but not folder"):
+        if len(in_db_not_folder) == 0:
+            with solara.Success("All DB Files accounted for !"):
+                solara.Markdown("You're all set!")
+        elif len(in_db_not_folder) > 10:
+            with solara.Error("Too many files to list. Showing first 50"):
+                for file in in_db_not_folder[:50]:
+                    solara.Markdown(f"**{file.path + '/' + file.filename}**")
+        else:
+            with solara.Info(f"Files not found on Disk {len(in_db_not_folder)}"):
+                for file in in_db_not_folder:
+                    solara.Markdown(f"**{file.path + file.filename}**")
+        solara.Button(
+            f"Delete All ({len(in_db_not_folder)}) File Rows from the Database",
+            on_click=delete_file_rows,
+            classes=["button", "mydanger"],
+            disabled=len(in_db_not_folder) == 0,
+        )
 
-        with solara.Card(title="In Folder but not in DB"):
-            if len(in_folder_not_db) == 0:
-                with solara.Success("All Folder Files accounted for!"):
-                    solara.Markdown("You're all set!")
-            elif len(in_folder_not_db) > 10:
-                with solara.Error("Too many files to list. Showing first 50"):
-                    for file in in_folder_not_db[:50]:
-                        solara.Markdown(f"**{file}**")
-            else:
-                with solara.Info(f"Files not in DB {len(in_folder_not_db)}"):
-                    for file in in_folder_not_db:
-                        solara.Markdown(f"**{file}**")
-            solara.Button(
-                f"Delete All ({len(in_folder_not_db)}) Files from the Disk",
-                on_click=delete_files_from_disk,
-                classes=["button", "mydanger"],
-                disabled=len(in_folder_not_db) == 0,
-            )
-
-
-@solara.component
-def VideoFilesInfoCard(
-    unique_vids=None, file_types=None, missing_files=None, found_files=None
-):
-    with solara.Info(label="Videos"):
-        solara.Markdown(f"**{len(unique_vids)}** unique videos")
-        solara.Markdown(f"**Missing Files**")
-        with solara.Row():
-            with solara.ColumnsResponsive():
-                for ftype in file_types:
-                    with solara.Card():
-                        solara.Markdown(f"**{ftype}**")
-                        solara.Markdown(f"**{missing_files[ftype]}**")
-    # for ftype in file_types:
-    #     solara.Markdown(f"**{found_files[ftype]}** found {ftype} files")
+    with solara.Card(title="In Folder but not in DB"):
+        if len(in_folder_not_db) == 0:
+            with solara.Success("All Folder Files accounted for!"):
+                solara.Markdown("You're all set!")
+        elif len(in_folder_not_db) > 10:
+            with solara.Error("Too many files to list. Showing first 50"):
+                for file in in_folder_not_db[:50]:
+                    solara.Markdown(f"**{file}**")
+        else:
+            with solara.Info(f"Files not in DB {len(in_folder_not_db)}"):
+                for file in in_folder_not_db:
+                    solara.Markdown(f"**{file}**")
+        solara.Button(
+            f"Delete All ({len(in_folder_not_db)}) Files from the Disk",
+            on_click=delete_files_from_disk,
+            classes=["button", "mydanger"],
+            disabled=len(in_folder_not_db) == 0,
+        )
 
 
 @solara.component
-def Page():
-    messages = solara.use_reactive([])
-    have_files_not_in_db = solara.use_reactive([])
-    files_in_db_not_found = solara.use_reactive([])
-
+def VideoFilesInfoCard():
     unique_vids = VideoModel.select(VideoModel.id).where(
         VideoModel.contains_unique_content == True
     )
@@ -238,29 +227,42 @@ def Page():
     # need to standardize this
     file_types = ["info", "audio", "video", "poster", "album_nfo", "subtitle"]
     missing_files = dict(zip(file_types, [0] * len(file_types)))
-    found_files = missing_files.copy()
+
     for vid in unique_vids:
         for ftype in file_types:
             if (vid.id, ftype) not in file_tuples:
                 missing_files[ftype] += 1
-            else:
-                found_files[ftype] += 1
+    logger.debug(missing_files)
 
+    solara.Markdown(f"**{len(unique_vids)}** unique videos")
+    solara.Markdown(f"**Videos Missing Files**")
+    with solara.Row():
+        with solara.ColumnsResponsive():
+            for ftype in file_types:
+                with solara.Card():
+                    if missing_files[ftype] > 0:
+                        with solara.Error():
+                            solara.Markdown(f"**{ftype}**")
+                            solara.Markdown(
+                                f"**{missing_files[ftype]}** ({missing_files[ftype] / len(unique_vids) * 100:.2f}%)"
+                            )
+                    else:
+                        with solara.Success():
+                            solara.Markdown(f"**{ftype}**")
+                            solara.Markdown(f"**0**")
+
+
+@solara.component
+def Page():
     MySidebar(router=solara.use_router())
     with solara.Column(classes=["main-container"]):
-        with solara.Card():
+        with solara.Card(title="Video Files"):
+            VideoFilesInfoCard()
+        with solara.Card(title="Track Files"):
+            TrackFilesInfoCard()
+        with solara.Card(title="Album Files"):
             AlbumFilesInfoCard()
-        with solara.Card():
+        with solara.Card(title="Series Files"):
             SeriesFilesInfoCard()
-        with solara.Card():
+        with solara.Card(title="Channel Files"):
             ChannelFilesInfoCard()
-
-        with solara.Card():
-            VideoFilesInfoCard(
-                unique_vids=unique_vids,
-                file_types=file_types,
-                missing_files=missing_files,
-                found_files=found_files,
-            )
-        with solara.Card():
-            TrackInfoCard()

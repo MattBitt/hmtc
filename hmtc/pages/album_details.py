@@ -24,7 +24,7 @@ def parse_url_args():
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    solara.Markdown("This is the album details page.")
+
     album_id = parse_url_args()
     if album_id is None:
         with solara.Error():
@@ -37,14 +37,24 @@ def Page():
             solara.Markdown(f"Error loading album with ID {album_id}.")
             solara.Markdown(f"Error: {e}")
         return
-
-    poster = FileManager.get_file_for_album(album=album, filetype="poster")
-    image = PIL.Image.open(Path(str(poster)))
-    solara.Image(image, width="400")
-    solara.Markdown(f"Album Title: {album.title}")
+    with solara.Columns([6, 6]):
+        with solara.Column():
+            poster = FileManager.get_file_for_album(album=album, filetype="poster")
+            image = PIL.Image.open(Path(str(poster)))
+            solara.Image(image, width="400")
+            solara.Markdown(f"Album Title: {album.title}")
+        with solara.Column():
+            solara.Markdown(f"Album ID: {album.id}")
+            solara.Markdown(f"Release Date: {album.release_date}")
     with solara.Info(label="Videos"):
         for video in album.videos:
-            solara.Markdown(f"{video.title}")
+            with solara.Row():
+
+                solara.Markdown(f"{video.title}")
+                solara.Button(
+                    "Use Album Art",
+                    on_click=lambda: album.use_video_poster(video=video),
+                )
     with solara.Info(label="Tracks"):
         for track in album.tracks:
             solara.Markdown(f"{track.title}")

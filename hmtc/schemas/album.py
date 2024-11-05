@@ -120,23 +120,24 @@ class Album:
         track_item.create_all_files(video)
         return track_item
 
-    def use_video_poster(self):
-
-        try:
-            video_poster = (
-                FileModel.select()
-                .where(
-                    (FileModel.video_id == self.video_ids[0])
-                    & (FileModel.file_type == "poster")
-                )
-                .get()
+    def use_video_poster(self, video: VideoItem = None):
+        if video is None:
+            video_poster = FileManager.get_file_for_video(
+                video=self.videos[0], filetype="poster"
             )
-        except Exception as e:
-            logger.error(e)
-            logger.error("Poster not found")
+        else:
+            video_poster = FileManager.get_file_for_video(
+                video=video, filetype="poster"
+            )
+        if video_poster is None:
+            logger.error(f"No poster found. video args {video}.")
+            return
+        if video_poster.filename == "no-image.png":
+            logger.error(f"Poster is the default poster. Not adding to album.")
             return
         video_poster_path = Path(video_poster.path) / video_poster.filename
         logger.error(f"Video poster path: {video_poster_path}")
+
         file_item = FileItem.from_path(video_poster_path)
         file_item = file_item.make_a_temporary_copy()
         album_poster = FileManager.add_file_item_to_album(file=file_item, album=self)
