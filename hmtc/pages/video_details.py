@@ -513,6 +513,10 @@ def VideoInfoPanelLeft(video):
         (x.end - x.start) / 1000 for x in sections
     ]  # list of sections in seconds
     section_percentage = sum(section_durations) / video.duration * 100
+    logger.error("Need to fix this 🧬🧬🧬🧬🧬. ")
+    logger.error("11/5/24 Video details in produciton is showing 5 tracks created")
+    logger.error("but i just deleted them. the tracks are shown correctly ")
+    logger.error("as non-existing in the SectionSelector component")
     tracks_created = len([x for x in sections if x.track_id is not None])
 
     def auto_create_tracks(*args):

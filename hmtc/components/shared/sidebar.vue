@@ -10,7 +10,25 @@
     </div>
 
     <v-divider></v-divider>
-    <template> </template>
+    <div class="text-start">
+      <v-menu bottom offset-y>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn class="button" v-bind="attrs" v-on="on">
+            <v-icon>mdi-video</v-icon>Videos
+            <v-icon right>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item v-for="(item, index) in videoItems" :key="item.url">
+            <v-btn class="button" @click="sidebar_clicked(item.url)">
+              <v-icon class="px-4">{{ item.icon }}</v-icon
+              >{{ item.text }}
+            </v-btn>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
     <v-list class="top-list">
       <v-list-item v-for="(item, i) in items" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
@@ -61,15 +79,13 @@
 export default {
   data: () => ({
     items: [
-      { text: "Videos", icon: "mdi-video", url: "/videos" },
       { text: "Albums", icon: "mdi-album", url: "/albums" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
     ],
     items2: [
       { text: "Stats", icon: "mdi-graph", url: "/stats" },
-      { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
-      { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
+
       { text: "Series", icon: "mdi-shape", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },
@@ -84,6 +100,21 @@ export default {
         text: "Playlists",
         icon: "mdi-playlist-music",
         url: "/playlists",
+      },
+    ],
+    videoItems: [
+      { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
+      { text: "Videos (Unique)", icon: "mdi-video", url: "/videos" },
+      { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
+      {
+        text: "Videos (No sections)",
+        icon: "mdi-video",
+        url: "/videos/sections/none",
+      },
+      {
+        text: "Videos (With sections)",
+        icon: "mdi-video",
+        url: "/videos/sections/some",
       },
     ],
     other_items: [
