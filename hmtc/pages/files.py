@@ -4,7 +4,7 @@ from pathlib import Path
 import solara
 import solara.lab
 from loguru import logger
-
+from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
@@ -79,6 +79,12 @@ def get_album_files():
     folder_files = get_folder_files(STORAGE / "tracks")
     # hack for now (check for cover album art in the folder)
     folder_files = [f for f in folder_files if f.name[:5] == "cover"]
+    return db_files, folder_files
+
+
+def get_album_and_track_files():
+    db_files = FileModel.select().where(FileModel.track_id.is_null(False))
+    folder_files = get_folder_files(STORAGE / "tracks")
     return db_files, folder_files
 
 
@@ -216,6 +222,68 @@ def GenericFilesInfoCard(
 
 
 @solara.component
+def AlbumAndTrackFilesInfoCard():
+    solara.Markdown(f"## Album and Track Files")
+
+    albums = AlbumModel.select(AlbumModel.id)
+    tracks = TrackModel.select(TrackModel.id)
+    album_db_files = FileModel.select(FileModel).where(
+        FileModel.album_id.is_null(False)
+    )
+    track_db_files = FileModel.select(FileModel).where(
+        FileModel.track_id.is_null(False)
+    )
+    solara.Markdown(f"Album DB Files: {len(album_db_files)}")
+    solara.Markdown(f"Track DB Files: {len(track_db_files)}")
+    solara.Markdown(f"Albums: {len(albums)}")
+    solara.Markdown(f"Tracks: {len(tracks)}")
+    album_file_types = ["poster"]
+    album_file_tuples = [(x.album_id, x.file_type) for x in album_db_files]
+    album_missing_files = dict(zip(album_file_types, [0] * len(album_file_types)))
+    for album in albums:
+        for ftype in album_file_types:
+            if (album.id, ftype) not in album_file_tuples:
+                album_missing_files[ftype] += 1
+
+    track_file_types = ["audio", "lyrics"]
+    track_file_tuples = [(x.track_id, x.file_type) for x in track_db_files]
+    track_missing_files = dict(zip(track_file_types, [0] * len(track_file_types)))
+    for track in tracks:
+        for ftype in track_file_types:
+            if (track.id, ftype) not in track_file_tuples:
+                track_missing_files[ftype] += 1
+
+    with solara.Row():
+        with solara.ColumnsResponsive():
+            for ftype in album_file_types:
+                with solara.Card():
+                    if album_missing_files[ftype] > 0:
+                        with solara.Error():
+                            solara.Markdown(f"**Album {ftype}**")
+                            solara.Markdown(
+                                f"**{album_missing_files[ftype]}** ({album_missing_files[ftype] / len(albums) * 100:.2f}%)"
+                            )
+                    else:
+                        with solara.Success():
+                            solara.Markdown(f"**Album {ftype}**")
+                            solara.Markdown(f"**0**")
+            for ftype in track_file_types:
+                with solara.Card():
+                    if track_missing_files[ftype] > 0:
+                        with solara.Error():
+                            solara.Markdown(f"**Track {ftype}**")
+                            solara.Markdown(
+                                f"**{track_missing_files[ftype]}** ({track_missing_files[ftype] / len(tracks) * 100:.2f}%)"
+                            )
+                        with solara.Link(f"/tracks/missing-files/{ftype}"):
+                            solara.Markdown(f"View Tracks Missing {ftype}")
+                    else:
+                        with solara.Success():
+                            solara.Markdown(f"**Track {ftype}**")
+                            solara.Markdown(f"**0**")
+
+
+@solara.component
 def VideoFilesInfoCard():
     unique_vids = VideoModel.select(VideoModel.id).where(
         VideoModel.contains_unique_content == True
@@ -258,10 +326,12 @@ def Page():
     with solara.Column(classes=["main-container"]):
         with solara.Card(title="Video Files"):
             VideoFilesInfoCard()
-        with solara.Card(title="Track Files"):
-            TrackFilesInfoCard()
-        with solara.Card(title="Album Files"):
-            AlbumFilesInfoCard()
+        with solara.Card(title="Album and Track Files"):
+            AlbumAndTrackFilesInfoCard()
+        # with solara.Card(title="Track Files"):
+        #     TrackFilesInfoCard()
+        # with solara.Card(title="Album Files"):
+        #     AlbumFilesInfoCard()
         with solara.Card(title="Series Files"):
             SeriesFilesInfoCard()
         with solara.Card(title="Channel Files"):

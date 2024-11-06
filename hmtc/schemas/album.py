@@ -44,14 +44,6 @@ class Album:
             logger.error(e)
             logger.debug(f"Error creating album {self.title}. Skipping")
 
-    def delete_album(self):
-        logger.info(f"Deleting {self.title}")
-        album_row = (
-            AlbumModel.select().where(AlbumModel.video_id == self.video_id).first()
-        )
-        album_row.delete_instance()
-        logger.info("Album deleted")
-
     @staticmethod
     def from_model(album: AlbumModel) -> "Album":
         return Album(
@@ -165,3 +157,43 @@ class Album:
             .where(AlbumModel.id == album_id)
         ).get()
         return Album.from_model(album)
+
+    @staticmethod
+    def delete_album(item):
+        logger.debug(f"Deleting Item received from Vue: {item}")
+
+        album = AlbumModel.get_by_id(item["id"])
+        tracks = TrackModel.select().where(TrackModel.album_id == album.id)
+        for track in tracks:
+            section = (
+                SectionModel.select().where(SectionModel.track_id == track.id).get()
+            )
+            section.track_id = None
+            section.save()
+            FileManager.delete_track_file(track, "audio")
+            FileManager.delete_track_file(track, "lyrics")
+            track.delete_instance()
+        vids = VideoModel.select().where(VideoModel.album_id == album.id)
+        for vid in vids:
+            vid.album_id = None
+            vid.save()
+        FileManager.delete_album_file(album, "poster")
+        album.delete_instance()
+
+    @staticmethod
+    def save_album(dict_of_items):
+        item = dict_of_items["item"]
+        edited_item = dict_of_items["editedItem"]
+        logger.debug(f"Item received from Vue: {item}")
+
+        try:
+            album = AlbumModel.get_by_id(item["id"])
+        except Exception:
+            ## this should probably check item for id instead of edited_item
+            logger.debug(f"Album ID not found. Creating {edited_item}")
+            edited_item["id"] = None  # db should assign id
+            album = AlbumModel.create(**edited_item)
+
+        album.title = edited_item["title"]
+        album.release_date = edited_item["release_date"]
+        album.save()
