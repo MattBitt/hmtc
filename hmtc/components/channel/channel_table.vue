@@ -71,6 +71,13 @@
               </v-card-text>
 
               <v-card-actions>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="dialogDelete = true"
+                >
+                  <v-icon>mdi-delete</v-icon> Delete
+                </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn class="button" @click="close"> Cancel </v-btn>
                 <v-btn class="button" text @click="saveItemToDB(editedItem)">
@@ -87,7 +94,12 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-                <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-card>
@@ -107,11 +119,8 @@
       </template>
 
       <template v-slot:item.actions="{ item }">
-        <v-icon medium class="mr-2" @click="editItem(item)">
+        <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
-        </v-icon>
-        <v-icon medium color="red" @click="deleteItem(item)">
-          mdi-delete
         </v-icon>
       </template>
       <template v-slot:no-data>
