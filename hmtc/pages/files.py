@@ -223,8 +223,6 @@ def GenericFilesInfoCard(
 
 @solara.component
 def AlbumAndTrackFilesInfoCard():
-    solara.Markdown(f"## Album and Track Files")
-
     albums = AlbumModel.select(AlbumModel.id)
     tracks = TrackModel.select(TrackModel.id)
     album_db_files = FileModel.select(FileModel).where(
@@ -233,10 +231,7 @@ def AlbumAndTrackFilesInfoCard():
     track_db_files = FileModel.select(FileModel).where(
         FileModel.track_id.is_null(False)
     )
-    solara.Markdown(f"Album DB Files: {len(album_db_files)}")
-    solara.Markdown(f"Track DB Files: {len(track_db_files)}")
-    solara.Markdown(f"Albums: {len(albums)}")
-    solara.Markdown(f"Tracks: {len(tracks)}")
+
     album_file_types = ["poster"]
     album_file_tuples = [(x.album_id, x.file_type) for x in album_db_files]
     album_missing_files = dict(zip(album_file_types, [0] * len(album_file_types)))
@@ -254,33 +249,49 @@ def AlbumAndTrackFilesInfoCard():
                 track_missing_files[ftype] += 1
 
     with solara.Row():
-        with solara.ColumnsResponsive():
-            for ftype in album_file_types:
-                with solara.Card():
-                    if album_missing_files[ftype] > 0:
-                        with solara.Error():
-                            solara.Markdown(f"**Album {ftype}**")
-                            solara.Markdown(
-                                f"**{album_missing_files[ftype]}** ({album_missing_files[ftype] / len(albums) * 100:.2f}%)"
-                            )
-                    else:
-                        with solara.Success():
-                            solara.Markdown(f"**Album {ftype}**")
-                            solara.Markdown(f"**0**")
-            for ftype in track_file_types:
-                with solara.Card():
-                    if track_missing_files[ftype] > 0:
-                        with solara.Error():
-                            solara.Markdown(f"**Track {ftype}**")
-                            solara.Markdown(
-                                f"**{track_missing_files[ftype]}** ({track_missing_files[ftype] / len(tracks) * 100:.2f}%)"
-                            )
-                        with solara.Link(f"/tracks/missing-files/{ftype}"):
-                            solara.Markdown(f"View Tracks Missing {ftype}")
-                    else:
-                        with solara.Success():
-                            solara.Markdown(f"**Track {ftype}**")
-                            solara.Markdown(f"**0**")
+        with solara.Columns([6, 6]):
+            with solara.Card():
+                solara.Markdown(f"## Albums: {len(albums)}")
+                solara.Markdown(f"### Files in Database: {len(album_db_files)}")
+                with solara.Row():
+                    with solara.ColumnsResponsive():
+                        for ftype in album_file_types:
+                            with solara.Card():
+                                if album_missing_files[ftype] > 0:
+                                    with solara.Error():
+                                        solara.Markdown(f"**Albums Missing {ftype}**")
+                                        solara.Markdown(
+                                            f"**{album_missing_files[ftype]}/{len(albums)}** ({album_missing_files[ftype] / len(albums) * 100:.2f}%)"
+                                        )
+                                        with solara.Link(
+                                            f"/albums/missing-files/{ftype}"
+                                        ):
+                                            solara.Button(f"View", classes=["button"])
+                                else:
+                                    with solara.Success():
+                                        solara.Markdown(f"**Album {ftype}**")
+                                        solara.Markdown(f"**0**")
+            with solara.Card():
+                solara.Markdown(f"## Tracks: {len(tracks)}")
+                solara.Markdown(f"### Files in Database: {len(track_db_files)}")
+                with solara.Row():
+                    with solara.ColumnsResponsive():
+                        for ftype in track_file_types:
+                            with solara.Card():
+                                if track_missing_files[ftype] > 0:
+                                    with solara.Error():
+                                        solara.Markdown(f"**Tracks Missing {ftype}**")
+                                        solara.Markdown(
+                                            f"**{track_missing_files[ftype]}/{len(tracks)}** ({track_missing_files[ftype] / len(tracks) * 100:.2f}%)"
+                                        )
+                                        with solara.Link(
+                                            f"/tracks/missing-files/{ftype}"
+                                        ):
+                                            solara.Button(f"View", classes=["button"])
+                                else:
+                                    with solara.Success():
+                                        solara.Markdown(f"**Track {ftype}**")
+                                        solara.Markdown(f"**0**")
 
 
 @solara.component
@@ -314,6 +325,8 @@ def VideoFilesInfoCard():
                             solara.Markdown(
                                 f"**{missing_files[ftype]}** ({missing_files[ftype] / len(unique_vids) * 100:.2f}%)"
                             )
+                            with solara.Link(f"/videos/missing-files/{ftype}"):
+                                solara.Button(f"View", classes=["button"])
                     else:
                         with solara.Success():
                             solara.Markdown(f"**{ftype}**")
@@ -328,10 +341,6 @@ def Page():
             VideoFilesInfoCard()
         with solara.Card(title="Album and Track Files"):
             AlbumAndTrackFilesInfoCard()
-        # with solara.Card(title="Track Files"):
-        #     TrackFilesInfoCard()
-        # with solara.Card(title="Album Files"):
-        #     AlbumFilesInfoCard()
         with solara.Card(title="Series Files"):
             SeriesFilesInfoCard()
         with solara.Card(title="Channel Files"):

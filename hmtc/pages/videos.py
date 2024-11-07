@@ -15,6 +15,7 @@ from hmtc.models import (
     Series,
     YoutubeSeries,
 )
+from hmtc.models import File as FileModel
 from hmtc.models import (
     Section as SectionModel,
 )
@@ -39,6 +40,12 @@ def create_query_from_url():
     # /videos/playlist/<playlist_id> should be a list of videos in a playlist
     # /videos/sections/none should be a list of videos with no sections
     # /videos/sections/some should be a list of videos with sections
+    # /videos/missing-files/audio should be a list of videos missing audio files
+    # /videos/missing-files/video should be a list of videos missing video files
+    # /videos/missing-files/subtitle should be a list of videos missing subtitle files
+    # /videos/missing-files/poster should be a list of videos missing poster files
+    # /videos/missing-files/album_nfo should be a list of videos missing album_nfo files
+    # /videos/missing-files/info should be a list of videos missing info files
     all = (
         VideoModel.select(
             VideoModel.id,
@@ -83,13 +90,33 @@ def create_query_from_url():
     all_vids = VideoModel.select(VideoModel.id).where(
         VideoModel.contains_unique_content == True
     )
-
     vids_without_sections = [
         x.id for x in all_vids if x.id not in vids_with_sections_ids
     ]
     match router.parts:
         case [_, "all"]:
             return all, None, None, True
+        case ["videos", "missing-files", file_type]:
+            if file_type not in [
+                "poster",
+                "info",
+                "audio",
+                "video",
+                "subtitle",
+                "album_nfo",
+            ]:
+                logger.error(f"Invalid file type: {file_type}")
+                return
+            videos_with_files = (
+                VideoModel.select(VideoModel)
+                .join(FileModel, on=(VideoModel.id == FileModel.video_id))
+                .where(FileModel.file_type == file_type)
+            )
+            all_videos = VideoModel.select(VideoModel).where(
+                VideoModel.contains_unique_content == True
+            )
+            videos = all_videos - videos_with_files
+            return videos, "missing-files", file_type, False
         case [_, filter, id_to_filter, "all"]:
             if filter in valid_filters:
                 return (

@@ -27,12 +27,12 @@ def create_query_from_url():
         )
         .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
         .switch(TrackModel)
-        .join(FileModel, on=(TrackModel.id == FileModel.track_id))
+        .join(
+            FileModel, peewee.JOIN.LEFT_OUTER, on=(TrackModel.id == FileModel.track_id)
+        )
     )
 
-    valid_filters = ["album"]
     router = solara.use_router()
-    # level = solara.use_route_level()
 
     match router.parts:
         case ["tracks"]:
@@ -44,7 +44,13 @@ def create_query_from_url():
             if file_type not in ["audio", "lyrics"]:
                 logger.error(f"Invalid file type: {file_type}")
                 return
-            tracks = all.where(FileModel.file_type == file_type)
+            tracks_with_files = (
+                TrackModel.select(TrackModel)
+                .join(FileModel, on=(TrackModel.id == FileModel.track_id))
+                .where(FileModel.file_type == file_type)
+            )
+            all_tracks = TrackModel.select()
+            tracks = all_tracks - tracks_with_files
             return tracks, "missing-files", file_type
 
         case _:

@@ -12,10 +12,54 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
+from hmtc.models import File as FileModel
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.album import Album as AlbumItem
 
 force_update_counter = solara.reactive(0)
+
+
+def create_query_from_url():
+    # url options
+    # /albums should be a list of all albums (default)
+    # /albums/missing-files/poster should be a list of albums missing poster files
+
+    all = (
+        AlbumModel.select(
+            AlbumModel,
+            fn.COUNT(TrackModel.album_id).coerce(False).alias("track_count"),
+        )
+        .join(
+            TrackModel,
+            peewee.JOIN.LEFT_OUTER,
+            on=(AlbumModel.id == TrackModel.album_id),
+        )
+        .group_by(AlbumModel.id)
+    )
+
+    router = solara.use_router()
+
+    match router.parts:
+        case ["albums"]:
+            return all, None, None
+        case ["albums", "album", album_id]:
+            albums = all.where(AlbumModel.album_id == album_id)
+            return albums, "album", album_id
+        case ["albums", "missing-files", file_type]:
+            if file_type not in ["poster"]:
+                logger.error(f"Invalid file type: {file_type}")
+                return
+            albums_with_files = (
+                AlbumModel.select(AlbumModel)
+                .join(FileModel, on=(AlbumModel.id == FileModel.album_id))
+                .where(FileModel.file_type == file_type)
+            )
+            all_albums = AlbumModel.select()
+            albums = all_albums - albums_with_files
+            return albums, "missing-files", file_type
+
+        case _:
+            logger.error(f"Invalid URL: {router.url}")
 
 
 @solara.component_vue("../components/album/album_table.vue", vuetify=True)
@@ -34,17 +78,7 @@ def view_details(router, item):
 
 @solara.component
 def Page():
-    base_query = (
-        AlbumModel.select(
-            AlbumModel.id,
-            AlbumModel.title,
-            AlbumModel.release_date,
-            fn.COUNT(VideoModel.album_id).coerce(False).alias("video_count"),
-        )
-        .join(VideoModel, peewee.JOIN.LEFT_OUTER)
-        .group_by(AlbumModel.id, AlbumModel.title)
-        .order_by(AlbumModel.id.desc())
-    )
+    base_query, filter, id_to_filter = create_query_from_url()
 
     router = solara.use_router()
     MySidebar(router)
