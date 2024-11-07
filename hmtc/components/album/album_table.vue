@@ -1,144 +1,131 @@
 <template>
   <div>
-    <v-card>
-      <v-card-title>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search"
-          single-line
-          hide-details
-        ></v-text-field>
-        <!-- <v-divider></v-divider>
-        <h1>{{ computedMyCount }}</h1> -->
-      </v-card-title>
-
-      <v-data-table
-        :headers="headers"
-        :items="items"
-        sort-by.sync="sortBy"
-        :sort-desc.sync="sortDesc"
-        :search="search"
-        :items-per-page="30"
-        class="elevation-1"
-        item-key="id"
-        @pagination="writeLog"
-      >
-        <template v-slot:top="{ pagination, options, updateOptions }">
+    <v-data-table
+      :headers="headers"
+      :items="items"
+      sort-by.sync="sortBy"
+      :sort-desc.sync="sortDesc"
+      :search="search"
+      :items-per-page="30"
+      class="elevation-1"
+      item-key="id"
+      @pagination="writeLog"
+    >
+      <template v-slot:top="{ pagination, options, updateOptions }">
+        <v-toolbar flat>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+          <v-spacer></v-spacer>
           <v-data-footer
             :pagination="pagination"
             :options="options"
             @update:options="updateOptions"
             items-per-page-text="$vuetify.dataTable.itemsPerPageText"
           />
-          <v-toolbar flat>
-            <v-toolbar-title>Albums</v-toolbar-title>
-            <v-divider class="mx-4" inset vertical></v-divider>
-            <v-spacer></v-spacer>
-            <v-dialog v-model="dialog" max-width="800px">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn class="mb-2 button" v-bind="attrs" v-on="on">
-                  New Item
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title>
-                  <span class="text-h5">{{ formTitle }}</span>
-                </v-card-title>
 
-                <v-card-text>
-                  <v-container>
-                    <v-row>
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.title"
-                          label="Title"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.release_date"
-                          label="Release Date"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                  </v-container>
-                </v-card-text>
+          <v-dialog v-model="dialog" max-width="800px">
+            <v-card>
+              <v-card-title>
+                <span class="text-h5">{{ formTitle }}</span>
+              </v-card-title>
 
-                <v-card-actions>
-                  <v-btn
-                    class="button mywarning"
-                    outlined
-                    @click="dialogDelete = true"
-                  >
-                    <v-icon>mdi-delete</v-icon> Delete
-                  </v-btn>
-                  <v-spacer></v-spacer>
-                  <v-btn class="button" @click="close"> Cancel </v-btn>
-                  <v-btn class="button" text @click="saveItemToDB(editedItem)">
-                    Save
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-            <v-dialog v-model="dialogDelete" max-width="500px">
-              <v-card>
-                <v-card-title class="text-h5"
-                  >Are you sure you want to delete this item?</v-card-title
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.title"
+                        label="Title"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field
+                        v-model="editedItem.release_date"
+                        label="Release Date"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="dialogDelete = true"
                 >
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-                  <v-btn
-                    class="button mywarning"
-                    outlined
-                    @click="deleteItemConfirm"
-                    >OK</v-btn
-                  >
-                  <v-spacer></v-spacer>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-toolbar>
-        </template>
-        <template v-slot:item.video_count="{ item }">
-          <v-chip>
-            <span v-if="item.video_count > 0">
-              <a :href="'/videos/album/' + item.id">
-                {{ item.video_count }}
-              </a>
-            </span>
-            <span v-else>---</span>
-          </v-chip>
-        </template>
-        <template v-slot:item.track_count="{ item }">
-          <v-chip>
-            <span v-if="item.video_count > 0">
-              <a :href="'/tracks/album/' + item.id">
-                {{ item.track_count }}
-              </a>
-            </span>
-            <span v-else>---</span>
-          </v-chip>
-        </template>
-        <template v-slot:item.actions="{ item }">
-          <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
-            mdi-pencil
-          </v-icon>
-          <v-icon
-            x-large
-            color="primary"
-            class="mb-4"
-            @click="link1_clicked(item)"
-          >
-            mdi-album
-          </v-icon>
-        </template>
-        <template v-slot:no-data>
-          <v-btn class="button" @click=""> Reset </v-btn>
-        </template>
-      </v-data-table>
-    </v-card>
+                  <v-icon>mdi-delete</v-icon> Delete
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn class="button" @click="close"> Cancel </v-btn>
+                <v-btn class="button" text @click="saveItemToDB(editedItem)">
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="dialogDelete" max-width="500px">
+            <v-card>
+              <v-card-title class="text-h5"
+                >Are you sure you want to delete this item?</v-card-title
+              >
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn class="button" @click="closeDelete">Cancel</v-btn>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:item.video_count="{ item }">
+        <v-chip>
+          <span v-if="item.video_count > 0">
+            <a :href="'/videos/album/' + item.id">
+              {{ item.video_count }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
+      <template v-slot:item.track_count="{ item }">
+        <v-chip>
+          <span v-if="item.video_count > 0">
+            <a :href="'/tracks/album/' + item.id">
+              {{ item.track_count }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
+      <template v-slot:item.actions="{ item }">
+        <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          x-large
+          color="primary"
+          class="mb-4"
+          @click="link1_clicked(item)"
+        >
+          mdi-album
+        </v-icon>
+      </template>
+      <template v-slot:no-data>
+        <v-btn class="button" @click=""> Reset </v-btn>
+      </template>
+    </v-data-table>
   </div>
 </template>
 
@@ -322,8 +309,8 @@ export default {
 };
 </script>
 <style>
-/* removes the items per page selector (doesn't work to display none)*/
-.v-application--is-ltr .v-data-footer__pagination {
-  margin-left: auto;
+/* removes the items per page selector*/
+.v-data-footer__select {
+  display: none;
 }
 </style>

@@ -36,22 +36,28 @@
               <v-card-text>
                 <v-container>
                   <v-row>
+                    <v-text-field
+                      v-model="editedItem.path"
+                      label="Local path"
+                    ></v-text-field>
+                  </v-row>
+                  <v-row>
+                    <v-text-field
+                      v-model="editedItem.filename"
+                      label="FileName"
+                    ></v-text-field>
+                  </v-row>
+                  <v-row>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.name"
-                        label="Name"
+                        v-model="editedItem.file_type"
+                        label="File Type"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.start_date"
-                        label="Start Date"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.end_date"
-                        label="End Date"
+                        v-model="editedItem.extension"
+                        label="Extension (Used?)"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -59,6 +65,13 @@
               </v-card-text>
 
               <v-card-actions>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="dialogDelete = true"
+                >
+                  <v-icon>mdi-delete</v-icon> Delete
+                </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn class="button" @click="close"> Cancel </v-btn>
                 <v-btn class="button" text @click="saveItemToDB(editedItem)">
@@ -75,29 +88,49 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-                <v-btn class="button" @click="deleteItemConfirm">OK</v-btn>
+                <v-btn
+                  class="button mywarning"
+                  outlined
+                  @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-card>
           </v-dialog>
         </v-toolbar>
       </template>
-      <template v-slot:item.video_count="{ item }">
+      <template v-slot:item.album_id="{ item }">
         <v-chip>
-          <span v-if="item.video_count > 0">
-            <a :href="'/videos/series/' + item.id">
-              {{ item.video_count }}
+          <span v-if="item.album_id > 0">
+            <a :href="'/album-details/' + item.album_id">
+              {{ item.album_id }}
             </a>
           </span>
           <span v-else>---</span>
         </v-chip>
       </template>
+      <template v-slot:item.video_id="{ item }">
+        <v-chip>
+          <span v-if="item.video_id > 0">
+            <a :href="'/video-details/' + item.video_id">
+              {{ item.video_id }}
+            </a>
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
+      <template v-slot:item.track_id="{ item }">
+        <v-chip>
+          <span v-if="item.track_id > 0">
+            {{ item.track_id }}
+          </span>
+          <span v-else>---</span>
+        </v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon medium class="mr-2" @click="editItem(item)">
+        <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
-        </v-icon>
-        <v-icon medium color="red" @click="deleteItem(item)">
-          mdi-delete
         </v-icon>
       </template>
       <template v-slot:no-data>
@@ -119,49 +152,36 @@ export default {
       { text: "ID", value: "id", align: "start", width: "5%" },
       {
         text: "Name",
-        value: "name",
+        value: "filename",
         align: "start",
         width: "20%",
       },
       {
-        text: "# Videos",
-        value: "video_count",
+        text: "File Type",
+        value: "file_type",
         filterable: false,
         sortable: true,
       },
-      {
-        text: "# Youtube Series",
-        value: "youtube_series_count",
-        filterable: false,
-        sortable: true,
-      },
-      { text: "Start Date", value: "start_date", filterable: true },
-      { text: "End Date", value: "end_date", filterable: true },
-
-      // { text: 'Unique', value: 'contains_unique_content', filterable: false },
+      { text: "Video", value: "video_id", sortable: true, filterable: true },
+      { text: "Album", value: "album_id", sortable: true, filterable: true },
+      { text: "Track", value: "track_id", sortable: true, filterable: true },
       { text: "Actions", value: "actions", sortable: false },
     ],
 
     items: [
       {
-        name: "Series Name",
-        start_date: "2024-01-01",
-        end_date: "2024-12-31",
+        text: "Topic Text",
         id: 1665436,
       },
     ],
 
     editedIndex: -1,
     editedItem: {
-      name: "Series Name",
-      start_date: "2024-01-01",
-      end_date: "2024-12-31",
+      text: "Topic Text",
       id: 1665436,
     },
     defaultItem: {
-      name: "Series Name",
-      start_date: "2024-01-01",
-      end_date: "2024-12-31",
+      text: "Topic Text",
       id: 1665436,
     },
   }),
@@ -206,14 +226,14 @@ export default {
 
     deleteItemConfirm() {
       this.items.splice(this.editedIndex, 1);
-      this.delete_series(this.editedItem);
+      this.delete_topic(this.editedItem);
       this.closeDelete();
     },
 
     saveItemToDB(item) {
       // the function below is 'run' from python
       // actually saves the item in the db
-      this.save_series({
+      this.save_topic({
         item: item,
         editedItem: this.editedItem,
       });

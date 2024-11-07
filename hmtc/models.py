@@ -800,14 +800,12 @@ class File(BaseModel):
             "path": self.path,
             "filename": self.filename,
             "file_type": self.file_type,
-            "video_id": self.video.id if self.video else None,
-            "album_id": self.album.id if self.album else None,
-            "series_id": self.series.id if self.series else None,
-            "playlist_id": self.playlist.id if self.playlist else None,
-            "youtube_series_id": (
-                self.youtube_series.id if self.youtube_series else None
-            ),
-            "track_id": self.track.id if self.track else None,
+            "video_id": self.video.id if self.video else 0,
+            "album_id": self.album.id if self.album else 0,
+            "series_id": self.series.id if self.series else 0,
+            "playlist_id": self.playlist.id if self.playlist else 0,
+            "youtube_series_id": (self.youtube_series.id if self.youtube_series else 0),
+            "track_id": self.track.id if self.track else 0,
         }
         return new_dict
 

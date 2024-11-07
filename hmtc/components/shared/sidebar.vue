@@ -85,10 +85,11 @@ export default {
     ],
     items2: [
       { text: "Stats", icon: "mdi-graph", url: "/stats" },
-
       { text: "Series", icon: "mdi-shape", url: "/series" },
       { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
       { text: "Channels", icon: "mdi-view-list", url: "/channels" },
+      { text: "Sections", icon: "mdi-youtube", url: "/sections" },
+      { text: "Files", icon: "mdi-folder", url: "/files" },
       { text: "Topics", icon: "mdi-book-open", url: "/topics" },
     ],
     old_items: [
@@ -120,7 +121,7 @@ export default {
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },
 
-      { text: "Files", icon: "mdi-folder", url: "/files" },
+      { text: "Files", icon: "mdi-folder", url: "/files-panel" },
       { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },
     ],
     version: "-0.0.0",

@@ -1,14 +1,5 @@
 <template>
   <v-card>
-    <v-card-title>
-      <v-text-field
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Search"
-        single-line
-        hide-details
-      ></v-text-field>
-    </v-card-title>
     <v-data-table
       :headers="headers"
       :items="items"
@@ -20,22 +11,23 @@
       item-key="title"
     >
       <template v-slot:top="{ pagination, options, updateOptions }">
-        <v-data-footer
-          :pagination="pagination"
-          :options="options"
-          @update:options="updateOptions"
-          items-per-page-text="$vuetify.dataTable.itemsPerPageText"
-        />
         <v-toolbar flat>
-          <v-toolbar-title>Youtube Series ({{ items.length }})</v-toolbar-title>
-          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
           <v-spacer></v-spacer>
+          <v-data-footer
+            :pagination="pagination"
+            :options="options"
+            @update:options="updateOptions"
+            items-per-page-text="$vuetify.dataTable.itemsPerPageText"
+          />
+
           <v-dialog v-model="dialog" max-width="400px">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn class="mb-2 button" dark v-bind="attrs" v-on="on">
-                New Item
-              </v-btn>
-            </template>
             <v-card>
               <v-card-title>
                 <span class="text-h5">{{ formTitle }}</span>

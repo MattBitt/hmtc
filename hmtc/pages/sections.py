@@ -7,29 +7,30 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import File as FileModel
+from hmtc.models import Section as SectionModel
 
 force_update_counter = solara.reactive(0)
 
 
-@solara.component_vue("../components/file/file_table.vue", vuetify=True)
-def FileTable(
+@solara.component_vue("../components/section/section_table.vue", vuetify=True)
+def SectionTable(
     items: list = [],
-    event_save_file=None,
-    event_delete_file: Callable = None,
+    event_save_section=None,
+    event_delete_section: Callable = None,
+    event_link1_clicked: Callable = None,
 ):
     pass
 
 
-def delete_file(item):
+def delete_section(item):
     logger.error(f"Not Implmeented!")
     return
     logger.debug(f"Deleting Item received from Vue: {item}")
-    file = FileModel.get_by_id(item["id"])
-    file.delete_instance()
+    section = SectionModel.get_by_id(item["id"])
+    section.delete_instance()
 
 
-def save_file(dict_of_items):
+def save_section(dict_of_items):
     logger.error(f"Not Implmeented!")
     return
     item = dict_of_items["item"]
@@ -37,18 +38,22 @@ def save_file(dict_of_items):
     logger.debug(f"Item received from Vue: {item}")
 
     try:
-        file = FileModel.get_by_id(item["id"])
+        section = SectionModel.get_by_id(item["id"])
     except Exception:
         ## this should probably check item for id instead of edited_item
-        logger.debug(f"File ID not found. Creating {edited_item}")
+        logger.debug(f"Section ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
-        FileModel.create(**edited_item)
+        SectionModel.create(**edited_item)
         return
 
-    file.text = edited_item["text"]
+    section.text = edited_item["text"]
 
-    file.save()
+    section.save()
     force_update_counter.set(force_update_counter.value + 1)
+
+
+def view_details(router, item):
+    router.push(f"/video-details/{item['video_id']}")
 
 
 @solara.component
@@ -56,7 +61,7 @@ def Page():
     router = solara.use_router()
     MySidebar(router)
 
-    base_query = FileModel.select(FileModel).order_by(FileModel.id.asc())
+    base_query = SectionModel.select(SectionModel).order_by(SectionModel.id.asc())
 
     df = pd.DataFrame([item.model_to_dict() for item in base_query])
 
@@ -64,8 +69,9 @@ def Page():
     items = df.to_dict("records")
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
-        FileTable(
+        SectionTable(
             items=items,
-            event_save_file=save_file,
-            event_delete_file=delete_file,
+            event_save_section=save_section,
+            event_delete_section=delete_section,
+            event_link1_clicked=lambda x: view_details(router, x),
         )

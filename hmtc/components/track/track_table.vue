@@ -1,14 +1,5 @@
 <template>
-  <v-card>
-    <v-card-title>
-      <v-text-field
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Search"
-        single-line
-        hide-details
-      ></v-text-field>
-    </v-card-title>
+  <div>
     <v-data-table
       :headers="headers"
       :items="items"
@@ -19,17 +10,29 @@
       class="elevation-1"
       item-key="id"
     >
-      <template v-slot:top>
+      <template v-slot:top="{ pagination, options, updateOptions }">
         <v-toolbar flat>
-          <v-toolbar-title>Tracks</v-toolbar-title>
-          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
           <v-spacer></v-spacer>
+          <v-data-footer
+            :pagination="pagination"
+            :options="options"
+            @update:options="updateOptions"
+            items-per-page-text="$vuetify.dataTable.itemsPerPageText"
+          />
+
           <v-dialog v-model="dialog" max-width="800px">
-            <template v-slot:activator="{ on, attrs }">
+            <!-- <template v-slot:activator="{ on, attrs }">
               <v-btn class="mb-2 button" v-bind="attrs" v-on="on">
                 New Item
               </v-btn>
-            </template>
+            </template> -->
             <v-card>
               <v-card-title>
                 <span class="text-h5">{{ formTitle }}</span>
@@ -149,7 +152,7 @@
         <v-btn class="button" @click=""> Reset </v-btn>
       </template>
     </v-data-table>
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -302,8 +305,8 @@ export default {
 };
 </script>
 <style>
-/* removes the items per page selector (doesn't work to display none)*/
-.v-application--is-ltr .v-data-footer__pagination {
-  margin-left: auto;
+/* removes the items per page selector*/
+.v-data-footer__select {
+  display: none;
 }
 </style>
