@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import peewee
@@ -17,6 +18,21 @@ from hmtc.models import (
 from hmtc.models import (
     Track as TrackTable,
 )
+from hmtc.schemas.topic import Topic as TopicItem
+
+
+def create_hms_dict(seconds):
+    # moved this from models.py to schemas/section.py
+    # 11/7/24 - this is used in the sections page to display
+    # label (seconds in milliseconds)
+
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return dict(
+        hour=h,
+        minute=m,
+        second=s,
+    )
 
 
 @dataclass(frozen=True, order=True)
@@ -27,6 +43,31 @@ class Section:
     id: int = None
     section_type: str = "INITIAL"
     topics: list = field(default_factory=list)
+
+    def from_model(section: SectionTable) -> "Section":
+        return Section(
+            id=section.id,
+            start=section.start,
+            end=section.end,
+            video_id=section.video_id,
+            section_type=section.section_type,
+            topics=[x.topic for x in section.topics],
+        )
+
+    def serialize(self) -> dict:
+
+        return {
+            "id": self.id,
+            "start": self.start,
+            "end": self.end,
+            "start_dict": create_hms_dict(self.start / 1000),
+            "end_dict": create_hms_dict(self.end / 1000),
+            "start_string": str(timedelta(seconds=self.start / 1000)),
+            "end_string": str(timedelta(seconds=self.end / 1000)),
+            "video_id": self.video_id,
+            "section_type": self.section_type,
+            "topics": [TopicItem.from_model(x).serialize() for x in self.topics],
+        }
 
     def check_times(self) -> None:
         if self.start > self.end:
@@ -41,7 +82,7 @@ class Section:
     def __post_init__(self) -> None:
         try:
             self.check_times()
-            logger.debug(f"End of Section {self} __post_init__")
+            # logger.debug(f"End of Section {self} __post_init__")
         except ValueError as e:
             logger.error(e)
             raise
@@ -220,6 +261,6 @@ class SectionManager:
         ).get_or_none()
         # logger.debug(f"Query Result: {query}")
         if query:
-            return query.model_to_dict()
+            return Section.from_model(query).serialize()
         else:
             return None

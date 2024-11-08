@@ -8,6 +8,7 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import File as FileModel
+from hmtc.schemas.file import File as FileItem
 
 force_update_counter = solara.reactive(0)
 
@@ -58,12 +59,11 @@ def Page():
 
     base_query = FileModel.select(FileModel).order_by(FileModel.id.asc())
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
+    items = [
+        FileItem.from_model(item).serialize()
+        for item in base_query.order_by(FileModel.id.asc())
+    ]
     with solara.Column(classes=["main-container"]):
-        # solara.Markdown(f"{force_update_counter.value}")
         FileTable(
             items=items,
             event_save_file=save_file,

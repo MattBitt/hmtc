@@ -135,7 +135,7 @@
           x-large
           color="primary"
           class="mb-4"
-          @click="link2_clicked(item.album_title)"
+          @click="link2_clicked(item.album_id)"
         >
           mdi-album
         </v-icon>
@@ -143,7 +143,7 @@
           x-large
           color="primary"
           class="mb-4"
-          @click="link1_clicked(item.video_id)"
+          @click="link1_clicked(item.section.video_id)"
         >
           mdi-rhombus-split
         </v-icon>

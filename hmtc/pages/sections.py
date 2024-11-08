@@ -8,6 +8,7 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Section as SectionModel
+from hmtc.schemas.section import Section as SectionItem
 
 force_update_counter = solara.reactive(0)
 
@@ -63,10 +64,7 @@ def Page():
 
     base_query = SectionModel.select(SectionModel).order_by(SectionModel.id.asc())
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
+    items = [SectionItem.from_model(item).serialize() for item in base_query]
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
         SectionTable(

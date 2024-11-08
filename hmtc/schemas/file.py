@@ -23,7 +23,47 @@ STORAGE = config["paths"]["storage"]
 class File:
     path: str
     filename: str  # this includes the extension
+    file_type: str = ""
+
+    album_id: int = 0
+    track_id: int = 0
+    video_id: int = 0
+    channel_id: int = 0
+    series_id: int = 0
+    youtube_series_id: int = 0
+    playlist_id: int = 0
+
+    # this probably shouldnt be here... 11/7/24
     folder: str = STORAGE
+
+    @staticmethod
+    def from_model(file: FileModel) -> "File":
+        return File(
+            path=file.path,
+            filename=file.filename,
+            file_type=file.file_type,
+            album_id=file.album_id,
+            track_id=file.track_id,
+            video_id=file.video_id,
+            channel_id=file.channel_id,
+            series_id=file.series_id,
+            youtube_series_id=file.youtube_series_id,
+            playlist_id=file.playlist_id,
+        )
+
+    def serialize(self) -> dict:
+        return {
+            "path": self.path,
+            "filename": self.filename,
+            "file_type": self.file_type,
+            "album_id": self.album_id,
+            "track_id": self.track_id,
+            "video_id": self.video_id,
+            "channel_id": self.channel_id,
+            "series_id": self.series_id,
+            "youtube_series_id": self.youtube_series_id,
+            "playlist_id": self.playlist_id,
+        }
 
     @classmethod
     def from_path(cls, path: str) -> "File":

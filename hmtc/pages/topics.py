@@ -7,7 +7,9 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.models import SectionTopics as SectionTopicModel
 from hmtc.models import Topic as TopicModel
+from hmtc.schemas.topic import Topic as TopicItem
 
 force_update_counter = solara.reactive(0)
 
@@ -61,10 +63,7 @@ def Page():
         .order_by(TopicModel.text.asc())
     )
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
+    items = [TopicItem.from_model(item).serialize() for item in base_query]
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
         TopicTable(

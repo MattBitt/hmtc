@@ -33,20 +33,6 @@ VIDEO_MEDIA_PATH = STORAGE / "videos"
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
 
 
-def create_hms_dict(seconds):
-    # created on 9/10/24
-    # used by sections page for input and
-    # label (seconds in milliseconds)
-
-    m, s = divmod(seconds, 60)
-    h, m = divmod(m, 60)
-    return dict(
-        hour=h,
-        minute=m,
-        second=s,
-    )
-
-
 def get_file_type(file: str, override=None):
     if override is not None:
         return override
@@ -183,6 +169,7 @@ class Series(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
+        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Series.model_to_dict)")
         num_vids = (
             Video.select(fn.Count(Video.id))
             .where(
@@ -291,6 +278,7 @@ class Channel(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
+        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Channel.model_to_dict)")
         new_dict = {
             "id": self.id,
             "youtube_id": self.youtube_id,
@@ -429,6 +417,7 @@ class Playlist(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
+        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Playlist.model_to_dict)")
         new_dict = {
             "id": self.id,
             "youtube_id": self.youtube_id,
@@ -453,6 +442,7 @@ class YoutubeSeries(BaseModel):
         return f"YoutubeSeriesModel({self.title=})"
 
     def model_to_dict(self):
+        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (YoutubeSeries.model_to_dict)")
         try:
             num_vids = int(self.video_count)
         except Exception as e:
@@ -489,6 +479,7 @@ class Album(BaseModel):
     # circular to associate series with albums
 
     def model_to_dict(self):
+        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Album.model_to_dict)")
         try:
             num_vids = int(self.video_count)
         except Exception as e:
@@ -555,7 +546,7 @@ class Track(BaseModel):
     album = ForeignKeyField(Album, backref="tracks", null=True)
 
     def model_to_dict(self):
-        has_mp3 = File.select().where(File.track_id == self.id).get_or_none()
+        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Track.model_to_dict)")
         section = self.section.get_or_none()
         if section and section.video:
             video_id = int(section.video.id)
@@ -571,7 +562,7 @@ class Track(BaseModel):
             "album_id": self.album.id if self.album else None,
             "album_title": self.album.title if self.album else None,
             "has_mp3": False,  # need to fix this
-            "files": [f.model_to_dict() for f in self.files],
+            "files": [],
         }
         return new_dict
 
@@ -657,6 +648,7 @@ class Section(BaseModel):
         return breaks
 
     def model_to_dict(self):
+        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Section.model_to_dict)")
         try:
             _track = self.track.model_to_dict()
         except Exception as e:
@@ -795,6 +787,7 @@ class File(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
+        logger.error("DELETE ME (11/7/24) 🧪🧪🧪🧪🧪🧪🧪🧪 Switched to serialize()")
         new_dict = {
             "id": self.id,
             "path": self.path,
@@ -863,6 +856,7 @@ class Topic(BaseModel):
     text = CharField()
 
     def model_to_dict(self):
+        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Topic.model_to_dict)")
         num_sections = (
             SectionTopics.select(fn.Count(SectionTopics.section_id))
             .where((SectionTopics.topic_id == self.id))
@@ -884,6 +878,7 @@ class SectionTopics(BaseModel):
     order = IntegerField()
 
     def model_to_dict(self):
+        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (SectionTopics.model_to_dict)")
         new_dict = {
             "id": self.id,
             "section_id": self.section.id,

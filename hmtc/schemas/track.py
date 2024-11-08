@@ -10,8 +10,9 @@ from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
+from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
-from hmtc.schemas.section import Section
+from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.ffmpeg_utils import rip_track
 from hmtc.utils.jellyfin_functions import refresh_library
@@ -33,19 +34,35 @@ class TrackItem:
     title: str = None
     track_number: int = 0
     length: int = 0
-    album_id: int = None
+    album_id: int = 0
     album_title: str = None
-    section_id: int = None
+    section_id: int = 0
+    section: SectionItem = None
+    files: list = field(default_factory=list)
 
+    @staticmethod
     def from_model(track: TrackModel) -> "TrackItem":
         return TrackItem(
             id=track.id,
             title=track.title,
             track_number=track.track_number,
             length=track.length,
-            album_id=track.album_id,
-            section_id=track.section,
+            album_id=track.album.id,
+            album_title=track.album.title,
+            files=[FileItem.from_model(f) for f in track.files],
+            section=SectionItem.from_model(track.section.get()),
         )
+
+    def serialize(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "track_number": self.track_number,
+            "length": self.length,
+            "album_id": self.album_id,
+            "files": [f.serialize() for f in self.files],
+            "section": self.section.serialize(),
+        }
 
     def create_all_files(self, video: VideoItem):
         self.create_audio_file(video)

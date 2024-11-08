@@ -2,18 +2,20 @@ import dataclasses
 import re
 from pathlib import Path
 from typing import Dict, Optional, cast
+
 import plotly.graph_objects as go
 import solara
 from loguru import logger
-from solara.alias import rv
 from peewee import fn
+from solara.alias import rv
+
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Video as VideoModel
-from hmtc.models import Series as SeriesModel
-from hmtc.models import Section as SectionModel
 from hmtc.models import File as FileModel
+from hmtc.models import Section as SectionModel
+from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.track import TrackItem
 from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 

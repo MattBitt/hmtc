@@ -1,5 +1,6 @@
-from typing import Callable
 from pathlib import Path
+from typing import Callable
+
 import pandas as pd
 import peewee
 import solara
@@ -7,8 +8,9 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Album as AlbumModel
-from hmtc.models import Track as TrackModel
 from hmtc.models import File as FileModel
+from hmtc.models import Track as TrackModel
+from hmtc.schemas.track import TrackItem
 
 force_update_counter = solara.reactive(0)
 
@@ -105,9 +107,8 @@ def view_details(router, item_id):
     router.push(f"/video-details/{str(item_id)}")
 
 
-def album_details(router, album_title):
-    album = AlbumModel.select().where(AlbumModel.title == album_title).get()
-    router.push(f"/album-details/{str(album.id)}")
+def album_details(router, album_id):
+    router.push(f"/album-details/{str(album_id)}")
 
 
 @solara.component
@@ -116,9 +117,10 @@ def Page():
     router = solara.use_router()
     MySidebar(router)
     base_query, filter, id_to_filter = create_query_from_url()
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    items = df.to_dict("records")
+    items = [
+        TrackItem.from_model(item).serialize()
+        for item in base_query.order_by(TrackModel.id.asc())
+    ]
     with solara.Column(classes=["main-container"]):
         TrackTable(
             items=items,

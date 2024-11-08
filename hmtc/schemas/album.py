@@ -105,10 +105,11 @@ class Album:
         track = self.create_track(
             title=clean_filename(new_title), length=(section.end - section.start) / 1000
         )
-        track_item = TrackItem.from_model(track)
+
         sect = SectionModel.get_by_id(section.id)
         sect.track = track
         sect.save()
+        track_item = TrackItem.from_model(track)
         track_item.create_all_files(video)
         return track_item
 

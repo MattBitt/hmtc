@@ -34,6 +34,7 @@ from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.schemas.album import Album as AlbumItem
+from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
@@ -134,18 +135,21 @@ def SectionsPanel(
     update_section_from_jellyfin,
 ):
     reload = solara.use_reactive(False)
+    section_type = solara.use_reactive("instrumental")
+
     # not sure why this is a tuple...
+    # or really what its doing....
     section_dicts = (
         solara.use_reactive(
             [SectionManager.get_section_details(s.id) for s in reactive_sections.value]
         ),
     )
-    section_type = solara.use_reactive("instrumental")
 
     if len(reactive_sections.value) > 0:
         tab_items = section_dicts[0].value
     else:
         tab_items = []
+    #############################
 
     def delete_section(*args, **kwargs):
         logger.debug(f"Deleting Section: {args}")
@@ -483,7 +487,7 @@ def FilesPanel(video):
     else:
 
         FileTypeCheckboxes(
-            db_files=[x.model_to_dict() for x in db_files],
+            db_files=[FileItem.from_model(x).serialize() for x in db_files],
             folder_files=ff_serialized,
             has_audio="audio" in file_types_found,
             has_video="video" in file_types_found,

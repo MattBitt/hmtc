@@ -10,11 +10,11 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Album as AlbumModel
+from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.models import File as FileModel
-from hmtc.schemas.file import FileManager
 from hmtc.schemas.album import Album as AlbumItem
+from hmtc.schemas.file import FileManager
 
 force_update_counter = solara.reactive(0)
 
