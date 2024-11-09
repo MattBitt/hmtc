@@ -787,7 +787,9 @@ class File(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
-        logger.error("DELETE ME (11/7/24) 🧪🧪🧪🧪🧪🧪🧪🧪 Switched to serialize()")
+        logger.error(
+            "DELETE ME (11/7/24) 🦧🦧🦧🦧🦧🦧🦧 Switched to FileItem.serialize()"
+        )
         new_dict = {
             "id": self.id,
             "path": self.path,

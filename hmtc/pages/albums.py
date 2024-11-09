@@ -77,23 +77,37 @@ def view_details(router, item):
 
 
 @solara.component
+def DataTable(items, current_page):
+    router = solara.use_router()
+    solara.Markdown(f"Page: {current_page}")
+    AlbumTable(
+        items=items,
+        event_save_album=lambda item: logger.debug(f"Saving album {item}"),
+        event_delete_album=lambda item: logger.debug(f"Deleting album {item}"),
+        event_link1_clicked=lambda item: view_details(router, item),
+    )
+
+
+@solara.component
 def Page():
     base_query, filter, id_to_filter = create_query_from_url()
-
+    current_page = solara.use_reactive(1)
+    base_query = base_query.paginate(current_page.value, 60)
     router = solara.use_router()
     MySidebar(router)
 
-    ipyvue.register_component_from_file(
-        "MyFirst", "../components/album/myfirst.vue", __file__
-    )
+    items = [
+        AlbumItem.from_model(item).serialize()
+        for item in base_query.order_by(AlbumModel.id.asc())
+    ]
 
-    items = pd.DataFrame([item.model_to_dict() for item in base_query]).to_dict(
-        "records"
-    )
+    def previous_page():
+        current_page.set(current_page.value - 1)
+
+    def next_page():
+        current_page.set(current_page.value + 1)
+
     with solara.Column(classes=["main-container"]):
-        AlbumTable(
-            items=items,
-            event_save_album=lambda x: AlbumItem.save_album(x),
-            event_delete_album=lambda x: AlbumItem.delete_album(x),
-            event_link1_clicked=lambda x: view_details(router, x),
-        )
+        solara.Button("Previous", on_click=previous_page)
+        solara.Button("Next", on_click=next_page)
+        DataTable(items=items, current_page=current_page)

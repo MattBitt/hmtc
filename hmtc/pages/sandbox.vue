@@ -1,53 +1,84 @@
 <template>
   <div>
-    <h1>Invite List</h1>
+    <v-data-table
+      :headers="headers"
+      :items="items"
+      :page.sync="current_page"
+      :options.sync="options"
+      :server-items-length="total_items"
+      :search="search"
+      :loading="loading"
+      class="elevation-1"
     >
-    <form>
-      <input type="text" placeholder="Enter name" v-model="nameInput" />
-      <button @click.prevent="addName">Add Name</button>
-    </form>
-
-    <transition-group name="list" tag="ul">
-      <li v-for="(name, index) in inviteList" :key="name">
-        <button @click="uninvite(index)">X</button>
-        {{ name }}
-      </li>
-    </transition-group>
+      <template v-slot:top="{ pagination, options, updateOptions }">
+        <v-toolbar flat>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+            clearable
+            @click:clear="clear_search"
+          ></v-text-field>
+          <v-spacer></v-spacer>
+          <v-pagination
+            v-model="current_page"
+            :length="total_pages"
+            :total-visible="6"
+            @input="change_page"
+          ></v-pagination>
+        </v-toolbar>
+      </template>
+    </v-data-table>
   </div>
 </template>
+
 <script>
-module.exports = {
-  name: "EmptyComponent",
-  props: {},
-  emits: [],
+export default {
   data() {
-    return { inviteList: [], nameInput: "" };
+    return {
+      loading: true,
+      options: {},
+      headers: [],
+      search: "",
+      items: [],
+      filtered: false,
+    };
+  },
+  watch: {
+    options: {
+      handler: _.debounce(function () {
+        this.loadItems();
+      }, 200),
+      deep: true,
+    },
+    search: {
+      handler: _.debounce(function () {
+        if (this.search == null) {
+          this.filtered = false;
+        } else {
+          if (this.filtered) {
+            if (this.search.length < 1) {
+              this.clear_search();
+              this.filtered = false;
+            }
+          } else if (this.search.length > 2) {
+            this.loading = true;
+            this.filtered = true;
+            this.search_for_item(this.search);
+            this.loading = false;
+          }
+        }
+      }, 300),
+    },
   },
   methods: {
-    addName() {
-      this.inviteList.push(this.nameInput);
-      this.nameInput = "";
-    },
-    uninvite(index) {
-      this.inviteList.splice(index, 1);
+    loadItems() {
+      this.loading = true;
+      this.new_options(this.options);
+      this.loading = false;
     },
   },
-  created() {},
-  computed: {},
 };
 </script>
-<style>
-.list-move,
-.list-enter-active,
-.list-leave-active {
-  transform: translateX(+50px);
-}
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(-50px);
-}
-.list-leave-active {
-  position: absolute;
-}
-</style>

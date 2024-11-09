@@ -110,21 +110,6 @@ class File:
     def __str__(self) -> str:
         return f"{self.path}/{self.filename}"
 
-    def __post_init__(self) -> None:
-        try:
-            # logger.debug(f"End of Section {self} __post_init__")
-            p = Path(self.path)
-            if not p.exists():
-                raise ValueError(f"Folder does not exist: {self.path}")
-            if not p.is_dir():
-                raise ValueError(f"Path is not a folder: {self.path}")
-            if not (p / self.filename).exists():
-                raise ValueError(f"File does not exist: {self.path}/{self.filename}")
-
-        except ValueError as e:
-            logger.error(e)
-            raise
-
 
 @dataclass
 class FileManager:

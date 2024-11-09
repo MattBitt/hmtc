@@ -1,139 +1,105 @@
-import dataclasses
-import re
-from pathlib import Path
-from typing import Dict, Optional, cast
-
-import plotly.graph_objects as go
 import solara
+from hmtc.models import Album as AlbumModel
+from hmtc.schemas.album import Album as AlbumItem
 from loguru import logger
-from peewee import fn
-from solara.alias import rv
-
-from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import File as FileModel
-from hmtc.models import Section as SectionModel
-from hmtc.models import Series as SeriesModel
-from hmtc.models import Track as TrackModel
-from hmtc.models import Video as VideoModel
-from hmtc.schemas.track import TrackItem
-from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 
 
-@solara.component_vue("sandbox.vue", vuetify=True)
-def Sandbox():
+@solara.component_vue("./sandbox.vue", vuetify=True)
+def Sandbox(
+    headers,
+    items,
+    current_page,
+    total_pages,
+    total_items,
+    event_search_for_item=None,
+    event_clear_search=None,
+    event_new_options=None,
+    event_change_page=None,
+    event_next_page=None,
+    event_previous_page=None,
+):
     pass
+
+
+headers = [
+    {"text": "id", "value": "id"},
+    {"text": "title", "value": "title"},
+    {"text": "Release Date", "value": "release_date"},
+]
 
 
 @solara.component
 def Page():
-    router = solara.use_router()
-    MySidebar(router=router)
-    unique_videos = (
-        VideoModel.select(VideoModel.id)
-        .where(VideoModel.contains_unique_content == True)
-        .distinct()
+    solara.Markdown("Sandbox")
+    current_page = solara.use_reactive(1)
+    current_sort_field = solara.use_reactive("id")
+    current_sort_direction = solara.use_reactive("asc")
+    per_page = solara.use_reactive(12)
+    search_text = solara.use_reactive("")
+    loading = solara.use_reactive(False)
+
+    def clear_search(*args):
+        search_text.set("")
+        logger.error("Clearing search")
+
+    def search_for_item(*args):
+        search_text.set(args[0])
+        logger.error(f"Searching for item: {args[0]}")
+
+    def change_page(*args):
+        current_page.set(args[0])
+
+    def previous_page(*args):
+        current_page.set(current_page.value - 1)
+
+    def next_page(*args):
+        current_page.set(current_page.value + 1)
+
+    def new_options(*args):
+        page = args[0]["page"]
+        if page != current_page.value:
+            current_page.set(page)
+        if args[0]["sortBy"] != [] and (args[0]["sortBy"] != current_sort_field.value):
+            current_sort_field.set(args[0]["sortBy"][0])
+        if args[0]["sortDesc"] != []:
+            if args[0]["sortDesc"][0] == True:
+                current_sort_direction.set("desc")
+            else:
+                current_sort_direction.set("asc")
+
+    sort_field = getattr(AlbumModel, current_sort_field.value)
+
+    base_query = AlbumModel.select()
+    if search_text.value != "":
+        base_query = base_query.where(AlbumModel.title.contains(search_text.value))
+
+    if current_sort_direction.value == "asc":
+        base_query = base_query.order_by(sort_field.asc())
+    else:
+        base_query = base_query.order_by(sort_field.desc())
+
+    num_albums = base_query.count()
+    base_query = base_query.paginate(current_page.value, per_page.value)
+    items = solara.use_reactive(
+        [AlbumItem.from_model(item).serialize() for item in base_query]
     )
-    videos_with_sections = [
-        x.video_id for x in SectionModel.select(SectionModel.video_id).distinct()
-    ]
-    videos_with_no_sections = [
-        video.id for video in unique_videos if video.id not in videos_with_sections
-    ]
-    logger.error(f"unique_videos: {len(unique_videos)}")
-    logger.error(f"videos_with_sections: {len(videos_with_sections)}")
-    logger.error(f"videos_with_no_sections: {len(videos_with_no_sections)}")
-
-    query1 = (
-        VideoModel.select(
-            VideoModel.series_id,
-            fn.Sum(VideoModel.duration).alias("total_duration"),
+    with solara.Row():
+        solara.Button(
+            "Previous", on_click=previous_page, disabled=current_page.value == 1
         )
-        .where(VideoModel.id.in_(unique_videos))
-        .group_by(VideoModel.series_id)
+        solara.Button(
+            "Next", on_click=next_page, disabled=current_page.value * 12 >= num_albums
+        )
+    Sandbox(
+        headers=headers,
+        items=items.value,
+        total_pages=(num_albums // per_page.value) + 1,
+        current_page=current_page.value,
+        total_items=num_albums,
+        event_search_for_item=search_for_item,
+        event_clear_search=lambda x: clear_search(x),
+        event_new_options=new_options,
+        event_change_page=lambda x: change_page(x),
+        event_next_page=lambda x: next_page(x),
+        event_previous_page=lambda x: previous_page(x),
     )
-    query2 = (
-        VideoModel.select(
-            VideoModel.series_id,
-            fn.Sum(VideoModel.duration).alias("total_duration"),
-        )
-        .where(VideoModel.id.in_(videos_with_sections))
-        .group_by(VideoModel.series_id)
-    )
-    query3 = (
-        VideoModel.select(
-            VideoModel.series_id,
-            fn.Sum(VideoModel.duration).alias("total_duration"),
-        )
-        .where(VideoModel.id.in_(videos_with_no_sections))
-        .group_by(VideoModel.series_id)
-    )
-    query4 = (
-        SectionModel.select(
-            fn.Sum(SectionModel.end - SectionModel.start).alias("duration")
-        )
-        .where(SectionModel.video_id.in_(videos_with_sections))
-        .scalar()
-    )
-
-    durations = [(query.series_id, query.total_duration) for query in query1]
-    durations2 = [(query.series_id, query.total_duration) for query in query2]
-    durations3 = [(query.series_id, query.total_duration) for query in query3]
-
-    videos_with_sections_duration = sum([duration[1] / 3600 for duration in durations2])
-    sections_duration = query4 / 1000 / 3600
-    with solara.Column():
-        solara.Markdown(
-            f"Total Duration (query1): {sum([duration[1] / 3600 for duration in durations])} hours"
-        )
-        solara.Markdown(
-            f"Total Duration (query3): {sum([duration[1] / 3600 for duration in durations3])} hours"
-        )
-        solara.Markdown(
-            f"Videos with Sections (total duration) {videos_with_sections_duration} hours"
-        )
-
-        solara.Markdown(f"Sections created (all): {sections_duration} hours")
-        solara.Markdown(
-            f"Music to total Ratio: {sections_duration / videos_with_sections_duration} hours"
-        )
-        # for duration in durations:
-
-        #     solara.Markdown(f"Series: {duration[0]} duration: {duration[1]}")
-
-        source = [0, 0, 1, 1]
-        target = [1, 2, 3, 4]
-        count = [
-            videos_with_sections_duration,
-            sum([duration[1] / 3600 for duration in durations3]),
-            sections_duration,
-            videos_with_sections_duration - sections_duration,
-        ]
-        nodes = [
-            "videos",
-            "analyzed",
-            "not analyzed",
-            "instrumentals",
-            "non-instrumentals",
-        ]
-        series_list = [x for x in SeriesModel.select(SeriesModel.id, SeriesModel.name)]
-        source += [3 for _ in range(len(series_list))]
-        target += [4 + series.id for series in series_list]
-        nodes += [series.name for series in series_list]
-        for series in series_list:
-            for record in durations2:
-                if record[0] == series.id:
-                    count.append(record[1] / 3600)
-                    break
-
-        series_counts = [x.total_duration for x in query3]
-
-        fig = go.Figure(
-            data=[
-                go.Sankey(
-                    node={"label": nodes},
-                    link={"source": source, "target": target, "value": count},
-                )
-            ]
-        )
-        solara.FigurePlotly(fig)

@@ -50,10 +50,20 @@ class Album:
             id=album.id,
             title=album.title,
             release_date=album.release_date,
-            tracks=album.tracks,
+            tracks=[TrackItem.from_model(x) for x in album.tracks],
             video_ids=[video.id for video in album.videos] if album.videos else [],
             videos=[VideoItem.from_model(video) for video in album.videos],
         )
+
+    def serialize(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "release_date": str(self.release_date),
+            "tracks": [track.serialize() for track in self.tracks],
+            "video_ids": self.video_ids,
+            "videos": [video.serialize() for video in self.videos],
+        }
 
     def remove_track(self, id):
         try:

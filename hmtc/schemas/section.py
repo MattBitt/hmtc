@@ -41,7 +41,7 @@ class Section:
     end: int
     video_id: int
     id: int = None
-    section_type: str = "INITIAL"
+    section_type: str = "_INITIAL_"
     topics: list = field(default_factory=list)
 
     def from_model(section: SectionTable) -> "Section":
@@ -60,8 +60,6 @@ class Section:
             "id": self.id,
             "start": self.start,
             "end": self.end,
-            "start_dict": create_hms_dict(self.start / 1000),
-            "end_dict": create_hms_dict(self.end / 1000),
             "start_string": str(timedelta(seconds=self.start / 1000)),
             "end_string": str(timedelta(seconds=self.end / 1000)),
             "video_id": self.video_id,
@@ -92,63 +90,6 @@ class Section:
 
     def __repr__(self) -> str:
         return f"Section {self.id}: {self.start} - {self.end} - {self.section_type}"
-
-    @staticmethod
-    def get_all():
-        return SectionTable.select()
-
-    @staticmethod
-    def get_by_id(id):
-        return SectionTable.get_or_none(SectionTable.id == id)
-
-    @staticmethod
-    def from_video(video):
-        logger.debug(f"Grabbing sections for video {video.id}")
-        logger.debug("Using staticmethod from_video in Section'Table'")
-        # query = (
-        #     SectionTable.select()
-        #     .where(SectionTable.video_id == video.id)
-        #     .order_by(SectionTable.start)
-        # )
-        # results = list(query)
-        # if results:
-        #     logger.debug(f"Results: {results}")
-        # else:
-        #     logger.debug("No results found")
-
-        # return results
-
-    @staticmethod
-    def get_by_start(video_id, start):
-        query = SectionTable.select().where(
-            (SectionTable.start == start) & (SectionTable.video_id == video_id)
-        )
-        return query.get()
-
-    @staticmethod
-    def get_by_end(video_id, end):
-        query = SectionTable.select().where(
-            (SectionTable.end == end) & (SectionTable.video_id == video_id)
-        )
-        return query.get()
-
-    @staticmethod
-    def get_details_for_section(section_id):
-        query = (
-            SectionTable.select(SectionTable, TopicTable, SectionTopicsTable)
-            .join(
-                SectionTopicsTable,
-                on=(SectionTable.id == SectionTopicsTable.section_id),
-                join_type=peewee.JOIN.LEFT_OUTER,
-            )
-            .join(
-                TopicTable,
-                join_type=peewee.JOIN.LEFT_OUTER,
-            )
-            .where(SectionTable.id == section_id)
-        ).get()
-        if query:
-            return query.model_to_dict()
 
 
 @dataclass
@@ -232,7 +173,7 @@ class SectionManager:
 
     @staticmethod
     def get_section_details(id):
-        # 10/28/24 - adding Track object and files to the query
+        # this is in the SectionManager class, but its returning a Section object
         query = (
             SectionTable.select(
                 SectionTable, TopicTable, SectionTopicsTable, TrackTable, FileTable

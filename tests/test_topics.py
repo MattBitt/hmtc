@@ -66,14 +66,16 @@ def test_section_schemas():
     SectionTopicsModel.create(section=sec1, topic=topic2, order=2)
     SectionTopicsModel.create(section=sec2, topic=topic3, order=1)
     SectionTopicsModel.create(section=sec2, topic=topic2, order=2)
-    section_details = SectionItem.get_details_for_section(sec1.id)
-    assert section_details["start"] == 0
-    assert section_details["end"] == 1000
-    assert len(section_details["topics"]) == 2
-    assert section_details["topics"][0]["text"] == "bottle"
+    # section_details = SectionItem.get_details_for_section(sec1.id)
+    section_details = SectionItem.from_model(sec1)
+    assert section_details.start == 0
+    assert section_details.end == 1000
+    assert len(section_details.topics) == 2
+    assert section_details.topics[0].text == "bottle"
 
-    section_details = SectionItem.get_details_for_section(sec2.id)
-    assert section_details["start"] == 1500
-    assert section_details["end"] == 8000
-    assert len(section_details["topics"]) == 2
-    assert section_details["topics"][0]["text"] == "supercalifragilisticexpialidocious"
+    section_details = SectionItem.from_model(sec2)
+    assert section_details.start == 1500
+    assert section_details.end == 8000
+    assert len(section_details.topics) == 2
+    assert section_details.topics[0].text == "supercalifragilisticexpialidocious"
+    assert section_details.topics[1].text == "orange"
