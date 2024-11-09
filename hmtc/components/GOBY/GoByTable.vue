@@ -1,4 +1,5 @@
 <template>
+  <!-- created on 11/9/24 to be the new admin table template -->
   <div>
     <v-data-table
       :headers="headers"
