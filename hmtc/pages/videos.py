@@ -249,13 +249,13 @@ def Page():
             "sortable": True,
             "width": "10%",
         },
-        # {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+        {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Title", "value": "title", "width": "30%"},
         {"text": "Duration", "value": "duration", "sortable": True},
         {"text": "Sections", "value": "section_info.section_count", "sortable": False},
         {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
         {"text": "Files", "value": "file_count", "sortable": False},
-        {"text": "Actions", "value": "actions"},
+        {"text": "Actions", "value": "actions", "sortable": False},
     ]
 
     search_fields = [VideoModel.youtube_id, VideoModel.title]

@@ -55,9 +55,29 @@
         </v-card-text>
 
         <v-card-actions>
+          <v-btn class="button mywarning" @click="deleteItem">Delete</v-btn>
           <v-spacer></v-spacer>
           <v-btn class="button" @click="close"> Cancel </v-btn>
           <v-btn class="button" text @click="saveItemToDB"> Save </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Delete Dialog -->
+    <v-dialog v-model="dialogDelete" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h5"
+          >Are you sure you want to delete this item?</v-card-title
+        >
+        <v-card-actions>
+          <v-btn class="button mywarning" outlined @click="dialogDelete = true">
+            <v-icon>mdi-delete</v-icon> Delete
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn class="button" @click="closeDelete">Cancel</v-btn>
+          <v-btn class="button mywarning" outlined @click="deleteItemConfirm"
+            >OK</v-btn
+          >
+          <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -193,7 +213,7 @@
 
 <script>
 module.exports = {
-  name: "GoByTable",
+  name: "VideoTable",
   props: {
     items: Array,
     headers: Array,
@@ -205,6 +225,7 @@ module.exports = {
   data() {
     return {
       dialog: false,
+      dialogDelete: false,
       loading: false,
       options: {},
       search: "",
@@ -248,6 +269,9 @@ module.exports = {
     },
     close() {
       this.dialog = false;
+    },
+    closeDelete() {
+      this.dialogDelete = false;
     },
     saveItemToDB() {
       this.save_item(this.currentItem);
