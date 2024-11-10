@@ -26,6 +26,7 @@ from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.schemas.video import VideoItem
+from hmtc.components.tables.video_table import VideoTable
 
 
 def create_query_from_url():
@@ -230,45 +231,37 @@ def save_video_item(dict_of_items):
     new_vid.save()
 
 
-@solara.component_vue("../components/video/video_table.vue", vuetify=True)
-def VideoDisplayTable(
-    items: list = [],
-    table_title: str = "",
-    hide_column: str = "",
-    show_nonunique: bool = False,
-    event_save_video_item=None,
-    event_link1_clicked: Callable = None,
-    event_link2_clicked: Callable = None,
-    event_link3_clicked: Callable = None,
-    event_delete_video_item: Callable = None,
-):
-    pass
-
-
 @solara.component
 def Page():
     router = solara.use_router()
     MySidebar(router)
     base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
-    table_title = create_table_title(filter, id_to_filter)
 
     if base_query is None:
-        solara.Markdown("Invalid Query. Please check the URL.")
-        logger.debug("No base query")
-        return
+        base_query = VideoModel.select().where(
+            VideoModel.contains_unique_content == True
+        )
 
-    items = [
-        VideoItem.from_model(item).serialize()
-        for item in base_query.order_by(VideoModel.upload_date.desc())
+    headers = [
+        {
+            "text": "Upload Date",
+            "value": "upload_date",
+            "sortable": True,
+            "width": "10%",
+        },
+        # {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+        {"text": "Title", "value": "title", "width": "30%"},
+        {"text": "Duration", "value": "duration", "sortable": True},
+        {"text": "Sections", "value": "section_info.section_count", "sortable": False},
+        {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
+        {"text": "Files", "value": "file_count", "sortable": False},
+        {"text": "Actions", "value": "actions"},
     ]
 
-    with solara.Column(classes=["main-container"]):
-        VideoDisplayTable(
-            items=items,
-            table_title=table_title,
-            hide_column=filter,
-            show_nonunique=show_nonunique,
-            event_save_video_item=save_video_item,
-            event_link1_clicked=lambda x: view_details(router, x),
-            event_delete_video_item=delete_video_item,
-        )
+    search_fields = [VideoModel.youtube_id, VideoModel.title]
+    VideoTable(
+        router=router,
+        headers=headers,
+        base_query=base_query,
+        search_fields=search_fields,
+    )

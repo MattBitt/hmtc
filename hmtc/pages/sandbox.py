@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Video as VideoModel
-from hmtc.components.tables.video_table import VideoTable as VideoTable
+from hmtc.components.tables.video_table import VideoTable
 
 
 @solara.component

@@ -46,7 +46,6 @@ class VideoItem(BaseItem):
     title: str = None
     youtube_id: str = None
     url: str = None
-    last_update_completed = None
     episode: str = None
     upload_date: datetime = None
     private: bool = False
@@ -109,6 +108,19 @@ class VideoItem(BaseItem):
             playlist_id=video.playlist_id,
             series_id=video.series_id,
         )
+
+    @staticmethod
+    def update_from_dict(video_id, new_data):
+        video = VideoModel.get(VideoModel.id == video_id)
+        video.title = new_data.get("title", "")
+        video.url = new_data.get("url", "")
+        video.youtube_id = new_data.get("youtube_id", "")
+        video.enabled = new_data.get("enabled", True)
+        video.episode = new_data.get("episode", "")
+        video.duration = new_data.get("duration", 0)
+        video.description = new_data.get("description", "")
+        video.contains_unique_content = new_data.get("contains_unique_content", False)
+        video.save()
 
     @staticmethod
     def get_downloaded_stats_by_series():
@@ -364,7 +376,6 @@ class VideoItem(BaseItem):
             "title": self.title,
             "youtube_id": self.youtube_id,
             "url": self.url,
-            "last_update_completed": self.last_update_completed,
             "episode": self.episode,
             "upload_date": str(self.upload_date),
             "private": self.private,

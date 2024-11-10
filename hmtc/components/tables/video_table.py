@@ -21,6 +21,7 @@ def _VideoTable(
     event_next_page=None,
     event_previous_page=None,
     event_action1=None,
+    event_save_item=None,
 ):
     pass
 

@@ -55,6 +55,10 @@ def DataTable(
                 current_sort_direction.set("asc")
         loading.set(False)
 
+    def save_item(*args):
+        logger.error(f"Saving Items: {args[0]}")
+        schema_item.update_from_dict(args[0]["id"], args[0])
+
     if search_text.value != "":
         if len(search_fields) == 1:
             base_query = base_query.where(search_fields[0].contains(search_text.value))
@@ -93,4 +97,5 @@ def DataTable(
         event_change_page=lambda x: change_page(x),
         action1_icon="mdi-rhombus-split",
         event_action1=lambda x: router.push(f"video-details/{x['id']}"),
+        event_save_item=lambda x: save_item(x),
     )

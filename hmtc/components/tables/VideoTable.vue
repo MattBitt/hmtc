@@ -1,5 +1,66 @@
 <template>
   <div>
+    <v-dialog v-model="dialog" max-width="800px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">{{ currentItem.title }}</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="currentItem.title"
+                  label="Title"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="currentItem.duration"
+                  label="Duration"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="currentItem.episode"
+                  label="Episode Number"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="currentItem.youtube_id"
+                  label="Youtube ID"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="currentItem.jellyfin_id"
+                  label="Jellyfin ID"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="currentItem.upload_date"
+                  label="Upload Date"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-checkbox
+                  v-model="currentItem.contains_unique_content"
+                  label="Unique Content"
+                ></v-checkbox>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn class="button" @click="close"> Cancel </v-btn>
+          <v-btn class="button" text @click="saveItemToDB"> Save </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-data-table
       :headers="headers"
       :items="items"
@@ -32,6 +93,92 @@
           ></v-pagination>
         </v-toolbar>
       </template>
+      <template v-slot:item.upload_date="{ item }">
+        <v-chip color="info">{{ item.upload_date }}</v-chip>
+      </template>
+      <template v-slot:item.title="{ item }">
+        <span>{{ item.title }}</span>
+      </template>
+      <template v-slot:item.duration="{ item }">
+        <v-chip color="info">{{
+          new Date(item.duration * 1000).toISOString().substr(11, 8)
+        }}</v-chip>
+      </template>
+      <template v-slot:item.jellyfin_id="{ item }">
+        <span v-if="item.jellyfin_id == null">
+          <v-chip color="error">
+            <v-icon>mdi-close</v-icon>
+          </v-chip>
+        </span>
+        <span v-else>
+          <v-chip color="success"><v-icon>mdi-check</v-icon></v-chip>
+        </span>
+      </template>
+      <template v-slot:item.section_info.section_count="{ item }">
+        <v-chip color="primary">{{ item.section_info.section_count }}</v-chip>
+      </template>
+      <template v-slot:item.file_count="{ item }">
+        <span v-if="item.file_count == 6">
+          <v-chip color="success">
+            <v-icon>mdi-check</v-icon>
+          </v-chip>
+        </span>
+        <span v-else-if="item.file_count == 0">
+          <v-chip color="error">
+            <v-icon>mdi-close</v-icon>
+          </v-chip>
+        </span>
+        <span v-else>
+          <v-chip color="warning">
+            {{ item.file_count }}
+          </v-chip>
+        </span>
+      </template>
+      <template v-slot:item.section_info="{ item }">
+        <div v-if="item.section_info.section_count <= 0">
+          <v-chip color="warning">
+            <v-icon>mdi-close</v-icon>
+          </v-chip>
+          <v-chip color="warning">
+            <v-icon>mdi-close</v-icon>
+          </v-chip>
+        </div>
+        <div v-else>
+          <span
+            v-if="
+              item.section_info.section_count == item.section_info.track_count
+            "
+          >
+            <v-chip color="success">
+              <v-icon>mdi-check</v-icon>
+            </v-chip>
+          </span>
+          <span v-else>
+            <v-col class="text--center">
+              <v-chip color="error">
+                <span>
+                  {{ item.section_info.section_count }}
+                </span>
+                <span> / </span>
+                <span>
+                  {{ item.section_info.track_count }}
+                </span>
+              </v-chip>
+            </v-col>
+          </span>
+
+          <span>
+            <v-chip color="success">
+              {{ (item.section_info.my_new_column * 100).toFixed(2) }}%
+            </v-chip>
+          </span>
+        </div>
+      </template>
+      <template v-slot:item.contains_unique_content="{ item }">
+        <v-simple-checkbox
+          v-model="item.contains_unique_content"
+        ></v-simple-checkbox>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
@@ -57,10 +204,12 @@ module.exports = {
   emits: [],
   data() {
     return {
+      dialog: false,
       loading: false,
       options: {},
       search: "",
       filtered: false,
+      currentItem: {},
     };
   },
   watch: {
@@ -93,6 +242,25 @@ module.exports = {
     loadItems() {
       this.new_options(this.options);
     },
+    editItem(item) {
+      this.currentItem = Object.assign({}, item);
+      this.dialog = true;
+    },
+    close() {
+      this.dialog = false;
+    },
+    saveItemToDB() {
+      this.save_item(this.currentItem);
+      this.loadItems();
+      this.currentItem = {};
+      this.close();
+    },
   },
 };
 </script>
+<style>
+/* removes the items per page selector*/
+.v-data-footer {
+  display: none;
+}
+</style>
