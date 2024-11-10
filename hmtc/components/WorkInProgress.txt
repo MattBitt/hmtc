@@ -16,7 +16,7 @@ from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.track import TrackItem
+from hmtc.schemas.track import Track as TrackItem
 from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 
 

@@ -10,6 +10,7 @@ from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
+from hmtc.schemas.base import BaseItem
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
@@ -24,25 +25,31 @@ WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 
 
-@dataclass
-class TrackItem:
+@dataclass(frozen=True, kw_only=True)
+class Track(BaseItem):
     # this (probably...) shouldn't be happening here.
     track_folder = WORKING / "tracks"
     if not track_folder.exists():
         track_folder.mkdir()
     id: int = None
+    item_type: str = "TRACK"
     title: str = None
     track_number: int = 0
     length: int = 0
     album_id: int = 0
     album_title: str = None
-    section_id: int = 0
     section: SectionItem = None
     files: list = field(default_factory=list)
 
     @staticmethod
-    def from_model(track: TrackModel) -> "TrackItem":
-        return TrackItem(
+    def from_model(track: TrackModel) -> "Track":
+        if track.section is None:
+            logger.debug(f"Track {track} has no section")
+            section = None
+        else:
+            section = SectionItem.from_model(track.section.get())
+
+        return Track(
             id=track.id,
             title=track.title,
             track_number=track.track_number,
@@ -60,9 +67,26 @@ class TrackItem:
             "track_number": self.track_number,
             "length": self.length,
             "album_id": self.album_id,
+            "album_title": self.album_title,
             "files": [f.serialize() for f in self.files],
             "section": self.section.serialize(),
         }
+
+    @staticmethod
+    def update_from_dict(item_id, new_data):
+        track = TrackModel.get_by_id(item_id)
+        track.title = new_data["title"]
+        track.track_number = new_data["track_number"]
+        track.length = new_data["length"]
+        track.album_id = new_data["album_id"]
+        track.save()
+
+    @staticmethod
+    def delete_id(item_id):
+        track = TrackModel.get_by_id(item_id)
+        for file in track.files:
+            FileManager.delete_file(file)
+        track.delete_instance()
 
     def create_all_files(self, video: VideoItem):
         self.create_audio_file(video)

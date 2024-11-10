@@ -2,12 +2,12 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import Video as VideoModel
-from hmtc.schemas.video import VideoItem
+from hmtc.models import YoutubeSeries as YoutubeSeriesModel
+from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem
 
 
-@solara.component_vue("VideoTable.vue", vuetify=True)
-def _VideoTable(
+@solara.component_vue("YoutubeSeriesTable.vue", vuetify=True)
+def _YoutubeSeriesTable(
     loading,
     headers,
     items,
@@ -29,13 +29,13 @@ def _VideoTable(
 
 
 @solara.component
-def VideoTable(router, headers, base_query, search_fields):
+def YoutubeSeriesTable(router, headers, base_query, search_fields):
     item_info = {
-        "model": VideoModel,
-        "schema_item": VideoItem,
-        "vue_component": _VideoTable,
-        "action1_path": "/video-details",
-        "action1_icon": "mdi-rhombus-split",
+        "model": YoutubeSeriesModel,
+        "schema_item": YoutubeSeriesItem,
+        "vue_component": _YoutubeSeriesTable,
+        "action1_path": "youtubeseriess",
+        "action1_icon": "mdi-cancel",
     }
     DataTable(
         router=router,

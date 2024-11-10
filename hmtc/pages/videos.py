@@ -6,6 +6,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.tables.video_table import VideoTable
 from hmtc.models import (
     Album as AlbumModel,
 )
@@ -26,7 +27,6 @@ from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.schemas.video import VideoItem
-from hmtc.components.tables.video_table import VideoTable
 
 
 def create_query_from_url():

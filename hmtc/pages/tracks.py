@@ -7,10 +7,11 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.tables.track_table import TrackTable
 from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
-from hmtc.schemas.track import TrackItem
+from hmtc.schemas.track import Track as TrackItem
 
 force_update_counter = solara.reactive(0)
 
@@ -59,17 +60,6 @@ def create_query_from_url():
             logger.error(f"Invalid URL: {router.url}")
 
 
-@solara.component_vue("../components/track/track_table.vue", vuetify=True)
-def TrackTable(
-    items: list = [],
-    event_save_track=None,
-    event_delete_track: Callable = None,
-    event_link1_clicked: Callable = None,
-    event_link2_clicked: Callable = None,
-):
-    pass
-
-
 def delete_track(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
     for file in item["files"]:
@@ -103,29 +93,25 @@ def save_track(dict_of_items):
     force_update_counter.set(force_update_counter.value + 1)
 
 
-def view_details(router, item_id):
-    router.push(f"/video-details/{str(item_id)}")
-
-
-def album_details(router, album_id):
-    router.push(f"/album-details/{str(album_id)}")
-
-
 @solara.component
 def Page():
 
     router = solara.use_router()
     MySidebar(router)
     base_query, filter, id_to_filter = create_query_from_url()
-    items = [
-        TrackItem.from_model(item).serialize()
-        for item in base_query.order_by(TrackModel.id.asc())
+    headers = [
+        {"text": "Title", "value": "title"},
+        {"text": "Track Number", "value": "track_number"},
+        {"text": "Album", "value": "album_title", "sortable": False},
+        {"text": "Section", "value": "section", "sortable": False},
+        {"text": "Length", "value": "length"},
+        {"text": "Actions", "value": "actions", "sortable": False},
     ]
+    search_fields = [TrackModel.title]
     with solara.Column(classes=["main-container"]):
         TrackTable(
-            items=items,
-            event_save_track=save_track,
-            event_delete_track=delete_track,
-            event_link1_clicked=lambda x: view_details(router, x),
-            event_link2_clicked=lambda x: album_details(router, x),
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
         )

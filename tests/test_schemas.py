@@ -1,4 +1,4 @@
-from hmtc.schemas.channel import ChannelItem
+from hmtc.schemas.channel import Channel as ChannelItem
 from hmtc.schemas.playlist import PlaylistItem
 from hmtc.schemas.todo import TodoItem
 

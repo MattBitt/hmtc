@@ -1,10 +1,5 @@
 import solara
 from loguru import logger
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Album as AlbumModel
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.models import Video as VideoModel
-from hmtc.schemas.video import VideoItem
 
 
 @solara.component
@@ -15,7 +10,11 @@ def DataTable(
     base_query,
     headers,
     search_fields,
-    table_component,
+    vue_component,
+    action1_path=None,
+    action1_icon="",
+    action2_path=None,
+    action2_icon="",
 ):
     current_page = solara.use_reactive(1)
     current_sort_field = solara.use_reactive("id")
@@ -56,8 +55,12 @@ def DataTable(
         loading.set(False)
 
     def save_item(*args):
-        logger.error(f"Saving Items: {args[0]}")
+        logger.error(f"Saving {schema_item.item_type} Item: {args[0]['id']}")
         schema_item.update_from_dict(args[0]["id"], args[0])
+
+    def delete_item(*args):
+        logger.error(f"Deleting {schema_item.item_type} Item: {args[0]['id']}")
+        schema_item.delete_id(args[0]["id"])
 
     if search_text.value != "":
         if len(search_fields) == 1:
@@ -84,7 +87,7 @@ def DataTable(
         [schema_item.from_model(item).serialize() for item in base_query]
     )
 
-    table_component(
+    vue_component(
         loading=loading.value,
         headers=headers,
         items=items.value,
@@ -95,7 +98,10 @@ def DataTable(
         event_clear_search=lambda x: clear_search(x),
         event_new_options=new_options,
         event_change_page=lambda x: change_page(x),
-        action1_icon="mdi-rhombus-split",
-        event_action1=lambda x: router.push(f"video-details/{x['id']}"),
+        action1_icon=action1_icon,
+        event_action1=lambda x: router.push(f"{action1_path}/{x['id']}"),
+        action2_icon=action2_icon,
+        event_action2=lambda x: router.push(f"{action2_path}/{x['id']}"),
         event_save_item=lambda x: save_item(x),
+        event_delete_item=lambda x: delete_item(x),
     )

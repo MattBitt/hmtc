@@ -25,7 +25,7 @@ from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.schemas.base import BaseItem
-from hmtc.schemas.channel import ChannelItem
+from hmtc.schemas.channel import Channel as ChannelItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import SectionManager
 from hmtc.utils.general import my_move_file, read_json_file
@@ -43,6 +43,8 @@ STORAGE = Path(config["paths"]["storage"])
 @dataclass(frozen=True, kw_only=True)
 class VideoItem(BaseItem):
     db_model = VideoModel
+    item_type: str = "VIDEO"
+    id: int = None
     title: str = None
     youtube_id: str = None
     url: str = None
@@ -66,6 +68,7 @@ class VideoItem(BaseItem):
     series_id: int = 0
     album_id: int = 0
     section_ids: list = field(default_factory=list)
+    files: list = field(default_factory=list)
 
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
@@ -109,6 +112,43 @@ class VideoItem(BaseItem):
             series_id=video.series_id,
         )
 
+    def serialize(self) -> dict:
+        # logger.debug(f"Serializing videoitemid = {self.id}")
+        sections = SectionModel.select(SectionModel.start, SectionModel.end).where(
+            SectionModel.video_id == self.id
+        )
+        total_section_durations = sum(
+            [(section.end - section.start) / 1000 for section in sections]
+        )
+        sectionalized_ratio = total_section_durations / self.duration
+        return {
+            "id": self.id,
+            "title": self.title,
+            "youtube_id": self.youtube_id,
+            "url": self.url,
+            "episode": self.episode,
+            "upload_date": str(self.upload_date),
+            "private": self.private,
+            "duration": self.duration,
+            "description": self.description,
+            "contains_unique_content": self.contains_unique_content,
+            "has_chapters": self.has_chapters,
+            "manually_edited": self.manually_edited,
+            "jellyfin_id": self.jellyfin_id,
+            "file_count": self.file_count,
+            "section_info": {
+                "section_count": self.section_count,
+                "track_count": self.track_count,
+                "my_new_column": sectionalized_ratio,
+            },
+            "channel_id": self.channel_id,
+            "playlist_id": self.playlist_id,
+            "youtube_series_id": self.youtube_series_id,
+            "series_id": self.series_id,
+            "album_id": self.album_id,
+            "section_ids": self.section_ids,
+        }
+
     @staticmethod
     def update_from_dict(video_id, new_data):
         video = VideoModel.get(VideoModel.id == video_id)
@@ -121,6 +161,18 @@ class VideoItem(BaseItem):
         video.description = new_data.get("description", "")
         video.contains_unique_content = new_data.get("contains_unique_content", False)
         video.save()
+
+    @staticmethod
+    def delete_id(video_id):
+        video = VideoModel.get(VideoModel.id == video_id)
+        for file in video.files:
+            FileManager.delete_file(file.id)
+        for section in video.sections:
+            for file in section.track.files:
+                FileManager.delete_file(file.id)
+            section.track.delete_instance()
+            SectionManager.delete_section(section.id)
+        video.delete_instance(recursive=True)
 
     @staticmethod
     def get_downloaded_stats_by_series():
@@ -361,40 +413,3 @@ class VideoItem(BaseItem):
         except Exception as e:
             logger.error(f"Error creating album xml: {e}")
             return None
-
-    def serialize(self) -> dict:
-        # logger.debug(f"Serializing videoitemid = {self.id}")
-        sections = SectionModel.select(SectionModel.start, SectionModel.end).where(
-            SectionModel.video_id == self.id
-        )
-        total_section_durations = sum(
-            [(section.end - section.start) / 1000 for section in sections]
-        )
-        sectionalized_ratio = total_section_durations / self.duration
-        return {
-            "id": self.id,
-            "title": self.title,
-            "youtube_id": self.youtube_id,
-            "url": self.url,
-            "episode": self.episode,
-            "upload_date": str(self.upload_date),
-            "private": self.private,
-            "duration": self.duration,
-            "description": self.description,
-            "contains_unique_content": self.contains_unique_content,
-            "has_chapters": self.has_chapters,
-            "manually_edited": self.manually_edited,
-            "jellyfin_id": self.jellyfin_id,
-            "file_count": self.file_count,
-            "section_info": {
-                "section_count": self.section_count,
-                "track_count": self.track_count,
-                "my_new_column": sectionalized_ratio,
-            },
-            "channel_id": self.channel_id,
-            "playlist_id": self.playlist_id,
-            "youtube_series_id": self.youtube_series_id,
-            "series_id": self.series_id,
-            "album_id": self.album_id,
-            "section_ids": self.section_ids,
-        }

@@ -5,18 +5,10 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Channel
+from hmtc.components.tables.channel_table import ChannelTable
+from hmtc.models import Channel as ChannelModel
 
 force_update_counter = solara.reactive(0)
-
-
-@solara.component_vue("../components/channel/channel_table.vue", vuetify=True)
-def ChannelTable(
-    items: list = [],
-    event_save_channel=None,
-    event_delete_channel: Callable = None,
-):
-    pass
 
 
 def delete_channel(item):
@@ -29,12 +21,12 @@ def save_channel(dict_of_items):
     logger.debug(f"Item received from Vue: {item}")
 
     try:
-        channel = Channel.get_by_id(item["id"])
+        channel = ChannelModel.get_by_id(item["id"])
     except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Channel ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
-        Channel.create(**edited_item)
+        ChannelModel.create(**edited_item)
         return
 
     channel.name = edited_item["name"]
@@ -47,18 +39,25 @@ def save_channel(dict_of_items):
 
 @solara.component
 def Page():
-    base_query = Channel.select()
+    base_query = ChannelModel.select()
     router = solara.use_router()
     MySidebar(router)
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
+    headers = [
+        {"text": "Name", "value": "name"},
+        {"text": "URL", "value": "url"},
+        {"text": "Youtube ID", "value": "youtube_id"},
+        {"text": "Enabled", "value": "enabled"},
+        {"text": "Last Update Completed", "value": "last_update_completed"},
+        {"text": "Actions", "value": "actions", "sortable": False},
+    ]
 
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
+    search_fields = [ChannelModel.name, ChannelModel.url, ChannelModel.youtube_id]
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
         ChannelTable(
-            items=items,
-            event_save_channel=save_channel,
-            event_delete_video_item=delete_channel,
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
         )

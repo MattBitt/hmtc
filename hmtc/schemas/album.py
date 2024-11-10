@@ -12,17 +12,19 @@ from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
+from hmtc.schemas.base import BaseItem
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
-from hmtc.schemas.track import TrackItem
+from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.general import clean_filename
 
 
-@dataclass
-class Album:
+@dataclass(frozen=True, kw_only=True)
+class Album(BaseItem):
     id: int = None
+    item_type: str = "ALBUM"
     title: str = ""
     release_date: str = ""
     tracks: list = field(default_factory=list)
@@ -64,6 +66,24 @@ class Album:
             "video_ids": self.video_ids,
             "videos": [video.serialize() for video in self.videos],
         }
+
+    @staticmethod
+    def update_from_dict(item_id, new_data):
+        album = AlbumModel.get_by_id(item_id)
+        album.title = new_data["title"]
+        album.release_date = new_data["release_date"]
+        album.save()
+
+    @staticmethod
+    def delete_id(item_id):
+        album = AlbumModel.get_by_id(item_id)
+        for file in album.files:
+            FileManager.delete_file(file)
+        for track in album.tracks:
+            for file in track.files:
+                FileManager.delete_file(file)
+            track.delete_instance()
+        album.delete_instance()
 
     def remove_track(self, id):
         try:

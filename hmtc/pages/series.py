@@ -7,25 +7,16 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Series
-from hmtc.models import Video as VideoModel
-from hmtc.models import YoutubeSeries as YoutubeSeriesModel
+from hmtc.components.tables.series_table import SeriesTable
+from hmtc.models import Series as SeriesModel
+from hmtc.schemas.series import Series as SeriesItem
 
 force_update_counter = solara.reactive(0)
 
 
-@solara.component_vue("../components/series/series_table.vue", vuetify=True)
-def SeriesTable(
-    items: list = [],
-    event_save_series=None,
-    event_delete_series: Callable = None,
-):
-    pass
-
-
 def delete_series(item):
     logger.debug(f"Deleting Item received from Vue: {item}")
-    series = Series.get_by_id(item["id"])
+    series = SeriesModel.get_by_id(item["id"])
     series.delete_instance()
 
 
@@ -35,12 +26,12 @@ def save_series(dict_of_items):
     logger.debug(f"Item received from Vue: {item}")
 
     try:
-        series = Series.get_by_id(item["id"])
+        series = SeriesModel.get_by_id(item["id"])
     except Exception:
         ## this should probably check item for id instead of edited_item
         logger.debug(f"Series ID not found. Creating {edited_item}")
         edited_item["id"] = None  # db should assign id
-        Series.create(**edited_item)
+        SeriesModel.create(**edited_item)
         return
 
     series.name = edited_item["name"]
@@ -56,25 +47,21 @@ def Page():
     router = solara.use_router()
     MySidebar(router)
 
-    base_query = (
-        Series.select(
-            Series.id,
-            Series.name,
-            Series.start_date,
-            Series.end_date,
-        )
-        .group_by(Series.id, Series.name)
-        .order_by(Series.name.asc())
-    )
+    base_query = SeriesModel.select()
 
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
+    headers = [
+        {"text": "ID", "value": "id"},
+        {"text": "Name", "value": "name"},
+        {"text": "Start Date", "value": "start_date"},
+        {"text": "End Date", "value": "end_date"},
+        {"text": "Actions", "value": "actions", "sortable": False},
+    ]
+    search_fields = [SeriesModel.name]
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
         SeriesTable(
-            items=items,
-            event_save_series=save_series,
-            event_delete_series=delete_series,
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
         )

@@ -2,12 +2,12 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import Video as VideoModel
-from hmtc.schemas.video import VideoItem
+from hmtc.models import Topic as TopicModel
+from hmtc.schemas.topic import Topic as TopicItem
 
 
-@solara.component_vue("VideoTable.vue", vuetify=True)
-def _VideoTable(
+@solara.component_vue("TopicTable.vue", vuetify=True)
+def _TopicTable(
     loading,
     headers,
     items,
@@ -29,13 +29,13 @@ def _VideoTable(
 
 
 @solara.component
-def VideoTable(router, headers, base_query, search_fields):
+def TopicTable(router, headers, base_query, search_fields):
     item_info = {
-        "model": VideoModel,
-        "schema_item": VideoItem,
-        "vue_component": _VideoTable,
-        "action1_path": "/video-details",
-        "action1_icon": "mdi-rhombus-split",
+        "model": TopicModel,
+        "schema_item": TopicItem,
+        "vue_component": _TopicTable,
+        "action1_path": "/topic-details",
+        "action1_icon": "mdi-topic",
     }
     DataTable(
         router=router,

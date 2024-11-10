@@ -7,20 +7,11 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.tables.section_table import SectionTable
 from hmtc.models import Section as SectionModel
 from hmtc.schemas.section import Section as SectionItem
 
 force_update_counter = solara.reactive(0)
-
-
-@solara.component_vue("../components/section/section_table.vue", vuetify=True)
-def SectionTable(
-    items: list = [],
-    event_save_section=None,
-    event_delete_section: Callable = None,
-    event_link1_clicked: Callable = None,
-):
-    pass
 
 
 def delete_section(item):
@@ -64,12 +55,19 @@ def Page():
 
     base_query = SectionModel.select(SectionModel).order_by(SectionModel.id.asc())
 
-    items = [SectionItem.from_model(item).serialize() for item in base_query]
+    headers = [
+        {"text": "ID", "value": "id"},
+        {"text": "Start", "value": "start"},
+        {"text": "End", "value": "end"},
+        {"text": "Video ID", "value": "video_id"},
+        {"text": "Type", "value": "section_type"},
+        {"text": "Actions", "value": "actions", "sortable": False},
+    ]
+    search_fields = []
     with solara.Column(classes=["main-container"]):
-        # solara.Markdown(f"{force_update_counter.value}")
         SectionTable(
-            items=items,
-            event_save_section=save_section,
-            event_delete_section=delete_section,
-            event_link1_clicked=lambda x: view_details(router, x),
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
         )

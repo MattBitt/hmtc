@@ -7,20 +7,12 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.tables.topic_table import TopicTable
 from hmtc.models import SectionTopics as SectionTopicModel
 from hmtc.models import Topic as TopicModel
 from hmtc.schemas.topic import Topic as TopicItem
 
 force_update_counter = solara.reactive(0)
-
-
-@solara.component_vue("../components/topic/topic_table.vue", vuetify=True)
-def TopicTable(
-    items: list = [],
-    event_save_topic=None,
-    event_delete_topic: Callable = None,
-):
-    pass
 
 
 def delete_topic(item):
@@ -63,11 +55,17 @@ def Page():
         .order_by(TopicModel.text.asc())
     )
 
-    items = [TopicItem.from_model(item).serialize() for item in base_query]
+    headers = [
+        {"text": "ID", "value": "id"},
+        {"text": "Text", "value": "text"},
+        {"text": "Actions", "value": "actions", "sortable": False},
+    ]
+    search_fields = [TopicModel.text]
+
     with solara.Column(classes=["main-container"]):
-        # solara.Markdown(f"{force_update_counter.value}")
         TopicTable(
-            items=items,
-            event_save_topic=save_topic,
-            event_delete_topic=delete_topic,
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
         )

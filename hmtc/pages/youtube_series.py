@@ -7,25 +7,12 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.tables.youtube_series_table import YoutubeSeriesTable
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import YoutubeSeries
 
 force_update_counter = solara.reactive(0)
-
-
-@solara.component_vue(
-    "../components/youtube_series/youtube_series_table.vue", vuetify=True
-)
-def SeriesTable(
-    items: list = [],
-    event_save_youtube_series=None,
-    event_delete_youtube_series: Callable = None,
-    event_remove_series_from_youtube_series: Callable = None,
-    serieses: list = [],
-    selected_series: dict = None,
-):
-    pass
 
 
 def delete_youtube_series(item):
@@ -70,23 +57,16 @@ def Page():
     ).order_by(YoutubeSeries.title)
     router = solara.use_router()
     MySidebar(router)
-    serieses = [
-        {"id": series.id, "name": series.name}
-        for series in SeriesModel.select(SeriesModel.id, SeriesModel.name).order_by(
-            SeriesModel.name
-        )
+    headers = [
+        {"text": "ID", "value": "id"},
+        {"text": "Title", "value": "title"},
+        {"text": "Series", "value": "series"},
     ]
-    df = pd.DataFrame([item.model_to_dict() for item in base_query])
-
-    # the 'records' key is necessary for some reason (ai thinks its a Vue thing)
-    items = df.to_dict("records")
-
+    search_fields = [YoutubeSeries.title]
     with solara.Column(classes=["main-container"]):
-        SeriesTable(
-            items=items,
-            serieses=serieses,
-            selected_series={"id": None, "name": None},
-            event_save_youtube_series=save_youtube_series,
-            event_delete_youtube_series=delete_youtube_series,
-            event_remove_series_from_youtube_series=remove_series_from_youtube_series,
+        YoutubeSeriesTable(
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
         )

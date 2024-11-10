@@ -1,19 +1,3 @@
-from loguru import logger
-
-from hmtc.models import Album as AlbumModel
-from hmtc.models import (
-    Section as SectionModel,
-)
-from hmtc.models import (
-    Track as TrackModel,
-)
-from hmtc.models import (
-    Video as VideoModel,
-)
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.section import Section as SectionItem
-from hmtc.schemas.track import TrackItem
 from hmtc.utils.mutagen_utils import read_id3_tags, write_id3_tags
 
 

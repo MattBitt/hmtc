@@ -7,7 +7,7 @@ from loguru import logger
 
 from hmtc.models import File as FileTable
 from hmtc.models import (
-    Section as SectionTable,
+    Section as SectionModel,
 )
 from hmtc.models import (
     SectionTopics as SectionTopicsTable,
@@ -41,10 +41,11 @@ class Section:
     end: int
     video_id: int
     id: int = None
+    track_id: int = None
     section_type: str = "_INITIAL_"
     topics: list = field(default_factory=list)
 
-    def from_model(section: SectionTable) -> "Section":
+    def from_model(section: SectionModel) -> "Section":
         return Section(
             id=section.id,
             start=section.start,
@@ -64,6 +65,7 @@ class Section:
             "end_string": str(timedelta(seconds=self.end / 1000)),
             "video_id": self.video_id,
             "section_type": self.section_type,
+            "track_id": self.track_id,
             "topics": [TopicItem.from_model(x).serialize() for x in self.topics],
         }
 
@@ -125,14 +127,14 @@ class SectionManager:
     def from_video(video) -> "SectionManager":
         sm = SectionManager(video_id=video.id, duration=video.duration)
         sm._sections = list(
-            SectionTable.select(SectionTable.id, SectionTable.start, SectionTable.end)
-            .where(SectionTable.video_id == video.id)
-            .order_by(SectionTable.start)
+            SectionModel.select(SectionModel.id, SectionModel.start, SectionModel.end)
+            .where(SectionModel.video_id == video.id)
+            .order_by(SectionModel.start)
         )
         return sm
 
     def save_to_db(self, section) -> None:
-        new_sect = SectionTable.create(
+        new_sect = SectionModel.create(
             start=section.start,
             end=section.end,
             section_type=section.section_type,
@@ -162,46 +164,50 @@ class SectionManager:
     @staticmethod
     def delete_from_db(section) -> None:
         logger.debug("🧪🧪🧪🧪 Is this is being used? delete_from_db 9/13/24 🧪🧪🧪🧪")
-        SectionTable.delete().where(SectionTable.id == section.id).execute()
+        SectionModel.delete().where(SectionModel.id == section.id).execute()
 
     @staticmethod
     def get_by_id(id):
         logger.debug(
             "🧪🧪🧪🧪 get_by_id Is this is being used? get_by_id 9/13/24🧪🧪🧪🧪"
         )
-        return SectionTable.get_or_none(SectionTable.id == id)
+        return SectionModel.get_or_none(SectionModel.id == id)
 
     @staticmethod
     def get_section_details(id):
         # this is in the SectionManager class, but its returning a Section object
         query = (
-            SectionTable.select(
-                SectionTable, TopicTable, SectionTopicsTable, TrackTable, FileTable
+            SectionModel.select(
+                SectionModel, TopicTable, SectionTopicsTable, TrackTable, FileTable
             )
             .join(
                 SectionTopicsTable,
-                on=(SectionTable.id == SectionTopicsTable.section_id),
+                on=(SectionModel.id == SectionTopicsTable.section_id),
                 join_type=peewee.JOIN.LEFT_OUTER,
             )
             .join(
                 TopicTable,
                 join_type=peewee.JOIN.LEFT_OUTER,
             )
-            .switch(SectionTable)
+            .switch(SectionModel)
             .join(
                 TrackTable,
                 peewee.JOIN.LEFT_OUTER,
-                on=(SectionTable.track_id == TrackTable.id),
+                on=(SectionModel.track_id == TrackTable.id),
             )
             .join(
                 FileTable,
                 peewee.JOIN.LEFT_OUTER,
                 on=(TrackTable.id == FileTable.track_id),
             )
-            .where(SectionTable.id == id)
+            .where(SectionModel.id == id)
         ).get_or_none()
         # logger.debug(f"Query Result: {query}")
         if query:
             return Section.from_model(query).serialize()
         else:
             return None
+
+    @staticmethod
+    def delete_section(id):
+        SectionModel.delete().where(SectionModel.id == id).execute()

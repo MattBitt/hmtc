@@ -11,6 +11,7 @@ from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import get_file_type
+from hmtc.schemas.base import BaseItem
 from hmtc.utils.ffmpeg_utils import extract_audio
 from hmtc.utils.general import move_file, my_copy_file
 
@@ -19,12 +20,13 @@ WORKING = config["paths"]["working"]
 STORAGE = config["paths"]["storage"]
 
 
-@dataclass
-class File:
+@dataclass(frozen=True, kw_only=True)
+class File(BaseItem):
+
     path: str
     filename: str  # this includes the extension
     file_type: str = ""
-
+    item_type: str = "FILE"
     album_id: int = 0
     track_id: int = 0
     video_id: int = 0
@@ -64,6 +66,28 @@ class File:
             "youtube_series_id": self.youtube_series_id,
             "playlist_id": self.playlist_id,
         }
+
+    @staticmethod
+    def update_from_dict(item_id, new_data):
+        file = FileModel.get_by_id(item_id)
+        file.path = new_data.get("path", file.path)
+        file.filename = new_data.get("filename", file.filename)
+        file.file_type = new_data.get("file_type", file.file_type)
+        file.album_id = new_data.get("album_id", file.album_id)
+        file.track_id = new_data.get("track_id", file.track_id)
+        file.video_id = new_data.get("video_id", file.video_id)
+        file.channel_id = new_data.get("channel_id", file.channel_id)
+        file.series_id = new_data.get("series_id", file.series_id)
+        file.youtube_series_id = new_data.get(
+            "youtube_series_id", file.youtube_series_id
+        )
+        file.playlist_id = new_data.get("playlist_id", file.playlist_id)
+        file.save()
+
+    @staticmethod
+    def delete_id(item_id):
+        file = FileModel.get_by_id(item_id)
+        FileManager.delete_file(file.id)
 
     @classmethod
     def from_path(cls, path: str) -> "File":
@@ -426,3 +450,10 @@ class FileManager:
         album_file_path = Path(album_file.path) / album_file.filename
         album_file.delete_instance()
         os.remove(album_file_path)
+
+    @staticmethod
+    def delete_file(file_id):
+        file = FileModel.get_by_id(file_id)
+        file_path = Path(file.path) / file.filename
+        file.delete_instance()
+        os.remove(file_path)
