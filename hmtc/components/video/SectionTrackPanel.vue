@@ -16,7 +16,6 @@
             <span>{{ file.file_type }}</span>
           </li>
         </ul>
-        <h4>and ends here</h4>
       </v-col>
       <v-col cols="6">
         <v-btn

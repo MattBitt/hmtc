@@ -61,6 +61,7 @@ def Page():
         {"text": "ID", "value": "id"},
         {"text": "Title", "value": "title"},
         {"text": "Series", "value": "series"},
+        {"text": "Actions", "value": "actions", "sortable": False},
     ]
     search_fields = [YoutubeSeries.title]
     with solara.Column(classes=["main-container"]):

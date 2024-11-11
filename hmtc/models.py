@@ -86,43 +86,11 @@ class BaseModel(Model):
         return super(BaseModel, self).save(*args, **kwargs)
 
     def my_delete_instance(self, *args, **kwargs):
-        # ignore this for now
-        # self.deleted_at = datetime.now()
-        # self.save()
+        # Not implemented yet
         super(BaseModel, self).delete_instance(*args, **kwargs, recursive=True)
-        return None
-
-    def _poster(self, id):
-        query = File.select().where(File.file_type == "poster")
-
-        match type(self).__name__:
-            case "Channel":
-                return query.where(File.channel_id == id).get_or_none()
-            case "Playlist":
-                return query.where(File.playlist_id == id).get_or_none()
-            case "Video":
-                return query.where(File.video_id == id).get_or_none()
-            case "Series":
-                return query.where(File.series_id == id).get_or_none()
-            case "YoutubeSeries":
-                return query.where(File.youtube_series_id == id).get_or_none()
-            case "Album":
-                return query.where(File.album_id == id).get_or_none()
-
-    @classmethod
-    def active(cls):
-        return cls.select().where(cls.deleted_at.is_null()).distinct()
 
     class Meta:
         database = db_null
-
-
-class TodoTable(BaseModel):
-    text: str = CharField()
-    done: bool = BooleanField(default=False)
-
-    def __str__(self):
-        return f"TodoTable {self.text} - {self.done}"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -133,64 +101,11 @@ class Series(BaseModel):
     start_date = DateField(null=True)
     end_date = DateField(null=True)
 
-    def add_file(self, filename, move_file=True):
-        extension = "".join(Path(filename).suffixes)
-        final_name = Path(self.MEDIA_PATH) / (
-            clean_filename(self.name.lower()) + extension
-        )
-        File.add_new_file(
-            source=filename, target=final_name, move_file=move_file, series=self
-        )
-
-    @property
-    def poster(self):
-        p = self._poster(self.id)
-        if p:
-            return p.file_string
-        return None
-
-    @property
-    def enabled_videos(self):
-        return self.videos.where(Video.enabled == True).count()
-
-    @property
-    def total_videos(self):
-        return self.videos.count()
-
-    @property
-    def unique_videos(self):
-        return self.videos.select().where(Video.contains_unique_content == True).count()
-
     def __repr__(self):
-        return f"Series({self.name})"
+        return f"Series({self.id} - {self.name})"
 
     def __str__(self):
-        return f"Series({self.name})"
-
-    # used to serialize model to dict for vue
-    def model_to_dict(self):
-        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Series.model_to_dict)")
-        num_vids = (
-            Video.select(fn.Count(Video.id))
-            .where(
-                (Video.series_id == self.id) & (Video.contains_unique_content == True)
-            )
-            .scalar()
-        )
-        num_yt_series = (
-            YoutubeSeries.select(fn.Count(YoutubeSeries.id))
-            .where(YoutubeSeries.series_id == self.id)
-            .scalar()
-        )
-        new_dict = {
-            "id": self.id,
-            "name": self.name,
-            "start_date": (self.start_date.isoformat() if self.start_date else None),
-            "end_date": (self.end_date.isoformat() if self.end_date else None),
-            "video_count": num_vids,
-            "youtube_series_count": num_yt_series,
-        }
-        return new_dict
+        return f"Series({self.id} - {self.name})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -202,19 +117,6 @@ class Channel(BaseModel):
     youtube_id = CharField()
     enabled = BooleanField(default=True)
     last_update_completed = DateTimeField(null=True)
-
-    def check_for_new_videos(self):
-        # this should be deprecated
-        ids = fetch_ids_from(self.url)
-        for youtube_id in ids:
-            vid, created = Video.get_or_create(youtube_id=youtube_id, channel=self)
-            # if not created:
-            #     vid.channel = self
-            #     vid.save()
-        # once finished updating the playlist, update the last_updated field
-        self.last_update_completed = datetime.now()
-        self.save()
-        logger.debug(f"Finished updating channel {self.name}")
 
     def grab_ids(self):
         return fetch_ids_from(self.url)
@@ -228,70 +130,11 @@ class Channel(BaseModel):
             source=filename, target=final_name, move_file=move_file, channel=self
         )
 
-    def check_for_new_playlists(self):
-        ids = fetch_ids_from(self.url + "/playlists")
-        for youtube_id in ids:
-            if youtube_id == "":
-                logger.error("No youtube ID found")
-            else:
-                Playlist.create_from_yt_id(youtube_id=youtube_id, channel=self)
-        # once finished updating the playlist, update the last_updated field
-        self.last_update_completed = datetime.now()
-        self.save()
-        logger.debug(f"Finished updating channel {self.name}")
+    def __repr__(self):
+        return f"Channel({self.id} - {self.name=})"
 
-    def load_from_info_file(self):
-        if self.info is None:
-            logger.error(f"No info file found for channel {self.name}")
-            return
-        with open(self.info.filename, "r") as info_file:
-            info = json.load(info_file)
-            self.name = info["channel"]
-            self.url = info["webpage_url"]
-            self.youtube_id = info["id"]
-            self.save()
-
-    @property
-    def num_videos(self):
-        return self.videos.count()
-
-    @property
-    def poster(self):
-        p = self._poster(self.id)
-        if p:
-            return p.file_string
-        return None
-
-    @property
-    def info(self):
-        logger.debug(f"Getting info for channel {self.name}")
-        i = (
-            File.select()
-            .where(File.file_type == "info")
-            .where(File.channel_id == self.id)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
-        if i:
-            return i
-        return None
-
-    # used to serialize model to dict for vue
-    def model_to_dict(self):
-        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Channel.model_to_dict)")
-        new_dict = {
-            "id": self.id,
-            "youtube_id": self.youtube_id,
-            "url": self.url,
-            "name": self.name,
-            "enabled": self.enabled,
-            "last_update_completed": (
-                self.last_update_completed.isoformat()
-                if self.last_update_completed
-                else None
-            ),
-        }
-        return new_dict
+    def __str__(self):
+        return f"Channel({self.id} - {self.name=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -417,7 +260,10 @@ class Playlist(BaseModel):
 
     # used to serialize model to dict for vue
     def model_to_dict(self):
-        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Playlist.model_to_dict)")
+        # im leaving this here for now, but it should be moved to a
+        # schema class with a serialize method
+        # likely wont need this, so leaving as is for now
+        # 11-10-24
         new_dict = {
             "id": self.id,
             "youtube_id": self.youtube_id,
@@ -439,33 +285,10 @@ class YoutubeSeries(BaseModel):
     series = ForeignKeyField(Series, backref="youtube_series", null=True)
 
     def __repr__(self):
-        return f"YoutubeSeriesModel({self.title=})"
+        return f"YoutubeSeriesModel({self.id} - {self.title=})"
 
-    def model_to_dict(self):
-        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (YoutubeSeries.model_to_dict)")
-        try:
-            num_vids = int(self.video_count)
-        except Exception as e:
-            # if no video count supplied, calculate it
-            # not sure if this should be done here
-            # or if it shoud use only unique videos
-            num_vids = (
-                Video.select(fn.Count(Video.id))
-                .where(
-                    (Video.youtube_series_id == self.id)
-                    & (Video.contains_unique_content == True)
-                )
-                .scalar()
-            )
-
-        new_dict = {
-            "id": self.id,
-            "title": self.title,
-            "series_name": self.series.name if self.series else "",
-            "series_id": self.series.id if self.series else 0,
-            "video_count": num_vids,
-        }
-        return new_dict
+    def __str__(self):
+        return f"YoutubeSeriesModel({self.id} - {self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -473,37 +296,11 @@ class Album(BaseModel):
     title = CharField(unique=True)
     release_date = DateField(null=True)
 
-    # should series be associated with albums?
-    # since videos are associated with series and albums
-    # are associated with videos, it seems like it would be
-    # circular to associate series with albums
+    def __repr__(self):
+        return f"Album({self.id} - {self.title=})"
 
-    def model_to_dict(self):
-        # logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Album.model_to_dict)")
-        try:
-            num_vids = int(self.video_count)
-        except Exception as e:
-            num_vids = (
-                Video.select(fn.Count(Video.id))
-                .where((Video.album_id == self.id))
-                .scalar()
-            )
-
-        num_tracks = (
-            Track.select(fn.Count(Track.id)).where((Track.album_id == self.id)).scalar()
-        )
-
-        new_dict = {
-            "id": self.id,
-            "title": self.title,
-            "release_date": (
-                self.release_date.isoformat() if self.release_date else None
-            ),
-            "video_count": num_vids,
-            "track_count": num_tracks,
-        }
-
-        return new_dict
+    def __str__(self):
+        return f"Album({self.id} - {self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -528,7 +325,10 @@ class Video(BaseModel):
     album = ForeignKeyField(Album, backref="videos", null=True)
 
     def __repr__(self):
-        return f"Video({self.title=})"
+        return f"Video({self.id} - {self.title=})"
+
+    def __str__(self):
+        return f"Video({self.id} - {self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -545,26 +345,11 @@ class Track(BaseModel):
     jellyfin_id = IntegerField(null=True)
     album = ForeignKeyField(Album, backref="tracks", null=True)
 
-    def model_to_dict(self):
-        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Track.model_to_dict)")
-        section = self.section.get_or_none()
-        if section and section.video:
-            video_id = int(section.video.id)
-        else:
-            video_id = 0
-        new_dict = {
-            "id": self.id,
-            "title": self.title,
-            "track_number": self.track_number,
-            "length": self.length,
-            "video_id": video_id,
-            "jellyfin_id": self.jellyfin_id,
-            "album_id": self.album.id if self.album else None,
-            "album_title": self.album.title if self.album else None,
-            "has_mp3": False,  # need to fix this
-            "files": [],
-        }
-        return new_dict
+    def __repr__(self):
+        return f"Track({self.id} - {self.title=})"
+
+    def __str__(self):
+        return f"Track({self.id} - {self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -574,100 +359,15 @@ class Section(BaseModel):
     section_type = CharField(null=True)
     is_first = BooleanField(default=False)
     is_last = BooleanField(default=False)
-    next_section = ForeignKeyField("self", backref="previous_section", null=True)
-
-    video = ForeignKeyField(Video, backref="sections", null=True)
     ordinal = IntegerField(null=True)
-
-    # 10/18/24 adding below, but haven't verified anything above in
-    # a long time
+    video = ForeignKeyField(Video, backref="sections", null=True)
     track = ForeignKeyField(Track, backref="section", null=True)
-
-    @classmethod
-    def create_initial_section(cls, video):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 09-10-24")
-        return Section.create(
-            start=0,
-            end=video.duration,
-            section_type="INITIAL",
-            video=video,
-            ordinal=1,
-            is_first=True,
-            is_last=True,
-        )
-
-    @classmethod
-    def create_from_item(cls, item):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 09-10-24")
-        return cls.create(
-            start=item.start,
-            end=item.end,
-            section_type=item.section_type,
-            video=item.video,
-            ordinal=item.ordinal,
-        )
-
-    def is_timestamp_in_this_section(self, timestamp):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 09-10-24")
-        return timestamp > self.start and timestamp < self.end
 
     def __repr__(self):
         return f"Section({self.id} - {self.start}:{self.end} - {self.section_type})"
 
     def __str__(self):
-        return f"Section(id={self.id}, start={self.start}, end={self.end},type={self.section_type})"
-
-    def find_both_sections(self, timestamp):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
-        before, after = None, None
-        for sect in self.all_sections:
-            if sect.start == timestamp:
-                after = sect
-            if sect.end == timestamp:
-                before = sect
-
-        return before, after
-
-    @property
-    def all_sections(self):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
-        return sorted(self.video.sections, key=lambda x: x.start)
-
-    @property
-    def num_sections(self):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
-        return len(self.all_sections)
-
-    @property
-    def oldbreakpoints(self):
-        logger.error("Is this used 🧪🧪🧪🧪🧪 8-31-24")
-        breaks = set([])
-        for sect in self.sections:
-            breaks.add(sect.start)
-            breaks.add(sect.end)
-        return breaks
-
-    def model_to_dict(self):
-        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Section.model_to_dict)")
-        try:
-            _track = self.track.model_to_dict()
-        except Exception as e:
-            _track = None
-        new_dict = {
-            "id": self.id,
-            "start": self.start,
-            "end": self.end,
-            "start_dict": {},
-            "end_dict": {},
-            "start_string": str(timedelta(seconds=self.start / 1000)),
-            "end_string": str(timedelta(seconds=self.end / 1000)),
-            "duration": (self.end - self.start) / 1000,
-            "section_type": self.section_type,
-            "video_id": self.video.id if self.video else None,
-            "topics": [t.topic.model_to_dict() for t in self.topics],
-            "track": _track,
-        }
-        return new_dict
+        return f"Section({self.id} - {self.section_type})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -675,8 +375,11 @@ class User(BaseModel):
     username = CharField(max_length=80)
     email = CharField(max_length=120)
 
+    def __repr__(self):
+        return f"User({self.id} - {self.username=})"
+
     def __str__(self):
-        return self.username
+        return f"User({self.id} - {self.username=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -688,18 +391,6 @@ class UserInfo(BaseModel):
 
     def __str__(self):
         return f"{self.key} - {self.value}"
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Post(BaseModel):
-    title = CharField(max_length=120)
-    text = TextField(null=False)
-    date = DateTimeField()
-
-    user = ForeignKeyField(User)
-
-    def __str__(self):
-        return self.title
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -717,6 +408,12 @@ class File(BaseModel):
     album = ForeignKeyField(Album, backref="files", null=True)
     youtube_series = ForeignKeyField(YoutubeSeries, backref="files", null=True)
     track = ForeignKeyField(Track, backref="files", null=True)
+
+    def __repr__(self):
+        return f"File({self.id} - {self.filename=})"
+
+    def __str__(self):
+        return f"File({self.id} - {self.filename=})"
 
     @classmethod
     def add_new_file(cls, source, target, move_file=True, **kwargs):
@@ -772,68 +469,40 @@ class File(BaseModel):
         else:
             logger.error(f"File {target} already exists")
 
-    def file_string(self):
-        pass
-        # if self.path is None:
-        #     logger.error("Self.path was none.. 💥💥💥💥")
-        #     return None
-        # if self.filename is None:
-        #     self.filename = "asdf"
-        # if self.extension is None:
-        #     self.extension = "fdsa"
-
-        # p = Path(self.path) / (self.filename + self.extension)
-        # return str(p)
-
-    # used to serialize model to dict for vue
-    def model_to_dict(self):
-        logger.error(
-            "DELETE ME (11/7/24) 🦧🦧🦧🦧🦧🦧🦧 Switched to FileItem.serialize()"
-        )
-        new_dict = {
-            "id": self.id,
-            "path": self.path,
-            "filename": self.filename,
-            "file_type": self.file_type,
-            "video_id": self.video.id if self.video else 0,
-            "album_id": self.album.id if self.album else 0,
-            "series_id": self.series.id if self.series else 0,
-            "playlist_id": self.playlist.id if self.playlist else 0,
-            "youtube_series_id": (self.youtube_series.id if self.youtube_series else 0),
-            "track_id": self.track.id if self.track else 0,
-        }
-        return new_dict
-
-
-@total_ordering
-class Breakpoint(BaseModel):
-    # i believe this should all be deleted
-    video = ForeignKeyField(Video, backref="breakpoints")
-    timestamp = IntegerField()
-    # logger.error("DELETE ME (6/9/24) 🐹🐹🐹🐹🐹🐹🐹")
-
-    def __lt__(self, other):
-        return self.timestamp < other.timestamp
-
-    class Meta:
-        indexes = ((("video", "timestamp"), True),)
-
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Artist(BaseModel):
     name = CharField()
     url = CharField(null=True)
 
+    def __repr__(self):
+        return f"Artist({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"Artist({self.id} - {self.name=})"
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Beat(BaseModel):
     name = CharField()
+
+    def __repr__(self):
+        return f"Beat({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"Beat({self.id} - {self.name=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class TrackBeat(BaseModel):
     beat = ForeignKeyField(Beat, backref="tracks")
     track = ForeignKeyField(Track, backref="beats")
+
+    def __repr__(self):
+        return f"TrackBeat({self.id} - {self.beat=} - {self.track=})"
+
+    def __str__(self):
+        return f"TrackBeat({self.id} - {self.beat=} - {self.track=})"
 
     class Meta:
         indexes = (
@@ -847,6 +516,12 @@ class BeatArtist(BaseModel):
     beat = ForeignKeyField(Beat, backref="artists")
     artist = ForeignKeyField(Artist, backref="beats")
 
+    def __repr__(self):
+        return f"BeatArtist({self.id} - {self.beat=} - {self.artist=})"
+
+    def __str__(self):
+        return f"BeatArtist({self.id} - {self.beat=} - {self.artist=})"
+
     class Meta:
         indexes = (
             # Create a unique composite index on beat and Artist
@@ -857,20 +532,11 @@ class BeatArtist(BaseModel):
 class Topic(BaseModel):
     text = CharField()
 
-    def model_to_dict(self):
-        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (Topic.model_to_dict)")
-        num_sections = (
-            SectionTopics.select(fn.Count(SectionTopics.section_id))
-            .where((SectionTopics.topic_id == self.id))
-            .scalar()
-        )
+    def __repr__(self):
+        return f"Topic({self.id} - {self.text=})"
 
-        new_dict = {
-            "id": self.id,
-            "text": self.text,
-            "section_count": num_sections,
-        }
-        return new_dict
+    def __str__(self):
+        return f"Topic({self.id} - {self.text=})"
 
 
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -879,11 +545,8 @@ class SectionTopics(BaseModel):
     topic = ForeignKeyField(Topic, backref="sections")
     order = IntegerField()
 
-    def model_to_dict(self):
-        logger.error("🦧🦧🦧🦧🦧🦧🦧 Deprecate Me! (SectionTopics.model_to_dict)")
-        new_dict = {
-            "id": self.id,
-            "section_id": self.section.id,
-            "topic_id": self.topic.id,
-        }
-        return new_dict
+    def __repr__(self):
+        return f"SectionTopics({self.id} - {self.section=})"
+
+    def __str__(self):
+        return f"SectionTopics({self.id} - {self.section=})"

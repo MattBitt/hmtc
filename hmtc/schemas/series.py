@@ -43,9 +43,8 @@ class Series(BaseItem):
     def update_from_dict(series_id, new_data) -> None:
         series = SeriesModel.get_by_id(series_id)
         series.name = new_data["name"]
-        series.url = new_data["url"]
-        series.youtube_id = new_data["youtube_id"]
-        series.enabled = new_data["enabled"]
+        series.start_date = new_data["start_date"]
+        series.end_date = new_data["end_date"]
         series.save()
 
     def delete_id(series_id) -> None:

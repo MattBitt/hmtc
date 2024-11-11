@@ -5,19 +5,20 @@ from typing import List, Optional
 import peewee
 from loguru import logger
 
-from hmtc.models import File as FileTable
+from hmtc.models import File as FileModel
 from hmtc.models import (
     Section as SectionModel,
 )
 from hmtc.models import (
-    SectionTopics as SectionTopicsTable,
+    SectionTopics as SectionTopicsModel,
 )
 from hmtc.models import (
-    Topic as TopicTable,
+    Topic as TopicModel,
 )
 from hmtc.models import (
-    Track as TrackTable,
+    Track as TrackModel,
 )
+from hmtc.schemas.base import BaseItem
 from hmtc.schemas.topic import Topic as TopicItem
 
 
@@ -35,24 +36,63 @@ def create_hms_dict(seconds):
     )
 
 
-@dataclass(frozen=True, order=True)
-class Section:
+@dataclass(frozen=True, order=True, kw_only=True)
+class Section(BaseItem):
     start: int
     end: int
     video_id: int
     id: int = None
-    track_id: int = None
     section_type: str = "_INITIAL_"
+    item_type: str = "SECTION"
     topics: list = field(default_factory=list)
+    track_id: int = None
+    track: dict = None
 
+    @staticmethod
     def from_model(section: SectionModel) -> "Section":
+        topics = (
+            TopicModel.select()
+            .join(SectionTopicsModel, on=(TopicModel.id == SectionTopicsModel.topic_id))
+            .where(SectionTopicsModel.section_id == section.id)
+            .order_by(SectionTopicsModel.order)
+        )
+
+        # this is mimicking the TrackItem.from_model function
+        # circular imports are bad, so we can't import TrackItem here
+        if section.track_id:
+            track = TrackModel.get_by_id(section.track_id)
+            track_dict = {
+                "id": track.id,
+                "title": track.title,
+                "length": track.length,
+                "track_number": track.track_number,
+                "album_id": track.album.id,
+                "album_title": track.album.title,
+                "files": [
+                    {"file_type": f.file_type, "filename": f.filename}
+                    for f in track.files
+                ],
+            }
+        else:
+            track_dict = {
+                "id": 0,
+                "title": "No Track",
+                "length": 0,
+                "track_number": 0,
+                "album_id": 0,
+                "album_title": "No Album",
+                "files": [],
+            }
+
         return Section(
             id=section.id,
             start=section.start,
             end=section.end,
             video_id=section.video_id,
             section_type=section.section_type,
-            topics=[x.topic for x in section.topics],
+            track_id=section.track_id,
+            track=track_dict,
+            topics=[TopicItem.from_model(x) for x in topics],
         )
 
     def serialize(self) -> dict:
@@ -65,9 +105,20 @@ class Section:
             "end_string": str(timedelta(seconds=self.end / 1000)),
             "video_id": self.video_id,
             "section_type": self.section_type,
-            "track_id": self.track_id,
-            "topics": [TopicItem.from_model(x).serialize() for x in self.topics],
+            "track_id": self.track_id if self.track_id else 0,
+            "track": self.track,
+            "topics": [x.serialize() for x in self.topics],
         }
+
+    def update_from_dict(item_id, new_data):
+        section = SectionModel.get(SectionModel.id == item_id)
+        section.start = new_data["start"]
+        section.end = new_data["end"]
+        section.section_type = new_data["section_type"]
+        section.save()
+
+    def delete_id(item_id):
+        logger.error("delte_id for SectionItem Not Implemented!!!!!!")
 
     def check_times(self) -> None:
         if self.start > self.end:
@@ -178,27 +229,27 @@ class SectionManager:
         # this is in the SectionManager class, but its returning a Section object
         query = (
             SectionModel.select(
-                SectionModel, TopicTable, SectionTopicsTable, TrackTable, FileTable
+                SectionModel, TopicModel, SectionTopicsModel, TrackModel, FileModel
             )
             .join(
-                SectionTopicsTable,
-                on=(SectionModel.id == SectionTopicsTable.section_id),
+                SectionTopicsModel,
+                on=(SectionModel.id == SectionTopicsModel.section_id),
                 join_type=peewee.JOIN.LEFT_OUTER,
             )
             .join(
-                TopicTable,
+                TopicModel,
                 join_type=peewee.JOIN.LEFT_OUTER,
             )
             .switch(SectionModel)
             .join(
-                TrackTable,
+                TrackModel,
                 peewee.JOIN.LEFT_OUTER,
-                on=(SectionModel.track_id == TrackTable.id),
+                on=(SectionModel.track_id == TrackModel.id),
             )
             .join(
-                FileTable,
+                FileModel,
                 peewee.JOIN.LEFT_OUTER,
-                on=(TrackTable.id == FileTable.track_id),
+                on=(TrackModel.id == FileModel.track_id),
             )
             .where(SectionModel.id == id)
         ).get_or_none()

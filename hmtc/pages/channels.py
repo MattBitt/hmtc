@@ -45,9 +45,7 @@ def Page():
 
     headers = [
         {"text": "Name", "value": "name"},
-        {"text": "URL", "value": "url"},
         {"text": "Youtube ID", "value": "youtube_id"},
-        {"text": "Enabled", "value": "enabled"},
         {"text": "Last Update Completed", "value": "last_update_completed"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]

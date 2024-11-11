@@ -131,24 +131,14 @@ def SectionControlPanel(
 @solara.component
 def SectionsPanel(
     video,
-    reactive_sections,
     update_section_from_jellyfin,
 ):
     reload = solara.use_reactive(False)
-    section_type = solara.use_reactive("instrumental")
 
-    # not sure why this is a tuple...
-    # or really what its doing....
-    section_dicts = (
-        solara.use_reactive(
-            [SectionManager.get_section_details(s.id) for s in reactive_sections.value]
-        ),
+    section_dicts = solara.use_reactive(
+        [SectionItem.from_model(s).serialize() for s in reactive_sections.value]
     )
 
-    if len(reactive_sections.value) > 0:
-        tab_items = section_dicts[0].value
-    else:
-        tab_items = []
     #############################
 
     def delete_section(*args, **kwargs):
@@ -192,7 +182,7 @@ def SectionsPanel(
         new_sect_id = sm.create_section(
             start=new_start,
             end=new_end,
-            section_type=section_type.value,
+            section_type="instrumental",  # this is probably wrong
         )
         new_sect = SectionModel.get_by_id(new_sect_id)
         reactive_sections.set(reactive_sections.value + [new_sect])
@@ -313,9 +303,9 @@ def SectionsPanel(
         reload.set(True)
 
     if not reload.value:
-        if tab_items != []:
+        if section_dicts.value != []:
             SectionSelector(
-                sectionItems=tab_items,
+                sectionItems=section_dicts.value,
                 video_duration=video.duration,
                 event_add_item=add_topic,
                 event_remove_item=remove_topic,
@@ -824,12 +814,11 @@ def Page():
         with solara.Error():
             solara.Markdown(f"No Video Found {video_id}")
         return
-    video = VideoItem.get_details_for_video(video_id)
-
-    # should probably be using video.section_ids (not sure if it matters)
-    sections = SectionModel.select().where(SectionModel.video_id == video.id)
-    reactive_sections.set([s for s in sections])
-
+    vid = VideoModel.get_by_id(video_id)
+    video = VideoItem.from_model(vid)
+    reactive_sections.set(
+        SectionModel.select().where(SectionModel.video_id == video.id)
+    )
     jellyfin_status_dict = solara.use_reactive(get_user_session())
 
     def local_create(*args):
@@ -876,6 +865,5 @@ def Page():
             else:
                 SectionsPanel(
                     video=video,
-                    reactive_sections=reactive_sections,
                     update_section_from_jellyfin=None,
                 )

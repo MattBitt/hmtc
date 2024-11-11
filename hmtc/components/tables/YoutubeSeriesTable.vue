@@ -2,9 +2,20 @@
   <div>
     <v-dialog v-model="dialog" max-width="800px">
       <v-card>
-        <v-card-title>
-          <span class="text-h5">{{ currentItem.title }}</span>
-        </v-card-title>
+        <v-toolbar dark color="primary">
+          <v-btn icon dark @click="dialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title
+            >Edit Youtube Series {{ currentItem.id }}</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn dark text :disabled="!valid" @click="saveItemToDB">
+              Save
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
         <v-card-text>
           <v-container>
             <v-row>
@@ -61,25 +72,35 @@
       class="elevation-1"
     >
       <template v-slot:top="{ pagination, options, updateOptions }">
-        <v-toolbar flat>
-          <v-text-field
-            v-model="search"
-            append-icon="mdi-magnify"
-            label="Search"
-            single-line
-            hide-details
-            clearable
-            @click:append="search_for_item(search)"
-            @click:clear="clear_search"
-            @keyup.enter="search_for_item(search)"
-          ></v-text-field>
-          <v-spacer></v-spacer>
-          <v-pagination
-            v-model="current_page"
-            :length="total_pages"
-            :total-visible="6"
-            @input="change_page"
-          ></v-pagination>
+        <v-toolbar>
+          <v-row>
+            <v-col cols="4">
+              <v-text-field
+                v-model="search"
+                append-icon="mdi-magnify"
+                label="Search"
+                single-line
+                hide-details
+                clearable
+                @click:append="search_for_item(search)"
+                @click:clear="clear_search"
+                @keyup.enter="search_for_item(search)"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="2">
+              <span>Items {{ total_items }}</span>
+            </v-col>
+
+            <v-col cols="6">
+              <v-pagination
+                v-model="current_page"
+                :length="total_pages"
+                :total-visible="4"
+                @input="change_page"
+              ></v-pagination>
+            </v-col>
+          </v-row>
         </v-toolbar>
       </template>
       <template v-slot:item.last_update_completed="{ item }">
@@ -124,6 +145,7 @@ module.exports = {
       search: "",
       filtered: false,
       currentItem: {},
+      valid: false,
     };
   },
   watch: {

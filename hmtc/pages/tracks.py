@@ -26,13 +26,9 @@ def create_query_from_url():
         TrackModel.select(
             TrackModel,
             AlbumModel,
-            FileModel,
         )
         .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
         .switch(TrackModel)
-        .join(
-            FileModel, peewee.JOIN.LEFT_OUTER, on=(TrackModel.id == FileModel.track_id)
-        )
     )
 
     router = solara.use_router()

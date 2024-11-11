@@ -34,8 +34,8 @@ def YoutubeSeriesTable(router, headers, base_query, search_fields):
         "model": YoutubeSeriesModel,
         "schema_item": YoutubeSeriesItem,
         "vue_component": _YoutubeSeriesTable,
-        "action1_path": "youtubeseriess",
-        "action1_icon": "mdi-cancel",
+        "action1_path": "",
+        "action1_icon": "",
     }
     DataTable(
         router=router,

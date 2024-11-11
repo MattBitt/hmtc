@@ -14,36 +14,6 @@ from hmtc.schemas.section import Section as SectionItem
 force_update_counter = solara.reactive(0)
 
 
-def delete_section(item):
-    logger.error(f"Not Implmeented!")
-    return
-    logger.debug(f"Deleting Item received from Vue: {item}")
-    section = SectionModel.get_by_id(item["id"])
-    section.delete_instance()
-
-
-def save_section(dict_of_items):
-    logger.error(f"Not Implmeented!")
-    return
-    item = dict_of_items["item"]
-    edited_item = dict_of_items["editedItem"]
-    logger.debug(f"Item received from Vue: {item}")
-
-    try:
-        section = SectionModel.get_by_id(item["id"])
-    except Exception:
-        ## this should probably check item for id instead of edited_item
-        logger.debug(f"Section ID not found. Creating {edited_item}")
-        edited_item["id"] = None  # db should assign id
-        SectionModel.create(**edited_item)
-        return
-
-    section.text = edited_item["text"]
-
-    section.save()
-    force_update_counter.set(force_update_counter.value + 1)
-
-
 def view_details(router, item):
     router.push(f"/video-details/{item['video_id']}")
 

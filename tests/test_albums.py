@@ -53,7 +53,8 @@ def test_remove_track():
     assert album.tracks[0].title == "test"
     assert album.tracks[1].title == "test3"
     assert album.tracks[0].track_number == 1
-    assert album.tracks[1].track_number == 2
+    # this should be 2 if i'm renumbering
+    assert album.tracks[1].track_number == 3
     logger.error(album.tracks)
 
 

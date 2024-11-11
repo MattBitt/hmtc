@@ -1,5 +1,3 @@
-<!-- 10/15/24 Im copying this page into section_carousel  -->
-
 <template>
   <div>
     <v-sheet light v-if="this.sectionItems.length > 0"> </v-sheet>
@@ -32,7 +30,7 @@
               </v-col>
               <v-col cols="8">
                 <h4 class="primary--text font-weight-bold">
-                  {{ section.topics.map(({ text }) => text).join(", ") }}
+                  {{ section.topics?.map(({ text }) => text).join(", ") }}
                 </h4>
               </v-col>
               <v-col cols="2">
@@ -206,6 +204,9 @@ export default {
       color: "info",
       timeout: 2000,
     };
+  },
+  created() {
+    console.log("Section Selector created", this.sectionItems);
   },
   methods: {
     addTopic(args) {
