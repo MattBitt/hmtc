@@ -16,8 +16,8 @@ from hmtc.utils.ffmpeg_utils import extract_audio
 from hmtc.utils.general import move_file, my_copy_file
 
 config = init_config()
-WORKING = config["paths"]["working"]
-STORAGE = config["paths"]["storage"]
+WORKING = Path(config["paths"]["working"])
+STORAGE = Path(config["paths"]["storage"])
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -27,6 +27,7 @@ class File(BaseItem):
     filename: str  # this includes the extension
     file_type: str = ""
     item_type: str = "FILE"
+    id: int = 0
     album_id: int = 0
     track_id: int = 0
     video_id: int = 0
@@ -41,6 +42,7 @@ class File(BaseItem):
     @staticmethod
     def from_model(file: FileModel) -> "File":
         return File(
+            id=file.id,
             path=file.path,
             filename=file.filename,
             file_type=file.file_type,
@@ -55,6 +57,7 @@ class File(BaseItem):
 
     def serialize(self) -> dict:
         return {
+            "id": self.id,
             "path": self.path,
             "filename": self.filename,
             "file_type": self.file_type,
@@ -457,3 +460,59 @@ class FileManager:
         file_path = Path(file.path) / file.filename
         file.delete_instance()
         os.remove(file_path)
+
+    @staticmethod
+    def get_video_files(video_id, youtube_id):
+        db_files = (
+            FileModel.select()
+            .where(FileModel.video_id == video_id)
+            .order_by(FileModel.filename)
+        )
+        if len(db_files) == 0:
+            logger.error(f"No files found for video {video_id}")
+            if youtube_id is None:
+                logger.error("No youtube id found")
+                return [], []
+            folder_to_search = STORAGE / youtube_id
+        else:
+            folder_to_search = Path(db_files[0].path)
+
+        folder_files = [x for x in list(folder_to_search.rglob("*")) if x.is_file()]
+        if folder_files != []:
+            folder_files = sorted(folder_files, key=lambda x: x.name)
+        return db_files, folder_files
+
+    @staticmethod
+    def remove_existing_files(video_id, youtube_id, file_types):
+        db_files, _ = FileManager.get_video_files(video_id, youtube_id)
+        existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
+        for vid_file in existing_vid_files:
+            # the below will delete files found in the database from the filesystem
+            try:
+                vid_file.delete_instance()
+                file_to_delete = Path(vid_file.path) / vid_file.filename
+                file_to_delete.unlink()
+
+            except Exception as e:
+                logger.error(f"Error deleting file {e}")
+
+        # the below will delete files found in the video's folder
+        # regardless if they are in the db or not
+
+        extensions = []
+        if "video" in file_types:
+            extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
+        if "audio" in file_types:
+            extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
+        if "info" in file_types:
+            extensions += [".info.json", ".json"]
+        if "subtitle" in file_types:
+            extensions += [".srt", ".en.vtt"]
+        if "poster" in file_types:
+            extensions += [".jpg", ".jpeg", ".png", ".webp"]
+
+        _, folder_files = FileManager.get_video_files(video_id, youtube_id)
+        for file in folder_files:
+            if file.suffix in extensions:
+                logger.debug(f"Found video file: {file}. Deleting")
+                file.unlink()

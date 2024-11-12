@@ -20,6 +20,7 @@ from hmtc.models import (
 )
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.topic import Topic as TopicItem
+from hmtc.schemas.file import FileManager
 
 
 def create_hms_dict(seconds):
@@ -40,13 +41,14 @@ def create_hms_dict(seconds):
 class Section(BaseItem):
     start: int
     end: int
-    video_id: int
+
     id: int = None
     section_type: str = "_INITIAL_"
     item_type: str = "SECTION"
     topics: list = field(default_factory=list)
-    track_id: int = None
-    track: dict = None
+    video_id: int = 0
+    track_id: int = 0
+    track: TrackModel = None
 
     @staticmethod
     def from_model(section: SectionModel) -> "Section":
@@ -61,28 +63,10 @@ class Section(BaseItem):
         # circular imports are bad, so we can't import TrackItem here
         if section.track_id:
             track = TrackModel.get_by_id(section.track_id)
-            track_dict = {
-                "id": track.id,
-                "title": track.title,
-                "length": track.length,
-                "track_number": track.track_number,
-                "album_id": track.album.id,
-                "album_title": track.album.title,
-                "files": [
-                    {"file_type": f.file_type, "filename": f.filename}
-                    for f in track.files
-                ],
-            }
+            track_dict = track.simple_dict()
+
         else:
-            track_dict = {
-                "id": 0,
-                "title": "No Track",
-                "length": 0,
-                "track_number": 0,
-                "album_id": 0,
-                "album_title": "No Album",
-                "files": [],
-            }
+            track_dict = TrackModel.empty_dict()
 
         return Section(
             id=section.id,
@@ -96,7 +80,6 @@ class Section(BaseItem):
         )
 
     def serialize(self) -> dict:
-
         return {
             "id": self.id,
             "start": self.start,
@@ -110,6 +93,7 @@ class Section(BaseItem):
             "topics": [x.serialize() for x in self.topics],
         }
 
+    @staticmethod
     def update_from_dict(item_id, new_data):
         section = SectionModel.get(SectionModel.id == item_id)
         section.start = new_data["start"]
@@ -117,8 +101,21 @@ class Section(BaseItem):
         section.section_type = new_data["section_type"]
         section.save()
 
+    @staticmethod
     def delete_id(item_id):
-        logger.error("delte_id for SectionItem Not Implemented!!!!!!")
+        section = SectionModel.get_by_id(item_id)
+        logger.debug(f"Deleting Section: {item_id}")
+        SectionTopicsModel.delete().where(
+            SectionTopicsModel.section_id == item_id
+        ).execute()
+
+        if section.track_id:
+            track = TrackModel.get_by_id(section.track_id)
+            for file in track.files:
+                FileManager.delete_file(file.id)
+            track.delete_instance(recursive=True)
+
+        section.delete_instance()
 
     def check_times(self) -> None:
         if self.start > self.end:

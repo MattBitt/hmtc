@@ -4,6 +4,7 @@ import datetime
 from loguru import logger
 
 from hmtc.models import Series as SeriesModel
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.base import BaseItem
 
 
@@ -40,6 +41,7 @@ class Series(BaseItem):
             "end_date": end_date,
         }
 
+    @staticmethod
     def update_from_dict(series_id, new_data) -> None:
         series = SeriesModel.get_by_id(series_id)
         series.name = new_data["name"]
@@ -47,6 +49,20 @@ class Series(BaseItem):
         series.end_date = new_data["end_date"]
         series.save()
 
+    @staticmethod
     def delete_id(series_id) -> None:
+        series = SeriesModel.select().where(SeriesModel.id == series_id)
+        logger.error(f"Deleting Series {series.name} ")
+        series.delete_instance(recursive=True)
+
+    @staticmethod
+    def delete_if_unused(series_id) -> None:
         series = SeriesModel.get_by_id(series_id)
-        series.delete_instance()
+        videos = VideoModel.select().where(VideoModel.series_id == series_id)
+        if len(videos) == 0:
+            logger.error(f"Series {series.name} not in use. Deleting")
+            series.delete_instance()
+        else:
+            logger.error(f"Series {series.name} in use. Not deleting")
+            return False
+        return True

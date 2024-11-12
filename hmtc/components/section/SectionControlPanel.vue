@@ -7,7 +7,12 @@
       transition="dialog-bottom-transition"
     >
       <template v-slot:activator="{ on, attrs }">
-        <v-btn class="button" v-bind="attrs" v-on="on">
+        <v-btn
+          class="button"
+          v-bind="attrs"
+          v-on="on"
+          :disabled="video.album.title == 'No Album'"
+        >
           <v-icon>mdi-rhombus-split</v-icon>Sections
         </v-btn>
       </template>

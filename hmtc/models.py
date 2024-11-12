@@ -303,7 +303,15 @@ class Album(BaseModel):
         return f"Album({self.id} - {self.title=})"
 
     def simple_dict(self):
-        return {"id": self.id, "title": self.title}
+        return {
+            "id": self.id,
+            "title": self.title,
+            "release_date": str(self.release_date),
+        }
+
+    @staticmethod
+    def empty_dict():
+        return {"id": 0, "title": "No Album", "release_date": "2021-01-01"}
 
     @staticmethod
     def new_track_number(album_id):
@@ -327,11 +335,13 @@ class Video(BaseModel):
     has_chapters = BooleanField(default=False)
     manually_edited = BooleanField(default=False)
     jellyfin_id = CharField(null=True, max_length=255)
+
+    # relationships
+    album = ForeignKeyField(Album, backref="videos", null=True)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
     playlist = ForeignKeyField(Playlist, backref="videos", null=True)
     youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
-    album = ForeignKeyField(Album, backref="videos", null=True)
 
     def __repr__(self):
         return f"Video({self.id} - {self.title=})"
@@ -353,6 +363,26 @@ class Track(BaseModel):
     length = IntegerField(null=True)
     jellyfin_id = IntegerField(null=True)
     album = ForeignKeyField(Album, backref="tracks", null=True)
+
+    def simple_dict(self):
+        files = File.select().where(File.track_id == self.id)
+        return {
+            "id": self.id,
+            "title": self.title,
+            "track_number": self.track_number,
+            "length": self.length,
+            "files": [f.simple_dict() for f in files],
+        }
+
+    @staticmethod
+    def empty_dict():
+        return {
+            "id": 0,
+            "title": "No Track",
+            "track_number": 0,
+            "length": 0,
+            "files": [],
+        }
 
     def __repr__(self):
         return f"Track({self.id} - {self.title=})"
@@ -423,6 +453,15 @@ class File(BaseModel):
 
     def __str__(self):
         return f"File({self.id} - {self.filename=})"
+
+    def simple_dict(self):
+        return {
+            "id": self.id,
+            "path": self.path,
+            "filename": self.filename,
+            "extension": self.extension,
+            "file_type": self.file_type,
+        }
 
     @classmethod
     def add_new_file(cls, source, target, move_file=True, **kwargs):

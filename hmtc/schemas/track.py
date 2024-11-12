@@ -37,7 +37,7 @@ class Track(BaseItem):
     track_number: int = 0
     length: int = 0
     album_id: int = 0
-    album_title: str = None
+    album: AlbumModel = None
     section: SectionItem = None
     files: list = field(default_factory=list)
 
@@ -64,7 +64,7 @@ class Track(BaseItem):
             track_number=track.track_number,
             length=track.length,
             album_id=track.album.id,
-            album_title=track.album.title,
+            album=track.album,
             files=[FileItem.from_model(f) for f in track.files],
             section=SectionItem.from_model(track.section.get()),
         )
@@ -76,7 +76,9 @@ class Track(BaseItem):
             "track_number": self.track_number,
             "length": self.length,
             "album_id": self.album_id,
-            "album_title": self.album_title,
+            "album": (
+                self.album.simple_dict() if self.album else AlbumModel.empty_dict()
+            ),
             "files": [f.serialize() for f in self.files],
             "section": self.section.serialize(),
         }

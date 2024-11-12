@@ -24,8 +24,10 @@ from hmtc.models import (
 )
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.channel import Channel as ChannelItem
-from hmtc.schemas.file import FileManager, File as FileItem
-from hmtc.schemas.section import SectionManager, Section as SectionItem
+from hmtc.schemas.file import File as FileItem
+from hmtc.schemas.file import FileManager
+from hmtc.schemas.section import Section as SectionItem
+from hmtc.schemas.section import SectionManager
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.jellyfin_functions import refresh_library
@@ -56,18 +58,28 @@ class VideoItem(BaseItem):
     manually_edited: bool = False
     jellyfin_id: str = None
 
-    file_count: int = 0
-    section_count: int = 0
-    track_count: int = 0
-    channel_id: int = 0
-    playlist_id: int = 0
-    youtube_series_id: int = 0
-    series_id: int = 0
+    # relationships
+    # Video is one of many
     album_id: int = 0
     album: AlbumModel = None
+
+    channel_id: int = 0
+
+    playlist_id: int = 0
+
+    series_id: int = 0
+
+    youtube_series_id: int = 0
+
+    # Video has multiple
     section_ids: list = field(default_factory=list)
     sections: list = field(default_factory=list)
+    section_count: int = 0
+    # tracks are associated with sections
+    track_count: int = 0
+
     files: list = field(default_factory=list)
+    file_count: int = 0
 
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
@@ -76,9 +88,7 @@ class VideoItem(BaseItem):
             for x in FileModel.select().where((FileModel.video_id == video.id))
         ]
 
-        sections = SectionModel.select(fn.Count(SectionModel.id)).where(
-            (SectionModel.video_id == video.id)
-        )
+        sections = SectionModel.select().where((SectionModel.video_id == video.id))
         num_tracks = (
             TrackModel.select(fn.Count(TrackModel.id))
             .join(SectionModel)
@@ -146,7 +156,9 @@ class VideoItem(BaseItem):
             "youtube_series_id": self.youtube_series_id,
             "series_id": self.series_id,
             "section_ids": self.section_ids,
-            "album": self.album.simple_dict() if self.album else {},
+            "album": (
+                self.album.simple_dict() if self.album else AlbumModel.empty_dict()
+            ),
             "files": [file.serialize() for file in self.files],
             "sections": [section.serialize() for section in self.sections],
         }
@@ -188,7 +200,9 @@ class VideoItem(BaseItem):
             .where(
                 (
                     VideoModel.id.in_(
-                        File.select(File.video_id).where(File.file_type == "video")
+                        FileItem.select(FileItem.video_id).where(
+                            FileItem.file_type == "video"
+                        )
                     )
                 )
                 & (VideoModel.contains_unique_content == True)
@@ -358,7 +372,9 @@ class VideoItem(BaseItem):
                 downloaded_file = converted
 
             existing = (
-                File.select().where(File.filename == downloaded_file.name).get_or_none()
+                FileItem.select()
+                .where(FileItem.filename == downloaded_file.name)
+                .get_or_none()
             )
             if not existing:
                 self.add_file(downloaded_file)
@@ -415,3 +431,10 @@ class VideoItem(BaseItem):
         except Exception as e:
             logger.error(f"Error creating album xml: {e}")
             return None
+
+    def create_album_nfo(self):
+
+        FileManager.remove_existing_files(self.id, self.youtube_id, ["album_nfo"])
+
+        new_file = VideoItem.create_xml_for_jellyfin(self.id)
+        FileManager.add_path_to_video(new_file, self)

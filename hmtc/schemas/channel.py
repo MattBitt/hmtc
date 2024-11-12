@@ -1,4 +1,5 @@
 import dataclasses
+from datetime import datetime
 
 from loguru import logger
 
@@ -14,7 +15,7 @@ class Channel(BaseItem):
     youtube_id: str = None
     id: int = None
     enabled: bool = True
-    last_update_completed: str = None
+    last_update_completed: datetime = None
 
     @staticmethod
     def from_model(channel: ChannelModel) -> "Channel":

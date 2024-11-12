@@ -38,6 +38,7 @@ from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
+from hmtc.schemas.series import Series as SeriesItem
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import (
@@ -65,41 +66,14 @@ def parse_url_args():
     level = solara.use_route_level()
 
     if len(router.parts) == 1:
-        # 10/26/24 - not sure what this is doing
-        return None
-
-    return router.parts[level:][0]
+        router.push("/videos")
+    else:
+        return router.parts[level:][0]
+    logger.error(f"Does this execute? {router.parts}")
 
 
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 # Section - Admin Panel
-
-
-def delete_section_from_db(section_id):
-    logger.debug(f"Deleting Section: {section_id}")
-    SectionTopicsModel.delete().where(
-        SectionTopicsModel.section_id == section_id
-    ).execute()
-
-    SectionModel.delete_by_id(section_id)
-
-
-def update_section_times(*args):
-    logger.debug(f"Updating Section Times: {args}")
-    try:
-        section = SectionModel.get_by_id(args[0]["item_id"])
-    except Exception as e:
-        logger.error(e)
-        return
-    if "start" in args[0].keys():
-        section.start = args[0]["start"]
-    if "end" in args[0].keys():
-        section.end = args[0]["end"]
-    section.save()
-
-
-def update_section_from_jellyfin(section_id, start_or_end, video, reactive_sections):
-    logger.error("deprecated 10/26/24")
 
 
 @solara.component_vue("../components/section/SectionControlPanel.vue", vuetify=True)
@@ -108,6 +82,69 @@ def SectionControlPanel(
     jellyfin_status,
     event_delete_all_sections,
     event_create_section,
+):
+    pass
+
+
+@solara.component_vue("../components/video/SectionSelector.vue", vuetify=True)
+def SectionSelector(
+    sectionItems,
+    video_duration,
+    event_add_item,
+    event_remove_item,
+    event_delete_section,
+    event_update_times,
+    event_update_section_from_jellyfin,
+    event_create_section_from_jellyfin,
+    event_create_track,
+    event_remove_track,
+    event_refresh_panel,
+    event_create_audio_file,
+    event_delete_audio_file,
+    event_create_lyrics_file,
+    event_delete_lyrics_file,
+):
+    pass
+
+
+@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
+def FileTypeCheckboxes(
+    db_files,
+    folder_files,
+    has_audio: bool = False,
+    has_video: bool = False,
+    has_subtitle: bool = False,
+    has_info: bool = False,
+    has_poster: bool = False,
+    has_album_nfo: bool = False,
+    event_download_video: callable = None,
+    event_download_info: callable = None,
+    event_create_album_nfo: callable = None,
+):
+    pass
+
+
+@solara.component_vue("../components/video/VideoInfoInputCard.vue")
+def VideoInfoInputCard(
+    albums,
+    serieses,
+    youtube_serieses,
+    selectedAlbum,
+    selectedSeries,
+    selectedYoutubeSeries,
+    episode_number,
+    event_create,
+    event_update,
+    event_remove,
+):
+    pass
+
+
+@solara.component_vue("../components/video/JellyfinControlPanel.vue")
+def JellyfinControlPanel(
+    enable_live_updating,
+    jellyfin_status,
+    event_update_play_state=None,
 ):
     pass
 
@@ -130,14 +167,28 @@ def LowerSectionsPanel(video, reactive_sections):
 
     def delete_section(*args, **kwargs):
         logger.debug(f"Deleting Section: {args}")
-        delete_section_from_db(args[0]["section_id"])
+        SectionItem.delete_id(args[0]["section_id"])
         reactive_sections.set(
             [s for s in reactive_sections.value if s.id != args[0]["section_id"]]
         )
         reload.set(True)
 
+    def update_section_times(*args):
+        logger.debug(f"Updating Section Times: {args}")
+        try:
+            section = SectionModel.get_by_id(args[0]["item_id"])
+        except Exception as e:
+            logger.error(e)
+            return
+        if "start" in args[0].keys():
+            section.start = args[0]["start"]
+        if "end" in args[0].keys():
+            section.end = args[0]["end"]
+        section.save()
+        reload.set(True)
+
     def create_track(*args):
-        track = TrackItem.create(track_data=args[0], album_id=video.album_id)
+        TrackItem.create(track_data=args[0], album_id=video.album_id)
         refresh_sections()
         reload.set(True)
 
@@ -263,102 +314,8 @@ def LowerSectionsPanel(video, reactive_sections):
         reload.set(False)
 
 
-@solara.component_vue("../components/video/SectionSelector.vue", vuetify=True)
-def SectionSelector(
-    sectionItems,
-    video_duration,
-    event_add_item,
-    event_remove_item,
-    event_delete_section,
-    event_update_times,
-    event_update_section_from_jellyfin,
-    event_create_section_from_jellyfin,
-    event_create_track,
-    event_remove_track,
-    event_refresh_panel,
-    event_create_audio_file,
-    event_delete_audio_file,
-    event_create_lyrics_file,
-    event_delete_lyrics_file,
-):
-    pass
-
-
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 # Video - File controls
-
-
-def get_video_files(video_id, youtube_id):
-    db_files = (
-        FileModel.select()
-        .where(FileModel.video_id == video_id)
-        .order_by(FileModel.filename)
-    )
-    if len(db_files) == 0:
-        logger.error(f"No files found for video {video_id}")
-        if youtube_id is None:
-            logger.error("No youtube id found")
-            return [], []
-        folder_to_search = STORAGE / youtube_id
-    else:
-        folder_to_search = Path(db_files[0].path)
-
-    folder_files = [x for x in list(folder_to_search.rglob("*")) if x.is_file()]
-    if folder_files != []:
-        folder_files = sorted(folder_files, key=lambda x: x.name)
-    return db_files, folder_files
-
-
-def remove_existing_files(video_id, youtube_id, file_types):
-    db_files, _ = get_video_files(video_id, youtube_id)
-    existing_vid_files = [x for x in db_files if (x.file_type in file_types)]
-    for vid_file in existing_vid_files:
-        # the below will delete files found in the database from the filesystem
-        try:
-            vid_file.delete_instance()
-            file_to_delete = Path(vid_file.path) / vid_file.filename
-            file_to_delete.unlink()
-
-        except Exception as e:
-            logger.error(f"Error deleting file {e}")
-
-    # the below will delete files found in the video's folder
-    # regardless if they are in the db or not
-
-    extensions = []
-    if "video" in file_types:
-        extensions += [".mp4", ".mkv", ".avi", ".mov", ".flv", ".wmv", ".webm"]
-    if "audio" in file_types:
-        extensions += [".mp3", ".m4a", ".flac", ".wav", ".ogg"]
-    if "info" in file_types:
-        extensions += [".info.json", ".json"]
-    if "subtitle" in file_types:
-        extensions += [".srt", ".en.vtt"]
-    if "poster" in file_types:
-        extensions += [".jpg", ".jpeg", ".png", ".webp"]
-
-    _, folder_files = get_video_files(video_id, youtube_id)
-    for file in folder_files:
-        if file.suffix in extensions:
-            logger.debug(f"Found video file: {file}. Deleting")
-            file.unlink()
-
-
-@solara.component_vue("../components/file/file_type_checkboxes.vue", vuetify=True)
-def FileTypeCheckboxes(
-    db_files,
-    folder_files,
-    has_audio: bool = False,
-    has_video: bool = False,
-    has_subtitle: bool = False,
-    has_info: bool = False,
-    has_poster: bool = False,
-    has_album_nfo: bool = False,
-    event_download_video: callable = None,
-    event_download_info: callable = None,
-    event_create_album_nfo: callable = None,
-):
-    pass
 
 
 @solara.component
@@ -369,17 +326,19 @@ def FilesPanel(video):
 
     def download_info(*args):
         loading.set(True)
-        remove_existing_files(
+        FileManager.remove_existing_files(
             video.id, video.youtube_id, ["info", "subtitle", "poster"]
         )
         VideoItem.refresh_youtube_info(video.id)
-        create_album_nfo()
+        VideoItem.create_album_nfo(video)
         loading.set(False)
 
     def download_video(*args):
         loading.set(True)
         logger.info(f"Downloading video: {video.title}")
-        remove_existing_files(video.id, video.youtube_id, ["video", "audio"])
+        FileManager.remove_existing_files(
+            video.id, video.youtube_id, ["video", "audio"]
+        )
         info, files = download_video_file(video.youtube_id, WORKING, progress_hook=None)
 
         vid = VideoModel.select().where(VideoModel.id == video.id).get()
@@ -390,17 +349,7 @@ def FilesPanel(video):
             # but, i need to make sure that the video is in jellyfin first
         loading.set(False)
 
-    def create_album_nfo(*args):
-        # need to check if file exists and remove it
-        # and if its alread in the db, remove it
-        loading.set(True)
-        remove_existing_files(video.id, video.youtube_id, ["album_nfo"])
-
-        new_file = VideoItem.create_xml_for_jellyfin(video.id)
-        FileManager.add_path_to_video(new_file, video)
-        loading.set(False)
-
-    db_files, folder_files = get_video_files(video.id, video.youtube_id)
+    db_files, folder_files = FileManager.get_video_files(video.id, video.youtube_id)
     ff_serialized = [dict(name=x.name) for x in folder_files]
     file_types_found = [x.file_type for x in files]
     if loading.value:
@@ -419,7 +368,7 @@ def FilesPanel(video):
             has_poster="poster" in file_types_found,
             has_album_nfo="album_nfo" in file_types_found,
             event_download_video=download_video,
-            event_create_album_nfo=create_album_nfo,
+            event_create_album_nfo=lambda x: VideoItem.create_album_nfo(video),
             event_download_info=download_info,
         )
 
@@ -490,22 +439,6 @@ def VideoInfoPanelLeft(video):
                     ),
                     on_click=auto_create_tracks,
                 )
-
-
-@solara.component_vue("../components/video/VideoInfoInputCard.vue")
-def VideoInfoInputCard(
-    albums,
-    serieses,
-    youtube_serieses,
-    selectedAlbum,
-    selectedSeries,
-    selectedYoutubeSeries,
-    episode_number,
-    event_create,
-    event_update,
-    event_remove,
-):
-    pass
 
 
 @solara.component
@@ -619,17 +552,9 @@ def InfoPanel(
                     vid_db.album = None
 
                 case "series":
-                    other_videos = VideoModel.select().where(
-                        (VideoModel.series_id == vid_db.series.id)
-                        & (VideoModel.id != video.id)
-                    )
                     vid_db.series = None
-                    if len(other_videos) == 0:
-                        logger.error(
-                            f"Series {vid_db.series.name} not in use. Deleting"
-                        )
-                        vid_db.series.delete_instance()
-
+                    vid_db.save()
+                    SeriesItem.delete_if_unused(item["id"])
                 case "youtube_series":
                     other_videos = VideoModel.select().where(
                         (VideoModel.youtube_series_id == vid_db.youtube_series.id)
@@ -702,15 +627,6 @@ def InfoPanel(
 # Jellyfin
 
 
-@solara.component_vue("../components/video/JellyfinControlPanel.vue")
-def JellyfinControlPanel(
-    enable_live_updating,
-    jellyfin_status,
-    event_update_play_state=None,
-):
-    pass
-
-
 @solara.component
 def JFPanel(
     video,
@@ -741,7 +657,7 @@ def UpperSectionPanel(video, reactive_sections):
 
         for section in reactive_sections.value:
             logger.debug(f"Deleting Section: {section}")
-            delete_section_from_db(section.id)
+            SectionItem.delete_id(section.id)
 
         reactive_sections.set([])
 
@@ -764,18 +680,28 @@ def UpperSectionPanel(video, reactive_sections):
 
 
 @solara.component
+def NoSectionsPanel(video):
+    with solara.Card(title="No Sections"):
+        if video.album_id is not None:
+            solara.Markdown(f"Album: {video.album_id}")
+        else:
+            solara.Markdown(f"## Please Create an album before adding sections")
+
+
+@solara.component
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    reload = solara.use_reactive(False)
+
     register_vue_components(file=__file__)
+
     video_id = parse_url_args()
     if video_id is None or video_id == 0:
         with solara.Error():
             solara.Markdown(f"No Video Found {video_id}")
         return
-    vid = VideoModel.get_by_id(video_id)
-    video = VideoItem.from_model(vid)
+
+    video = VideoItem.from_model(VideoModel.get_by_id(video_id))
     sections = SectionModel.select().where(SectionModel.video_id == video.id)
     reactive_sections = solara.use_reactive(
         [SectionItem.from_model(s) for s in sections]
@@ -784,35 +710,31 @@ def Page():
         with solara.Card():
             with solara.Row():
                 # VideoInfoInputCard.vue
-                # Contains Album, Series, and YT Series 'dialog buttons'
+                # Buttons 1, 2, 3
                 InfoPanel(
                     video=video,
                 )
+                # Button 4
                 FilesPanel(
                     video=video,
                 )
+                # Button 5
                 UpperSectionPanel(
                     video=video,
                     reactive_sections=reactive_sections,
                 )
+                # Button 6 (jellyfin icon)
                 JFPanel(
                     video=video,
                 )
 
             with solara.Column():
-
-                # solara component
                 VideoInfoPanelLeft(video=video)
 
             if len(reactive_sections.value) == 0:
-                with solara.Card(title="No Sections"):
-                    solara.Markdown("No Sections Found")
-                    if video.album_id is not None:
-                        solara.Markdown(f"Album: {video.album_id}")
-                    else:
-                        solara.Markdown(
-                            f"Please Create an album before adding sections"
-                        )
+                NoSectionsPanel(
+                    video=video,
+                )
             else:
                 LowerSectionsPanel(
                     video=video,
