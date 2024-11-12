@@ -302,6 +302,15 @@ class Album(BaseModel):
     def __str__(self):
         return f"Album({self.id} - {self.title=})"
 
+    def simple_dict(self):
+        return {"id": self.id, "title": self.title}
+
+    @staticmethod
+    def new_track_number(album_id):
+        return (
+            Track.select(fn.Count(Track.id)).where(Track.album_id == album_id).scalar()
+        ) + 1
+
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):

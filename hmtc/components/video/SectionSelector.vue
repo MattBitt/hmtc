@@ -35,7 +35,7 @@
               </v-col>
               <v-col cols="2">
                 <v-row>
-                  <span v-if="section.track == null">
+                  <span v-if="section.track.title == 'No Track'">
                     <v-chip color="warning"
                       ><v-icon>mdi-close</v-icon> Track</v-chip
                     >
@@ -70,7 +70,7 @@
               ></SummaryPanel>
             </v-col>
             <v-col cols="6">
-              <div v-if="section.track == null">
+              <div v-if="section.track.title == 'No Track'">
                 <SectionTrackForm
                   :section="section"
                   @saveTrack="createTrack2"

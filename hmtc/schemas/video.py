@@ -13,8 +13,6 @@ from hmtc.models import (
 )
 from hmtc.models import (
     Channel,
-    File,
-    Playlist,
     Series,
     YoutubeSeries,
 )
@@ -26,8 +24,8 @@ from hmtc.models import (
 )
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.channel import Channel as ChannelItem
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.section import SectionManager
+from hmtc.schemas.file import FileManager, File as FileItem
+from hmtc.schemas.section import SectionManager, Section as SectionItem
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.jellyfin_functions import refresh_library
@@ -61,24 +59,25 @@ class VideoItem(BaseItem):
     file_count: int = 0
     section_count: int = 0
     track_count: int = 0
-    album: AlbumModel = None
     channel_id: int = 0
     playlist_id: int = 0
     youtube_series_id: int = 0
     series_id: int = 0
     album_id: int = 0
+    album: AlbumModel = None
     section_ids: list = field(default_factory=list)
+    sections: list = field(default_factory=list)
     files: list = field(default_factory=list)
 
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
-        num_files = (
-            File.select(fn.Count(File.id)).where((File.video_id == video.id)).scalar()
-        )
-        num_sections = (
-            SectionModel.select(fn.Count(SectionModel.id))
-            .where((SectionModel.video_id == video.id))
-            .scalar()
+        files = [
+            FileItem.from_model(x)
+            for x in FileModel.select().where((FileModel.video_id == video.id))
+        ]
+
+        sections = SectionModel.select(fn.Count(SectionModel.id)).where(
+            (SectionModel.video_id == video.id)
         )
         num_tracks = (
             TrackModel.select(fn.Count(TrackModel.id))
@@ -101,8 +100,8 @@ class VideoItem(BaseItem):
             has_chapters=video.has_chapters,
             manually_edited=video.manually_edited,
             jellyfin_id=video.jellyfin_id,
-            file_count=num_files,
-            section_count=num_sections,
+            file_count=len(files),
+            section_count=len(sections),
             track_count=num_tracks,
             album=video.album,
             album_id=video.album_id,
@@ -110,10 +109,11 @@ class VideoItem(BaseItem):
             youtube_series_id=video.youtube_series_id,
             playlist_id=video.playlist_id,
             series_id=video.series_id,
+            files=[FileItem.from_model(f) for f in video.files],
+            sections=[SectionItem.from_model(s) for s in video.sections],
         )
 
     def serialize(self) -> dict:
-        # logger.debug(f"Serializing videoitemid = {self.id}")
         sections = SectionModel.select(SectionModel.start, SectionModel.end).where(
             SectionModel.video_id == self.id
         )
@@ -145,8 +145,10 @@ class VideoItem(BaseItem):
             "playlist_id": self.playlist_id,
             "youtube_series_id": self.youtube_series_id,
             "series_id": self.series_id,
-            "album_id": self.album_id,
             "section_ids": self.section_ids,
+            "album": self.album.simple_dict() if self.album else {},
+            "files": [file.serialize() for file in self.files],
+            "sections": [section.serialize() for section in self.sections],
         }
 
     @staticmethod

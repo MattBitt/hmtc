@@ -42,13 +42,22 @@ class Track(BaseItem):
     files: list = field(default_factory=list)
 
     @staticmethod
-    def from_model(track: TrackModel) -> "Track":
-        if track.section is None:
-            logger.debug(f"Track {track} has no section")
-            section = None
-        else:
-            section = SectionItem.from_model(track.section.get())
+    def create(track_data, album_id) -> "Track":
+        track_number = AlbumModel.new_track_number(album_id)
+        track = TrackModel(
+            title=track_data["title"],
+            track_number=track_number,
+            length=track_data["length"],
+            album_id=album_id,
+        )
+        track.save()
+        section = SectionModel.get_by_id(track_data["section_id"])
+        section.track = track
+        section.save()
+        return Track.from_model(track)
 
+    @staticmethod
+    def from_model(track: TrackModel) -> "Track":
         return Track(
             id=track.id,
             title=track.title,

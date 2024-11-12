@@ -30,6 +30,7 @@ class Album(BaseItem):
     tracks: list = field(default_factory=list)
     video_ids: list = field(default_factory=list)
     videos: list = field(default_factory=list)
+    files: list = field(default_factory=list)
 
     def create_album(self):
         # i should create the folder here
@@ -55,6 +56,7 @@ class Album(BaseItem):
             tracks=[TrackItem.from_model(x) for x in album.tracks],
             video_ids=[video.id for video in album.videos] if album.videos else [],
             videos=[VideoItem.from_model(video) for video in album.videos],
+            files=[FileItem.from_model(f) for f in album.files],
         )
 
     def serialize(self) -> dict:

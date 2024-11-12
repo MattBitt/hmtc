@@ -58,7 +58,6 @@ AVERAGE_SECTION_LENGTH = 180
 IMG_WIDTH = "300px"
 
 loading = solara.reactive(False)
-reactive_sections = solara.reactive([])
 
 
 def parse_url_args():
@@ -74,21 +73,6 @@ def parse_url_args():
 
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 # Section - Admin Panel
-
-
-def delete_all_sections(*args):
-    for section in reactive_sections.value:
-        logger.debug(f"Deleting Section: {section}")
-        delete_section_from_db(section.id)
-
-    reactive_sections.set([])
-
-
-def create_section(video, start, end, section_type="instrumental"):
-    sm = SectionManager.from_video(video)
-    new_sect_id = sm.create_section(start=start, end=end, section_type="instrumental")
-    new_sect = SectionModel.get_by_id(new_sect_id)
-    reactive_sections.set(reactive_sections.value + [new_sect])
 
 
 def delete_section_from_db(section_id):
@@ -129,17 +113,15 @@ def SectionControlPanel(
 
 
 @solara.component
-def SectionsPanel(
-    video,
-    update_section_from_jellyfin,
-):
+def LowerSectionsPanel(video, reactive_sections):
     reload = solara.use_reactive(False)
 
     section_dicts = solara.use_reactive(
         [SectionItem.from_model(s).serialize() for s in reactive_sections.value]
     )
 
-    #############################
+    def refresh_sections():
+        reactive_sections.set([s.serialize() for s in reactive_sections.value])
 
     def delete_section(*args, **kwargs):
         logger.debug(f"Deleting Section: {args}")
@@ -149,58 +131,14 @@ def SectionsPanel(
         )
         reload.set(True)
 
-    def create_section_at_jellyfin_position(*args):
-
-        jf = MyJellyfinClient()
-        jf.connect()
-        status = jf.get_playing_status_from_jellyfin()
-        try:
-            pos = status["position"]
-
-        except Exception as e:
-            logger.error(f"Error getting position from Jellyfin: {e}")
-            return
-
-        try:
-            start_or_end = args[0]["start_or_end"]
-        except Exception as e:
-            logger.error(e)
-            return
-
-        sm = SectionManager.from_video(video)
-        if start_or_end == "start":
-            new_start = pos
-            new_end = (
-                (pos + AVERAGE_SECTION_LENGTH)
-                if (pos + AVERAGE_SECTION_LENGTH) < video.duration
-                else video.duration
-            )
-        else:
-            new_start = pos - AVERAGE_SECTION_LENGTH
-            new_end = pos
-
-        new_sect_id = sm.create_section(
-            start=new_start,
-            end=new_end,
-            section_type="instrumental",  # this is probably wrong
+    def create_track(*args):
+        track = TrackItem.create(track_data=args[0], album_id=video.album_id)
+        reactive_sections.set(
+            [
+                SectionItem.from_model(s).serialize()
+                for s in SectionModel.select().where(SectionModel.video_id == video.id)
+            ]
         )
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
-        reload.set(True)
-
-    def create_track(args):
-        try:
-            album = AlbumModel.get_by_id(video.album_id)
-        except Exception as e:
-            logger.error(e)
-            return
-        album_item = AlbumItem.from_model(album)
-        section_id = args.pop("section_id")
-        section = SectionModel.get_by_id(section_id)
-
-        track = album_item.create_track(**args)
-        section.track = track
-        section.save()
         reload.set(True)
 
     def remove_track(section_id):
@@ -212,6 +150,12 @@ def SectionsPanel(
             logger.error(e)
             logger.error(f"Track not found for section {section_id}")
             return
+        reactive_sections.set(
+            [
+                SectionItem.from_model(s).serialize()
+                for s in SectionModel.select().where(SectionModel.video_id == video.id)
+            ]
+        )
         reload.set(True)
 
     def add_topic(*args):
@@ -311,8 +255,6 @@ def SectionsPanel(
                 event_remove_item=remove_topic,
                 event_delete_section=delete_section,
                 event_update_times=update_section_times,
-                event_update_section_from_jellyfin=update_section_from_jellyfin,
-                event_create_section_from_jellyfin=create_section_at_jellyfin_position,
                 event_create_track=create_track,
                 event_remove_track=remove_track,
                 event_refresh_panel=lambda x: reload.set(True),
@@ -507,10 +449,6 @@ def VideoInfoPanelLeft(video):
         (x.end - x.start) / 1000 for x in sections
     ]  # list of sections in seconds
     section_percentage = sum(section_durations) / video.duration * 100
-    logger.error("Need to fix this 🧬🧬🧬🧬🧬. ")
-    logger.error("11/5/24 Video details in produciton is showing 5 tracks created")
-    logger.error("but i just deleted them. the tracks are shown correctly ")
-    logger.error("as non-existing in the SectionSelector component")
     tracks_created = len([x for x in sections if x.track_id is not None])
 
     def auto_create_tracks(*args):
@@ -754,19 +692,19 @@ def InfoPanel(
         this_series = [x for x in series_dicts if x["id"] == video.series_id][0]
     except IndexError:
         this_series = None
-    if force_update_counter.value >= 0:
-        VideoInfoInputCard(
-            albums=album_dicts,
-            youtube_serieses=youtube_series_dicts,
-            serieses=series_dicts,
-            selectedAlbum=this_album,
-            selectedYoutubeSeries=this_youtube_series,
-            selectedSeries=this_series,
-            episode_number=video.episode,
-            event_create=create,
-            event_update=update,
-            event_remove=remove,
-        ),
+
+    VideoInfoInputCard(
+        albums=album_dicts,
+        youtube_serieses=youtube_series_dicts,
+        serieses=series_dicts,
+        selectedAlbum=this_album,
+        selectedYoutubeSeries=this_youtube_series,
+        selectedSeries=this_series,
+        episode_number=video.episode,
+        event_create=create,
+        event_update=update,
+        event_remove=remove,
+    ),
 
 
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -803,12 +741,43 @@ def JFPanel(
 
 
 @solara.component
+def UpperSectionPanel(video, reactive_sections):
+    jellyfin_status_dict = solara.use_reactive(get_user_session())
+
+    def delete_all_sections(*args):
+        if len(reactive_sections.value) == 0:
+            return
+
+        for section in reactive_sections.value:
+            logger.debug(f"Deleting Section: {section}")
+            delete_section_from_db(section.id)
+
+        reactive_sections.set([])
+
+    def create_section(video, start, end, section_type="instrumental"):
+        sm = SectionManager.from_video(video)
+        new_sect_id = sm.create_section(start=start, end=end, section_type=section_type)
+        new_sect = SectionModel.get_by_id(new_sect_id)
+        reactive_sections.set(reactive_sections.value + [new_sect])
+
+    def local_create(*args):
+        logger.debug(f"Creating Section: {args}")
+        create_section(video, args[0]["start"], args[0]["end"])
+
+    SectionControlPanel(
+        video=video.serialize(),
+        jellyfin_status=jellyfin_status_dict.value,
+        event_create_section=local_create,
+        event_delete_all_sections=delete_all_sections,
+    )
+
+
+@solara.component
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-
+    reload = solara.use_reactive(False)
     register_vue_components(file=__file__)
-
     video_id = parse_url_args()
     if video_id is None or video_id == 0:
         with solara.Error():
@@ -816,15 +785,10 @@ def Page():
         return
     vid = VideoModel.get_by_id(video_id)
     video = VideoItem.from_model(vid)
-    reactive_sections.set(
-        SectionModel.select().where(SectionModel.video_id == video.id)
+    sections = SectionModel.select().where(SectionModel.video_id == video.id)
+    reactive_sections = solara.use_reactive(
+        [SectionItem.from_model(s) for s in sections]
     )
-    jellyfin_status_dict = solara.use_reactive(get_user_session())
-
-    def local_create(*args):
-        logger.debug(f"Creating Section: {args}")
-        create_section(video, args[0]["start"], args[0]["end"])
-
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Row():
@@ -833,20 +797,13 @@ def Page():
                 InfoPanel(
                     video=video,
                 )
-                # python component - shows full screen file edit dialog
                 FilesPanel(
                     video=video,
                 )
-                # vue component - shows full screen Sections
-                # Control Panel dialog
-                SectionControlPanel(
-                    video=video.serialize(),
-                    jellyfin_status=jellyfin_status_dict.value,
-                    event_create_section=local_create,
-                    event_delete_all_sections=delete_all_sections,
+                UpperSectionPanel(
+                    video=video,
+                    reactive_sections=reactive_sections,
                 )
-
-                # # video_details_jf_bar.vue
                 JFPanel(
                     video=video,
                 )
@@ -857,13 +814,16 @@ def Page():
                 VideoInfoPanelLeft(video=video)
 
             if len(reactive_sections.value) == 0:
-                solara.Markdown("No Sections Found")
-                if video.album_id is not None:
-                    solara.Markdown(f"Album: {video.album_id}")
-                else:
-                    solara.Markdown(f"Please Create an album before adding sections")
+                with solara.Card(title="No Sections"):
+                    solara.Markdown("No Sections Found")
+                    if video.album_id is not None:
+                        solara.Markdown(f"Album: {video.album_id}")
+                    else:
+                        solara.Markdown(
+                            f"Please Create an album before adding sections"
+                        )
             else:
-                SectionsPanel(
+                LowerSectionsPanel(
                     video=video,
-                    update_section_from_jellyfin=None,
+                    reactive_sections=reactive_sections,
                 )
