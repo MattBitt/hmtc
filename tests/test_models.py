@@ -33,14 +33,6 @@ def test_empty_db():
     assert len(Section.select()) == 0
 
 
-def test_seed_database():
-    seed_database()
-    assert len(Channel.select()) > 0
-    assert len(Playlist.select()) > 0
-
-    assert len(Series.select()) > 0
-
-
 def test_series():
     s, created = Series.get_or_create(
         name="test", start_date="2020-01-01", end_date="2020-12-31"

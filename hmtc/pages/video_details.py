@@ -121,7 +121,12 @@ def LowerSectionsPanel(video, reactive_sections):
     )
 
     def refresh_sections():
-        reactive_sections.set([s.serialize() for s in reactive_sections.value])
+        reactive_sections.set(
+            [
+                SectionItem.from_model(s).serialize()
+                for s in SectionModel.select().where(SectionModel.video_id == video.id)
+            ]
+        )
 
     def delete_section(*args, **kwargs):
         logger.debug(f"Deleting Section: {args}")
@@ -133,12 +138,7 @@ def LowerSectionsPanel(video, reactive_sections):
 
     def create_track(*args):
         track = TrackItem.create(track_data=args[0], album_id=video.album_id)
-        reactive_sections.set(
-            [
-                SectionItem.from_model(s).serialize()
-                for s in SectionModel.select().where(SectionModel.video_id == video.id)
-            ]
-        )
+        refresh_sections()
         reload.set(True)
 
     def remove_track(section_id):
@@ -150,12 +150,7 @@ def LowerSectionsPanel(video, reactive_sections):
             logger.error(e)
             logger.error(f"Track not found for section {section_id}")
             return
-        reactive_sections.set(
-            [
-                SectionItem.from_model(s).serialize()
-                for s in SectionModel.select().where(SectionModel.video_id == video.id)
-            ]
-        )
+        refresh_sections()
         reload.set(True)
 
     def add_topic(*args):
@@ -266,10 +261,6 @@ def LowerSectionsPanel(video, reactive_sections):
     else:
         solara.Markdown(f"## Reloading Panel")
         reload.set(False)
-
-
-# started refactor on 10/25/2024
-# components below have been looked at and are working
 
 
 @solara.component_vue("../components/video/SectionSelector.vue", vuetify=True)

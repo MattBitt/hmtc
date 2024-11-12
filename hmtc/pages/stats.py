@@ -60,6 +60,11 @@ def Page():
     tracks_sections_string = (
         f"""## {total_sections} Sections Created\n## {total_tracks} Tracks Created"""
     )
+    vids_missing_jellyfin_id = vids.where(VideoModel.jellyfin_id.is_null(True))
+    num_tracks = TrackModel.select(fn.COUNT(TrackModel.id)).scalar()
+    tracks_missing_jellyfin_id = TrackModel.select().where(
+        TrackModel.jellyfin_id.is_null(True)
+    )
     with solara.ColumnsResponsive():
         with solara.Card():
             with solara.Info():
@@ -119,3 +124,13 @@ def Page():
                         solara.Markdown(
                             "### All videos with missing tracks have an album assigned!"
                         )
+    with solara.Card():
+        with solara.Info():
+            with solara.Link(f"/videos/no-jellyfin"):
+                solara.Markdown(
+                    f"### {len(vids_missing_jellyfin_id)}/{len(vids)} videos have no jellyfin id"
+                )
+            with solara.Link(f"/tracks/no-jellyfin"):
+                solara.Markdown(
+                    f"### {len(tracks_missing_jellyfin_id)}/{num_tracks} tracks have no jellyfin id"
+                )
