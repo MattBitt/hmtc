@@ -6,7 +6,7 @@ import solara.lab
 from loguru import logger
 
 # program version
-VERSION = "0.0.31"
+VERSION = "0.0.32"
 
 
 @solara.component_vue("./sidebar.vue")
@@ -34,7 +34,7 @@ def MySidebar(
         solara.Button(
             icon_name="mdi-home", on_click=lambda: router.push("/"), icon=True
         )
-        if True:  # logged_id
+        if True:  # logged_out
             solara.Button(
                 icon_name="mdi-login", on_click=lambda: router.push("/login"), icon=True
             )

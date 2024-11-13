@@ -183,6 +183,7 @@ module.exports = {
         title: this.itemModel?.title,
       };
       this.$emit("removeAlbum", args);
+      this.albumInfo = {};
       this.close();
     },
     saveItemToDB(item) {

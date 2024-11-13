@@ -38,3 +38,11 @@ class YoutubeSeries(BaseItem):
     def delete_id(series_id) -> None:
         series = YoutubeSeriesModel.get_by_id(series_id)
         series.delete_instance()
+
+    @staticmethod
+    def delete_if_unused(youtube_series_id):
+        youtube_series = YoutubeSeriesModel.get_by_id(youtube_series_id)
+        if youtube_series.videos.count() == 0:
+            youtube_series.delete_instance()
+        else:
+            logger.error(f"Series {youtube_series.title} has videos, cannot delete")

@@ -41,6 +41,7 @@ from hmtc.schemas.section import SectionManager
 from hmtc.schemas.series import Series as SeriesItem
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
+from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_user_favorites,
@@ -540,33 +541,18 @@ def InfoPanel(
         try:
             match _type:
                 case "album":
-                    other_videos = VideoModel.select().where(
-                        (VideoModel.album_id == vid_db.album_id)
-                        & (VideoModel.id != video.id)
-                    )
-
-                    if len(other_videos) == 0:
-                        logger.error(f"Album {vid_db.album_id} not in use. Deleting")
-                        vid_db.album.delete_instance()
-
                     vid_db.album = None
+                    vid_db.save()
+                    AlbumItem.delete_if_unused(item["id"])
 
                 case "series":
                     vid_db.series = None
                     vid_db.save()
                     SeriesItem.delete_if_unused(item["id"])
                 case "youtube_series":
-                    other_videos = VideoModel.select().where(
-                        (VideoModel.youtube_series_id == vid_db.youtube_series.id)
-                        & (VideoModel.id != video.id)
-                    )
                     vid_db.youtube_series = None
-                    if len(other_videos) == 0:
-                        logger.error(
-                            f"Series {vid_db.youtube_series.title} not in use. Deleting"
-                        )
-                        vid_db.youtube_series.delete_instance()
-
+                    vid_db.save()
+                    YoutubeSeriesItem.delete_if_unused(item["id"])
                 case _:
                     logger.error(f"Type {_type} not found")
                     return
@@ -689,6 +675,29 @@ def NoSectionsPanel(video):
 
 
 @solara.component
+def TopRow(video, reactive_sections):
+    # VideoInfoInputCard.vue
+    # Buttons 1, 2, 3
+    with solara.Row(justify="center"):
+        InfoPanel(
+            video=video,
+        )
+        # Button 4
+        FilesPanel(
+            video=video,
+        )
+        # Button 5
+        UpperSectionPanel(
+            video=video,
+            reactive_sections=reactive_sections,
+        )
+        # Button 6 (jellyfin icon)
+        JFPanel(
+            video=video,
+        )
+
+
+@solara.component
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
@@ -707,36 +716,21 @@ def Page():
         [SectionItem.from_model(s) for s in sections]
     )
     with solara.Column(classes=["main-container"]):
-        with solara.Card():
-            with solara.Row():
-                # VideoInfoInputCard.vue
-                # Buttons 1, 2, 3
-                InfoPanel(
-                    video=video,
-                )
-                # Button 4
-                FilesPanel(
-                    video=video,
-                )
-                # Button 5
-                UpperSectionPanel(
-                    video=video,
-                    reactive_sections=reactive_sections,
-                )
-                # Button 6 (jellyfin icon)
-                JFPanel(
-                    video=video,
-                )
 
-            with solara.Column():
-                VideoInfoPanelLeft(video=video)
+        TopRow(
+            video=video,
+            reactive_sections=reactive_sections,
+        )
 
-            if len(reactive_sections.value) == 0:
-                NoSectionsPanel(
-                    video=video,
-                )
-            else:
-                LowerSectionsPanel(
-                    video=video,
-                    reactive_sections=reactive_sections,
-                )
+        with solara.Row():
+            VideoInfoPanelLeft(video=video)
+
+        if len(reactive_sections.value) == 0:
+            NoSectionsPanel(
+                video=video,
+            )
+        else:
+            LowerSectionsPanel(
+                video=video,
+                reactive_sections=reactive_sections,
+            )

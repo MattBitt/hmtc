@@ -192,26 +192,12 @@ class Album(BaseItem):
         return Album.from_model(album)
 
     @staticmethod
-    def delete_album(item):
-        logger.debug(f"Deleting Item received from Vue: {item}")
-
-        album = AlbumModel.get_by_id(item["id"])
-        tracks = TrackModel.select().where(TrackModel.album_id == album.id)
-        for track in tracks:
-            section = (
-                SectionModel.select().where(SectionModel.track_id == track.id).get()
-            )
-            section.track_id = None
-            section.save()
-            FileManager.delete_track_file(track, "audio")
-            FileManager.delete_track_file(track, "lyrics")
-            track.delete_instance()
-        vids = VideoModel.select().where(VideoModel.album_id == album.id)
-        for vid in vids:
-            vid.album_id = None
-            vid.save()
-        FileManager.delete_album_file(album, "poster")
-        album.delete_instance()
+    def delete_if_unused(album_id):
+        album = AlbumModel.get_by_id(album_id)
+        if album.videos.count() == 0 and album.tracks.count() == 0:
+            album.delete_instance()
+        else:
+            logger.error(f"Album {album.title} has videos or tracks, cannot delete")
 
     @staticmethod
     def save_album(dict_of_items):

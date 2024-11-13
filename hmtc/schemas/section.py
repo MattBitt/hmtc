@@ -19,8 +19,8 @@ from hmtc.models import (
     Track as TrackModel,
 )
 from hmtc.schemas.base import BaseItem
-from hmtc.schemas.topic import Topic as TopicItem
 from hmtc.schemas.file import FileManager
+from hmtc.schemas.topic import Topic as TopicItem
 
 
 def create_hms_dict(seconds):
@@ -154,7 +154,7 @@ class SectionManager:
         "advert",
     ]
     duration: int  # this is in seconds, the section start and end are in milliseconds
-    video_id: int = 1  # probably shouldn't be a default
+    video_id: int = 0  # probably shouldn't be a default
     _sections: Section = field(init=False, default_factory=list)
     section_types: Optional[List[str]] = field(default_factory=list)
 
