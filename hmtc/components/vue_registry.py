@@ -33,7 +33,7 @@ def register_vue_components(file):
 
     ipyvue.register_component_from_file(
         "VideoFilesDialog",
-        "../components/file/file_type_checkboxes.vue",
+        "../components/video/file_type_checkboxes.vue",
         file,
     )
 
