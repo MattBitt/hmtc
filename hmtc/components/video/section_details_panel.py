@@ -47,7 +47,6 @@ from hmtc.utils.jellyfin_functions import (
     get_user_favorites,
     get_user_session,
 )
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
 
@@ -74,7 +73,7 @@ def SectionSelector(
 
 
 @solara.component
-def LowerSectionsPanel(video, reactive_sections):
+def SectionsDetailsPanel(video, reactive_sections):
     reload = solara.use_reactive(False)
 
     section_dicts = solara.use_reactive(

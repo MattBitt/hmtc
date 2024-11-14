@@ -28,102 +28,93 @@
           </v-toolbar-items>
         </v-toolbar>
 
-        <v-card>
-          <v-row>
-            <v-col cols="6">
-              <div v-if="hasAlbum">
-                <h4>Current:</h4>
-                <strong>{{ albumInfo?.title }}</strong>
+        <v-list three-line subheader>
+          <v-subheader>Choose or create an Album for this video</v-subheader>
+          <v-list-item v-if="hasAlbum">
+            <v-list-item-content>
+              <v-col cols="12">
+                <p>Current:</p>
+                <p>
+                  <span>
+                    <strong>{{ albumInfo?.title }}</strong>
+                  </span>
+                </p>
                 <v-btn color="warning" icon @click="removeAlbum">
-                  <v-icon>mdi-delete</v-icon>
+                  <v-icon class="">mdi-delete</v-icon>Remove Album
                 </v-btn>
-              </div>
+              </v-col>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-radio-group v-model="radios" @change="resetValidation">
+              <v-radio value="createNew">
+                <template v-slot:label>
+                  <v-card-text>
+                    Create a
+                    <strong class="primary--text">NEW</strong> Album
+                  </v-card-text>
+                </template>
+              </v-radio>
 
-              <v-list three-line subheader>
-                <v-subheader
-                  >Choose or create an Album for this video</v-subheader
-                >
-                <v-list-item>
-                  <v-list-item-content>
-                    <v-radio-group v-model="radios" @change="resetValidation">
-                      <v-radio value="createNew">
-                        <template v-slot:label>
-                          <v-card-text>
-                            Create a
-                            <strong class="primary--text">NEW</strong> Album
-                          </v-card-text>
+              <v-radio value="selectExisting">
+                <template v-slot:label>
+                  <v-card-text>
+                    Choose
+                    <strong class="primary--text">EXISTING</strong>
+                    Album
+                  </v-card-text>
+                </template>
+              </v-radio>
+            </v-radio-group>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-form ref="myform" v-model="valid">
+                <v-list>
+                  <v-list-item v-if="radios === 'createNew'">
+                    <v-list-item-content>
+                      <v-text-field
+                        v-model="albumTitle"
+                        :rules="radios === 'createNew' ? nameRules : []"
+                        :disabled="radios === 'selectExisting'"
+                        label="Album Title"
+                        required
+                      ></v-text-field>
+
+                      <v-text-field
+                        v-model="releaseDate"
+                        :rules="radios === 'createNew' ? releaseDateRules : []"
+                        :disabled="radios === 'selectExisting'"
+                        label="Release Date"
+                      ></v-text-field>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item v-else>
+                    <v-list-item-content>
+                      <v-autocomplete
+                        v-model="itemModel"
+                        label="Album"
+                        :items="items"
+                        item-text="title"
+                        item-value="id"
+                        class="selector"
+                        clearable
+                        :rules="
+                          radios === 'selectExisting' ? itemSelectRules : []
+                        "
+                        :disabled="radios === 'createNew'"
+                        return-object
+                      >
+                        <template v-slot:no-data>
+                          <v-list-item> No Items Found... </v-list-item>
                         </template>
-                      </v-radio>
-
-                      <v-radio value="selectExisting">
-                        <template v-slot:label>
-                          <v-card-text>
-                            Choose
-                            <strong class="primary--text">EXISTING</strong>
-                            Album
-                          </v-card-text>
-                        </template>
-                      </v-radio>
-                    </v-radio-group>
-                  </v-list-item-content>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-content>
-                    <v-form ref="myform" v-model="valid">
-                      <v-list>
-                        <v-list-item v-if="radios === 'createNew'">
-                          <v-list-item-content>
-                            <v-text-field
-                              v-model="albumTitle"
-                              :rules="radios === 'createNew' ? nameRules : []"
-                              :disabled="radios === 'selectExisting'"
-                              label="Album Title"
-                              required
-                            ></v-text-field>
-
-                            <v-text-field
-                              v-model="releaseDate"
-                              :rules="
-                                radios === 'createNew' ? releaseDateRules : []
-                              "
-                              :disabled="radios === 'selectExisting'"
-                              label="Release Date"
-                            ></v-text-field>
-                          </v-list-item-content>
-                        </v-list-item>
-                        <v-list-item v-else>
-                          <v-list-item-content>
-                            <v-autocomplete
-                              v-model="itemModel"
-                              label="Album"
-                              :items="items"
-                              item-text="title"
-                              item-value="id"
-                              class="selector"
-                              clearable
-                              :rules="
-                                radios === 'selectExisting'
-                                  ? itemSelectRules
-                                  : []
-                              "
-                              :disabled="radios === 'createNew'"
-                              return-object
-                            >
-                              <template v-slot:no-data>
-                                <v-list-item> No Items Found... </v-list-item>
-                              </template>
-                            </v-autocomplete>
-                          </v-list-item-content>
-                        </v-list-item>
-                      </v-list>
-                    </v-form>
-                  </v-list-item-content>
-                </v-list-item>
-              </v-list>
-            </v-col>
-            <v-col cols="6">
-              <v-row
-                ><span>Details: </span>
+                      </v-autocomplete>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
+              </v-form>
+              <v-row justify="center">
+                <span>Details: </span>
                 <a :href="'/album-details/' + albumInfo.id">
                   <v-chip v-if="albumInfo.id > 0" color="primary">
                     <v-icon>mdi-album</v-icon>
@@ -133,11 +124,9 @@
                   </v-chip>
                 </a>
               </v-row>
-            </v-col>
-          </v-row>
-        </v-card>
-
-        <v-divider></v-divider>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
       </v-card>
     </v-dialog>
   </v-row>

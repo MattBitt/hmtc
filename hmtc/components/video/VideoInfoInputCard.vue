@@ -3,7 +3,7 @@
     <v-col>
       <AlbumPanel
         :items="albums"
-        :hasAlbum="true"
+        :hasAlbum="albumDict.id != 0"
         :albumInfo="albumDict"
         @createAlbum="createAlbum"
         @selectAlbum="selectAlbum"
@@ -15,7 +15,7 @@
     <v-col>
       <SeriesPanel
         :items="serieses"
-        :hasSeries="true"
+        :hasSeries="seriesDict.id != 0"
         :seriesInfo="seriesDict"
         @createSeries="createSeries"
         @selectSeries="selectSeries"
@@ -27,7 +27,7 @@
     <v-col>
       <YoutubeSeriesPanel
         :items="youtube_serieses"
-        :hasYoutubeSeries="true"
+        :hasYoutubeSeries="youtubeSeriesDict?.id != 0"
         :youtubeseriesInfo="youtubeSeriesDict"
         @createYoutubeSeries="createYoutubeSeries"
         @selectYoutubeSeries="selectYoutubeSeries"

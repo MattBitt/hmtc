@@ -39,7 +39,7 @@ from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import search_for_media
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()

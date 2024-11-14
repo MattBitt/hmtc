@@ -12,6 +12,8 @@ from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_current_user_timestamp,
     get_currently_playing,
+    get_user_playlists,
+    get_playlist_items,
     get_user_favorites,
     get_user_session,
     jf_pause,
@@ -82,7 +84,11 @@ def find_jellyfin_id_in_db(jf_id):
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-
+    solara.Markdown("## Playlists")
+    playlists = get_user_playlists()
+    for p in playlists:
+        solara.Markdown(f"### {p['Name']}")
+    solara.Markdown("## Now Playling")
     jf_id = get_currently_playing()
 
     if jf_id == "":

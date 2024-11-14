@@ -4,6 +4,7 @@ from urllib.parse import quote
 
 import requests
 from loguru import logger
+from jellyfin_apiclient_python import JellyfinClient
 
 # for the 3rd time im restarting the jellyfin functions
 # keeping the my_jellyfin_client for existing code
@@ -15,6 +16,34 @@ config = init_config()
 user = config["jellyfin"]["user"]
 user_jf_id = config["jellyfin"]["user_id"]
 base_url = config["jellyfin"]["url"]
+client = JellyfinClient()
+
+
+def jf_user_request(method, _url, params=None, data=None):
+    # started working on this to get playlists from jellyfin
+    # didn't get it working 11/13/24
+    client.config.app("hmtc-user", "0.0.1", "my machine jf_requests", "some other id")
+    client.config.data["auth.ssl"] = True
+    client.config.data["auth.username"] = config["jellyfin"]["user"]
+    client.config.data["auth.password"] = config["jellyfin"]["password"]
+    client.auth.connect_to_address(config["jellyfin"]["url"])
+    client.auth.login(
+        config["jellyfin"]["url"],
+        config["jellyfin"]["user"],
+        config["jellyfin"]["password"],
+    )
+
+    credentials = client.auth.credentials.get_credentials()
+    server = credentials["Servers"][0]
+
+    server["username"] = config["jellyfin"]["user"]
+
+    dumped_server = json.dumps(server)
+
+    client.authenticate({"Servers": [server]}, discover=False)
+    logger.debug(f"Some log message")
+    response = client.http.request_url(dict(url=_url, params=params, data=data))
+    logger.debug(f"Response: {response}")
 
 
 def jf_request(method, _url, params=None, data=None):
@@ -29,6 +58,10 @@ def jf_request(method, _url, params=None, data=None):
 
 def jf_get(url, params=None):
     return jf_request("GET", url, params=params)
+
+
+def jf_user_get(url, params=None):
+    return jf_user_request("GET", url, params=params)
 
 
 def jf_post(url, data=None):
@@ -162,6 +195,33 @@ def get_user_libraries():
         return None
     libraries = [x for x in res.json()["Items"]]
     return libraries
+
+
+def get_user_playlists():
+    url = f"/Users/{user_jf_id}/Items?Recursive=true&Filters=IsFolder&IncludeItemTypes=Playlist"
+    try:
+        res = jf_get(url=url)
+    except Exception as e:
+        logger.error(f"Error getting user playlists: {e}")
+        return None
+    playlists = [x for x in res.json()["Items"]]
+    return playlists
+
+
+def get_playlist_items(playlist_id):
+    # started working on this to get playlists from jellyfin
+    # didn't get it working 11/13/24
+    url = f"/Playlists/{playlist_id}/Items"
+    res = jf_user_get(url=url)
+    if res is None:
+        logger.error(f"Error getting playlist items: response is None")
+        return None
+    if res.status_code != 200:
+        logger.error(f"Error getting playlist items: {res.status_code}")
+        return None
+
+    items = [x for x in res.json()["Items"]]
+    return items
 
 
 def sources_library_id():

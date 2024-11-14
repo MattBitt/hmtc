@@ -55,6 +55,8 @@ def Page():
                     "Use Album Art",
                     on_click=lambda: album.use_video_poster(video=video),
                 )
+                with solara.Link(f"/video-details/{video.id}"):
+                    solara.Markdown("Details")
     with solara.Info(label="Tracks"):
         for track in album.tracks:
             solara.Markdown(f"{track.title}")

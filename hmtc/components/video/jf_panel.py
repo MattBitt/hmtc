@@ -1,14 +1,12 @@
 from pathlib import Path
 
-import PIL
+
 import solara
 from loguru import logger
 
-from hmtc.assets.colors import Colors
-from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
+
 from hmtc.components.shared.my_spinner import MySpinner
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.components.vue_registry import register_vue_components
+
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
@@ -47,14 +45,39 @@ from hmtc.utils.jellyfin_functions import (
     get_user_favorites,
     get_user_session,
 )
-from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
+
+
 from hmtc.utils.youtube_functions import download_video_file
+
+config = init_config()
+WORKING = Path(config["paths"]["working"]) / "downloads"
+STORAGE = Path(config["paths"]["storage"]) / "videos"
+
+
+@solara.component_vue("JellyfinControlPanel.vue")
+def JellyfinControlPanel(
+    enable_live_updating,
+    jellyfin_status,
+    event_update_play_state=None,
+):
+    pass
 
 
 @solara.component
-def NoSectionsPanel(video):
-    with solara.Card(title="No Sections"):
-        if video.album_id is not None:
-            solara.Markdown(f"Album: {video.album_id}")
-        else:
-            solara.Markdown(f"## Please Create an album before adding sections")
+def JFPanel(
+    video,
+):
+
+    def refresh_from_jellyfin(*args):
+        jellyfin_status_dict.set(get_user_session())
+
+    connected = solara.use_reactive(can_ping_server())
+    jellyfin_status_dict = solara.use_reactive(get_user_session())
+
+    JellyfinControlPanel(
+        enable_live_updating=connected.value,
+        jellyfin_status=jellyfin_status_dict.value,
+        page_jellyfin_id=video.jellyfin_id,
+        api_key=config["jellyfin"]["api"],
+        event_update_play_state=refresh_from_jellyfin,
+    )

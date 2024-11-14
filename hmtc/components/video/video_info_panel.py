@@ -47,7 +47,7 @@ from hmtc.utils.jellyfin_functions import (
     get_user_favorites,
     get_user_session,
 )
-from hmtc.utils.my_jellyfin_client import MyJellyfinClient
+
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
 
@@ -55,7 +55,7 @@ IMG_WIDTH = "300px"
 
 
 @solara.component
-def VideoInfoPanelLeft(video):
+def VideoInfoPanel(video):
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = PIL.Image.open(Path(str(poster)))
