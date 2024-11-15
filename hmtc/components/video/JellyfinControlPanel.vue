@@ -1,7 +1,7 @@
 <template>
   <div class="mt-4">
     <!-- <v-btn @click="turnOffUpdating" color="primary" dark>Turn Off Live</v-btn> -->
-    <v-menu offset-y>
+    <v-dialog v-model="dialog" max-width="800px" hide-overlay>
       <template v-slot:activator="{ on, attrs }">
         <div class="mt-4">
           <v-badge :color="jellyfinBadgeColor" offset-x="20" offset-y="10">
@@ -15,7 +15,17 @@
           </v-badge>
         </div>
       </template>
-      <v-card class="mx-auto" width="800" tile>
+      <v-card class="mx-auto" tile>
+        <v-toolbar dark color="primary">
+          <v-btn icon dark @click="dialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title>Jellyfin Status</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn dark text :disabled="true" @click=""> Save </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
         <v-list shaped>
           <v-subheader>
             <v-row justify="center">
@@ -146,7 +156,7 @@
           </div>
         </v-list>
       </v-card>
-    </v-menu>
+    </v-dialog>
   </div>
 </template>
 <script>
@@ -160,6 +170,7 @@ module.exports = {
 
   data() {
     return {
+      dialog: false,
       jellyfin_status: {},
       intervalID: "",
     };

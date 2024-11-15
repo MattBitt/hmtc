@@ -1,11 +1,6 @@
 <template>
   <div class="mt-4">
-    <v-dialog
-      v-model="dialog"
-      fullscreen
-      hide-overlay
-      transition="dialog-bottom-transition"
-    >
+    <v-dialog v-model="dialog" max-width="800px" hide-overlay>
       <template v-slot:activator="{ on, attrs }">
         <v-btn
           class="button"
@@ -28,29 +23,38 @@
       </v-toolbar>
       <v-card>
         <v-row>
-          <v-btn class="button" @click="createOneSection"
-            >Whole Thing as 1 Section</v-btn
-          >
+          <v-spacer></v-spacer>
+          <v-col cols="10">
+            <v-col cols="12">
+              <span>
+                <v-btn class="button" @click="createOneSection"
+                  >Whole Thing as 1 Section</v-btn
+                >
+              </span>
+              <v-btn
+                outlined
+                class="button"
+                @click="createEvenSections"
+                :disabled="!(numEvenSections > 0)"
+              >
+                {{ numEvenSections }}
+              </v-btn>
 
-          <v-btn
-            outlined
-            class="button"
-            @click="createEvenSections"
-            :disabled="!(numEvenSections > 0)"
-          >
-            {{ numEvenSections }}
-          </v-btn>
+              <v-btn outlined class="button" @click="createStdSectionAt0">
+                5 minute section at 0</v-btn
+              >
+              <v-btn outlined class="button" @click="">
+                5 minute section after the last one</v-btn
+              >
 
-          <v-btn outlined class="button" @click="createStdSectionAt0">
-            5 minute section at 0</v-btn
-          >
-          <v-btn outlined class="button" @click="">
-            5 minute section after the last one</v-btn
-          >
-
-          <v-btn outlined class="button mywarning" @click="deleteAllSections"
-            >Delete All Sections</v-btn
-          >
+              <v-btn
+                outlined
+                class="button mywarning"
+                @click="deleteAllSections"
+                >Delete All Sections</v-btn
+              >
+            </v-col></v-col
+          ><v-spacer></v-spacer>
         </v-row>
         <h1>{{ video.album_title }}</h1>
         <v-divider></v-divider>

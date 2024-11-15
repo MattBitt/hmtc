@@ -1,11 +1,6 @@
 <template>
   <v-row justify="center">
-    <v-dialog
-      v-model="dialog"
-      fullscreen
-      hide-overlay
-      transition="dialog-bottom-transition"
-    >
+    <v-dialog v-model="dialog" max-width="800px" hide-overlay>
       <template v-slot:activator="{ on, attrs }">
         <v-badge :value="!hasSeries" color="warning">
           <v-btn class="button" v-bind="attrs" v-on="on"
@@ -15,7 +10,7 @@
       </template>
 
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar class="mx-auto" dark color="primary">
           <v-btn icon dark @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -30,100 +25,108 @@
 
         <v-card>
           <v-row>
-            <div v-if="hasSeries">
-              <h4>Current:</h4>
-              <strong>{{ seriesInfo?.name }}</strong>
-              <v-btn color="warning" icon @click="removeSeries">
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-            </div>
+            <v-spacer></v-spacer>
+            <v-col cols="10">
+              <div v-if="hasSeries">
+                <h4>Current:</h4>
+                <strong>{{ seriesInfo?.name }}</strong>
+                <v-btn color="warning" icon @click="removeSeries">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </div>
 
-            <v-list three-line subheader>
-              <v-subheader
-                >Choose or create an Series for this video</v-subheader
-              >
-              <v-list-item>
-                <v-list-item-content>
-                  <v-radio-group v-model="radios" @change="resetValidation">
-                    <v-radio value="createNew">
-                      <template v-slot:label>
-                        <v-card-text>
-                          Create a
-                          <strong class="primary--text">NEW</strong> Series
-                        </v-card-text>
-                      </template>
-                    </v-radio>
+              <v-list three-line subheader>
+                <v-subheader
+                  >Choose or create an Series for this video</v-subheader
+                >
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-radio-group v-model="radios" @change="resetValidation">
+                      <v-radio value="createNew">
+                        <template v-slot:label>
+                          <v-card-text>
+                            Create a
+                            <strong class="primary--text">NEW</strong> Series
+                          </v-card-text>
+                        </template>
+                      </v-radio>
 
-                    <v-radio value="selectExisting">
-                      <template v-slot:label>
-                        <v-card-text>
-                          Choose
-                          <strong class="primary--text">EXISTING</strong> Series
-                        </v-card-text>
-                      </template>
-                    </v-radio>
-                  </v-radio-group>
-                </v-list-item-content>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-content>
-                  <v-form ref="myform" v-model="valid">
-                    <v-list>
-                      <v-list-item v-if="radios === 'createNew'">
-                        <v-list-item-content>
-                          <v-text-field
-                            v-model="seriesName"
-                            :rules="radios === 'createNew' ? nameRules : []"
-                            :disabled="radios === 'selectExisting'"
-                            label="Series Name"
-                            required
-                          ></v-text-field>
+                      <v-radio value="selectExisting">
+                        <template v-slot:label>
+                          <v-card-text>
+                            Choose
+                            <strong class="primary--text">EXISTING</strong>
+                            Series
+                          </v-card-text>
+                        </template>
+                      </v-radio>
+                    </v-radio-group>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-form ref="myform" v-model="valid">
+                      <v-list>
+                        <v-list-item v-if="radios === 'createNew'">
+                          <v-list-item-content>
+                            <v-text-field
+                              v-model="seriesName"
+                              :rules="radios === 'createNew' ? nameRules : []"
+                              :disabled="radios === 'selectExisting'"
+                              label="Series Name"
+                              required
+                            ></v-text-field>
 
-                          <v-text-field
-                            v-model="startDate"
-                            :rules="
-                              radios === 'createNew' ? startDateRules : []
-                            "
-                            :disabled="radios === 'selectExisting'"
-                            label="Start Date"
-                          ></v-text-field>
+                            <v-text-field
+                              v-model="startDate"
+                              :rules="
+                                radios === 'createNew' ? startDateRules : []
+                              "
+                              :disabled="radios === 'selectExisting'"
+                              label="Start Date"
+                            ></v-text-field>
 
-                          <v-text-field
-                            v-model="endDate"
-                            :rules="radios === 'createNew' ? endDateRules : []"
-                            :disabled="radios === 'selectExisting'"
-                            label="End Date"
-                          ></v-text-field>
-                        </v-list-item-content>
-                      </v-list-item>
-                      <v-list-item v-else>
-                        <v-list-item-content>
-                          <v-autocomplete
-                            v-model="itemModel"
-                            label="Series"
-                            :items="items"
-                            item-text="name"
-                            item-value="id"
-                            class="selector"
-                            clearable
-                            :rules="
-                              radios === 'selectExisting' ? itemSelectRules : []
-                            "
-                            :disabled="radios === 'createNew'"
-                            return-object
-                          >
-                            <template v-slot:no-data>
-                              <v-list-item> No Items Found... </v-list-item>
-                            </template>
-                          </v-autocomplete>
-                        </v-list-item-content>
-                      </v-list-item>
-                    </v-list>
-                  </v-form>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-row>
+                            <v-text-field
+                              v-model="endDate"
+                              :rules="
+                                radios === 'createNew' ? endDateRules : []
+                              "
+                              :disabled="radios === 'selectExisting'"
+                              label="End Date"
+                            ></v-text-field>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item v-else>
+                          <v-list-item-content>
+                            <v-autocomplete
+                              v-model="itemModel"
+                              label="Series"
+                              :items="items"
+                              item-text="name"
+                              item-value="id"
+                              class="selector"
+                              clearable
+                              :rules="
+                                radios === 'selectExisting'
+                                  ? itemSelectRules
+                                  : []
+                              "
+                              :disabled="radios === 'createNew'"
+                              return-object
+                            >
+                              <template v-slot:no-data>
+                                <v-list-item> No Items Found... </v-list-item>
+                              </template>
+                            </v-autocomplete>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                    </v-form>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list> </v-col
+            ><v-spacer></v-spacer
+          ></v-row>
         </v-card>
 
         <v-divider></v-divider>

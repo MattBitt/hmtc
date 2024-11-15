@@ -40,7 +40,6 @@ from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import search_for_media
 
-
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
 WORKING = Path(config["paths"]["working"])

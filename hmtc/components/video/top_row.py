@@ -1,16 +1,13 @@
 from pathlib import Path
 
-
 import solara
 from loguru import logger
 
-
-from hmtc.components.video.jf_panel import JFPanel
-from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.components.video.files_panel import FilesPanel
 from hmtc.components.video.info_dialog_buttons import InfoDialogButtons
+from hmtc.components.video.jf_panel import JFPanel
+from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.config import init_config
-
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"

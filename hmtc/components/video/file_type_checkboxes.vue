@@ -1,11 +1,6 @@
 <template>
   <div class="mt-4">
-    <v-dialog
-      v-model="dialog"
-      fullscreen
-      hide-overlay
-      transition="dialog-bottom-transition"
-    >
+    <v-dialog v-model="dialog" max-width="800px" hide-overlay>
       <template v-slot:activator="{ on, attrs }">
         <v-badge :value="!has_audio" color="warning" overlap>
           <v-btn class="button" v-bind="attrs" v-on="on">

@@ -1,12 +1,9 @@
 from pathlib import Path
 
-
 import solara
 from loguru import logger
 
-
 from hmtc.components.shared.my_spinner import MySpinner
-
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
@@ -45,8 +42,6 @@ from hmtc.utils.jellyfin_functions import (
     get_user_favorites,
     get_user_session,
 )
-
-
 from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()

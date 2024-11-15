@@ -1,9 +1,8 @@
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
-    create_jellyfin_playlist,
-    get_jellyfin_playlist_items,
+    get_playlist_items,
     get_user_favorites,
-    get_user_session,
+    get_user_playlists,
     refresh_library,
 )
 
@@ -18,3 +17,11 @@ def test_refresh_library():
 
 def test_get_user_favorites():
     assert get_user_favorites() is not None
+
+
+def test_playlists():
+    playlists = get_user_playlists()
+    assert len(playlists) > 0
+    p = playlists[0]
+    items = get_playlist_items(p["Id"])
+    assert len(items) > 0

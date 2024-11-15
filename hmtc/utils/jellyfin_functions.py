@@ -4,7 +4,6 @@ from urllib.parse import quote
 
 import requests
 from loguru import logger
-from jellyfin_apiclient_python import JellyfinClient
 
 # for the 3rd time im restarting the jellyfin functions
 # keeping the my_jellyfin_client for existing code
@@ -16,34 +15,68 @@ config = init_config()
 user = config["jellyfin"]["user"]
 user_jf_id = config["jellyfin"]["user_id"]
 base_url = config["jellyfin"]["url"]
-client = JellyfinClient()
+access_token = ""
 
 
 def jf_user_request(method, _url, params=None, data=None):
-    # started working on this to get playlists from jellyfin
-    # didn't get it working 11/13/24
-    client.config.app("hmtc-user", "0.0.1", "my machine jf_requests", "some other id")
-    client.config.data["auth.ssl"] = True
-    client.config.data["auth.username"] = config["jellyfin"]["user"]
-    client.config.data["auth.password"] = config["jellyfin"]["password"]
-    client.auth.connect_to_address(config["jellyfin"]["url"])
-    client.auth.login(
-        config["jellyfin"]["url"],
-        config["jellyfin"]["user"],
-        config["jellyfin"]["password"],
+    global access_token
+    if access_token == "":
+        access_token = login()
+
+    headers = {
+        "X-Emby-Authorization": 'Emby UserId="'
+        + user
+        + '", Client="hmtc", Device="hmtc", DeviceId="hmtcID12345678", Version="0.2", Token="'
+        + access_token
+        + '"',
+        "Content-Type": "application/json",
+    }
+    url = base_url + _url
+    resp = requests.request(method, url=url, params=params, data=data, headers=headers)
+
+    if resp.status_code == 200:
+        data = resp.json()
+        return data
+    else:
+        print("An error occurred while attempting to retrieve data from the API.")
+        return None
+
+
+def get_auth_key(server_url, username, password, password_sha1):
+    # Get Auth Token for admin account
+    values = {"Username": username, "Pw": password}
+    # DATA = urllib.parse.urlencode(values)
+    # DATA = DATA.encode('ascii')
+    DATA = json.dumps(values)
+    DATA = DATA.encode("utf-8")
+    DATA = bytes(DATA)
+
+    headers = {
+        "X-Emby-Authorization": 'Emby UserId="'
+        + username
+        + '", Client="media_cleaner", Device="media_cleaner", DeviceId="media_cleaner", Version="0.2", Token=""',
+        "Content-Type": "application/json",
+    }
+
+    url = config["jellyfin"]["url"] + "/Users/AuthenticateByName"
+
+    response = requests.post(url, headers=headers, data=DATA)
+    if response.status_code == 200:
+        data = response.json()
+        return data["AccessToken"]
+    else:
+        logger.error(
+            "An error occurred while attempting to retrieve data from the API."
+        )
+
+
+def login():
+    return get_auth_key(
+        server_url=config["jellyfin"]["url"],
+        username=config["jellyfin"]["user"],
+        password=config["jellyfin"]["password"],
+        password_sha1="qwerqwerqwer",
     )
-
-    credentials = client.auth.credentials.get_credentials()
-    server = credentials["Servers"][0]
-
-    server["username"] = config["jellyfin"]["user"]
-
-    dumped_server = json.dumps(server)
-
-    client.authenticate({"Servers": [server]}, discover=False)
-    logger.debug(f"Some log message")
-    response = client.http.request_url(dict(url=_url, params=params, data=data))
-    logger.debug(f"Response: {response}")
 
 
 def jf_request(method, _url, params=None, data=None):
@@ -64,34 +97,29 @@ def jf_user_get(url, params=None):
     return jf_user_request("GET", url, params=params)
 
 
+def jf_user_post(url, data=None):
+    # untested as of 11/14/24
+    return jf_user_request("POST", url, data=data)
+
+
 def jf_post(url, data=None):
     return jf_request("POST", url, data=data)
-
-
-def get_jellyfin_playlist_items(playlist_id):
-    # doesn't work as of 10/25/2024
-    url = f"/Playlists/{playlist_id}/Users"
-    try:
-        res = jf_get(url=url)
-    except Exception as e:
-        return {"error": str(e)}
-    if res.status_code != 200:
-        # when does this happen?
-        logger.error(f"Error getting playlist items: {res.status_code}")
-        return res
-    return res.json()
 
 
 def create_jellyfin_playlist(title="New Playlist"):
     # doesn't work as of 10/25/2024
     url = "/Playlists"
-
+    favs = get_user_favorites()
+    fav_ids = [x["Id"] for x in favs]
     payload = {
         "Name": str(title),
         "UserId": user_jf_id,
         "MediaType": "Music",
+        "Ids": fav_ids,
+        "Users": [{"UserId": user_jf_id, "CanEdit": True}],
+        "IsPublic": True,
     }
-    res = jf_post(url=url, data=payload)
+    res = jf_user_post(url=url, data=payload)
     return res
 
 
@@ -124,10 +152,12 @@ def all_sessions():
 
 def get_user_session():
     x = all_sessions()
+
     if len(x) == 0:
         logger.debug(f"No sessions found")
         return None
 
+    sess = None
     session = [
         x
         for x in all_sessions()
@@ -156,6 +186,9 @@ def get_user_session():
 
         else:
             sess = session[0]
+        if sess is None:
+            logger.error("No session found")
+            return None
         if "PositionTicks" not in sess["PlayState"].keys():
             sess["PlayState"]["PositionTicks"] = 0
         if "NowPlayingItem" not in sess.keys():
@@ -209,18 +242,12 @@ def get_user_playlists():
 
 
 def get_playlist_items(playlist_id):
-    # started working on this to get playlists from jellyfin
-    # didn't get it working 11/13/24
     url = f"/Playlists/{playlist_id}/Items"
     res = jf_user_get(url=url)
     if res is None:
         logger.error(f"Error getting playlist items: response is None")
         return None
-    if res.status_code != 200:
-        logger.error(f"Error getting playlist items: {res.status_code}")
-        return None
-
-    items = [x for x in res.json()["Items"]]
+    items = [x for x in res["Items"]]
     return items
 
 
@@ -312,12 +339,16 @@ def get_user_id(user_name):
 
 
 if __name__ == "__main__":
-    favs = get_user_favorites()
-    print([x["Name"] for x in favs])
-    refresh_library()
-    print(len(favs))
-    print(f"videos {sources_library_id()}")
-    print(f"tracks {tracks_library_id()}")
-    # x = search_for_media(library="track", title="pineapple, birthday, city")
-    print(get_user_id("mizzle"))
-    jf_playpause()
+    playlists = get_user_playlists()
+    if len(playlists) == 0:
+        print("No playlists found")
+    else:
+        logger.error(f"Found {len(playlists)} playlists")
+        for p in playlists:
+            items = get_playlist_items(p["Id"])
+            if items is None:
+                logger.error(f"Error getting playlist items for {p['Name']}")
+                continue
+            print(f"Playlist: {p['Name']}")
+            print(f"Items: {len(items)}")
+    create_jellyfin_playlist("MyFavs1114")

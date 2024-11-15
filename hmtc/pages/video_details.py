@@ -2,17 +2,15 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.video.no_sections_panel import NoSectionsPanel
 from hmtc.components.video.section_details_panel import SectionsDetailsPanel
-
 from hmtc.components.video.top_row import TopRow
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.models import Section as SectionModel
-from hmtc.components.video.no_sections_panel import NoSectionsPanel
 from hmtc.models import (
     Video as VideoModel,
 )
-
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.video import VideoItem
 

@@ -1,11 +1,6 @@
 <template>
   <v-row justify="center">
-    <v-dialog
-      v-model="dialog"
-      fullscreen
-      hide-overlay
-      transition="dialog-bottom-transition"
-    >
+    <v-dialog v-model="dialog" max-width="800px" hide-overlay>
       <template v-slot:activator="{ on, attrs }">
         <v-badge :value="!hasYoutubeSeries" color="warning">
           <v-btn class="button" v-bind="attrs" v-on="on"
@@ -30,85 +25,90 @@
 
         <v-card>
           <v-row>
-            <div v-if="hasYoutubeSeries">
-              <h4>Current:</h4>
-              <strong>{{ youtubeseriesInfo?.title }}</strong>
-              <v-btn color="warning" icon @click="removeYoutubeSeries">
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-            </div>
-            <v-list three-line subheader>
-              <v-subheader
-                >Choose or create an YoutubeSeries for this video</v-subheader
-              >
-              <v-list-item>
-                <v-list-item-content>
-                  <v-radio-group v-model="radios" @change="resetValidation">
-                    <v-radio value="createNew">
-                      <template v-slot:label>
-                        <v-card-text>
-                          Create a
-                          <strong class="primary--text">NEW</strong>
-                          YoutubeSeries
-                        </v-card-text>
-                      </template>
-                    </v-radio>
+            <v-spacer></v-spacer>
+            <v-col cols="10">
+              <div v-if="hasYoutubeSeries">
+                <h4>Current:</h4>
+                <strong>{{ youtubeseriesInfo?.title }}</strong>
+                <v-btn color="warning" icon @click="removeYoutubeSeries">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </div>
+              <v-list three-line subheader>
+                <v-subheader
+                  >Choose or create an YoutubeSeries for this video</v-subheader
+                >
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-radio-group v-model="radios" @change="resetValidation">
+                      <v-radio value="createNew">
+                        <template v-slot:label>
+                          <v-card-text>
+                            Create a
+                            <strong class="primary--text">NEW</strong>
+                            YoutubeSeries
+                          </v-card-text>
+                        </template>
+                      </v-radio>
 
-                    <v-radio value="selectExisting">
-                      <template v-slot:label>
-                        <v-card-text>
-                          Choose
-                          <strong class="primary--text">EXISTING</strong>
-                          YoutubeSeries
-                        </v-card-text>
-                      </template>
-                    </v-radio>
-                  </v-radio-group>
-                </v-list-item-content>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-content>
-                  <v-form ref="myform" v-model="valid">
-                    <v-list>
-                      <v-list-item v-if="radios === 'createNew'">
-                        <v-list-item-content>
-                          <v-text-field
-                            v-model="youtubeseriesTitle"
-                            :rules="radios === 'createNew' ? nameRules : []"
-                            :disabled="radios === 'selectExisting'"
-                            label="YoutubeSeries Title"
-                            required
-                          ></v-text-field>
-                        </v-list-item-content>
-                      </v-list-item>
-                      <v-list-item v-else>
-                        <v-list-item-content>
-                          <v-autocomplete
-                            v-model="itemModel"
-                            label="YoutubeSeries"
-                            :items="items"
-                            item-text="title"
-                            item-value="id"
-                            class="selector"
-                            clearable
-                            :rules="
-                              radios === 'selectExisting' ? itemSelectRules : []
-                            "
-                            :disabled="radios === 'createNew'"
-                            return-object
-                            @click:clear="resetValidation"
-                          >
-                            <template v-slot:no-data>
-                              <v-list-item> No Items Found... </v-list-item>
-                            </template>
-                          </v-autocomplete>
-                        </v-list-item-content>
-                      </v-list-item>
-                    </v-list>
-                  </v-form>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
+                      <v-radio value="selectExisting">
+                        <template v-slot:label>
+                          <v-card-text>
+                            Choose
+                            <strong class="primary--text">EXISTING</strong>
+                            YoutubeSeries
+                          </v-card-text>
+                        </template>
+                      </v-radio>
+                    </v-radio-group>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-form ref="myform" v-model="valid">
+                      <v-list>
+                        <v-list-item v-if="radios === 'createNew'">
+                          <v-list-item-content>
+                            <v-text-field
+                              v-model="youtubeseriesTitle"
+                              :rules="radios === 'createNew' ? nameRules : []"
+                              :disabled="radios === 'selectExisting'"
+                              label="YoutubeSeries Title"
+                              required
+                            ></v-text-field>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item v-else>
+                          <v-list-item-content>
+                            <v-autocomplete
+                              v-model="itemModel"
+                              label="YoutubeSeries"
+                              :items="items"
+                              item-text="title"
+                              item-value="id"
+                              class="selector"
+                              clearable
+                              :rules="
+                                radios === 'selectExisting'
+                                  ? itemSelectRules
+                                  : []
+                              "
+                              :disabled="radios === 'createNew'"
+                              return-object
+                              @click:clear="resetValidation"
+                            >
+                              <template v-slot:no-data>
+                                <v-list-item> No Items Found... </v-list-item>
+                              </template>
+                            </v-autocomplete>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                    </v-form>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list> </v-col
+            ><v-spacer></v-spacer>
           </v-row>
         </v-card>
 
