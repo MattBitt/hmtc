@@ -8,7 +8,6 @@
           >
         </v-badge>
       </template>
-
       <v-card>
         <v-toolbar class="mx-auto" dark color="primary">
           <v-btn icon dark @click="dialog = false">
