@@ -163,3 +163,5 @@ cython_debug/
 
 # Ignore dynaconf secret files
 .secrets.*
+utils/*.mp4
+utils/*.mp3

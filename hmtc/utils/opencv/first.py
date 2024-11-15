@@ -125,6 +125,7 @@ def get_region_of_interest(image, rectangle):
 def capture_superchats(video_path):
     PROCESS_FRAME_N_SECONDS = 30000
     MINIMUM_SUPERCHAT_LENGTH = 20
+    SUPERCHAT_LIMIT = 300
 
     ie = ImageExtractor(video_path)
     if ie is None:
@@ -143,7 +144,7 @@ def capture_superchats(video_path):
     compare_counter = 0
     processed_frames = 0
 
-    while len(superchats) < 500:
+    while len(superchats) < SUPERCHAT_LIMIT:
         ret, frame = ie.grab_frame(current_frame)
         if not ret:
             break
@@ -177,7 +178,7 @@ def capture_superchats(video_path):
 
 
 if __name__ == "__main__":
-    video_path = "hmtc/utils/opencv/working_ww3.mp4"
+    video_path = "hmtc/utils/opencv/working_video.mp4"
     start = time.time()
     superchats = capture_superchats(video_path)
     end = time.time()
