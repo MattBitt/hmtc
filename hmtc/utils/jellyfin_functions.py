@@ -15,20 +15,34 @@ config = init_config()
 user = config["jellyfin"]["user"]
 user_jf_id = config["jellyfin"]["user_id"]
 base_url = config["jellyfin"]["url"]
+client = config["jellyfin"]["client"]
+device = config["jellyfin"]["device"]
+device_id = config["jellyfin"]["device_id"]
 access_token = ""
+
+
+def generate_auth_string():
+
+    auth_string = f'Emby UserId="{user}", Client="{client}", Device="{device}", DeviceId="{device_id}", Version="0.1", Token="{access_token}"'
+    return auth_string.format(
+        user=user,
+        client=client,
+        device=device,
+        device_id=device_id,
+        access_token=access_token,
+    )
 
 
 def jf_user_request(method, _url, params=None, data=None):
     global access_token
     if access_token == "":
         access_token = login()
+        if access_token is None:
+            raise Exception("Error logging in to Jellyfin")
 
+    auth = generate_auth_string()
     headers = {
-        "X-Emby-Authorization": 'Emby UserId="'
-        + user
-        + '", Client="hmtc", Device="hmtc", DeviceId="hmtcID12345678", Version="0.2", Token="'
-        + access_token
-        + '"',
+        "X-Emby-Authorization": auth,
         "Content-Type": "application/json",
     }
     url = base_url + _url
@@ -42,19 +56,15 @@ def jf_user_request(method, _url, params=None, data=None):
         return None
 
 
-def get_auth_key(server_url, username, password, password_sha1):
+def get_auth_key(username, password):
     # Get Auth Token for admin account
     values = {"Username": username, "Pw": password}
-    # DATA = urllib.parse.urlencode(values)
-    # DATA = DATA.encode('ascii')
     DATA = json.dumps(values)
     DATA = DATA.encode("utf-8")
     DATA = bytes(DATA)
 
     headers = {
-        "X-Emby-Authorization": 'Emby UserId="'
-        + username
-        + '", Client="media_cleaner", Device="media_cleaner", DeviceId="media_cleaner", Version="0.2", Token=""',
+        "X-Emby-Authorization": generate_auth_string(),
         "Content-Type": "application/json",
     }
 
@@ -72,10 +82,8 @@ def get_auth_key(server_url, username, password, password_sha1):
 
 def login():
     return get_auth_key(
-        server_url=config["jellyfin"]["url"],
         username=config["jellyfin"]["user"],
         password=config["jellyfin"]["password"],
-        password_sha1="qwerqwerqwer",
     )
 
 
@@ -351,4 +359,4 @@ if __name__ == "__main__":
                 continue
             print(f"Playlist: {p['Name']}")
             print(f"Items: {len(items)}")
-    create_jellyfin_playlist("MyFavs1114")
+    # create_jellyfin_playlist("MyFavs1114")
