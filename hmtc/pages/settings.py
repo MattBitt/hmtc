@@ -18,6 +18,7 @@ from hmtc.models import Channel
 from hmtc.models import (
     File as FileModel,
 )
+
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
@@ -99,6 +100,26 @@ class PageState:
     updating = solara.reactive(False)
     i = solara.reactive(0)
     num_to_download = solara.reactive(10)
+
+    @staticmethod
+    def rip_ww_screenshots():
+        logger.debug("Ripping Wordplay Wednesday Screenshots")
+        PageState.updating.set(True)
+        vids = (
+            VideoModel.select()
+            .join(
+                YoutubeSeriesModel,
+                on=(VideoModel.youtube_series_id == YoutubeSeriesModel.id),
+            )
+            .switch(VideoModel)
+            .join(FileModel, on=(VideoModel.id == FileModel.video_id))
+            .where(
+                (FileModel.file_type == "video")
+                & (YoutubeSeriesModel.title == "Wordplay Wednesday")
+            )
+        )
+        logger.debug(f"Found {len(vids)} Wordplay Wednesday videos")
+        # this seems to work. good starting point for ripping screenshots
 
     @staticmethod
     def create_tracks_from_sections():
@@ -358,7 +379,7 @@ class PageState:
                 VideoModel.episode,
                 VideoModel.upload_date,
             )
-            .join(YoutubeSeriesModel)
+            .join(YoutubeYoutubeSeriesModel)
             .where(
                 (
                     (VideoModel.contains_unique_content == True)
@@ -549,85 +570,18 @@ def Page():
     )
     ButtonShowCase()
     with solara.Column(classes=["main-container"]):
-        if PageState.updating.value:
-            with solara.Card():
-                solara.Text("Updating Videos")
-                SimpleProgressBar(
-                    label="Videos Updated",
-                    current_value=PageState.i.value,
-                    total=PageState.num_to_download.value,
-                    color="blue",
-                )
-
-        else:
-            with solara.Card("Reusuable Functions"):
-                with solara.ColumnsResponsive():
-                    solara.Button(
-                        label="Create Tracks for Existing Sections",
-                        on_click=PageState.create_tracks_from_sections,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Create Albums for YT Series",
-                        on_click=PageState.create_yts_albums,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Assign Video Posters to Albums (10/21/24)",
-                        on_click=PageState.assign_video_posters_to_albums,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Assign jellyfin ids to videos (10/30/24)",
-                        on_click=PageState.search_for_video_jellyfin_ids,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Assign jellyfin ids to tracks (10/28/24)",
-                        on_click=PageState.search_for_track_jellyfin_ids,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Create Lyrics Files for Existing Tracks",
-                        on_click=PageState.create_lyrics_files_for_existing_tracks,
-                        classes=["button"],
-                    )
-
-            with solara.Card("Non-Reusuable Functions"):
-                with solara.ColumnsResponsive():
-                    solara.Button(
-                        label="Sync Channel IDs to Existing Videos",
-                        on_click=PageState.sync_channels_from_youtube,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Update Episode Numbers (Individual Videos)",
-                        on_click=PageState.update_episode_numbers,
-                        classes=["button"],
-                    )
-
-                    solara.Button(
-                        label="Update Episode Numbers (Omegle Exclusive Videos)",
-                        on_click=PageState.update_episode_numbers_omegle_exlusive,
-                        classes=["button"],
-                    )
-
-                    solara.Button(
-                        label="Update Episode Numbers (Guerilla Exclusive Videos)",
-                        on_click=PageState.update_episode_numbers_guerilla_exlusive,
-                        classes=["button"],
-                    )
-
-                    solara.Button(
-                        label="Import Sections and Topics",
-                        on_click=PageState.import_track_info,
-                        classes=["button"],
-                    )
-
-                    solara.Button(
-                        label="Create album.nfo xml files for Jellyfin",
-                        on_click=create_album_xmls,
-                        classes=["button"],
-                    )
-
-        OldControls()
+        with solara.Card("Reusuable Functions"):
+            solara.Button(
+                label="Assign jellyfin ids to videos (10/30/24)",
+                on_click=PageState.search_for_video_jellyfin_ids,
+                classes=["button"],
+            )
+            solara.Button(
+                label="Assign jellyfin ids to tracks (10/28/24)",
+                on_click=PageState.search_for_track_jellyfin_ids,
+                classes=["button"],
+            )
+            solara.Button(
+                label="Rip Wordplay Wednesday screen shots 11/16/24",
+                on_click=PageState.rip_ww_screenshots,
+            )

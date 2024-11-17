@@ -4,7 +4,7 @@ from pathlib import Path
 from loguru import logger
 import cv2
 from numpy.typing import NDArray
-
+import random
 from hmtc.config import init_config
 
 
@@ -55,6 +55,12 @@ class ImageExtractor:
 
     def release_video(self):
         self.cap.release()
+
+    def save_n_random_frames(self, n):
+        for _ in range(n):
+            timestamp = random.randint(0, self.frame_count)
+            frame = self.grab_frame(timestamp)
+            self.save_image(f"random__{timestamp}.jpg", frame)
 
     @property
     def current_time(self):

@@ -29,8 +29,8 @@ def test_find_superchat(test_ww_images):
         # load image of superchat
         superchat = ImageEditor(sc_image)
 
-        superchat.draw_rectangle(20, 20, 100, 50)
-        superchat.write_on_image("Superchat!!!")
+        superchat.draw_rectangle(20, 85, 100, 50)
+        superchat.write_on_image(f"{str(image.stem)}")
         superchat.save_image(new_image)
         assert new_image.exists()
         assert sc_image is not None

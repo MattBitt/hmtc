@@ -15,8 +15,7 @@ def test_extract_image(test_ww_video_file):
 
 def test_basic_image_extractor(test_ww_video_file):
     assert test_ww_video_file.exists()
-    output_file = TARGET_PATH
-    ie = ImageExtractor(test_ww_video_file, output_file)
+    ie = ImageExtractor(test_ww_video_file, TARGET_PATH)
     assert ie.output_folder.exists()
     assert ie.output_folder.is_dir()
     assert ie.cap.isOpened()
@@ -32,3 +31,8 @@ def test_basic_image_extractor(test_ww_video_file):
     assert frame is None
     ie.release_video()
     assert not ie.cap.isOpened()
+
+
+def test_save_n_records(test_ww_video_file):
+    ie = ImageExtractor(test_ww_video_file, TARGET_PATH)
+    ie.save_n_random_frames(50)
