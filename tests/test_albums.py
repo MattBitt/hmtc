@@ -39,7 +39,6 @@ def test_album_create_track():
     assert album.tracks[0].track_number == 1
     assert album.tracks[1].track_number == 2
     assert album.tracks[2].track_number == 3
-    logger.error(album.tracks)
 
 
 def test_remove_track():
@@ -55,7 +54,6 @@ def test_remove_track():
     assert album.tracks[0].track_number == 1
     # this should be 2 if i'm renumbering
     assert album.tracks[1].track_number == 3
-    logger.error(album.tracks)
 
 
 @pytest.mark.skip

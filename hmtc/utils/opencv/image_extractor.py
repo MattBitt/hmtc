@@ -1,12 +1,13 @@
+import random
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from loguru import logger
-import cv2
-from numpy.typing import NDArray
-import random
-from hmtc.config import init_config
 
+import cv2
+from loguru import logger
+from numpy.typing import NDArray
+
+from hmtc.config import init_config
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

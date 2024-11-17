@@ -1,13 +1,14 @@
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from loguru import logger
+
 import cv2
 import numpy as np
+from loguru import logger
 from numpy.typing import NDArray
 from PIL import Image
-from hmtc.config import init_config
 
+from hmtc.config import init_config
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -17,12 +18,10 @@ STORAGE = Path(config["paths"]["storage"])
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 1
 font_color = (255, 255, 255)  # White color
-font_thickness = 2
+font_thickness = 4
 
 # Position to draw text
-text_position = (10, 50)  # Top-left corner
-
-# Draw the text on the image
+text_position = (100, 100)
 
 
 class ImageEditor:

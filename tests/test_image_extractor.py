@@ -1,6 +1,7 @@
-from hmtc.utils.opencv.image_extractor import ImageExtractor
-from hmtc.config import init_config
 from pathlib import Path
+
+from hmtc.config import init_config
+from hmtc.utils.opencv.image_extractor import ImageExtractor
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -34,5 +35,7 @@ def test_basic_image_extractor(test_ww_video_file):
 
 
 def test_save_n_records(test_ww_video_file):
-    ie = ImageExtractor(test_ww_video_file, TARGET_PATH)
-    ie.save_n_random_frames(50)
+    tp = TARGET_PATH / "save_n_records"
+    tp.mkdir(exist_ok=True)
+    ie = ImageExtractor(test_ww_video_file, tp)
+    ie.save_n_random_frames(5)

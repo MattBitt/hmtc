@@ -42,7 +42,6 @@ def test_series():
 
     all_series = Series.select()
     assert all_series.count() == 1
-    logger.debug(f"all_series.count() = {all_series.count()}")
     s.delete_instance()
 
 
@@ -78,7 +77,7 @@ def test_playlist():
 
     all_playlist = Playlist.select()
     # assert all_playlist.count()  > 1
-    logger.debug(f"all_playlist.count() = {all_playlist.count()}")
+
     p.delete_instance()
 
 
@@ -147,6 +146,4 @@ def test_create_channel_file(test_files):
         )
         assert nf2 is not None
     # assert c.files.count() == len(test_files) + 1
-    for f in c.files:
-        logger.debug(f"{f.filename}")
     c.my_delete_instance()

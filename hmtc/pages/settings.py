@@ -18,7 +18,6 @@ from hmtc.models import Channel
 from hmtc.models import (
     File as FileModel,
 )
-
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
@@ -40,6 +39,7 @@ from hmtc.schemas.section import Section, SectionManager
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import search_for_media
+from hmtc.utils.opencv.image_extractor import ImageExtractor
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
@@ -104,7 +104,9 @@ class PageState:
     @staticmethod
     def rip_ww_screenshots():
         logger.debug("Ripping Wordplay Wednesday Screenshots")
-        PageState.updating.set(True)
+        _output_path = STORAGE / "ww_screenshots"
+        if not _output_path.exists():
+            _output_path.mkdir(parents=True, exist_ok=True)
         vids = (
             VideoModel.select()
             .join(
@@ -117,9 +119,30 @@ class PageState:
                 (FileModel.file_type == "video")
                 & (YoutubeSeriesModel.title == "Wordplay Wednesday")
             )
+            .limit(20)
         )
         logger.debug(f"Found {len(vids)} Wordplay Wednesday videos")
-        # this seems to work. good starting point for ripping screenshots
+        for v in vids:
+            video_file = None
+            video = VideoItem.from_model(v)
+            for f in video.files:
+                if f.file_type == "video":
+                    video_file = Path(f.path) / f.filename
+                    break
+            if video_file is None:
+                raise Exception(f"No video file found for {video.title}")
+
+            this_output_path = _output_path / f"ww{str(video.episode).zfill(3)}"
+            if not this_output_path.exists():
+                this_output_path.mkdir(parents=True, exist_ok=True)
+            extractor = ImageExtractor(
+                input_video_path=video_file, output_path=this_output_path
+            )
+            if extractor is None:
+                logger.error(f"No video file found for {video.title}")
+                continue
+            extractor.save_n_random_frames(10)
+            logger.success(f"Saved 10 random frames for {video.title}")
 
     @staticmethod
     def create_tracks_from_sections():

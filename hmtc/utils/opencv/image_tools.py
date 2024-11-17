@@ -1,8 +1,8 @@
-from skimage.color import rgb2gray
+import os
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import os
+
 import cv2
 import numpy as np
 from loguru import logger
