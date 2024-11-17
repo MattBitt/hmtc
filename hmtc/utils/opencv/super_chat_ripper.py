@@ -21,9 +21,13 @@ MINIMUM_AREA = 10000
 
 class SuperChatRipper:
     def __init__(self, image: np.ndarray):
+        if image is None:
+            logger.error("Image is None")
+            raise ValueError("Image is None")
         self.image = image
 
     def find_superchat(self, debug=False) -> tuple:
+
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
 
         # Define color range for bright colors (adjust as needed)

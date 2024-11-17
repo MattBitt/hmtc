@@ -10,7 +10,7 @@ from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
-from hmtc.utils.general import my_copy_file
+from hmtc.utils.general import my_copy_file, copy_tree, remove_tree
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
@@ -30,22 +30,21 @@ OUTPUT_PATH = WORKING / "files_created_by_testing"
 
 
 def copy_initial_files():
-    if INPUT_PATH.exists():
-        if INPUT_PATH.is_dir():
+    for files in SOURCE_FILES_PATH.rglob("*Zone.Identifier*"):
+        files.unlink()
 
-            for file in INPUT_PATH.glob("*"):
-                file.unlink()
-        else:
-            INPUT_PATH.unlink()
-            INPUT_PATH.mkdir()
-    else:
-        INPUT_PATH.mkdir()
+    if INPUT_PATH.exists():
+        remove_tree(INPUT_PATH)
+
+    if OUTPUT_PATH.exists():
+        remove_tree(OUTPUT_PATH)
 
     initial_files = SOURCE_FILES_PATH
     assert initial_files.exists()
     assert len(list(initial_files.rglob("*"))) > 0
-    for file in initial_files.rglob("*"):
-        my_copy_file(file, INPUT_PATH)
+
+    copy_tree(SOURCE_FILES_PATH, INPUT_PATH)
+    OUTPUT_PATH.mkdir(exist_ok=True, parents=True)
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -59,13 +58,10 @@ def db():
     drop_tables(db_instance)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def test_files():
-    # copies files from SOURCE_FILES_PATH to INPUT_PATH
     copy_initial_files()
-    assert INPUT_PATH.exists()
-    files = [file for file in INPUT_PATH.rglob("*")]
-    return files
+    return INPUT_PATH
 
 
 @pytest.fixture(scope="function")
@@ -95,21 +91,30 @@ def test_audio_filename(test_files):
 @pytest.fixture(scope="function")
 def test_ww_video_file(test_files):
     video_file = [x for x in test_files if x.stem == "ww100_clip_1_min"][0]
-
     my_copy_file(video_file, INPUT_PATH)
     return INPUT_PATH / video_file.name
 
 
 @pytest.fixture(scope="function")
 def test_ww_images(test_files):
-    test_images = [x for x in test_files if "random" in x.stem and x.suffix == ".jpg"][
-        :100
+    test_images = [
+        x for x in test_files if x.stem.startswith("ww") and x.suffix == ".jpg"
     ]
 
     for image in test_images:
         my_copy_file(image, INPUT_PATH)
     ww_images = [INPUT_PATH / x.name for x in test_images]
+    assert len(ww_images) > 0
     return ww_images
+
+
+@pytest.fixture(scope="function")
+def test_ww116_images(test_files):
+    ww116_folder = test_files / "ww_screenshots" / "ww116"
+    assert ww116_folder.exists()
+    has_superchats = [x for x in (ww116_folder / "has_superchat").glob("*")]
+    no_superchats = [x for x in (ww116_folder / "no_superchat").glob("*")]
+    return has_superchats, no_superchats
 
 
 @pytest.fixture(scope="function")

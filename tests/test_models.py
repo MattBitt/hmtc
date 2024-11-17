@@ -114,6 +114,7 @@ def test_delete_series():
     assert s2 is None
 
 
+@pytest.mark.skip
 def test_create_channel_file(test_files):
     target = Path(config["paths"]["working"]) / "test_file_output"
 

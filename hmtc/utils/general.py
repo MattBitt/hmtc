@@ -57,6 +57,27 @@ def my_copy_file(source, target):
         logger.error(f"Error copying file {source} to {target}: {e}")
 
 
+def copy_tree(source, target):
+    s = str(Path(source))
+    t = str(Path(target))
+
+    try:
+        shutil.copytree(s, t)
+        logger.debug(f"Copying directory {source} to {target}")
+    except Exception as e:
+        logger.error(f"Error copying directory {source} to {target}: {e}")
+
+
+def remove_tree(target):
+    t = str(Path(target))
+
+    try:
+        shutil.rmtree(t)
+        logger.debug(f"Removing directory {target}")
+    except Exception as e:
+        logger.error(f"Error removing directory {target}: {e}")
+
+
 def my_move_file(source, target):
     logger.debug(f"Moving file {source} to {target}")
     if source == target:

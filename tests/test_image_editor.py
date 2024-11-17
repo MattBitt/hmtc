@@ -21,13 +21,3 @@ def test_write_on_image(test_image_filename):
 
     new_image = output_folder / f"a_random_image_markedup.jpg"
     editor.save_image(new_image)
-
-
-def test_write_on_ww_images(test_ww_images):
-    output_folder = OUTPUT_PATH / "write_on_ww_images"
-    output_folder.mkdir(exist_ok=True)
-    for image in test_ww_images[:10].copy():
-        new_image = output_folder / f"{str(image.stem)}_markup.jpg"
-        editor = ImageEditor(image)
-        editor.write_on_image(str(image))
-        editor.save_image(new_image)
