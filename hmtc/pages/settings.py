@@ -96,6 +96,11 @@ def create_album_xmls():
         logger.debug(f"Created album.nfo file for {v.title} at {album_nfo}")
 
 
+@solara.component_vue("../components/GOBY/ButtonShowcase.vue")
+def ButtonShowCase():
+    pass
+
+
 class PageState:
     updating = solara.reactive(False)
     i = solara.reactive(0)
@@ -305,182 +310,6 @@ class PageState:
             logger.debug(f"Created lyrics file {new_file}")
 
     @staticmethod
-    def download_empty_video_info():
-        logger.debug("Downloading empty video info")
-        PageState.updating.set(True)
-        vids = (
-            VideoModel.select()
-            .where(VideoModel.duration.is_null())
-            .limit(PageState.num_to_download.value)
-        )
-        logger.info(f"Updating {len(vids)} videos")
-        for v in vids:
-            vt = VideoItem.from_orm(v)
-            try:
-                vt.update_from_youtube()
-            except Exception as e:
-                logger.error(f"Error updating video: {e}")
-
-            PageState.i.set(PageState.i.value + 1)
-        logger.info("finished updating videos")
-        PageState.i.set(0)
-        PageState.updating.set(False)
-
-    @staticmethod
-    def download_missing_media_files():
-        logger.debug("Downloading missing media files")
-        PageState.updating.set(True)
-        vids = VideoItem.get_vids_with_no_media_files(
-            limit=PageState.num_to_download.value
-        )
-        logger.info(f"Updating {len(vids)} videos")
-        for v in vids:
-            try:
-                v.download_video()
-            except Exception as e:
-                logger.error(f"Error updating video: {e}")
-
-            PageState.i.set(PageState.i.value + 1)
-        logger.info("finished updating videos")
-        PageState.i.set(0)
-        PageState.updating.set(False)
-
-    @staticmethod
-    def sync_channels_from_youtube():
-        logger.debug("Syncing channel_id in Database from youtube")
-        PageState.updating.set(True)
-        vids_with_no_channel = VideoItem.get_vids_with_no_channel()
-        if len(vids_with_no_channel) == 0:
-            logger.debug("All videos have a channel assigned.")
-            status.set("All videos have a channel assigned.")
-            return
-        else:
-            logger.debug(f"Found {len(vids_with_no_channel)} videos with no channel")
-            status.set(f"Found {len(vids_with_no_channel)} videos with no channel")
-
-        channels = Channel.select().where(
-            (Channel.enabled == True) & (Channel.name.contains("Harry"))
-        )
-
-        for c in channels:
-            status.set(f"Checking Channel {c.name}")
-
-            yt_ids = c.grab_ids()
-            for vid in vids_with_no_channel:
-                if vid.youtube_id in yt_ids:
-                    vid.channel_id = c.id
-                    vid.save()
-                    logger.debug(f"Assigned {vid} to {c}")
-                    PageState.i.set(PageState.i.value + 1)
-
-            status.set("Finished synching channel ids to videos in database")
-
-        PageState.updating.set(False)
-
-    # this is a temporary function to update the episode numbers for videos
-    # as of 8-16-2024
-    @staticmethod
-    def update_episode_numbers():
-        logger.debug("Updating episode numbers")
-        PageState.updating.set(True)
-        vids = VideoItem.get_vids_with_no_episode_number()
-        logger.debug(f"Found {len(vids)} videos with no episode number")
-        for v in vids:
-            v.update_episode_number()
-            PageState.i.set(PageState.i.value + 1)
-        PageState.updating.set(False)
-
-    # this is a temporary function to create albums for videos that are part of a youtube series
-    # still working on this on 10/14/24
-    # need to remove it after ive run it in production
-    def create_yts_albums():
-        logger.debug("Creating Albums for YT Series")
-        vids = (
-            VideoModel.select(
-                VideoModel.id,
-                VideoModel.youtube_series,
-                VideoModel.episode,
-                VideoModel.upload_date,
-            )
-            .join(YoutubeYoutubeSeriesModel)
-            .where(
-                (
-                    (VideoModel.contains_unique_content == True)
-                    & (VideoModel.album_id.is_null())
-                    & (VideoModel.youtube_series.is_null(False))
-                    & (VideoModel.episode.is_null(False))
-                )
-            )
-            .order_by(VideoModel.upload_date)
-        )
-        logger.error(f"Found {len(vids)} videos to create an album for")
-        for v in vids:
-            if v.episode[-1].isalpha():
-                ep_no = v.episode[:-1]
-            else:
-                ep_no = v.episode
-            title = v.youtube_series.title + " " + str(ep_no).zfill(3)
-            album_info = dict(
-                title=title,
-                release_date=v.upload_date,
-            )
-            existing = (
-                AlbumModel.select(AlbumModel.id)
-                .where(AlbumModel.title == title)
-                .get_or_none()
-            )
-            if existing:
-                album = existing
-            else:
-                album = AlbumModel.create(**album_info)
-
-            vid = VideoModel.get_by_id(v.id)
-
-            vid.album = album
-            vid.save()
-            logger.debug(f"Created Album {album} for {v}")
-        logger.error(
-            "Finished creating albums Videos with no album, a YT series, and an episode number"
-        )
-
-    # this is a temporary function to assign video posters to albums
-    # 10/21/24
-    def assign_video_posters_to_albums():
-        albums_with_posters = FileModel.select(FileModel.album_id).where(
-            (FileModel.file_type == "poster") & (FileModel.album_id.is_null(False))
-        )
-        logger.error(f"Found {albums_with_posters.count()} albums WITH a poster")
-        all_albums = AlbumModel.select(AlbumModel.id)
-        albums_missing_posters = all_albums.where(
-            AlbumModel.id.not_in(albums_with_posters)
-        )
-        logger.error(f"Found {albums_missing_posters.count()} albums with no poster")
-        for album_id in albums_missing_posters:
-            try:
-                album = AlbumModel.get_by_id(album_id)
-            except Exception as e:
-                logger.error(f"{e}: Album with id {album_id} not found")
-                continue
-            try:
-                vid = album.videos[0]
-            except Exception as e:
-                logger.error(f"{e}: No video found for album {album}")
-                continue
-
-            vid_poster = (
-                FileModel.select()
-                .where(
-                    (FileModel.file_type == "poster") & (FileModel.video_id == vid.id)
-                )
-                .get_or_none()
-            )
-            if vid_poster:
-                album_item = AlbumItem.from_model(album)
-                album_item.use_video_poster()
-            else:
-                logger.info(f"No poster found for {vid.title}. Skipping")
-
-    @staticmethod
     def import_track_info():
         grouped_tracks = import_tracks()
         for id, tracks in grouped_tracks:
@@ -518,72 +347,8 @@ class PageState:
                         )
                 logger.debug(f"Section created: {section}")
 
-    @staticmethod
-    def update_episode_numbers_omegle_exlusive():
-        logger.debug("Updating episode numbers")
-        PageState.updating.set(True)
-        vids = VideoItem.get_vids_with_no_episode_number()
-        ex_omegle = [v for v in vids if "omegle" in v.title.lower()]
-        episode_number = 0
-        for v in sorted(ex_omegle, key=lambda x: x.upload_date):
-            episode_number += 1
-            v.set_episode_number(episode_number)
-            # v.update_episode_number()
-            PageState.i.set(PageState.i.value + 1)
-        PageState.updating.set(False)
-
-    @staticmethod
-    def update_episode_numbers_guerilla_exlusive():
-        logger.debug("Updating episode numbers")
-        PageState.updating.set(True)
-        vids = VideoItem.get_vids_with_no_episode_number()
-        ex_gb = [v for v in vids if "guerilla" in v.title.lower()]
-        episode_number = 0
-        for v in sorted(ex_gb, key=lambda x: x.upload_date):
-            # v.update_episode_number()
-            episode_number += 1
-            v.set_episode_number(episode_number)
-            PageState.i.set(PageState.i.value + 1)
-        PageState.updating.set(False)
-
-
-@solara.component
-def OldControls():
-    with solara.Card("Use at your own peril"):
-        solara.InputInt(
-            label="Number of Videos to Download",
-            value=PageState.num_to_download,
-        )
-        solara.Button(
-            label="Download info for Random Videos!",
-            on_click=PageState.download_empty_video_info,
-            classes=["button"],
-        )
-        solara.Button(
-            label="Download media files for Random Videos! (be careful with big numbers....)",
-            on_click=PageState.download_missing_media_files,
-            classes=["button"],
-        )
-
-        solara.Button(
-            label="Import Track Info",
-            on_click=PageState.import_track_info,
-            classes=["button"],
-        )
-
-        solara.Button(
-            label="Create Tracks from Sections",
-            on_click=PageState.create_tracks_from_sections,
-            classes=["button"],
-        )
-
 
 status = solara.reactive("")
-
-
-@solara.component_vue("../components/GOBY/ButtonShowcase.vue")
-def ButtonShowCase():
-    pass
 
 
 @solara.component

@@ -1,5 +1,7 @@
 from pathlib import Path
+
 from loguru import logger
+
 from hmtc.config import init_config
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 

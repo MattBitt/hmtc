@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
 from loguru import logger
+from PIL import Image
+
 from hmtc.config import init_config
 from hmtc.utils.opencv.image_editor import ImageEditor
 from hmtc.utils.opencv.image_extractor import ImageExtractor

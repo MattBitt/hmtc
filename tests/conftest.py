@@ -10,7 +10,7 @@ from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
-from hmtc.utils.general import my_copy_file, copy_tree, remove_tree
+from hmtc.utils.general import copy_tree, my_copy_file, remove_tree
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()

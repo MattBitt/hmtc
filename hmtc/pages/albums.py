@@ -17,8 +17,6 @@ from hmtc.models import Video as VideoModel
 from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
 
-force_update_counter = solara.reactive(0)
-
 
 def create_query_from_url():
     # url options
