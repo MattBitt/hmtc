@@ -5,9 +5,6 @@ from urllib.parse import quote
 import requests
 from loguru import logger
 
-# for the 3rd time im restarting the jellyfin functions
-# keeping the my_jellyfin_client for existing code
-# try to use this for future
 from hmtc.config import init_config
 
 config = init_config()
@@ -169,7 +166,7 @@ def get_user_session():
     session = [
         x
         for x in all_sessions()
-        if (x["Client"] != "hmtc-dev " and x.get("UserName", "") == user)
+        if ("hmtc" not in x["Client"] and x.get("UserName", "") == user)
     ]
     if len(session) == 0:
         # logger.error("No sessions found")

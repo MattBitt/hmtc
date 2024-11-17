@@ -42,7 +42,7 @@ export default {
       return [
         index > 0 ? this.lyrics[index - 1] : { text: "", timestamp: -1 },
         this.closestLyric,
-        ...this.lyrics.slice(index + 1, index + 2),
+        ...this.lyrics.slice(index + 1, index + 6),
       ];
     },
   },
