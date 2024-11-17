@@ -66,46 +66,30 @@ def test_files():
 
 @pytest.fixture(scope="function")
 def test_image_filename(test_files):
-    img = [x for x in test_files if x.suffix in [".png", ".jpg", ".jpeg"]][0]
-
-    my_copy_file(img, INPUT_PATH)
-    return INPUT_PATH / img.name
+    img = [x for x in test_files.glob("*") if x.suffix in [".png", ".jpg", ".jpeg"]]
+    if len(img) == 0:
+        raise FileNotFoundError("No image files found")
+    return INPUT_PATH / img[0].name
 
 
 @pytest.fixture(scope="function")
 def test_video_filename(test_files):
-    vid_file = [x for x in test_files if x.suffix in [".mp4", ".mkv"]][0]
+    vid_file = [x for x in test_files.glob("*") if x.suffix in [".mp4", ".mkv"]][0]
 
-    my_copy_file(vid_file, INPUT_PATH)
     return INPUT_PATH / vid_file.name
 
 
 @pytest.fixture(scope="function")
 def test_audio_filename(test_files):
-    audio_file = [x for x in test_files if x.suffix in [".mp3"]][0]
+    audio_file = [x for x in test_files.glob("*") if x.suffix in [".mp3"]][0]
 
-    my_copy_file(audio_file, INPUT_PATH)
     return INPUT_PATH / audio_file.name
 
 
 @pytest.fixture(scope="function")
 def test_ww_video_file(test_files):
-    video_file = [x for x in test_files if x.stem == "ww100_clip_1_min"][0]
-    my_copy_file(video_file, INPUT_PATH)
+    video_file = [x for x in test_files.glob("*") if x.stem == "ww100_clip_1_min"][0]
     return INPUT_PATH / video_file.name
-
-
-@pytest.fixture(scope="function")
-def test_ww_images(test_files):
-    test_images = [
-        x for x in test_files if x.stem.startswith("ww") and x.suffix == ".jpg"
-    ]
-
-    for image in test_images:
-        my_copy_file(image, INPUT_PATH)
-    ww_images = [INPUT_PATH / x.name for x in test_images]
-    assert len(ww_images) > 0
-    return ww_images
 
 
 @pytest.fixture(scope="function")

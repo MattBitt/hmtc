@@ -63,6 +63,16 @@ class ImageExtractor:
             frame = self.grab_frame(timestamp)
             self.save_image(f"random__{timestamp}.jpg", frame)
 
+    def frame_each_n_seconds(self, num_seconds):
+        timestamp = 0
+        frames_to_grab = self.frame_count // (num_seconds * 60)  # 60fps
+        if frames_to_grab < 0 or frames_to_grab > self.frame_count:
+            raise ValueError(f"Invalid number of frames to grab {frames_to_grab}")
+        for _ in range(frames_to_grab):
+            timestamp += 60 * num_seconds
+            frame = self.grab_frame(timestamp)
+            yield frame
+
     @property
     def current_time(self):
         # returns time in seconds

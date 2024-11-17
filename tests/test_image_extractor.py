@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from loguru import logger
 from hmtc.config import init_config
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 
@@ -39,3 +39,23 @@ def test_save_n_records(test_ww_video_file):
     tp.mkdir(exist_ok=True)
     ie = ImageExtractor(test_ww_video_file, tp)
     ie.save_n_random_frames(5)
+    ie.release_video()
+    assert not ie.cap.isOpened()
+
+
+def test_extract_frame_each_n_seconds(test_ww_video_file):
+    # video file is 60 seconds long (60fps)
+
+    tp = TARGET_PATH / "extract_frame_each_n_seconds"
+    tp.mkdir(exist_ok=True)
+    ie = ImageExtractor(test_ww_video_file, tp)
+    counter = 0
+    for _ in ie.frame_each_n_seconds(5):
+        counter += 1
+    assert counter == 12
+    counter = 0
+    for _ in ie.frame_each_n_seconds(10):
+        counter += 1
+    assert counter == 6
+    ie.release_video()
+    assert not ie.cap.isOpened()

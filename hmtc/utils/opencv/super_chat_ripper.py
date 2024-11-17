@@ -68,42 +68,13 @@ class SuperChatRipper:
                 return markup, False
             return None, False
 
-    def grab_superchats_from_video(self, video_path: Path) -> list:
+    def grab_superchats_from_video(self, video_path: Path):
         ie = ImageExtractor(video_path)
         if ie is None:
-            logger.error("Could not create ImageExtractor")
+            logger.error(f"Could not create ImageExtractor for video {video_path}")
             return
 
-        length = int(ie.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        duration = length / ie.cap.get(cv2.CAP_PROP_FPS)
-
-    def capture_superchats(self, video_path):
-
-        while len(superchats) < SUPERCHAT_LIMIT:
-            frame = ie.grab_frame(current_frame)
-            processed_frames += 1
-            superchat, rectangle = self.find_superchat(frame)
-            if superchat is not None:
-                if current_superchat is None:
-                    start_time = ie.current_time
-                    current_superchat = superchat
-                else:
-                    capture = get_region_of_interest(frame, rectangle)
-                    if images_are_the_same(img1=current_superchat, img2=capture):
-                        compare_counter += 1
-                        current_frame += PROCESS_FRAME_N_SECONDS
-                        continue
-
-                    else:
-                        end_time = ie.current_time
-                        if end_time - start_time > MINIMUM_SUPERCHAT_LENGTH:
-                            superchats.append((current_superchat, start_time, end_time))
-                        current_superchat = superchat
-                        start_time = ie.current_time
-            current_frame += PROCESS_FRAME_N_SECONDS
-        logger.debug(f"Length: {length}")
-        logger.debug(f"Duration: {duration}")
-        logger.debug(f"Processed frames: {processed_frames}")
-        logger.debug(f"Compare counter: {compare_counter} / {current_frame}")
-        ie.release_video()
-        return superchats
+        for frame in ie.frame_each_n_seconds(5):
+            sc_image, found = self.find_superchat(frame)
+            if found:
+                yield sc_image

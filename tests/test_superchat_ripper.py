@@ -82,3 +82,24 @@ def test_find_superchat_ww116_no_superchats(test_ww116_images):
         assert (new_file).exists()
         assert sc_image is not None
     assert not test_failed, "Found a superchat where there shouldn't be one"
+
+
+def test_grab_superchats_from_video(test_ww_video_file):
+    tp = TARGET_PATH / "grab_superchats_from_video"
+    tp.mkdir(exist_ok=True)
+    VIDEO_LENGTH = 60
+    HOW_MANY_FRAMES = 6
+
+    ie = ImageExtractor(test_ww_video_file, tp)
+
+    for frame in ie.frame_each_n_seconds(VIDEO_LENGTH // HOW_MANY_FRAMES):
+        assert frame is not None
+        original_frame = ImageEditor(frame)
+        original_frame.save_image(tp / f"{ie.current_time}_original.jpg")
+        sc = SuperChatRipper(frame)
+        sc_image, found = sc.find_superchat(debug=False)
+
+    ie.release_video()
+    assert not ie.cap.isOpened()
+    files = tp.glob("*")
+    assert len(list(files)) == HOW_MANY_FRAMES
