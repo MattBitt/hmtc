@@ -49,6 +49,7 @@ from hmtc.utils.jellyfin_functions import (
 )
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
+from hmtc.utils.opencv.image_manager import ImageManager
 
 IMG_WIDTH = "300px"
 
@@ -57,7 +58,7 @@ IMG_WIDTH = "300px"
 def VideoInfoPanel(video):
 
     poster = FileManager.get_file_for_video(video, "poster")
-    image = PIL.Image.open(Path(str(poster)))
+    image = ImageManager(poster).image
     sections = SectionModel.select(
         SectionModel.id, SectionModel.start, SectionModel.end, SectionModel.track_id
     ).where(SectionModel.video_id == video.id)

@@ -7,6 +7,7 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Album as AlbumModel
 from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
+from hmtc.utils.opencv.image_manager import ImageManager
 
 
 def parse_url_args():
@@ -40,7 +41,7 @@ def Page():
     with solara.Columns([6, 6]):
         with solara.Column():
             poster = FileManager.get_file_for_album(album=album, filetype="poster")
-            image = PIL.Image.open(Path(str(poster)))
+            image = ImageManager(poster).image
             solara.Image(image, width="400")
             solara.Markdown(f"Album Title: {album.title}")
         with solara.Column():

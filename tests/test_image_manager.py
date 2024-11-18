@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from hmtc.config import init_config
-from hmtc.utils.opencv.image_editor import ImageEditor
+from hmtc.utils.opencv.image_manager import ImageManager
 
 config = init_config()
 
@@ -15,7 +15,7 @@ OUTPUT_PATH = WORKING / "files_created_by_testing"
 def test_write_on_image(test_image_filename):
     output_folder = OUTPUT_PATH / "write_on_image"
     output_folder.mkdir(exist_ok=True)
-    editor = ImageEditor(test_image_filename)
+    editor = ImageManager(test_image_filename)
     assert editor.image_path.exists()
     editor.write_on_image("Test Text")
 

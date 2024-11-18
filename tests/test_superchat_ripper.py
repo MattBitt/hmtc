@@ -5,7 +5,7 @@ from loguru import logger
 from PIL import Image
 
 from hmtc.config import init_config
-from hmtc.utils.opencv.image_editor import ImageEditor
+from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.super_chat_ripper import SuperChatRipper
 
@@ -25,7 +25,7 @@ def test_find_superchat_ww116_has_superchats(test_ww116_images):
         tp.mkdir(exist_ok=True, parents=True)
 
         # load example image from test folder
-        editor = ImageEditor(image)
+        editor = ImageManager(image)
         if editor.image is None:
             raise ValueError("Image is None")
 
@@ -43,7 +43,7 @@ def test_find_superchat_ww116_has_superchats(test_ww116_images):
             new_superchat_filename = image.stem + "_markup.jpg"
         new_file = new_path / new_superchat_filename
         # load image of superchat
-        superchat = ImageEditor(sc_image)
+        superchat = ImageManager(sc_image)
 
         superchat.write_on_image(f"{str(image.stem)}")
         superchat.save_image(new_file)
@@ -60,7 +60,7 @@ def test_find_superchat_ww116_no_superchats(test_ww116_images):
         tp.mkdir(exist_ok=True, parents=True)
 
         # load example image from test folder
-        editor = ImageEditor(image)
+        editor = ImageManager(image)
 
         # rip out superchat (if any)
         sc = SuperChatRipper(editor.image)
@@ -76,7 +76,7 @@ def test_find_superchat_ww116_no_superchats(test_ww116_images):
             new_superchat_filename = image.stem + "_markup.jpg"
         new_file = new_path / new_superchat_filename
         # load image of superchat
-        superchat = ImageEditor(sc_image)
+        superchat = ImageManager(sc_image)
 
         superchat.write_on_image(f"{str(image.stem)}")
         superchat.save_image(new_file)
@@ -95,7 +95,7 @@ def test_grab_superchats_from_video(test_ww_video_file):
 
     for frame in ie.frame_each_n_seconds(VIDEO_LENGTH // HOW_MANY_FRAMES):
         assert frame is not None
-        original_frame = ImageEditor(frame)
+        original_frame = ImageManager(frame)
         original_frame.save_image(tp / f"{ie.current_time}_original.jpg")
         sc = SuperChatRipper(frame)
         sc_image, found = sc.find_superchat(debug=False)

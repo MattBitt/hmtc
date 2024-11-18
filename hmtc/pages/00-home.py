@@ -15,6 +15,7 @@ from hmtc.models import Video as VideoModel
 from hmtc.pages.settings import PageState
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.video import VideoItem
+from hmtc.utils.opencv.image_manager import ImageManager
 
 config = init_config()
 
@@ -59,7 +60,6 @@ def ProgressCircle():
 
 @solara.component
 def Page():
-    image = PIL.Image.open(Path("hmtc/assets/images/harry-mack-logo.png"))
 
     MySidebar(
         router=solara.use_router(),
@@ -97,19 +97,17 @@ def Page():
                     on_click=refresh_from_youtube,
                     disabled=not can_refresh,
                 )
-        with solara.Row():
-            with solara.Column(
-                align="center", style={"background-color": Colors.SURFACE}
-            ):
-                solara.Image(image=image)
+        with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
+            logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
+            solara.Image(image=logo_image.image)
 
         with solara.ColumnsResponsive(default=12, large=4):
             for vid in latest_vids:
                 poster = FileManager.get_file_for_video(vid, "poster")
-                vid_image = PIL.Image.open(Path(str(poster)))
+                video_image = ImageManager(poster)
 
                 with solara.Card():
                     with solara.Column():
                         with solara.Link(f"/video-details/{vid.id}"):
-                            solara.Image(image=vid_image)
+                            solara.Image(image=video_image.image)
                         solara.Markdown(f"#### {vid.title}")
