@@ -285,6 +285,9 @@ class VideoItem(BaseItem):
     @staticmethod
     def refresh_youtube_info(video_id):
         vid = VideoModel.get(VideoModel.id == video_id)
+        FileManager.remove_existing_files(
+            video_id, vid.youtube_id, ["info", "subtitle", "poster"]
+        )
         info, files = get_video_info(youtube_id=vid.youtube_id, output_folder=WORKING)
 
         vid.title = info["title"]
@@ -300,6 +303,17 @@ class VideoItem(BaseItem):
             )
             FileManager.add_path_to_video(file, vid)
         return vid
+
+    @staticmethod
+    def download_video_from_youtube(video_id):
+        vid = VideoModel.get(VideoModel.id == video_id)
+        FileManager.remove_existing_files(video_id, vid.youtube_id, ["video", "audio"])
+        info, files = download_video_file(vid.youtube_id, WORKING, progress_hook=None)
+        for file in files:
+            logger.debug(
+                f"Processing files in VideoItem.download_video_from_youtube: {file}"
+            )
+            FileManager.add_path_to_video(file, vid)
 
     @staticmethod
     def get_details_for_video(id: int):

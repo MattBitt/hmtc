@@ -23,13 +23,14 @@ def setup_output_folder():
 
 
 class ImageExtractor:
-    def __init__(self, input_video_path: Path, output_path: Path):
-        # not sure about the units of time_interval
+    def __init__(self, input_video_path: Path, output_path: Path = None):
         self.video_path = input_video_path
-
+        if not self.video_path.exists():
+            raise Exception(f"Error: Video file does not exist. {input_video_path}")
         self.output_folder = output_path
-        if not self.output_folder.exists():
-            raise Exception("Error: Output folder does not exist.")
+        if output_path is not None:
+            if not self.output_folder.exists():
+                raise Exception("Error: Output folder does not exist.")
 
         # Open the video
         self.cap = cv2.VideoCapture(input_video_path)
@@ -37,21 +38,39 @@ class ImageExtractor:
         if not self.cap.isOpened():
             raise Exception("Error: Could not open the video.")
 
-    def grab_frame(self, timestamp) -> NDArray:
-        if timestamp < 0:
-            logger.error("Timestamp cannot be negative")
-            return None
-        if timestamp > self.frame_count:
-            logger.error("Timestamp cannot be greater than frame count")
-            return None
-        self.cap.set(cv2.CAP_PROP_POS_MSEC, timestamp)
-        ret, frame = self.cap.read()
-        if not ret:
-            logger.error(f"Could not read frame at timestamp {timestamp}")
-            return None
+    def extract_frame(self, seconds: int):
+        frame_number = seconds * self.fps
+        frame = self.grab_frame(frame_number)
         return frame
 
+    def extract_frame_sequence(self, start_time, end_time, interval):
+        for timestamp in range(start_time, end_time, interval):
+            frame_number = timestamp * self.fps
+            frame = self.grab_frame(frame_number)
+            logger.debug(f"Extracted frame at {timestamp}")
+            yield frame
+
+    def grab_frame(self, frame_number) -> NDArray:
+        if frame_number < 0:
+            logger.error("Frame_number cannot be negative")
+            raise ValueError(f"Frame_number cannot be negative {frame_number}")
+        if frame_number > self.frame_count:
+            logger.error("Frame_number cannot be greater than frame count")
+            raise ValueError(
+                f"Frame_number cannot exceed frame count {frame_number} / {self.frame_count}"
+            )
+
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        ret, frame = self.cap.read()
+        if not ret:
+            logger.error(f"Could not read frame at frame_number {frame_number}")
+            raise Exception(f"Could not read frame at frame_number {frame_number}")
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
     def save_image(self, image_filename, frame):
+        if self.output_folder is None:
+            logger.error("No output folder specified")
+            raise Exception("No output folder specified in ImageExtractor save_image")
         cv2.imwrite(self.output_folder / image_filename, frame)
 
     def release_video(self):
@@ -65,19 +84,21 @@ class ImageExtractor:
 
     def frame_each_n_seconds(self, num_seconds):
         timestamp = 0
-        frames_to_grab = self.frame_count // (num_seconds * 60)  # 60fps
-        if frames_to_grab < 0 or frames_to_grab > self.frame_count:
-            raise ValueError(f"Invalid number of frames to grab {frames_to_grab}")
+        frames_to_grab = self.frame_count // (num_seconds * self.fps)
         for _ in range(frames_to_grab):
-            timestamp += 60 * num_seconds
+            timestamp += self.fps * num_seconds
             frame = self.grab_frame(timestamp)
             yield frame
 
     @property
     def current_time(self):
         # returns time in seconds
-        return self.cap.get(cv2.CAP_PROP_POS_MSEC) / 1000
+        return int(self.cap.get(cv2.CAP_PROP_POS_MSEC) / self.fps)
 
     @property
     def frame_count(self):
         return int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    @property
+    def fps(self):
+        return int(self.cap.get(cv2.CAP_PROP_FPS))

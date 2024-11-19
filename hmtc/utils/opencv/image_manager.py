@@ -35,9 +35,12 @@ class ImageManager:
 
         elif isinstance(image, FileItem):
             self.image_path = Path(image.path) / image.filename
+
             if not self.image_path.exists():
                 raise Exception(f"Error: Could not open the image. {image}")
+
             self.image = cv2.imread(str(self.image_path), cv2.IMREAD_UNCHANGED)
+
             if self.image_path.suffix == ".webp":
                 self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
 
@@ -45,7 +48,9 @@ class ImageManager:
             self.image = image
             self.image_path = None
         else:
-            raise TypeError("Image must be a file path or a numpy array.")
+            raise TypeError(
+                f"Image must be a file path or a numpy array. Got {type(image)}"
+            )
 
     def write_on_image(self, text):
         return cv2.putText(

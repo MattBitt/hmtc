@@ -116,3 +116,17 @@ def VideoInfoPanel(video):
                     ),
                     on_click=auto_create_tracks,
                 )
+            with solara.Row(justify="center"):
+                with solara.Link(f"/frame-analyzer/{video.id}"):
+                    solara.Button(
+                        label="Frame Analyzer",
+                        classes=["button"],
+                    )
+            with solara.Row(justify="center"):
+                if "wordplay" in video.title.lower():
+                    with solara.Link(f"/superchat-search/{video.id}"):
+                        solara.Button(
+                            label="Create Sections from Superchats",
+                            classes=["button"],
+                            disabled=video.album_id is None or len(sections) > 0,
+                        )

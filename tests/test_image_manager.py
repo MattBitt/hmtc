@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from hmtc.models import File as FileModel
 from hmtc.config import init_config
 from hmtc.utils.opencv.image_manager import ImageManager
 
@@ -10,6 +10,19 @@ STORAGE = Path(config["paths"]["storage"])
 
 INPUT_PATH = WORKING / "files_for_input"
 OUTPUT_PATH = WORKING / "files_created_by_testing"
+
+
+def test_image_mangager_path(test_image_filename):
+    editor = ImageManager(test_image_filename)
+    assert editor.image_path.exists()
+    assert editor.image_path == test_image_filename
+
+
+def test_image_mangager_string(test_image_filename):
+    path_string = str(test_image_filename)
+    editor = ImageManager(str(path_string))
+    assert editor.image_path.exists()
+    assert editor.image_path == test_image_filename
 
 
 def test_write_on_image(test_image_filename):

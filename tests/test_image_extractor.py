@@ -24,14 +24,12 @@ def test_basic_image_extractor(test_ww_video_file):
     assert ie.cap.isOpened()
 
     assert ie.current_time == 0.0
-    frame = ie.grab_frame(1000)
+    frame = ie.extract_frame(30)
 
     assert frame is not None
-    assert ie.current_time == 1
+    assert ie.current_time == 30
     ie.save_image("test_image.jpg", frame)
     assert (ie.output_folder / "test_image.jpg").exists()
-    frame = ie.grab_frame(1000 * 60 * 5)  # some out of bounds time
-    assert frame is None
     ie.release_video()
     assert not ie.cap.isOpened()
 
@@ -46,7 +44,6 @@ def test_save_n_records(test_ww_video_file):
 
 
 def test_extract_frame_each_n_seconds(test_ww_video_file):
-    # video file is 60 seconds long (60fps)
 
     tp = TARGET_PATH / "extract_frame_each_n_seconds"
     tp.mkdir(exist_ok=True)

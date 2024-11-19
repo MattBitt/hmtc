@@ -10,7 +10,7 @@ from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.models import get_file_type
+from hmtc.utils.general import get_file_type
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.ffmpeg_utils import extract_audio
 from hmtc.utils.general import move_file, my_copy_file
@@ -251,7 +251,7 @@ class FileManager:
                 # logger.debug(f"No {filetype} file found for {video.title}")
                 return File(path="hmtc/assets/images", filename="no-image.png")
 
-            return File(path=file.path, filename=file.filename)
+            return File.from_model(file)
 
         except Exception as e:
             logger.error(e)

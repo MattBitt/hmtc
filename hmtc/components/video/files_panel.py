@@ -75,15 +75,12 @@ def FileTypeCheckboxes(
 
 @solara.component
 def FilesPanel(video):
-    files = FileModel.select().where(FileModel.video_id == video.id)
+
     loading = solara.use_reactive(False)
     status_message = solara.use_reactive("")
 
     def download_info(*args):
         loading.set(True)
-        FileManager.remove_existing_files(
-            video.id, video.youtube_id, ["info", "subtitle", "poster"]
-        )
         VideoItem.refresh_youtube_info(video.id)
         VideoItem.create_album_nfo(video)
         loading.set(False)
@@ -104,9 +101,7 @@ def FilesPanel(video):
             # but, i need to make sure that the video is in jellyfin first
         loading.set(False)
 
-    db_files, folder_files = FileManager.get_video_files(video.id, video.youtube_id)
-    ff_serialized = [dict(name=x.name) for x in folder_files]
-    file_types_found = [x.file_type for x in files]
+    file_types_found = [x.file_type for x in video.files]
     if loading.value:
         with solara.Row(justify="center"):
             MySpinner()
@@ -114,8 +109,8 @@ def FilesPanel(video):
     else:
 
         FileTypeCheckboxes(
-            db_files=[FileItem.from_model(x).serialize() for x in db_files],
-            folder_files=ff_serialized,
+            db_files=[FileItem.from_model(x).serialize() for x in video.files],
+            folder_files=[],
             has_audio="audio" in file_types_found,
             has_video="video" in file_types_found,
             has_info="info" in file_types_found,
