@@ -89,6 +89,12 @@ def Page():
                     disabled=current_frame.value == 0,
                 )
             solara.Button(
+                "-30 sec",
+                on_click=lambda: previous_frame(30),
+                classes=["button"],
+                disabled=current_frame.value == 0,
+            )
+            solara.Button(
                 "-1 sec",
                 on_click=lambda: previous_frame(1),
                 classes=["button"],
@@ -97,6 +103,12 @@ def Page():
             solara.Button(
                 "+1 sec",
                 on_click=lambda: next_frame(1),
+                classes=["button"],
+                disabled=current_frame.value == num_frames,
+            )
+            solara.Button(
+                "+30 sec",
+                on_click=lambda: next_frame(30),
                 classes=["button"],
                 disabled=current_frame.value == num_frames,
             )
