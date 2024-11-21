@@ -47,7 +47,7 @@ class ImageExtractor:
         for timestamp in range(start_time, end_time, interval):
             frame_number = timestamp * self.fps
             frame = self.grab_frame(frame_number)
-            logger.debug(f"Extracted frame at {timestamp}")
+            logger.error(f"Extracted frame at {timestamp}")
             yield frame
 
     def grab_frame(self, frame_number) -> NDArray:
@@ -84,7 +84,7 @@ class ImageExtractor:
 
     def frame_each_n_seconds(self, num_seconds):
         timestamp = 0
-        frames_to_grab = self.frame_count // (num_seconds * self.fps)
+        frames_to_grab = self.frame_count // (num_seconds * self.fps) - 1
         for _ in range(frames_to_grab):
             timestamp += self.fps * num_seconds
             frame = self.grab_frame(timestamp)

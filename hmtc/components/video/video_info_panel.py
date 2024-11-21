@@ -123,6 +123,12 @@ def VideoInfoPanel(video):
                         classes=["button"],
                     )
             with solara.Row(justify="center"):
+                with solara.Link(f"/superchat-fine-tuner/{video.id}"):
+                    solara.Button(
+                        label="Frame Analyzer",
+                        classes=["button"],
+                    )
+            with solara.Row(justify="center"):
                 if "wordplay" in video.title.lower():
                     with solara.Link(f"/superchat-search/{video.id}"):
                         solara.Button(

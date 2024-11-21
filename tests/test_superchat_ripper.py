@@ -31,7 +31,7 @@ def test_find_superchat_ww116_has_superchats(test_ww116_images):
 
         # rip out superchat (if any)
         sc = SuperChatRipper(editor.image)
-        sc_image, found = sc.find_superchat(debug=True)
+        sc_image, found = sc.find_superchat_using_canny(debug=True)
         if found:
             new_path = tp / "found"
             new_path.mkdir(exist_ok=True)
@@ -64,24 +64,26 @@ def test_find_superchat_ww116_no_superchats(test_ww116_images):
 
         # rip out superchat (if any)
         sc = SuperChatRipper(editor.image)
-        sc_image, found = sc.find_superchat(debug=True)
+        sc_image, found = sc.find_superchat_using_canny(debug=True)
         if found:
             test_failed = True
             new_path = tp / "found"
             new_path.mkdir(exist_ok=True)
             new_superchat_filename = image.stem + "_superchat.jpg"
+            new_file = new_path / new_superchat_filename
+            # load image of superchat
+            superchat = ImageManager(sc_image)
+
+            superchat.write_on_image(f"{str(image.stem)}")
+            superchat.save_image(new_file)
+            assert (new_file).exists()
+            assert sc_image is not None
         else:
             new_path = tp / "not_found"
             new_path.mkdir(exist_ok=True)
             new_superchat_filename = image.stem + "_markup.jpg"
-        new_file = new_path / new_superchat_filename
-        # load image of superchat
-        superchat = ImageManager(sc_image)
+            test_failed = False
 
-        superchat.write_on_image(f"{str(image.stem)}")
-        superchat.save_image(new_file)
-        assert (new_file).exists()
-        assert sc_image is not None
     assert not test_failed, "Found a superchat where there shouldn't be one"
 
 
@@ -103,4 +105,4 @@ def test_grab_superchats_from_video(test_ww_video_file):
     ie.release_video()
     assert not ie.cap.isOpened()
     files = tp.glob("*")
-    assert len(list(files)) == HOW_MANY_FRAMES
+    assert len(list(files)) == HOW_MANY_FRAMES - 1

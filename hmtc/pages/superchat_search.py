@@ -16,11 +16,8 @@ def parse_url_args():
     level = solara.use_route_level()
     if len(router.parts) == 1:
         router.push("/videos")
-    elif len(router.parts) == 2:
-
-        return router.parts[level:][0], 0
     else:
-        return router.parts[level:][0], int(router.parts[level:][1])
+        return router.parts[level:][0]
 
 
 @dataclass
@@ -51,14 +48,99 @@ def are_the_same(imageA, imageB):
             # same image?
             return True
         else:
-            logger.debug(f"MSE is too high to be the same")
+            # logger.debug(f"MSE is too high to be the same")
             return False
     # shape is too different to be the same
     else:
-        logger.debug(f"Shape is too different to be the same")
-        logger.debug(f"Shape A: {imageA.shape}")
-        logger.debug(f"Shape B: {imageB.shape}")
+        # logger.debug(f"Shape is too different to be the same")
+        # logger.debug(f"Shape A: {imageA.shape}")
+        # logger.debug(f"Shape B: {imageB.shape}")
         return False
+
+
+@solara.component
+def SuperChatSearcher(video):
+    MIN_SUPERCHAT_DURATION = 20
+    TIME_STEP = 10
+    IMAGES_TO_SHOW = 5
+
+    found_superchats = solara.use_reactive([])
+    current_time = solara.use_reactive(0)
+    current_superchat = None
+
+    def load_next_page(new_time):
+        current_time.set(new_time)
+        found_superchats.set([])
+
+    vid_file = FileManager.get_file_for_video(video, "video")
+
+    if vid_file.file_type == "":
+        solara.Markdown(f"No video file found for video {video.title}")
+        return None
+
+    file_path = Path(vid_file.path) / vid_file.filename
+
+    image_extractor = ImageExtractor(file_path)
+    images = image_extractor.extract_frame_sequence(
+        current_time.value, video.duration, TIME_STEP
+    )
+
+    for image in images:
+        if len(found_superchats.value) >= IMAGES_TO_SHOW:
+            break
+        logger.error(f"Current Time: {current_time.value}")
+        logger.error(f"Number of Superchats found  {len(found_superchats.value)}")
+        superchat_image, found = SuperChatRipper(image).find_superchat()
+
+        if found:
+            if current_superchat is None:
+                current_superchat = SuperChat(superchat_image, current_time.value)
+            else:
+                sc = SuperChat(superchat_image, current_time.value)
+                logger.error(
+                    f"Comparing {current_superchat.start_time} with {sc.start_time}"
+                )
+                the_same = are_the_same(current_superchat.image, sc.image)
+                if the_same:
+                    # current superchat already in found_superchats
+                    logger.debug("Found the same image. Moving on.")
+                    current_time.value = current_time.value + TIME_STEP
+                    continue
+
+                else:
+
+                    # end the current superchat
+                    current_superchat.end_time = current_time.value
+                    if (
+                        current_superchat.end_time - current_superchat.start_time
+                        > MIN_SUPERCHAT_DURATION
+                    ):
+                        found_superchats.value.append(current_superchat)
+                    current_superchat = sc
+                    current_superchat = None
+
+        else:
+            logger.debug("No superchat found")
+            if current_superchat is not None:
+                current_superchat.end_time = current_time.value
+                if (
+                    current_superchat.end_time - current_superchat.start_time
+                    > MIN_SUPERCHAT_DURATION
+                ):
+                    found_superchats.value.append(current_superchat)
+            current_superchat = None
+        current_time.value = current_time.value + TIME_STEP
+    if len(found_superchats.value) > 0:
+        if found_superchats.value[-1].end_time is None:
+            found_superchats.value[-1].end_time = current_time.value
+        last_superchat = found_superchats.value[-1]
+        with solara.Row():
+            solara.Button(
+                "Next Page", on_click=lambda: load_next_page(last_superchat.end_time)
+            )
+
+    for superchat in found_superchats.value:
+        SuperChatImageCard(superchat)
 
 
 @solara.component
@@ -75,79 +157,12 @@ def SuperChatImageCard(superchat):
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    MIN_SUPERCHAT_DURATION = 5
-    current_superchat = None
-    time_step = 5
-    images_to_show = 5
-    found_superchats = solara.use_reactive([])
-    video_id, frame_number = parse_url_args()
-    current_time = frame_number
+
+    video_id = parse_url_args()
 
     if video_id is None or video_id == 0:
         raise ValueError(f"No Video Found {video_id}")
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
-    vid_file = FileManager.get_file_for_video(video, "video")
 
-    if vid_file.file_type == "":
-        solara.Markdown(f"No video file found for video {video_id}")
-    else:
-        file_path = Path(vid_file.path) / vid_file.filename
-
-        image_extractor = ImageExtractor(file_path)
-        images = image_extractor.extract_frame_sequence(
-            current_time, video.duration, time_step
-        )
-
-        for image in images:
-            if len(found_superchats.value) >= images_to_show:
-                break
-
-            superchat_image, found = SuperChatRipper(image).find_superchat()
-
-            if found:
-                if current_superchat is None:
-                    current_superchat = SuperChat(superchat_image, current_time)
-                else:
-                    sc = SuperChat(superchat_image, current_time)
-                    logger.error(
-                        f"Comparing {current_superchat.start_time} with {sc.start_time}"
-                    )
-                    the_same = are_the_same(current_superchat.image, sc.image)
-                    if the_same:
-                        # current superchat already in found_superchats
-                        logger.debug("Found the same image. Moving on.")
-                        current_time = current_time + time_step
-                        continue
-
-                    else:
-
-                        # end the current superchat
-                        current_superchat.end_time = current_time
-                        if (
-                            current_superchat.end_time - current_superchat.start_time
-                            > MIN_SUPERCHAT_DURATION
-                        ):
-                            found_superchats.value.append(current_superchat)
-                        current_superchat = sc
-                        current_superchat = None
-
-            else:
-                logger.debug("No superchat found")
-                if current_superchat is not None:
-                    current_superchat.end_time = current_time
-                    found_superchats.value.append(current_superchat)
-                current_superchat = None
-            current_time = current_time + time_step
-
-        if found_superchats.value[-1].end_time is None:
-            found_superchats.value[-1].end_time = current_time
-        last_superchat = found_superchats.value[-1]
-        with solara.Row():
-            with solara.Link(
-                f"/superchat-search/{video_id}/{last_superchat.end_time}",
-            ):
-                solara.Text(f"Next Page")
-
-        for superchat in found_superchats.value:
-            SuperChatImageCard(superchat)
+    # SuperChatSearcher(video)
