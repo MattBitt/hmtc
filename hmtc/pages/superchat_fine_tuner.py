@@ -85,8 +85,19 @@ def filter3(image):
     return cv2.GaussianBlur(image, (15, 15), 0)
 
 
-def filter4(image):
-    return cv2.GaussianBlur(image, (1, 1), 0)
+@solara.component
+def ImageComparison(file_path, frame):
+    image_extractor = ImageExtractor(file_path)
+    image = image_extractor.grab_frame(frame)
+    with solara.Row(justify="center"):
+        solara.Image(image, width="600px")
+        solara.Image(filter1(image), width="600px")
+        solara.Image(filter2(image), width="600px")
+        solara.Image(filter3(image), width="600px")
+
+
+def random_frames():
+    return
 
 
 @solara.component
@@ -107,35 +118,15 @@ def Page():
 
     image_extractor = ImageExtractor(file_path)
     # frame_number = solara.use_reactive(random.randint(0, image_extractor.frame_count))
-    frame_number = random.randint(0, image_extractor.frame_count)
-    image = image_extractor.grab_frame(frame_number)
+    frames = solara.use_reactive(
+        [random.randint(0, image_extractor.frame_count) for _ in range(3)]
+    )
+    solara.Button(
+        "Randomize Frames",
+        on_click=lambda: frames.set(
+            [random.randint(0, image_extractor.frame_count) for _ in range(3)]
+        ),
+    )
+    for frame in frames.value:
 
-    frame_number = random.randint(0, image_extractor.frame_count)
-    image2 = image_extractor.grab_frame(frame_number)
-
-    frame_number = random.randint(0, image_extractor.frame_count)
-    image3 = image_extractor.grab_frame(frame_number)
-
-    frame_number = random.randint(0, image_extractor.frame_count)
-    image4 = image_extractor.grab_frame(frame_number)
-    start_time = time.time()
-    filtered1 = filter1(image)
-    logger.debug(f"Filter 1 Time: {time.time() - start_time} ms")
-    start_time = time.time()
-    filtered2 = filter1(image2)
-    logger.debug(f"Filter 2 Time: {time.time() - start_time}")
-    start_time = time.time()
-    filtered3 = filter1(image3)
-    logger.debug(f"Filter 3 Time: {time.time() - start_time}")
-    start_time = time.time()
-    filtered4 = filter1(image4)
-    logger.debug(f"Filter 4 Time: {time.time() - start_time}")
-    with solara.Row(justify="center"):
-        solara.Text(f"Frame Number: {416263}")
-        solara.Image(image, width="600px")
-    with solara.Row(justify="center"):
-        solara.Image(filtered1, width="100%")
-        solara.Image(filtered2, width="100%")
-    with solara.Row(justify="center"):
-        solara.Image(filtered3, width="100%")
-        solara.Image(filtered4, width="100%")
+        ImageComparison(file_path, frame)
