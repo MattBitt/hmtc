@@ -5,7 +5,7 @@ from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.video import VideoItem
 from hmtc.models import Video as VideoModel
-from hmtc.utils.opencv.super_chat_ripper import SuperChatRipper
+from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 
 
 def parse_url_args():

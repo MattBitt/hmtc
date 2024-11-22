@@ -7,6 +7,7 @@ from pathlib import Path
 from loguru import logger
 from peewee import (
     AutoField,
+    BlobField,
     BooleanField,
     CharField,
     DateField,
@@ -557,3 +558,36 @@ class SectionTopics(BaseModel):
 
     def __str__(self):
         return f"SectionTopics({self.id} - {self.section=})"
+
+
+class BaseFile(BaseModel):
+    WORKING_PATH = WORKING / "uploads"
+
+    path = CharField()
+    filename = CharField()
+    file_type = CharField()
+
+
+class Superchat(BaseModel):
+
+    start_time = IntegerField()
+    end_time = IntegerField(null=True)
+    video = ForeignKeyField(Video, backref="superchats")
+
+    def __repr__(self):
+        return f"Superchat({self.id} - {self.start_time=})"
+
+    def __str__(self):
+        return f"Superchat({self.id} - {self.start_time=})"
+
+    def simple_dict(self):
+        return {
+            "id": self.id,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "video_id": self.video,
+        }
+
+
+class SuperchatFile(BaseFile):
+    superchat_id: int = ForeignKeyField(Superchat, backref="files")

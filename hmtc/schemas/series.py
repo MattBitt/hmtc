@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 import datetime
 
 from loguru import logger
@@ -8,7 +8,7 @@ from hmtc.models import Video as VideoModel
 from hmtc.schemas.base import BaseItem
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True)
 class Series(BaseItem):
     name: str
     item_type: str = "SERIES"

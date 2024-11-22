@@ -16,3 +16,9 @@ def convert_webp_to_png(file, path=None) -> Path:
 def convert_jpg_to_png(file):
     new_file = ""
     return new_file
+
+
+def hex_to_rgb(hex_color):
+    """Converts a hex color code to BGR format."""
+    hex_color = hex_color.lstrip("#")
+    return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))

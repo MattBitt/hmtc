@@ -4,8 +4,9 @@ from pathlib import Path
 from dataclasses import dataclass
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.utils.opencv.image_extractor import ImageExtractor
-from hmtc.utils.opencv.super_chat_ripper import SuperChatRipper
+from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 from hmtc.schemas.file import FileManager
+from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.schemas.video import VideoItem
 from hmtc.models import Video as VideoModel
 import numpy as np
@@ -64,13 +65,18 @@ def SuperChatSearcher(video):
     TIME_STEP = 10
     IMAGES_TO_SHOW = 5
 
-    found_superchats = solara.use_reactive([])
+    found_superchats = []
     current_time = solara.use_reactive(0)
     current_superchat = None
+    images = solara.use_reactive([])
 
     def load_next_page(new_time):
         current_time.set(new_time)
-        found_superchats.set([])
+        images.set(
+            image_extractor.extract_frame_sequence(
+                current_time.value, video.duration, TIME_STEP
+            )
+        )
 
     vid_file = FileManager.get_file_for_video(video, "video")
 
@@ -81,22 +87,28 @@ def SuperChatSearcher(video):
     file_path = Path(vid_file.path) / vid_file.filename
 
     image_extractor = ImageExtractor(file_path)
-    images = image_extractor.extract_frame_sequence(
-        current_time.value, video.duration, TIME_STEP
-    )
-
-    for image in images:
-        if len(found_superchats.value) >= IMAGES_TO_SHOW:
+    with solara.Row():
+        solara.Button("Next Page", on_click=lambda: load_next_page(current_time.value))
+    for image in images.value:
+        if len(found_superchats) >= IMAGES_TO_SHOW:
             break
         logger.error(f"Current Time: {current_time.value}")
-        logger.error(f"Number of Superchats found  {len(found_superchats.value)}")
+        logger.error(f"Number of Superchats found  {len(found_superchats)}")
         superchat_image, found = SuperChatRipper(image).find_superchat()
 
         if found:
             if current_superchat is None:
-                current_superchat = SuperChat(superchat_image, current_time.value)
+                current_superchat = SuperchatItem(
+                    image=superchat_image,
+                    start_time=current_time.value,
+                    video_id=video.id,
+                )
             else:
-                sc = SuperChat(superchat_image, current_time.value)
+                sc = SuperchatItem(
+                    image=superchat_image,
+                    start_time=current_time.value,
+                    video_id=video.id,
+                )
                 logger.error(
                     f"Comparing {current_superchat.start_time} with {sc.start_time}"
                 )
@@ -110,36 +122,36 @@ def SuperChatSearcher(video):
                 else:
 
                     # end the current superchat
-                    current_superchat.end_time = current_time.value
+                    current_superchat = current_superchat.update_end_time(
+                        current_time.value
+                    )
                     if (
                         current_superchat.end_time - current_superchat.start_time
                         > MIN_SUPERCHAT_DURATION
                     ):
-                        found_superchats.value.append(current_superchat)
+                        found_superchats.append(current_superchat)
                     current_superchat = sc
                     current_superchat = None
 
         else:
             logger.debug("No superchat found")
             if current_superchat is not None:
-                current_superchat.end_time = current_time.value
+                current_superchat = current_superchat.update_end_time(
+                    current_time.value
+                )
                 if (
                     current_superchat.end_time - current_superchat.start_time
                     > MIN_SUPERCHAT_DURATION
                 ):
-                    found_superchats.value.append(current_superchat)
+                    found_superchats.append(current_superchat)
             current_superchat = None
         current_time.value = current_time.value + TIME_STEP
-    if len(found_superchats.value) > 0:
-        if found_superchats.value[-1].end_time is None:
-            found_superchats.value[-1].end_time = current_time.value
-        last_superchat = found_superchats.value[-1]
-        with solara.Row():
-            solara.Button(
-                "Next Page", on_click=lambda: load_next_page(last_superchat.end_time)
-            )
+    if len(found_superchats) > 0:
+        if found_superchats[-1].end_time is None:
+            current_superchat = current_superchat.update_end_time(current_time.value)
+        last_superchat = found_superchats[-1]
 
-    for superchat in found_superchats.value:
+    for superchat in found_superchats:
         SuperChatImageCard(superchat)
 
 
@@ -148,9 +160,9 @@ def SuperChatImageCard(superchat):
     with solara.Card():
         with solara.Row():
             solara.Image(superchat.image, width="80%")
-        with solara.Row():
-            solara.Text(f"Start Time: {superchat.start_time}")
-            solara.Text(f"End Time: {superchat.end_time}")
+            with solara.Column():
+                solara.Text(f"Start Time: {superchat.start_time}")
+                solara.Text(f"End Time: {superchat.end_time}")
 
 
 @solara.component
@@ -165,4 +177,4 @@ def Page():
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
 
-    # SuperChatSearcher(video)
+    SuperChatSearcher(video)

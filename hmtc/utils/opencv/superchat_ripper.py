@@ -2,7 +2,8 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-
+from hmtc.assets.colors import Colors
+from hmtc.utils.image import hex_to_rgb
 import cv2
 import numpy as np
 from loguru import logger
@@ -28,46 +29,32 @@ class SuperChatRipper:
         self.image = image
 
     def find_superchat(self, debug=False) -> tuple:
-
-        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+        xs = self.image.shape[0]
+        ys = self.image.shape[1] * 0.5
+        image = self.image[0 : int(xs), 0 : int(ys)].copy()
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define color range for bright colors (adjust as needed)
-        lower_bright = np.array([0, 100, 100])
+        lower_bright = np.array([0, 110, 100])
         upper_bright = np.array([179, 255, 255])
 
         # Create a mask for bright colors
         mask = cv2.inRange(hsv, lower_bright, upper_bright)
-
         # Find contours in the mask
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
-        # Sort contours by area and keep the 5 largest
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
-        contours = sorted(contours, key=lambda x: cv2.boundingRect(x)[0])
+        if len(contours) == 0:
+            return image, False
+        if debug:
+            rect_color = hex_to_rgb(str(Colors.ERROR))
+            x, y, w, h = cv2.boundingRect(contours[0])
+            cv2.rectangle(image, (x, y), (x + w, y + h), rect_color, 8)
 
-        max_contour = None
-        max_area = 0
-
-        # Prioritize contours on the left side of the screen
-        image_h, image_w, _ = self.image.shape
-        for contour in contours:
-            x, y, w, h = cv2.boundingRect(contour)
-            area = cv2.contourArea(contour)
-            if x < image_w / 2 and area > MINIMUM_AREA:
-                max_contour = contour
-
-        if max_contour is not None:
-            x, y, w, h = cv2.boundingRect(max_contour)
-            return cv2.cvtColor(hsv[y : y + h, x : x + w], cv2.COLOR_HSV2BGR), True
-
+            return image, True
         else:
-            if debug:
-                markup = self.image.copy()
-                for contour in contours:
-                    x, y, w, h = cv2.boundingRect(contour)
-                    cv2.rectangle(markup, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                return markup, False
-            return None, False
+            x, y, w, h = cv2.boundingRect(contours[0])
+            return image[y : y + h, x : x + w], True
 
     def find_superchat_using_canny(self, debug=False) -> tuple:
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
