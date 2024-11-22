@@ -47,9 +47,9 @@ from hmtc.utils.jellyfin_functions import (
     get_user_favorites,
     get_user_session,
 )
+from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
-from hmtc.utils.opencv.image_manager import ImageManager
 
 IMG_WIDTH = "300px"
 
@@ -122,17 +122,25 @@ def VideoInfoPanel(video):
                         label="Frame Analyzer",
                         classes=["button"],
                     )
-            with solara.Row(justify="center"):
                 with solara.Link(f"/superchat-fine-tuner/{video.id}"):
                     solara.Button(
-                        label="Frame Analyzer",
+                        label="Superchat Fine Tuner",
                         classes=["button"],
                     )
+
             with solara.Row(justify="center"):
-                if "wordplay" in video.title.lower():
-                    with solara.Link(f"/superchat-search/{video.id}"):
+
+                solara.Text("asdf")
+                solara.Button(
+                    "Analyze Video for Superchats",
+                    classes=["button"],
+                    on_click=lambda: logger.debug("Analyzing..."),
+                )
+
+                if len(video.superchats) > 0:
+                    solara.Markdown("HI")
+                    with solara.Link(f"/superchat-sections/{video.id}"):
                         solara.Button(
-                            label="Create Sections from Superchats",
+                            label=f"Superchat Sections ({len(video.superchats)})",
                             classes=["button"],
-                            disabled=video.album_id is None or len(sections) > 0,
                         )

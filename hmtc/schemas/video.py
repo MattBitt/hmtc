@@ -17,6 +17,7 @@ from hmtc.models import (
     YoutubeSeries,
 )
 from hmtc.models import File as FileModel
+from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import (
@@ -28,6 +29,7 @@ from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
+
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.jellyfin_functions import refresh_library
@@ -80,6 +82,8 @@ class VideoItem(BaseItem):
     files: list = field(default_factory=list)
     file_count: int = 0
 
+    superchats: list = field(default_factory=list)
+
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
         files = [
@@ -120,6 +124,7 @@ class VideoItem(BaseItem):
             series_id=video.series_id,
             files=[FileItem.from_model(f) for f in video.files],
             sections=[SectionItem.from_model(s) for s in video.sections],
+            superchats=video.superchats,
         )
 
     def serialize(self) -> dict:
@@ -130,6 +135,11 @@ class VideoItem(BaseItem):
             [(section.end - section.start) / 1000 for section in sections]
         )
         sectionalized_ratio = total_section_durations / self.duration
+        superchats = (
+            [s.simple_dict() for s in self.superchats]
+            if len(self.superchats) > 0
+            else []
+        )
         return {
             "id": self.id,
             "title": self.title,
@@ -160,6 +170,7 @@ class VideoItem(BaseItem):
             ),
             "files": [file.serialize() for file in self.files],
             "sections": [section.serialize() for section in self.sections],
+            "superchats": superchats,
         }
 
     @staticmethod

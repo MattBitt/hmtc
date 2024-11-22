@@ -1,18 +1,21 @@
-from pathlib import Path
 import time
-import pytest
+from pathlib import Path
+
+import cv2
 import numpy as np
+import pytest
 from loguru import logger
 from PIL import Image
-import cv2
+
 from hmtc.config import init_config
-from hmtc.utils.opencv.image_manager import ImageManager
-from hmtc.utils.opencv.image_extractor import ImageExtractor
-from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import Video as VideoModel
 from hmtc.schemas.superchat import Superchat as SuperchatItem
+from hmtc.utils.opencv.image_extractor import ImageExtractor
+from hmtc.utils.opencv.image_manager import ImageManager
+from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+from hmtc.schemas.file import FileManager
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -160,7 +163,7 @@ def test_superchat_item():
     sci.image.save_image(tp / "superchat_item.jpg")
 
 
-def test_ripper_to_item(test_ww116_images):
+def test_ripper_to_item(test_ww116_images, test_ww_video_file):
     has_superchats, _ = test_ww116_images
     tp = TARGET_PATH / "ripper_to_item"
     tp.mkdir(exist_ok=True)
@@ -172,12 +175,10 @@ def test_ripper_to_item(test_ww116_images):
         upload_date="2021-01-01",
         duration=1200,
     )
+    FileManager.add_path_to_video(path=test_ww_video_file, video=new_vid)
 
     for image in has_superchats:
         editor = ImageManager(image)
-        if editor.image is None:
-            raise ValueError("Image is None")
-
         # rip out superchat (if any)
         sc = SuperChatRipper(editor.image)
         sc_image, found = sc.find_superchat()
@@ -185,11 +186,11 @@ def test_ripper_to_item(test_ww116_images):
         superchat = SuperchatItem(
             frame_number=0,
             video=new_vid,
-            image=ImageManager(sc_image),
+            image=ImageManager(sc_image).image,
         )
-        superchat.image.write_on_image("Mizzle Bizzle")
+        ImageManager(superchat.image).write_on_image("Mizzle Bizzle Foshizzle")
         superchat.save_to_db()
-        superchat.save_superchat_image(tp / f"{image.stem}_superchat.jpg")
+        superchat.write_image(tp / f"{image.stem}_superchat.jpg")
 
         new_sc = SuperchatModel.get(frame_number=0, video_id=new_vid.id)
         assert new_sc is not None
@@ -198,4 +199,4 @@ def test_ripper_to_item(test_ww116_images):
         sc_file_db = SuperchatFileModel.get(superchat_id=new_sc.id)
         assert sc_file_db is not None
         img = superchat.get_image()
-        assert isinstance(img.image, np.ndarray)
+        assert isinstance(img, np.ndarray)

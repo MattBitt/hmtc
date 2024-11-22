@@ -1,6 +1,7 @@
 from pathlib import Path
-from hmtc.models import File as FileModel
+
 from hmtc.config import init_config
+from hmtc.models import File as FileModel
 from hmtc.utils.opencv.image_manager import ImageManager
 
 config = init_config()

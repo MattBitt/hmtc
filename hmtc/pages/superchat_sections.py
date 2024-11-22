@@ -1,17 +1,19 @@
-from loguru import logger
-import solara
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+import solara
+from loguru import logger
+
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.utils.opencv.image_extractor import ImageExtractor
-from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
-from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.schemas.video import VideoItem
-from hmtc.models import Video as VideoModel
-from hmtc.models import Superchat as SuperchatModel
-import numpy as np
+from hmtc.utils.opencv.image_extractor import ImageExtractor
+from hmtc.utils.opencv.image_manager import ImageManager
+from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 
 
 def parse_url_args():
@@ -108,7 +110,7 @@ def SuperChatSearcher(video, current_time):
                 video=video,
             )
             sc.save_to_db()
-            sc.save_superchat_image(filename=f"{current_time.value}.jpg")
+            sc.write_image(filename=f"{current_time.value}.jpg")
             found_superchats.append(sc)
         current_time.value = current_time.value + TIME_STEP
 

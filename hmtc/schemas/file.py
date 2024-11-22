@@ -10,10 +10,9 @@ from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.utils.general import get_file_type
 from hmtc.schemas.base import BaseItem
 from hmtc.utils.ffmpeg_utils import extract_audio
-from hmtc.utils.general import move_file, my_copy_file
+from hmtc.utils.general import get_file_type, move_file, my_copy_file
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

@@ -584,7 +584,7 @@ class Superchat(BaseModel):
         return {
             "id": self.id,
             "frame_number": self.frame_number,
-            "video_id": self.video,
+            "video_id": self.video.id,
         }
 
 

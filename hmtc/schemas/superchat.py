@@ -1,12 +1,14 @@
 from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+
+from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
-from hmtc.models import File as FileModel
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.video import VideoItem
-import numpy as np
 from hmtc.utils.opencv.image_manager import ImageManager
-from pathlib import Path
 
 
 @dataclass(kw_only=True)
@@ -23,12 +25,12 @@ class Superchat:
             .where(SuperchatFileModel.superchat_id == superchat.id)
             .get()
         )
-        self.image = ImageManager(Path(i.path) / i.filename).image
+        im = ImageManager(Path(i.path) / i.filename)
         return Superchat(
             id=superchat.id,
             frame_number=superchat.frame_number,
             video=superchat.video,
-            image=self.image,
+            image=im.image,
         )
 
     def serialize(self) -> dict:
@@ -56,10 +58,10 @@ class Superchat:
                 )
                 .get()
             )
-            self.image = ImageManager(Path(image_file.path) / image_file.filename)
+            self.image = ImageManager(Path(image_file.path) / image_file.filename).image
         return self.image
 
-    def save_superchat_image(self, filename, new_path: Path = None) -> None:
+    def write_image(self, filename, new_path: Path = None) -> None:
         if self.id is None:
             raise ValueError("Superchat must be saved to the database first")
         if self.image is None:

@@ -14,10 +14,6 @@
                 "run",
                 "hmtc/pages",
                 "--port=8767",
-                "--restart-dir",
-                "${workspaceFolder}/hmtc/components/",
-                "--restart-dir",
-                "${workspaceFolder}/hmtc/schemas/"
             ],
             "console": "integratedTerminal",
             "justMyCode": true,
