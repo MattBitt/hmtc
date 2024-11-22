@@ -67,6 +67,8 @@ class ImageManager:
         self.image = cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     def save_image(self, path=None):
+        if self.image is None:
+            raise ValueError("No image to save.")
         if path is None:
             if self.image_path is None:
                 raise ValueError("No path provided to save the image.")

@@ -19,6 +19,8 @@ config = init_config()
 WORKING = Path(config["paths"]["working"])
 STORAGE = Path(config["paths"]["storage"])
 MINIMUM_AREA = 10000
+MIN_WIDTH = 100
+MIN_HEIGHT = 100
 
 
 class SuperChatRipper:
@@ -46,15 +48,17 @@ class SuperChatRipper:
 
         if len(contours) == 0:
             return image, False
+
         if debug:
+            # return the image with a colored rectangle for debugging
             rect_color = hex_to_rgb(str(Colors.ERROR))
             x, y, w, h = cv2.boundingRect(contours[0])
             cv2.rectangle(image, (x, y), (x + w, y + h), rect_color, 8)
 
             return image, True
-        else:
-            x, y, w, h = cv2.boundingRect(contours[0])
-            return image[y : y + h, x : x + w], True
+        # only return the superchat if it is large enough
+        x, y, w, h = cv2.boundingRect(contours[0])
+        return image[y : y + h, x : x + w], True
 
     def find_superchat_using_canny(self, debug=False) -> tuple:
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)

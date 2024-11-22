@@ -570,21 +570,20 @@ class BaseFile(BaseModel):
 
 class Superchat(BaseModel):
 
-    start_time = IntegerField()
-    end_time = IntegerField(null=True)
+    frame_number = IntegerField()
+
     video = ForeignKeyField(Video, backref="superchats")
 
     def __repr__(self):
-        return f"Superchat({self.id} - {self.start_time=})"
+        return f"Superchat({self.id} - {self.frame_number=})"
 
     def __str__(self):
-        return f"Superchat({self.id} - {self.start_time=})"
+        return f"Superchat({self.id} - {self.frame_number=})"
 
     def simple_dict(self):
         return {
             "id": self.id,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
+            "frame_number": self.frame_number,
             "video_id": self.video,
         }
 

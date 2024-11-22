@@ -7,8 +7,10 @@ from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
+from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.schemas.video import VideoItem
 from hmtc.models import Video as VideoModel
+from hmtc.models import Superchat as SuperchatModel
 import numpy as np
 
 
@@ -60,14 +62,13 @@ def are_the_same(imageA, imageB):
 
 
 @solara.component
-def SuperChatSearcher(video):
+def SuperChatSearcher(video, current_time):
     MIN_SUPERCHAT_DURATION = 20
     TIME_STEP = 10
-    IMAGES_TO_SHOW = 5
+    IMAGES_TO_SHOW = 200
 
     found_superchats = []
-    current_time = solara.use_reactive(0)
-    current_superchat = None
+
     images = solara.use_reactive([])
 
     def load_next_page(new_time):
@@ -88,7 +89,10 @@ def SuperChatSearcher(video):
 
     image_extractor = ImageExtractor(file_path)
     with solara.Row():
-        solara.Button("Next Page", on_click=lambda: load_next_page(current_time.value))
+        solara.Button(
+            "Search For More Superchats!!!",
+            on_click=lambda: load_next_page(current_time.value),
+        )
     for image in images.value:
         if len(found_superchats) >= IMAGES_TO_SHOW:
             break
@@ -97,59 +101,16 @@ def SuperChatSearcher(video):
         superchat_image, found = SuperChatRipper(image).find_superchat()
 
         if found:
-            if current_superchat is None:
-                current_superchat = SuperchatItem(
-                    image=superchat_image,
-                    start_time=current_time.value,
-                    video_id=video.id,
-                )
-            else:
-                sc = SuperchatItem(
-                    image=superchat_image,
-                    start_time=current_time.value,
-                    video_id=video.id,
-                )
-                logger.error(
-                    f"Comparing {current_superchat.start_time} with {sc.start_time}"
-                )
-                the_same = are_the_same(current_superchat.image, sc.image)
-                if the_same:
-                    # current superchat already in found_superchats
-                    logger.debug("Found the same image. Moving on.")
-                    current_time.value = current_time.value + TIME_STEP
-                    continue
-
-                else:
-
-                    # end the current superchat
-                    current_superchat = current_superchat.update_end_time(
-                        current_time.value
-                    )
-                    if (
-                        current_superchat.end_time - current_superchat.start_time
-                        > MIN_SUPERCHAT_DURATION
-                    ):
-                        found_superchats.append(current_superchat)
-                    current_superchat = sc
-                    current_superchat = None
-
-        else:
-            logger.debug("No superchat found")
-            if current_superchat is not None:
-                current_superchat = current_superchat.update_end_time(
-                    current_time.value
-                )
-                if (
-                    current_superchat.end_time - current_superchat.start_time
-                    > MIN_SUPERCHAT_DURATION
-                ):
-                    found_superchats.append(current_superchat)
-            current_superchat = None
+            sci = ImageManager(superchat_image)
+            sc = SuperchatItem(
+                image=sci.image,
+                frame_number=current_time.value,
+                video=video,
+            )
+            sc.save_to_db()
+            sc.save_superchat_image(filename=f"{current_time.value}.jpg")
+            found_superchats.append(sc)
         current_time.value = current_time.value + TIME_STEP
-    if len(found_superchats) > 0:
-        if found_superchats[-1].end_time is None:
-            current_superchat = current_superchat.update_end_time(current_time.value)
-        last_superchat = found_superchats[-1]
 
     for superchat in found_superchats:
         SuperChatImageCard(superchat)
@@ -157,24 +118,58 @@ def SuperChatSearcher(video):
 
 @solara.component
 def SuperChatImageCard(superchat):
+    img = superchat.get_image()
+    if img is None:
+        raise ValueError("No image found for superchat")
     with solara.Card():
         with solara.Row():
-            solara.Image(superchat.image, width="80%")
+            solara.Image(img, width="80%")
             with solara.Column():
-                solara.Text(f"Start Time: {superchat.start_time}")
-                solara.Text(f"End Time: {superchat.end_time}")
+                solara.Text(f"Start Time: {superchat.frame_number}")
 
 
 @solara.component
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-
+    current_page = solara.use_reactive(1)
     video_id = parse_url_args()
 
     if video_id is None or video_id == 0:
         raise ValueError(f"No Video Found {video_id}")
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
+    existing_superchats = (
+        SuperchatModel.select()
+        .where(SuperchatModel.video_id == video.id)
+        .order_by(SuperchatModel.frame_number.asc())
+    ).paginate(current_page.value, 10)
 
-    SuperChatSearcher(video)
+    superchats = [
+        SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
+        for sc in existing_superchats
+    ]
+    if len(superchats) > 0:
+        current_time = solara.use_reactive(superchats[-1].frame_number)
+    else:
+        current_time = solara.use_reactive(0)
+    with solara.Row():
+        solara.Button(
+            "Previous Page",
+            on_click=lambda: current_page.set(current_page.value - 1),
+            disabled=current_page.value == 1,
+        )
+        solara.Text(f"Current Page: {current_page.value} Time {current_time.value}")
+        solara.Button(
+            "Next Page",
+            on_click=lambda: current_page.set(current_page.value + 1),
+        )
+
+    # working pretty well, but if i search for superchats in the video,
+    # and then click 'next page' it will search for superchats again and again
+    # until i kill it
+
+    for sc in superchats:
+        SuperChatImageCard(sc)
+
+    SuperChatSearcher(video, current_time=current_time)

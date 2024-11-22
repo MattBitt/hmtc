@@ -135,8 +135,7 @@ def test_superchat_model():
         duration=1200,
     )
     sc = SuperchatModel(
-        start_time=0,
-        end_time=15,
+        frame_number=0,
         video_id=new_vid.id,
     )
     sc.save()
@@ -154,7 +153,7 @@ def test_superchat_item():
         duration=1200,
     )
     sci = SuperchatItem(
-        start_time=0,
+        frame_number=0,
         video=new_vid,
         image=ImageManager(np.zeros((100, 100, 3), dtype=np.uint8)),
     )
@@ -184,16 +183,19 @@ def test_ripper_to_item(test_ww116_images):
         sc_image, found = sc.find_superchat()
         assert found
         superchat = SuperchatItem(
-            start_time=0,
+            frame_number=0,
             video=new_vid,
             image=ImageManager(sc_image),
         )
         superchat.image.write_on_image("Mizzle Bizzle")
         superchat.save_to_db()
-        superchat.save_image(tp / f"{image.stem}_superchat.jpg")
-        new_sc = SuperchatModel.get(start_time=0, video_id=new_vid.id)
+        superchat.save_superchat_image(tp / f"{image.stem}_superchat.jpg")
+
+        new_sc = SuperchatModel.get(frame_number=0, video_id=new_vid.id)
         assert new_sc is not None
         assert new_sc.video.id == new_vid.id
-        assert new_sc.start_time == 0
+        assert new_sc.frame_number == 0
         sc_file_db = SuperchatFileModel.get(superchat_id=new_sc.id)
         assert sc_file_db is not None
+        img = superchat.get_image()
+        assert isinstance(img.image, np.ndarray)
