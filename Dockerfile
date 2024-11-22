@@ -9,18 +9,20 @@ ENV VIRTUAL_ENV=/opt/venv \
 
 COPY ./requirements.txt .
 RUN uv venv /opt/venv && \
-    uv pip install --no-cache -r requirements.txt && \
-    uv pip install --no-cache psycopg2 && \
-    uv pip install --no-cache ffmpeg-python
+    uv pip install -r requirements.txt && \
+    uv pip install psycopg2 ffmpeg-python
+
 # App image
 FROM python:3.12-slim-bookworm as app-stage
 COPY --from=build /opt/venv /opt/venv
 RUN apt-get update && apt-get install -y libpq-dev ffmpeg
 WORKDIR /app
 COPY . .
+
 ENV PATH="/opt/venv/bin:$PATH"
-ENV PYTHONPATH "${PYTHONPATH}:/app:/app/hmtc"
+ENV PYTHONPATH="${PYTHONPATH}:/app:/app/hmtc"
 ENV FLASK_APP="hmtc/app.py"
 ENV SOLARA_APP="hmtc/pages"
-CMD ["flask", "run","--host=0.0.0.0"]
+
+CMD ["flask", "run", "--host=0.0.0.0"]
 # CMD ["solara", "run", "hmtc/pages", "--host=0.0.0.0", "--port=8765"]

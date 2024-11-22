@@ -46,6 +46,7 @@ def Page():
     )
 
     with solara.Column(classes=["main-container"]):
+        solara.Text("Some header!")
         TopRow(
             video=video,
             reactive_sections=reactive_sections,

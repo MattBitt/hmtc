@@ -129,8 +129,6 @@ def VideoInfoPanel(video):
                     )
 
             with solara.Row(justify="center"):
-
-                solara.Text("asdf")
                 solara.Button(
                     "Analyze Video for Superchats",
                     classes=["button"],
