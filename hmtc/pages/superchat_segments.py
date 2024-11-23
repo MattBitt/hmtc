@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 from pathlib import Path
-
+import peewee
 import numpy as np
 import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
+from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
@@ -26,8 +28,22 @@ def parse_url_args():
 
 
 @solara.component
-def SuperChatImageCard(superchat: SuperchatItem):
+def SuperChatImageCard(superchat: SuperchatItem, before: int, after: int):
     img = superchat.get_image()
+
+    def delete_superchat():
+        superchat.delete_me()
+
+    def merge_with_previous():
+        # first segment in the function keeps the image
+        main = SuperchatSegmentModel.get_by_id(superchat.id)
+        other = SuperchatSegmentModel.get_by_id(before)
+        SuperchatSegmentItem.combine_segments(main, other)
+
+    def merge_with_next():
+
+        logger.debug(f"Merging {superchat.id} with next superchat {after}")
+
     if img is None:
         raise ValueError("No image found for superchat")
     with solara.Card():
@@ -35,13 +51,23 @@ def SuperChatImageCard(superchat: SuperchatItem):
             solara.Text(f"Frame: {superchat.frame_number} (ID: {superchat.id})")
             solara.Button(
                 icon_name="mdi-delete",
-                on_click=lambda: superchat.delete_me(),
+                on_click=delete_superchat,
                 classes=["button", "warning"],
             )
         solara.Image(img, width="300px")
         with solara.Row(justify="space-between"):
-            solara.Button(icon_name="mdi-arrow-left", classes=["button"])
-            solara.Button(icon_name="mdi-arrow-right", classes=["button"])
+            solara.Button(
+                icon_name="mdi-arrow-left",
+                classes=["button"],
+                on_click=merge_with_previous,
+                disabled=before == 0,
+            )
+            solara.Button(
+                icon_name="mdi-arrow-right",
+                classes=["button"],
+                on_click=merge_with_next,
+                disabled=after == 0,
+            )
 
 
 @solara.component
@@ -57,7 +83,17 @@ def Page():
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
     existing_superchats = (
-        SuperchatModel.select()
+        SuperchatModel.select(SuperchatModel, SuperchatSegmentModel, VideoModel)
+        .join(
+            VideoModel,
+            peewee.JOIN.LEFT_OUTER,
+            on=(SuperchatModel.video_id == VideoModel.id),
+        )
+        .switch(SuperchatModel)
+        .join(
+            SuperchatSegmentModel,
+            on=(SuperchatModel.superchat_segment_id == SuperchatSegmentModel.id),
+        )
         .where(SuperchatModel.video_id == video.id)
         .order_by(SuperchatModel.frame_number.asc())
     )
@@ -104,5 +140,16 @@ def Page():
         # until i kill it
 
         with solara.ColumnsResponsive(6):
+            prev = 0
+            if len(superchats) <= 1:
+                next = 0
+            else:
+                next = superchats[1].id
             for sc in superchats:
-                SuperChatImageCard(sc)
+                SuperChatImageCard(sc, before=prev, after=next)
+                prev = sc.id
+                next = (
+                    superchats[superchats.index(sc) + 2].id
+                    if superchats.index(sc) + 2 < len(superchats)
+                    else 0
+                )

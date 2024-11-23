@@ -33,7 +33,7 @@ class SuperChatRipper:
 
     def find_superchat(self, debug=False) -> tuple:
         xs = self.image.shape[0]
-        ys = self.image.shape[1] * 0.5
+        ys = self.image.shape[1] * 0.5  # need to make this configurable
         image = self.image[0 : int(xs), 0 : int(ys)].copy()
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -55,10 +55,17 @@ class SuperChatRipper:
             rect_color = hex_to_rgb(str(Colors.ERROR))
             x, y, w, h = cv2.boundingRect(contours[0])
             cv2.rectangle(image, (x, y), (x + w, y + h), rect_color, 8)
-
             return image, True
-        # only return the superchat if it is large enough
+
         x, y, w, h = cv2.boundingRect(contours[0])
+        if h < MIN_HEIGHT or w < MIN_WIDTH:
+            logger.error(f"Superchat is too small, skipping")
+            return image, False
+
+        if h > w * 2:  # superchat is too tall
+            logger.debug(f"Superchat is too tall, skipping")
+            return image, False
+
         return image[y : y + h, x : x + w], True
 
     def grab_superchats_from_video(self, video_path: Path):

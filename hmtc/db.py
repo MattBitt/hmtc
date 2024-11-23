@@ -20,6 +20,7 @@ from hmtc.models import (
     Series,
     Superchat,
     SuperchatFile,
+    SuperchatSegment,
     Topic,
     Track,
     TrackBeat,
@@ -60,6 +61,7 @@ def create_tables(db, download_info=False):
             YoutubeSeries,
             Topic,
             SectionTopics,
+            SuperchatSegment,
         ]
     )
     if download_info:
@@ -91,6 +93,7 @@ def drop_tables(db):
             Channel,
             YoutubeSeries,
             SectionTopics,
+            SuperchatSegment,
         ]
     )
 

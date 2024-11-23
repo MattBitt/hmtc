@@ -6,6 +6,7 @@ import numpy as np
 from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
+from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_manager import ImageManager
@@ -18,6 +19,7 @@ class Superchat:
     image: np.ndarray = None
     id: int = None
     video: VideoItem = None
+    superchat_segment: SuperchatSegmentItem = None
 
     @staticmethod
     def from_model(superchat: SuperchatModel) -> "Superchat":
@@ -39,6 +41,9 @@ class Superchat:
             "id": self.id,
             "frame_number": self.frame_number,
             "video": self.video.serialize(),
+            "superchat_segment_id": (
+                self.superchat_segment.id if self.superchat_segment else None
+            ),
         }
 
     @staticmethod
@@ -56,6 +61,9 @@ class Superchat:
         sc = SuperchatModel(
             frame_number=self.frame_number,
             video_id=self.video.id,
+            superchat_segment_id=(
+                self.superchat_segment.id if self.superchat_segment else None
+            ),
         )
         sc.save()
         self.id = sc.id

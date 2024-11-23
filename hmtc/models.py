@@ -53,6 +53,14 @@ class BaseModel(Model):
         database = db_null
 
 
+class BaseFile(BaseModel):
+    WORKING_PATH = WORKING / "uploads"
+
+    path = CharField()
+    filename = CharField()
+    file_type = CharField()
+
+
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Series(BaseModel):
     MEDIA_PATH = STORAGE / "series"
@@ -560,19 +568,30 @@ class SectionTopics(BaseModel):
         return f"SectionTopics({self.id} - {self.section=})"
 
 
-class BaseFile(BaseModel):
-    WORKING_PATH = WORKING / "uploads"
+class SuperchatSegment(BaseModel):
+    start_time = IntegerField()
+    end_time = IntegerField()
 
-    path = CharField()
-    filename = CharField()
-    file_type = CharField()
+    # not using foreignkey to avoid circular reference
+    # should probably use deferred foreign key, TODO lol
+    # points to the superchat image file in the superchat files table
+    image_file_id = IntegerField(null=True)
+
+    def __repr__(self):
+        return f"SuperchatSegment({self.id} - {self.start_time}:{self.end_time})"
+
+    def __str__(self):
+        return f"SuperchatSegment({self.id} - {self.start_time}:{self.end_time})"
 
 
 class Superchat(BaseModel):
 
     frame_number = IntegerField()
-
+    superchat_segment = ForeignKeyField(
+        SuperchatSegment, backref="superchats", null=True
+    )
     video = ForeignKeyField(Video, backref="superchats")
+    track = ForeignKeyField(Track, backref="superchat", null=True)
 
     def __repr__(self):
         return f"Superchat({self.id} - {self.frame_number=})"
@@ -585,6 +604,7 @@ class Superchat(BaseModel):
             "id": self.id,
             "frame_number": self.frame_number,
             "video_id": self.video.id,
+            "track_id": self.track.id if self.track else None,
         }
 
     class Meta:

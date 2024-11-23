@@ -152,9 +152,9 @@ def VideoInfoPanel(video):
                     )
             with solara.Row(justify="center"):
                 if len(video.superchats) > 0:
-                    with solara.Link(f"/superchat-sections/{video.id}"):
+                    with solara.Link(f"/superchat-segments/{video.id}"):
                         solara.Button(
-                            label=f"Sections ({len(video.superchats)})",
+                            label=f"Segments ({len(video.superchats)})",
                             icon_name="mdi-chat-processing",
                             classes=["button"],
                         )
