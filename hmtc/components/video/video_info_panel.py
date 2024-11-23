@@ -55,18 +55,26 @@ IMG_WIDTH = "300px"
 
 
 @solara.component
+def ProcessingCard():
+    with solara.Card(
+        classes=["processing-card"],
+        style={"background-color": Colors.dark_gray},
+    ):
+        with solara.Row(justify="center"):
+            MySpinner()
+        with solara.Row(justify="center"):
+            solara.Text("Processing...", classes=["processing-text"])
+
+
+@solara.component
 def VideoInfoPanel(video):
 
     poster = FileManager.get_file_for_video(video, "poster")
     image = ImageManager(poster).image
+    background_processing = solara.use_reactive(0)
     sections = SectionModel.select(
         SectionModel.id, SectionModel.start, SectionModel.end, SectionModel.track_id
     ).where(SectionModel.video_id == video.id)
-    section_durations = [
-        (x.end - x.start) / 1000 for x in sections
-    ]  # list of sections in seconds
-    section_percentage = sum(section_durations) / video.duration * 100
-    tracks_created = len([x for x in sections if x.track_id is not None])
 
     def auto_create_tracks(*args):
         for section in sections:
@@ -77,7 +85,15 @@ def VideoInfoPanel(video):
                 section.track_id = track.id
                 section.save()
 
+    section_durations = [
+        (x.end - x.start) / 1000 for x in sections
+    ]  # list of sections in seconds
+
+    section_percentage = sum(section_durations) / video.duration * 100
+
+    tracks_created = len([x for x in sections if x.track_id is not None])
     with solara.Row(justify="center"):
+        solara.Text(f"{background_processing.value}")
         solara.Text(
             f"{video.title[:80]}",
             classes=["video-info-text"],
@@ -91,6 +107,11 @@ def VideoInfoPanel(video):
                     f"Uploaded: {time_ago_string(video.upload_date)}",
                     classes=["medium-timer"],
                 )
+            with solara.Row(justify="center"):
+                solara.Text(
+                    f"Length: {seconds_to_hms(video.duration)}",
+                    classes=["medium-timer"],
+                )
         with solara.Column():
             with solara.Row(justify="center"):
                 if len(section_durations) > 0:
@@ -100,13 +121,7 @@ def VideoInfoPanel(video):
                     solara.Markdown(
                         f"Tracks Created: {tracks_created} ({tracks_created / len(section_durations) * 100:.2f}%)"
                     )
-                else:
-                    solara.Markdown("No Sections Found")
-            with solara.Row(justify="center"):
-                solara.Text(
-                    f"Length: {seconds_to_hms(video.duration)}",
-                    classes=["medium-timer"],
-                )
+
             with solara.Row(justify="center"):
                 solara.Button(
                     label=f"Create {len(sections)} Tracks",
@@ -129,16 +144,17 @@ def VideoInfoPanel(video):
                     )
 
             with solara.Row(justify="center"):
-                solara.Button(
-                    "Analyze Video for Superchats",
-                    classes=["button"],
-                    on_click=lambda: logger.debug("Analyzing..."),
-                )
-
+                with solara.Link(f"/superchat-searcher/{video.id}"):
+                    solara.Button(
+                        label="Search for Superchats",
+                        icon_name="mdi-magnify",
+                        classes=["button"],
+                    )
+            with solara.Row(justify="center"):
                 if len(video.superchats) > 0:
-                    solara.Markdown("HI")
                     with solara.Link(f"/superchat-sections/{video.id}"):
                         solara.Button(
-                            label=f"Superchat Sections ({len(video.superchats)})",
+                            label=f"Sections ({len(video.superchats)})",
+                            icon_name="mdi-chat-processing",
                             classes=["button"],
                         )

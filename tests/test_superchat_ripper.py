@@ -11,11 +11,11 @@ from hmtc.config import init_config
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import Video as VideoModel
+from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.schemas.file import FileManager
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -176,7 +176,7 @@ def test_ripper_to_item(test_ww116_images, test_ww_video_file):
         duration=1200,
     )
     FileManager.add_path_to_video(path=test_ww_video_file, video=new_vid)
-
+    counter = 0
     for image in has_superchats:
         editor = ImageManager(image)
         # rip out superchat (if any)
@@ -184,7 +184,7 @@ def test_ripper_to_item(test_ww116_images, test_ww_video_file):
         sc_image, found = sc.find_superchat()
         assert found
         superchat = SuperchatItem(
-            frame_number=0,
+            frame_number=counter,
             video=new_vid,
             image=ImageManager(sc_image).image,
         )
@@ -192,11 +192,12 @@ def test_ripper_to_item(test_ww116_images, test_ww_video_file):
         superchat.save_to_db()
         superchat.write_image(tp / f"{image.stem}_superchat.jpg")
 
-        new_sc = SuperchatModel.get(frame_number=0, video_id=new_vid.id)
+        new_sc = SuperchatModel.get(frame_number=counter, video_id=new_vid.id)
         assert new_sc is not None
         assert new_sc.video.id == new_vid.id
-        assert new_sc.frame_number == 0
+        assert new_sc.frame_number == counter
         sc_file_db = SuperchatFileModel.get(superchat_id=new_sc.id)
         assert sc_file_db is not None
         img = superchat.get_image()
         assert isinstance(img, np.ndarray)
+        counter = counter + 1

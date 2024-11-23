@@ -19,7 +19,8 @@ class Superchat:
     id: int = None
     video: VideoItem = None
 
-    def from_model(self, superchat: SuperchatModel) -> "Superchat":
+    @staticmethod
+    def from_model(superchat: SuperchatModel) -> "Superchat":
         i = (
             SuperchatFileModel.select()
             .where(SuperchatFileModel.superchat_id == superchat.id)
@@ -39,6 +40,17 @@ class Superchat:
             "frame_number": self.frame_number,
             "video": self.video.serialize(),
         }
+
+    @staticmethod
+    def delete_id(item_id):
+        superchat = SuperchatModel.get_by_id(item_id)
+        sc_file = SuperchatFileModel.get(superchat_id=superchat.id)
+        (Path(sc_file.path) / sc_file.filename).unlink()
+        sc_file.delete_instance()
+        superchat.delete_instance()
+
+    def delete_me(self):
+        self.delete_id(self.id)
 
     def save_to_db(self) -> None:
         sc = SuperchatModel(

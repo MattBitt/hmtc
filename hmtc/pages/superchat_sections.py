@@ -25,113 +25,28 @@ def parse_url_args():
         return router.parts[level:][0]
 
 
-@dataclass
-class SuperChat:
-    image: np.ndarray
-    start_time: float
-    end_time: float = None
-
-
-def mse(imageA, imageB):
-    imgB = imageB.copy()
-    if imageA.shape != imageB.shape:
-        imgB.resize(imageA.shape)
-    err = np.sum((imageA.astype("float") - imgB.astype("float")) ** 2)
-    err /= float(imageA.shape[0] * imageA.shape[1])
-    return err
-
-
-def are_the_same(imageA, imageB):
-    TOL = 0.2  # size tolerance
-    MSE_TOL = 6000
-    h1, w1, _ = imageA.shape
-    h2, w2, _ = imageB.shape
-    if abs(h1 - h2) / h1 < TOL and abs(w1 - w2) / w1 < TOL:
-        the_mse = mse(imageA, imageB)
-        logger.debug(f"MSE: {the_mse}")
-        if the_mse < MSE_TOL:
-            # same image?
-            return True
-        else:
-            # logger.debug(f"MSE is too high to be the same")
-            return False
-    # shape is too different to be the same
-    else:
-        # logger.debug(f"Shape is too different to be the same")
-        # logger.debug(f"Shape A: {imageA.shape}")
-        # logger.debug(f"Shape B: {imageB.shape}")
-        return False
-
-
 @solara.component
-def SuperChatSearcher(video, current_time):
-    MIN_SUPERCHAT_DURATION = 20
-    TIME_STEP = 10
-    IMAGES_TO_SHOW = 200
-
-    found_superchats = []
-
-    images = solara.use_reactive([])
-
-    def load_next_page(new_time):
-        current_time.set(new_time)
-        images.set(
-            image_extractor.extract_frame_sequence(
-                current_time.value, video.duration, TIME_STEP
-            )
-        )
-
-    vid_file = FileManager.get_file_for_video(video, "video")
-
-    if vid_file.file_type == "":
-        solara.Markdown(f"No video file found for video {video.title}")
-        return None
-
-    file_path = Path(vid_file.path) / vid_file.filename
-
-    image_extractor = ImageExtractor(file_path)
-    with solara.Row():
-        solara.Button(
-            "Search For More Superchats!!!",
-            on_click=lambda: load_next_page(current_time.value),
-        )
-    for image in images.value:
-        if len(found_superchats) >= IMAGES_TO_SHOW:
-            break
-        logger.error(f"Current Time: {current_time.value}")
-        logger.error(f"Number of Superchats found  {len(found_superchats)}")
-        superchat_image, found = SuperChatRipper(image).find_superchat()
-
-        if found:
-            sci = ImageManager(superchat_image)
-            sc = SuperchatItem(
-                image=sci.image,
-                frame_number=current_time.value,
-                video=video,
-            )
-            sc.save_to_db()
-            sc.write_image(filename=f"{current_time.value}.jpg")
-            found_superchats.append(sc)
-        current_time.value = current_time.value + TIME_STEP
-
-    for superchat in found_superchats:
-        SuperChatImageCard(superchat)
-
-
-@solara.component
-def SuperChatImageCard(superchat):
+def SuperChatImageCard(superchat: SuperchatItem):
     img = superchat.get_image()
     if img is None:
         raise ValueError("No image found for superchat")
     with solara.Card():
-        with solara.Row():
-            solara.Image(img, width="80%")
-            with solara.Column():
-                solara.Text(f"Start Time: {superchat.frame_number}")
+        with solara.Row(justify="space-between"):
+            solara.Text(f"Frame: {superchat.frame_number} (ID: {superchat.id})")
+            solara.Button(
+                icon_name="mdi-delete",
+                on_click=lambda: superchat.delete_me(),
+                classes=["button", "warning"],
+            )
+        solara.Image(img, width="300px")
+        with solara.Row(justify="space-between"):
+            solara.Button(icon_name="mdi-arrow-left", classes=["button"])
+            solara.Button(icon_name="mdi-arrow-right", classes=["button"])
 
 
 @solara.component
 def Page():
+    NUM_IMAGES = 6
     router = solara.use_router()
     MySidebar(router=router)
     current_page = solara.use_reactive(1)
@@ -145,33 +60,49 @@ def Page():
         SuperchatModel.select()
         .where(SuperchatModel.video_id == video.id)
         .order_by(SuperchatModel.frame_number.asc())
-    ).paginate(current_page.value, 10)
+    )
+    num_superchats = existing_superchats.count()
+    num_pages = num_superchats // NUM_IMAGES
+    existing_superchats = existing_superchats.paginate(current_page.value, NUM_IMAGES)
 
     superchats = [
         SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
         for sc in existing_superchats
     ]
-    if len(superchats) > 0:
-        current_time = solara.use_reactive(superchats[-1].frame_number)
-    else:
-        current_time = solara.use_reactive(0)
-    with solara.Row():
-        solara.Button(
-            "Previous Page",
-            on_click=lambda: current_page.set(current_page.value - 1),
-            disabled=current_page.value == 1,
-        )
-        solara.Text(f"Current Page: {current_page.value} Time {current_time.value}")
-        solara.Button(
-            "Next Page",
-            on_click=lambda: current_page.set(current_page.value + 1),
-        )
+    with solara.Column(classes=["main-container"]):
+        solara.Text(f"Superchat -> Sections Converter")
+        with solara.Row(justify="space-between"):
+            solara.Button(
+                "First",
+                on_click=lambda: current_page.set(0),
+                disabled=current_page.value == 1,
+                classes=["button"],
+            )
+            solara.Button(
+                "Previous Page",
+                on_click=lambda: current_page.set(current_page.value - 1),
+                disabled=current_page.value == 1,
+                classes=["button"],
+            )
+            solara.Text(f"Current Page: {current_page.value} of {num_pages}")
+            solara.Text(f"Total Superchats: {num_superchats}")
+            solara.Button(
+                "Next Page",
+                on_click=lambda: current_page.set(current_page.value + 1),
+                classes=["button"],
+                disabled=current_page.value == num_pages,
+            )
+            solara.Button(
+                "Last",
+                on_click=lambda: current_page.set(num_pages),
+                classes=["button"],
+                disabled=current_page.value == num_pages,
+            )
 
-    # working pretty well, but if i search for superchats in the video,
-    # and then click 'next page' it will search for superchats again and again
-    # until i kill it
+        # working pretty well, but if i search for superchats in the video,
+        # and then click 'next page' it will search for superchats again and again
+        # until i kill it
 
-    for sc in superchats:
-        SuperChatImageCard(sc)
-
-    SuperChatSearcher(video, current_time=current_time)
+        with solara.ColumnsResponsive(6):
+            for sc in superchats:
+                SuperChatImageCard(sc)

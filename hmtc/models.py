@@ -587,6 +587,12 @@ class Superchat(BaseModel):
             "video_id": self.video.id,
         }
 
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and Artist
+            (("frame_number", "video"), True),
+        )
+
 
 class SuperchatFile(BaseFile):
     superchat_id: int = ForeignKeyField(Superchat, backref="files")

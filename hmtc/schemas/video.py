@@ -17,8 +17,8 @@ from hmtc.models import (
     YoutubeSeries,
 )
 from hmtc.models import File as FileModel
-from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import Section as SectionModel
+from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import (
     Video as VideoModel,
@@ -29,7 +29,6 @@ from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
-
 from hmtc.utils.general import my_move_file, read_json_file
 from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.jellyfin_functions import refresh_library
