@@ -28,30 +28,31 @@ def parse_url_args():
 
 
 @solara.component
-def SuperChatImageCard(superchat: SuperchatItem, before: int, after: int):
-    img = superchat.get_image()
+def SuperchatSegmentCard(segment: SuperchatSegmentItem, before: int, after: int):
+    img = segment.image.image
 
-    def delete_superchat():
-        superchat.delete_me()
+    def delete_segment():
+        pass
 
     def merge_with_previous():
         # first segment in the function keeps the image
-        main = SuperchatSegmentModel.get_by_id(superchat.id)
+        main = SuperchatSegmentModel.get_by_id(segment.id)
         other = SuperchatSegmentModel.get_by_id(before)
         SuperchatSegmentItem.combine_segments(main, other)
 
     def merge_with_next():
 
-        logger.debug(f"Merging {superchat.id} with next superchat {after}")
+        logger.debug(f"Merging {segment.id} with next segment {after}")
 
     if img is None:
-        raise ValueError("No image found for superchat")
+        raise ValueError("No image found for segment")
     with solara.Card():
         with solara.Row(justify="space-between"):
-            solara.Text(f"Frame: {superchat.frame_number} (ID: {superchat.id})")
+            solara.Text(f"Start: {segment.start_time}")
+            solara.Text(f"End: {segment.end_time})")
             solara.Button(
                 icon_name="mdi-delete",
-                on_click=delete_superchat,
+                on_click=delete_segment,
                 classes=["button", "warning"],
             )
         solara.Image(img, width="300px")
@@ -92,6 +93,7 @@ def Page():
         .switch(SuperchatModel)
         .join(
             SuperchatSegmentModel,
+            peewee.JOIN.LEFT_OUTER,
             on=(SuperchatModel.superchat_segment_id == SuperchatSegmentModel.id),
         )
         .where(SuperchatModel.video_id == video.id)
@@ -105,6 +107,13 @@ def Page():
         SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
         for sc in existing_superchats
     ]
+
+    segments = [
+        SuperchatSegmentItem.from_model(sc.superchat_segment)
+        for sc in superchats
+        if sc.superchat_segment
+    ]
+
     with solara.Column(classes=["main-container"]):
         solara.Text(f"Superchat -> Sections Converter")
         with solara.Row(justify="space-between"):
@@ -135,21 +144,18 @@ def Page():
                 disabled=current_page.value == num_pages,
             )
 
-        # working pretty well, but if i search for superchats in the video,
-        # and then click 'next page' it will search for superchats again and again
-        # until i kill it
-
         with solara.ColumnsResponsive(6):
             prev = 0
-            if len(superchats) <= 1:
+            if len(segments) <= 1:
                 next = 0
             else:
-                next = superchats[1].id
-            for sc in superchats:
-                SuperChatImageCard(sc, before=prev, after=next)
-                prev = sc.id
+                next = segments[1].id
+            for segment in segments:
+                SuperchatSegmentCard(segment, before=prev, after=next)
+                prev = segment.id
                 next = (
-                    superchats[superchats.index(sc) + 2].id
-                    if superchats.index(sc) + 2 < len(superchats)
+                    segments[segments.index(segment) + 2].id
+                    if segments.index(segment) + 2 < len(segments)
                     else 0
                 )
+                logger.debug(f"Next: {next}")

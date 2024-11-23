@@ -34,6 +34,7 @@ class Superchat:
             frame_number=superchat.frame_number,
             video=superchat.video,
             image=im.image,
+            superchat_segment=superchat.superchat_segment,
         )
 
     def serialize(self) -> dict:
@@ -106,3 +107,9 @@ class Superchat:
         )
         image_db_file.save()
         ImageManager(self.image).save_image(new_path / filename)
+
+    def __repr__(self):
+        return f"<Superchat {self.id} - Frame {self.frame_number}>"
+
+    def __str__(self):
+        return f"Superchat {self.id} - Frame {self.frame_number}"
