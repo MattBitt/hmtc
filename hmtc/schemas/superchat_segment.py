@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from pathlib import Path
+from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.utils.opencv.image_manager import ImageManager
-from hmtc.models import SuperchatFile as SuperchatFileModel
 
 
 @dataclass
@@ -46,7 +47,13 @@ class SuperchatSegment:
     @staticmethod
     def delete_id(item_id):
         segment = SuperchatSegmentModel.get_by_id(item_id)
-        segment.delete_instance(recursive=True)
+        for file in segment.files:
+            (Path(file.path) / file.filename).unlink()
+            file.delete_instance()
+        segment.delete_instance()
+
+    def delete_me(self):
+        self.delete_id(self.id)
 
     def save_to_db(self) -> None:
         segment = SuperchatSegmentModel(

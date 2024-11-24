@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-import peewee
+
 import numpy as np
+import peewee
 import solara
 from loguru import logger
 
@@ -16,6 +17,7 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+from hmtc.components.shared.pagination_controls import PaginationControls
 
 
 def parse_url_args():
@@ -85,9 +87,8 @@ def Page():
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
     existing_segments = (
-        SuperchatSegmentModel.select(SuperchatSegmentModel, SuperchatModel)
-        .join(SuperchatModel)
-        .where(SuperchatModel.video_id == video_id)
+        SuperchatSegmentModel.select()
+        .where(SuperchatSegmentModel.video_id == video_id)
         .order_by(SuperchatSegmentModel.start_time.asc())
     )
     num_segments = existing_segments.count()
@@ -107,52 +108,12 @@ def Page():
     if refresh_trigger.value > 0:
         with solara.Column(classes=["main-container"]):
             solara.Text(f"Superchat -> Sections Converter")
-            with solara.Row(justify="space-between"):
-                solara.Button(
-                    "First",
-                    on_click=lambda: current_page.set(1),
-                    disabled=current_page.value == 1,
-                    classes=["button"],
-                )
-                solara.Button(
-                    "Previous Page",
-                    on_click=lambda: current_page.set(current_page.value - 1),
-                    disabled=current_page.value == 1,
-                    classes=["button"],
-                )
-                solara.Text(f"Current Page: {current_page.value} of {num_pages}")
-                solara.Text(f"Total Segments: {num_segments}")
-                solara.Button(
-                    "Next Page",
-                    on_click=lambda: current_page.set(current_page.value + 1),
-                    classes=["button"],
-                    disabled=current_page.value == num_pages,
-                )
-                solara.Button(
-                    "Last",
-                    on_click=lambda: current_page.set(num_pages),
-                    classes=["button"],
-                    disabled=current_page.value == num_pages,
-                )
+            PaginationControls(current_page, num_pages, num_segments)
 
             with solara.ColumnsResponsive(6):
-                prev = 0
-                if len(segments) <= 1:
-                    next = 0
-                else:
-                    next = segments[1].id
                 for segment in segments:
                     SuperchatSegmentCard(
                         segment,
-                        before=prev,
-                        after=next,
                         combine_cards=combine_cards,
                         delete_segment=lambda: delete_segment(segment.id),
                     )
-                    prev = segment.id
-                    next = (
-                        segments[segments.index(segment) + 2].id
-                        if segments.index(segment) + 2 < len(segments)
-                        else 0
-                    )
-                    logger.debug(f"Next: {next}")

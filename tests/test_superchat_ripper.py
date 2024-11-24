@@ -196,7 +196,7 @@ def test_ripper_to_item(test_ww116_images, test_ww_video_file):
         assert new_sc is not None
         assert new_sc.video.id == new_vid.id
         assert new_sc.frame_number == counter
-        sc_file_db = SuperchatFileModel.get(superchat_id=new_sc.id)
+        sc_file_db = SuperchatFileModel.get_or_none(superchat_id=new_sc.id)
         assert sc_file_db is not None
         img = superchat.get_image()
         assert isinstance(img, np.ndarray)

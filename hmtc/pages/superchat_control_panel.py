@@ -6,6 +6,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.config import init_config
 from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
@@ -18,7 +19,6 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.config import init_config
 
 config = init_config()
 
@@ -53,6 +53,12 @@ def Page():
         .order_by(SuperchatModel.frame_number.asc())
     )
 
+    existing_segments = (
+        SuperchatSegmentModel.select()
+        .where(SuperchatSegmentModel.video_id == video.id)
+        .order_by(SuperchatSegmentModel.start_time.asc())
+    )
+
     def search_for_superchats():
         searching.set(True)
 
@@ -64,7 +70,7 @@ def Page():
         ie = ImageExtractor(Path(vf.path) / vf.filename)
         counter = 0
         for frame in ie.frame_each_n_seconds(N_FRAMES):
-            if config["general"]["environment"] == "development" and counter > 10:
+            if config["general"]["environment"] == "development" and counter > 18:
                 logger.warning("Development mode, stopping after 15 superchats")
                 break
 
@@ -94,16 +100,18 @@ def Page():
     def create_segments():
         searching.set(True)
         new_segment = SuperchatSegmentModel.create(
-            start_time=0, end_time=0, image_file_id=0
+            start_time=0, end_time=0, video_id=video.id
         )
         for sc in existing_superchats:
-            if new_segment.image_file_id == 0:
+            if len(new_segment.files) == 0:
                 # initial segment gets the first superchat found
+                if len(sc.files) == 0:
+                    logger.error(f"No files found for superchat {sc.id}. Skipping")
+                    continue
                 img = [i for i in sc.files if i.file_type == "image"][0]
-                new_segment.image_file_id = img.id
-                new_segment.save()
+                img.segment_id = new_segment.id
+                img.save()
                 continue
-            sci = SuperchatItem.from_model(sc)
             if False:  # images are the same
                 # start a new segment
                 pass
@@ -113,9 +121,7 @@ def Page():
                 new_segment.save()
                 img = [i for i in sc.files if i.file_type == "image"][0]
                 _new_segment = SuperchatSegmentModel.create(
-                    start_time=sc.frame_number,
-                    end_time=0,
-                    image_file_id=img.id,
+                    start_time=sc.frame_number, end_time=0, video_id=video.id
                 )
                 new_segment.next_segment_id = _new_segment.id
                 new_segment.save()
@@ -131,52 +137,82 @@ def Page():
             sci.delete_me()
         searching.set(False)
 
+    def delete_all_segments():
+        searching.set(True)
+        for segment in existing_segments:
+            segment_item = SuperchatSegmentItem.from_model(segment)
+            segment_item.delete_me()
+        searching.set(False)
+
     superchats = [
         SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
         for sc in existing_superchats
     ]
-
+    segments = [
+        SuperchatSegmentItem.from_model(segment) for segment in existing_segments
+    ]
     with solara.Column(classes=["main-container"]):
         with solara.Card():
             with solara.Columns([8, 4]):
                 with solara.Column():
                     with solara.Row(justify="center"):
                         solara.Text(f"{video.title[:80]}")
-                    with solara.Row(justify="space-between"):
-                        solara.Text(f"Current Superchats: {len(superchats)}")
-                        # solara.Text(f"Current Segments: {len(segments)}")
-                        solara.Text(f"Total Frames: {video.duration}")
-                with solara.Column():
+                    with solara.Row(justify="space-around"):
+                        solara.Text(f"Superchats: {len(superchats)}")
+                        solara.Text(f"Segments: {len(segments)}")
+                        solara.Text(f"Duration: {video.duration}")
+            with solara.Card(title="View Items"):
+                with solara.Row(justify="center"):
+                    solara.Button(
+                        label="Superchats",
+                        icon_name="mdi-comment",
+                        classes=["button"],
+                        on_click=lambda: router.push(f"/superchats/{video.id}"),
+                        disabled=len(superchats) == 0,
+                    )
                     solara.Button(
                         label="Superchat Segments",
                         icon_name="mdi-comment",
                         classes=["button"],
                         on_click=lambda: router.push(f"/superchat-segments/{video.id}"),
-                        # disabled=len(segments) == 0,
+                        disabled=len(segments) == 0,
                     )
-        with solara.Card():
-            with solara.Row(justify="center"):
-                solara.Button(
-                    label="Search for Superchats",
-                    icon_name="mdi-magnify",
-                    on_click=search_for_superchats,
-                    classes=["button"],
-                )
-                solara.Button(
-                    label="Create Superchat Segments",
-                    icon_name="mdi-comment",
-                    on_click=create_segments,
-                    classes=["button"],
-                    disabled=len(superchats) == 0,
-                )
-            with solara.Row(justify="center"):
-                solara.Button(
-                    label="Delete All Superchats",
-                    icon_name="mdi-delete",
-                    on_click=delete_all_superchats,
-                    classes=["button", "warning"],
-                    disabled=len(superchats) == 0,
-                )
+
+            with solara.Card(title="Superchats Found"):
+                with solara.Row(justify="center"):
+                    solara.Button(
+                        label="Extract Superchats from Video",
+                        icon_name="mdi-auto-fix",
+                        on_click=search_for_superchats,
+                        classes=["button"],
+                    )
+
+                    solara.Button(
+                        label="Delete All Superchats",
+                        icon_name="mdi-delete",
+                        on_click=delete_all_superchats,
+                        classes=["button", "warning"],
+                        disabled=len(superchats) == 0,
+                    )
+
+            with solara.Card(title="Superchat Segments"):
+                with solara.Row(justify="center"):
+                    solara.Button(
+                        label="Create Superchat Segments",
+                        icon_name="mdi-comment",
+                        on_click=create_segments,
+                        classes=["button"],
+                        disabled=len(superchats) == 0,
+                    )
+
+                    solara.Button(
+                        label="Delete All Superchat Segments",
+                        icon_name="mdi-delete",
+                        on_click=delete_all_segments,
+                        classes=["button", "warning"],
+                        disabled=len(segments) == 0,
+                    )
+
         if searching.value:
             with solara.Card():
                 solara.Markdown("Searching for Superchats")

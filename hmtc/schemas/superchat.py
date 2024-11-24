@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
-
+from loguru import logger
 import numpy as np
 
 from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
-
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_manager import ImageManager
@@ -25,9 +24,15 @@ class Superchat:
         i = (
             SuperchatFileModel.select()
             .where(SuperchatFileModel.superchat_id == superchat.id)
-            .get()
+            .get_or_none()
         )
-
+        if i is None:
+            logger.error(f"No image found for superchat {superchat.id}")
+            return Superchat(
+                id=superchat.id,
+                frame_number=superchat.frame_number,
+                video=VideoItem.from_model(superchat.video),
+            )
         im = ImageManager(Path(i.path) / i.filename)
         return Superchat(
             id=superchat.id,
@@ -46,9 +51,10 @@ class Superchat:
     @staticmethod
     def delete_id(item_id):
         superchat = SuperchatModel.get_by_id(item_id)
-        sc_file = SuperchatFileModel.get(superchat_id=superchat.id)
-        (Path(sc_file.path) / sc_file.filename).unlink()
-        sc_file.delete_instance()
+        sc_file = SuperchatFileModel.get_or_none(superchat_id=superchat.id)
+        if sc_file is not None:
+            (Path(sc_file.path) / sc_file.filename).unlink()
+            sc_file.delete_instance()
 
         superchat.delete_instance()
 

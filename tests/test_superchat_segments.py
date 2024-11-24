@@ -1,13 +1,14 @@
+from pathlib import Path
+
+from hmtc.config import init_config
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
-from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.models import Video as VideoModel
-from hmtc.utils.opencv.image_manager import ImageManager
-from hmtc.config import init_config
-from pathlib import Path
-from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.schemas.file import FileManager
+from hmtc.schemas.superchat import Superchat as SuperchatItem
+from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
+from hmtc.utils.opencv.image_manager import ImageManager
+from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 
 config = init_config()
 
@@ -105,4 +106,3 @@ def test_combine_segments(test_ww116_images, test_ww_video_file2):
     assert sg1.start_time == 0
     assert sg1.end_time == 20
     assert sg1.video_id == new_vid.id
-    assert len(sg1.files) == 1

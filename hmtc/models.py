@@ -598,7 +598,6 @@ class Superchat(BaseModel):
             "id": self.id,
             "frame_number": self.frame_number,
             "video_id": self.video.id,
-            "track_id": self.track.id if self.track else None,
         }
 
     class Meta:

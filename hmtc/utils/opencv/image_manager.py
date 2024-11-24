@@ -9,8 +9,8 @@ from numpy.typing import NDArray
 from PIL import Image
 
 from hmtc.config import init_config
-from hmtc.schemas.file import File as FileItem
 from hmtc.models import SuperchatFile as SuperchatFileModel
+from hmtc.schemas.file import File as FileItem
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])

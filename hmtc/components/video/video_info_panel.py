@@ -18,12 +18,12 @@ from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
-from hmtc.models import Superchat as SuperchatModel
-from hmtc.models import SuperchatSegment as SuperchatSegmentModel
-from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import (
     Series as SeriesModel,
 )
+from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import SuperchatFile as SuperchatFileModel
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import (
     Topic as TopicModel,
 )
@@ -97,9 +97,8 @@ def VideoInfoPanel(video):
     tracks_created = len([x for x in sections if x.track_id is not None])
 
     num_segments = (
-        SuperchatSegmentModel.select(SuperchatSegmentModel, SuperchatModel)
-        .join(SuperchatModel)
-        .where(SuperchatModel.video_id == video.id)
+        SuperchatSegmentModel.select()
+        .where(SuperchatSegmentModel.video_id == video.id)
         .count()
     )
 
