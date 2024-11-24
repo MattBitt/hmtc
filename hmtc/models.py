@@ -576,10 +576,10 @@ class SuperchatSegment(BaseModel):
     next_segment: int = ForeignKeyField("self", backref="previous_segment", null=True)
 
     def __repr__(self):
-        return f"SuperchatSegment({self.id} - {self.start_time}:{self.end_time})"
+        return f"SuperchatSegmentModel({self.id} - {self.start_time}:{self.end_time})"
 
     def __str__(self):
-        return f"SuperchatSegment({self.id} - {self.start_time}:{self.end_time})"
+        return f"SuperchatSegmentModel({self.id} - {self.start_time}:{self.end_time})"
 
 
 class Superchat(BaseModel):

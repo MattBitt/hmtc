@@ -90,23 +90,36 @@ class SuperchatSegment:
         segment.delete_instance()
 
     def delete_me(self):
+        if self.next_segment is None:
+            new_seg_id = None
+        else:
+            new_seg_id = self.next_segment.id
+        leftover = (
+            SuperchatSegmentModel.select()
+            .where(SuperchatSegmentModel.next_segment == self.id)
+            .get_or_none()
+        )
+        if leftover:
+            leftover.next_segment.id = new_seg_id
+            leftover.save()
         self.delete_id(self.id)
 
     def save_to_db(self) -> None:
         segment = SuperchatSegmentModel(
             start_time=self.start_time,
             end_time=self.end_time,
-            image_file_id=self.image_file_id,
+            video_id=self.video_id,
+            track_id=self.track_id,
+            next_segment=self.next_segment.id if self.next_segment else None,
         )
         segment.save()
         self.id = segment.id
         return self
 
     @staticmethod
-    def combine_segments(
-        segment1: SuperchatSegmentModel, segment2: SuperchatSegmentModel
-    ):
-        if segment1.next_segment.id != segment2.id:
+    def combine_segments(segment1: "SuperchatSegment", segment2: "SuperchatSegment"):
+        if segment1.next_segment.id == segment2.id:
+            # merging with next segment
             segment2.start_time = segment1.start_time
             _old_prev = segment1.previous_segment.get_or_none()
             if _old_prev is not None:
@@ -120,8 +133,8 @@ class SuperchatSegment:
             if old_file is not None:
                 old_file.delete_instance(recursive=True)
 
-            segment1.delete_instance()
-            segment2.save()
+            segment1.delete_me()
+            segment2.save_to_db()
         else:
             # merging with previous segment
             segment1.end_time = segment2.end_time
@@ -133,7 +146,12 @@ class SuperchatSegment:
             )
             if old_file is not None:
                 old_file.delete_instance(recursive=True)
-            segment1.save()
-            segment2.delete_instance()
+            segment1.save_to_db()
 
-        return segment1
+            segment2.delete_me()
+
+    def __repr__(self):
+        return f"SuperchatSegmentItem({self.id}, {self.start_time}, {self.end_time})"
+
+    def __str__(self):
+        return f"SuperchatSegmentItem({self.id}, {self.start_time}, {self.end_time})"

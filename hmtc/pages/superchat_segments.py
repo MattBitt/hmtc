@@ -35,11 +35,7 @@ def SuperchatSegmentCard(
     combine_cards,
     delete_segment,
 ):
-    if segment.image is None:
-        logger.error(f"No image found for segment {segment.id}")
-        img = None
-    else:
-        img = segment.image.image
+    img = segment.image.image
     _prev = segment.previous_segment.get_or_none()
 
     def merge_with_previous():
@@ -47,18 +43,19 @@ def SuperchatSegmentCard(
         if _prev is None:
             logger.error("No previous segment found")
             return
-        current = SuperchatSegmentModel.get_by_id(segment.id)
-        combine_cards(_prev, current)
+        prev = SuperchatSegmentItem.from_model(_prev)
+        combine_cards(prev, segment)
 
     def merge_with_next():
-        current = SuperchatSegmentModel.get_by_id(segment.id)
-        other = current.next_segment.get()
-        combine_cards(current, other)
+        ns = segment.next_segment.get()
+        nsi = SuperchatSegmentItem.from_model(ns)
+        combine_cards(segment, nsi)
 
     if img is None:
         raise ValueError("No image found for segment")
     with solara.Card():
         with solara.Row(justify="space-between"):
+            solara.Text(f"Segment ID: {segment.id}")
             solara.Text(f"Start: {segment.start_time}")
             solara.Text(f"End: {segment.end_time}")
 
@@ -124,6 +121,7 @@ def Page():
 
             with solara.ColumnsResponsive(6):
                 for segment in segments:
+                    assert segment.image is not None
                     SuperchatSegmentCard(
                         segment,
                         combine_cards=combine_cards,

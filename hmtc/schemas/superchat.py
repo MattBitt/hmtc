@@ -110,7 +110,7 @@ class Superchat:
         ImageManager(self.image).save_image(new_path / filename)
 
     def __repr__(self):
-        return f"<Superchat {self.id} - Frame {self.frame_number}>"
+        return f"<SuperchatItem {self.id} - Frame {self.frame_number}>"
 
     def __str__(self):
-        return f"Superchat {self.id} - Frame {self.frame_number}"
+        return f"SuperchatItem {self.id} - Frame {self.frame_number}"
