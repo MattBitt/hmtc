@@ -19,8 +19,39 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+import cv2
 
 config = init_config()
+
+
+def are_images_similar(image1, image2):
+    if (
+        image1.shape[0] < 0.9 * image2.shape[0]
+        or image1.shape[0] > 1.1 * image2.shape[0]
+    ):
+        return False
+    if (
+        image1.shape[1] < 0.9 * image2.shape[1]
+        or image1.shape[1] > 1.1 * image2.shape[1]
+    ):
+        return False
+
+    if image1.shape != image2.shape:
+        if image1.shape[0] * image1.shape[1] > image2.shape[0] * image2.shape[1]:
+            image2 = cv2.resize(image2, (image1.shape[1], image1.shape[0]))
+        else:
+            image1 = cv2.resize(image1, (image2.shape[1], image2.shape[0]))
+
+    def mse(imageA, imageB):
+        # Compute the mean squared error between the two images
+        err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
+        err /= float(imageA.shape[0] * imageA.shape[1])
+        return err
+
+    # Calculate the mean squared error and determine if images are similar
+    mse_value = mse(image1, image2)
+    threshold = 1500  # You can adjust this threshold value
+    return mse_value < threshold
 
 
 def parse_url_args():
@@ -35,7 +66,7 @@ def parse_url_args():
 @solara.component
 def Page():
     N_FRAMES = 10
-    NUMBER_SUPERCHATS_DEV = 3
+    NUMBER_SUPERCHATS_DEV = 20
     router = solara.use_router()
     MySidebar(router=router)
 
@@ -109,9 +140,13 @@ def Page():
                 segment = SuperchatSegmentItem.create_from_superchat(sc_item)
                 # initial segment gets the first superchat found
                 continue
-            if False:  # images are the same
-                # start a new segment
-                pass
+
+            image1 = segment.get_image()
+            sc_item = SuperchatItem.from_model(sc)
+            image2 = sc_item.get_image()
+            if are_images_similar(image1, image2):
+                segment.add_superchat(sc_item)
+                continue
             else:
                 # close out the current segment
                 segment.close_segment(sc.frame_number)
