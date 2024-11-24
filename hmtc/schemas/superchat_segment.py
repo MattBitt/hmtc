@@ -9,20 +9,28 @@ class SuperchatSegment:
 
     start_time: int
     end_time: int
-    image_file_id: int = 0
+
     id: int = None
     image: ImageManager = None
+    next_segment: "SuperchatSegment" = None
+    video_id: int = None
+    track_id: int = None
 
     @staticmethod
     def from_model(segment: SuperchatSegmentModel) -> "SuperchatSegment":
-        image_file = SuperchatFileModel.get_by_id(segment.image_file_id)
-        image = ImageManager(image_file)
+        image_file = segment.files[0] if segment.files else None
+        if image_file:
+            image = ImageManager(image_file)
+        else:
+            image = None
         return SuperchatSegment(
             id=segment.id,
             start_time=segment.start_time,
             end_time=segment.end_time,
-            image_file_id=segment.image_file_id,
             image=image,
+            next_segment=segment.next_segment,
+            video_id=segment.video_id,
+            track_id=segment.track_id,
         )
 
     def serialize(self) -> dict:
@@ -30,7 +38,9 @@ class SuperchatSegment:
             "id": self.id,
             "start_time": self.start_time,
             "end_time": self.end_time,
-            "image_file_id": self.image_file_id,
+            "next_segment": self.next_segment,
+            "video_id": self.video_id,
+            "track_id": self.track_id,
         }
 
     @staticmethod
@@ -53,6 +63,8 @@ class SuperchatSegment:
         segment1: SuperchatSegmentModel, segment2: SuperchatSegmentModel
     ):
         segment1.end_time = segment2.end_time
+        # still need to assign image and next_segment
         segment1.save()
-        segment2.delete_instance(recursive=True)
+        segment2.delete_instance()
+
         return segment1

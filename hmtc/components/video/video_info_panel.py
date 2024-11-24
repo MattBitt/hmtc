@@ -18,6 +18,9 @@ from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
+from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
+from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import (
     Series as SeriesModel,
 )
@@ -92,6 +95,14 @@ def VideoInfoPanel(video):
     section_percentage = sum(section_durations) / video.duration * 100
 
     tracks_created = len([x for x in sections if x.track_id is not None])
+
+    num_segments = (
+        SuperchatSegmentModel.select(SuperchatSegmentModel, SuperchatModel)
+        .join(SuperchatModel)
+        .where(SuperchatModel.video_id == video.id)
+        .count()
+    )
+
     with solara.Row(justify="center"):
         solara.Text(f"{background_processing.value}")
         solara.Text(
@@ -144,7 +155,7 @@ def VideoInfoPanel(video):
                     )
 
             with solara.Row(justify="center"):
-                with solara.Link(f"/superchat-searcher/{video.id}"):
+                with solara.Link(f"/superchat-control-panel/{video.id}"):
                     solara.Button(
                         label="Search for Superchats",
                         icon_name="mdi-magnify",
@@ -154,7 +165,7 @@ def VideoInfoPanel(video):
                 if len(video.superchats) > 0:
                     with solara.Link(f"/superchat-segments/{video.id}"):
                         solara.Button(
-                            label=f"Segments ({len(video.superchats)})",
+                            label=f"Segments ({num_segments})",
                             icon_name="mdi-chat-processing",
                             classes=["button"],
                         )

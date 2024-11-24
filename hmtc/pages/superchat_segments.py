@@ -28,28 +28,31 @@ def parse_url_args():
 
 
 @solara.component
-def SuperchatSegmentCard(segment: SuperchatSegmentItem, before: int, after: int):
+def SuperchatSegmentCard(
+    segment: SuperchatSegmentItem,
+    combine_cards,
+    delete_segment,
+):
     img = segment.image.image
-
-    def delete_segment():
-        pass
 
     def merge_with_previous():
         # first segment in the function keeps the image
         main = SuperchatSegmentModel.get_by_id(segment.id)
-        other = SuperchatSegmentModel.get_by_id(before)
-        SuperchatSegmentItem.combine_segments(main, other)
+        other = main.previous_segment if main.previous_segment else None
+        combine_cards(other, main)
 
     def merge_with_next():
-
-        logger.debug(f"Merging {segment.id} with next segment {after}")
+        main = SuperchatSegmentModel.get_by_id(segment.id)
+        other = main.next_segment if main.next_segment else None
+        combine_cards(main, other)
 
     if img is None:
         raise ValueError("No image found for segment")
     with solara.Card():
         with solara.Row(justify="space-between"):
             solara.Text(f"Start: {segment.start_time}")
-            solara.Text(f"End: {segment.end_time})")
+            solara.Text(f"End: {segment.end_time}")
+            solara.Text(f"Duration: {segment.end_time - segment.start_time}")
             solara.Button(
                 icon_name="mdi-delete",
                 on_click=delete_segment,
@@ -61,13 +64,11 @@ def SuperchatSegmentCard(segment: SuperchatSegmentItem, before: int, after: int)
                 icon_name="mdi-arrow-left",
                 classes=["button"],
                 on_click=merge_with_previous,
-                disabled=before == 0,
             )
             solara.Button(
                 icon_name="mdi-arrow-right",
                 classes=["button"],
                 on_click=merge_with_next,
-                disabled=after == 0,
             )
 
 
@@ -78,84 +79,80 @@ def Page():
     MySidebar(router=router)
     current_page = solara.use_reactive(1)
     video_id = parse_url_args()
-
+    refresh_trigger = solara.use_reactive(1)  # Add a reactive state for refresh
     if video_id is None or video_id == 0:
         raise ValueError(f"No Video Found {video_id}")
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
-    existing_superchats = (
-        SuperchatModel.select(SuperchatModel, SuperchatSegmentModel, VideoModel)
-        .join(
-            VideoModel,
-            peewee.JOIN.LEFT_OUTER,
-            on=(SuperchatModel.video_id == VideoModel.id),
-        )
-        .switch(SuperchatModel)
-        .join(
-            SuperchatSegmentModel,
-            peewee.JOIN.LEFT_OUTER,
-            on=(SuperchatModel.superchat_segment_id == SuperchatSegmentModel.id),
-        )
-        .where(SuperchatModel.video_id == video.id)
-        .order_by(SuperchatModel.frame_number.asc())
+    existing_segments = (
+        SuperchatSegmentModel.select(SuperchatSegmentModel, SuperchatModel)
+        .join(SuperchatModel)
+        .where(SuperchatModel.video_id == video_id)
+        .order_by(SuperchatSegmentModel.start_time.asc())
     )
-    num_superchats = existing_superchats.count()
-    num_pages = num_superchats // NUM_IMAGES
-    existing_superchats = existing_superchats.paginate(current_page.value, NUM_IMAGES)
+    num_segments = existing_segments.count()
+    num_pages = num_segments // NUM_IMAGES
+    existing_segments = existing_segments.paginate(current_page.value, NUM_IMAGES)
 
-    superchats = [
-        SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
-        for sc in existing_superchats
-    ]
+    segments = [SuperchatSegmentItem.from_model(seg) for seg in existing_segments]
 
-    segments = [
-        SuperchatSegmentItem.from_model(sc.superchat_segment)
-        for sc in superchats
-        if sc.superchat_segment
-    ]
+    def combine_cards(segment1: SuperchatSegmentItem, segment2: SuperchatSegmentItem):
+        SuperchatSegmentItem.combine_segments(segment1, segment2)
+        refresh_trigger.set(refresh_trigger.value + 1)
 
-    with solara.Column(classes=["main-container"]):
-        solara.Text(f"Superchat -> Sections Converter")
-        with solara.Row(justify="space-between"):
-            solara.Button(
-                "First",
-                on_click=lambda: current_page.set(0),
-                disabled=current_page.value == 1,
-                classes=["button"],
-            )
-            solara.Button(
-                "Previous Page",
-                on_click=lambda: current_page.set(current_page.value - 1),
-                disabled=current_page.value == 1,
-                classes=["button"],
-            )
-            solara.Text(f"Current Page: {current_page.value} of {num_pages}")
-            solara.Text(f"Total Superchats: {num_superchats}")
-            solara.Button(
-                "Next Page",
-                on_click=lambda: current_page.set(current_page.value + 1),
-                classes=["button"],
-                disabled=current_page.value == num_pages,
-            )
-            solara.Button(
-                "Last",
-                on_click=lambda: current_page.set(num_pages),
-                classes=["button"],
-                disabled=current_page.value == num_pages,
-            )
+    def delete_segment(segment_id):
+        SuperchatSegmentItem.delete_id(segment_id)
+        refresh_trigger.set(refresh_trigger.value + 1)
 
-        with solara.ColumnsResponsive(6):
-            prev = 0
-            if len(segments) <= 1:
-                next = 0
-            else:
-                next = segments[1].id
-            for segment in segments:
-                SuperchatSegmentCard(segment, before=prev, after=next)
-                prev = segment.id
-                next = (
-                    segments[segments.index(segment) + 2].id
-                    if segments.index(segment) + 2 < len(segments)
-                    else 0
+    if refresh_trigger.value > 0:
+        with solara.Column(classes=["main-container"]):
+            solara.Text(f"Superchat -> Sections Converter")
+            with solara.Row(justify="space-between"):
+                solara.Button(
+                    "First",
+                    on_click=lambda: current_page.set(1),
+                    disabled=current_page.value == 1,
+                    classes=["button"],
                 )
-                logger.debug(f"Next: {next}")
+                solara.Button(
+                    "Previous Page",
+                    on_click=lambda: current_page.set(current_page.value - 1),
+                    disabled=current_page.value == 1,
+                    classes=["button"],
+                )
+                solara.Text(f"Current Page: {current_page.value} of {num_pages}")
+                solara.Text(f"Total Segments: {num_segments}")
+                solara.Button(
+                    "Next Page",
+                    on_click=lambda: current_page.set(current_page.value + 1),
+                    classes=["button"],
+                    disabled=current_page.value == num_pages,
+                )
+                solara.Button(
+                    "Last",
+                    on_click=lambda: current_page.set(num_pages),
+                    classes=["button"],
+                    disabled=current_page.value == num_pages,
+                )
+
+            with solara.ColumnsResponsive(6):
+                prev = 0
+                if len(segments) <= 1:
+                    next = 0
+                else:
+                    next = segments[1].id
+                for segment in segments:
+                    SuperchatSegmentCard(
+                        segment,
+                        before=prev,
+                        after=next,
+                        combine_cards=combine_cards,
+                        delete_segment=lambda: delete_segment(segment.id),
+                    )
+                    prev = segment.id
+                    next = (
+                        segments[segments.index(segment) + 2].id
+                        if segments.index(segment) + 2 < len(segments)
+                        else 0
+                    )
+                    logger.debug(f"Next: {next}")

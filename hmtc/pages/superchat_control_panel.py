@@ -64,8 +64,8 @@ def Page():
         ie = ImageExtractor(Path(vf.path) / vf.filename)
         counter = 0
         for frame in ie.frame_each_n_seconds(N_FRAMES):
-            if config["general"]["environment"] == "development" and counter > 5:
-                logger.warning("Development mode, stopping after 5 frames")
+            if config["general"]["environment"] == "development" and counter > 10:
+                logger.warning("Development mode, stopping after 15 superchats")
                 break
 
             if ie.current_time in existing_frames:
@@ -74,12 +74,6 @@ def Page():
             # logger.error(f"Processing frame {ie.current_time}")
             sc_image, found = SuperChatRipper(frame).find_superchat()
             if found:
-                # initially each superchat is its own segment
-                # these will be combined later if the image matches
-                new_segment = SuperchatSegmentModel.create(
-                    start_time=ie.current_time,
-                    end_time=ie.current_time,
-                )
 
                 sci = ImageManager(sc_image)
 
@@ -87,29 +81,55 @@ def Page():
                     image=sci.image,
                     frame_number=ie.current_time,
                     video=video,
-                    superchat_segment=new_segment,
                 )
 
                 sc.save_to_db()
                 sc.write_image(filename=f"{ie.current_time}.jpg")
-                image_id = (
-                    SuperchatFileModel.select()
-                    .where(SuperchatFileModel.superchat_id == sc.id)
-                    .get()
-                    .id
-                )
-                new_segment.image_file_id = image_id
-                new_segment.save()
                 counter += 1
 
         ie.release_video()
         logger.success("Finished searching for superchats")
         searching.set(False)
 
-    def delete_all_superchats():
+    def create_segments():
+        searching.set(True)
+        new_segment = SuperchatSegmentModel.create(
+            start_time=0, end_time=0, image_file_id=0
+        )
         for sc in existing_superchats:
+            if new_segment.image_file_id == 0:
+                # initial segment gets the first superchat found
+                img = [i for i in sc.files if i.file_type == "image"][0]
+                new_segment.image_file_id = img.id
+                new_segment.save()
+                continue
+            sci = SuperchatItem.from_model(sc)
+            if False:  # images are the same
+                # start a new segment
+                pass
+            else:
+                # close out the current segment
+                new_segment.end_time = sc.frame_number
+                new_segment.save()
+                img = [i for i in sc.files if i.file_type == "image"][0]
+                _new_segment = SuperchatSegmentModel.create(
+                    start_time=sc.frame_number,
+                    end_time=0,
+                    image_file_id=img.id,
+                )
+                new_segment.next_segment_id = _new_segment.id
+                new_segment.save()
+                new_segment = _new_segment
+            logger.debug(f"Creating segment for {sc.frame_number}")
+        searching.set(False)
+
+    def delete_all_superchats():
+        searching.set(True)
+        for sc in existing_superchats:
+
             sci = SuperchatItem.from_model(sc)
             sci.delete_me()
+        searching.set(False)
 
     superchats = [
         SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
@@ -124,25 +144,37 @@ def Page():
                         solara.Text(f"{video.title[:80]}")
                     with solara.Row(justify="space-between"):
                         solara.Text(f"Current Superchats: {len(superchats)}")
+                        # solara.Text(f"Current Segments: {len(segments)}")
                         solara.Text(f"Total Frames: {video.duration}")
                 with solara.Column():
                     solara.Button(
                         label="Superchat Segments",
+                        icon_name="mdi-comment",
                         classes=["button"],
                         on_click=lambda: router.push(f"/superchat-segments/{video.id}"),
-                        disabled=len(superchats) == 0,
+                        # disabled=len(segments) == 0,
                     )
         with solara.Card():
             with solara.Row(justify="center"):
                 solara.Button(
                     label="Search for Superchats",
+                    icon_name="mdi-magnify",
                     on_click=search_for_superchats,
                     classes=["button"],
                 )
                 solara.Button(
-                    label="Delete All Superchats",
-                    on_click=delete_all_superchats,
+                    label="Create Superchat Segments",
+                    icon_name="mdi-comment",
+                    on_click=create_segments,
                     classes=["button"],
+                    disabled=len(superchats) == 0,
+                )
+            with solara.Row(justify="center"):
+                solara.Button(
+                    label="Delete All Superchats",
+                    icon_name="mdi-delete",
+                    on_click=delete_all_superchats,
+                    classes=["button", "warning"],
                     disabled=len(superchats) == 0,
                 )
         if searching.value:

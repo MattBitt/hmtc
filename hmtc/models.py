@@ -571,11 +571,9 @@ class SectionTopics(BaseModel):
 class SuperchatSegment(BaseModel):
     start_time = IntegerField()
     end_time = IntegerField()
-
-    # not using foreignkey to avoid circular reference
-    # should probably use deferred foreign key, TODO lol
-    # points to the superchat image file in the superchat files table
-    image_file_id = IntegerField(null=True)
+    video = ForeignKeyField(Video, backref="superchats")
+    track = ForeignKeyField(Track, backref="superchat", null=True)
+    next_segment: int = ForeignKeyField("self", backref="previous_segment", null=True)
 
     def __repr__(self):
         return f"SuperchatSegment({self.id} - {self.start_time}:{self.end_time})"
@@ -587,11 +585,7 @@ class SuperchatSegment(BaseModel):
 class Superchat(BaseModel):
 
     frame_number = IntegerField()
-    superchat_segment = ForeignKeyField(
-        SuperchatSegment, backref="superchats", null=True
-    )
     video = ForeignKeyField(Video, backref="superchats")
-    track = ForeignKeyField(Track, backref="superchat", null=True)
 
     def __repr__(self):
         return f"Superchat({self.id} - {self.frame_number=})"
@@ -615,4 +609,5 @@ class Superchat(BaseModel):
 
 
 class SuperchatFile(BaseFile):
-    superchat_id: int = ForeignKeyField(Superchat, backref="files")
+    superchat_id: int = ForeignKeyField(Superchat, backref="files", null=True)
+    segment_id: int = ForeignKeyField(SuperchatSegment, backref="files", null=True)

@@ -93,6 +93,12 @@ def test_ww_video_file(test_files):
 
 
 @pytest.fixture(scope="function")
+def test_ww_video_file2(test_files):
+    video_file = [x for x in test_files.glob("*") if x.stem == "ww100_clip_1_min2"][0]
+    return INPUT_PATH / video_file.name
+
+
+@pytest.fixture(scope="function")
 def test_ww116_images(test_files):
     ww116_folder = test_files / "ww_screenshots" / "ww116"
     assert ww116_folder.exists()
