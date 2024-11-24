@@ -83,14 +83,13 @@ def Page():
 
                 sci = ImageManager(sc_image)
 
-                sc = SuperchatItem(
-                    image=sci.image,
+                sc = SuperchatModel.create(
                     frame_number=ie.current_time,
-                    video=video,
+                    video_id=video.id,
                 )
 
-                sc.save_to_db()
-                sc.write_image(filename=f"{ie.current_time}.jpg")
+                sci = SuperchatItem.from_model(sc)
+                sci.add_image(sc_image)
                 counter += 1
 
         ie.release_video()
@@ -134,10 +133,7 @@ def Page():
             segment_item.delete_me()
         searching.set(False)
 
-    superchats = [
-        SuperchatItem(frame_number=sc.frame_number).from_model(superchat=sc)
-        for sc in existing_superchats
-    ]
+    superchats = [SuperchatItem.from_model(superchat=sc) for sc in existing_superchats]
     segments = [
         SuperchatSegmentItem.from_model(segment) for segment in existing_segments
     ]

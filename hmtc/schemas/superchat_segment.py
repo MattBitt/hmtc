@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
+from loguru import logger
 from pathlib import Path
 from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
-from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.utils.opencv.image_manager import ImageManager
 
 
@@ -13,22 +13,25 @@ class SuperchatSegment:
     end_time: int
 
     id: int = None
-    image: ImageManager = None
+
+    im: ImageManager = None
     next_segment: "SuperchatSegment" = None
     previous_segment: "SuperchatSegment" = None
     video_id: int = None
     track_id: int = None
+    superchats: list = field(default_factory=list)
     files: list = field(default_factory=list)
 
     @staticmethod
     def from_model(segment: SuperchatSegmentModel) -> "SuperchatSegment":
 
-        image_file = segment.files[0] if segment.files else None
+        if len(segment.files) == 0:
+            raise ValueError(
+                f"💡💡💡💡No files found for segment id {segment.id}💡💡💡💡"
+            )
+        image_file = [f for f in segment.files if f.file_type == "image"][0]
+        image = ImageManager(image_file)
 
-        if image_file:
-            image = ImageManager(image_file)
-        else:
-            image = None
         return SuperchatSegment(
             id=segment.id,
             start_time=segment.start_time,
@@ -42,14 +45,14 @@ class SuperchatSegment:
         )
 
     @staticmethod
-    def create_from_superchat(superchat: SuperchatItem) -> "SuperchatSegment":
+    def create_from_superchat(superchat) -> "SuperchatSegment":
         ss = SuperchatSegmentModel.create(
             start_time=superchat.frame_number,
             end_time=superchat.frame_number,
             video=superchat.video,
         )
-        if superchat.image is None:
-            logger.error("IMage is blank here")
+        if superchat.im is None:
+            logger.error("Image Manager is blank here (create_from_superchat)")
             return SuperchatSegment.from_model(ss)
         superchat_files = SuperchatFileModel.select().where(
             SuperchatFileModel.superchat_id == superchat.id
@@ -118,6 +121,7 @@ class SuperchatSegment:
 
     @staticmethod
     def combine_segments(segment1: "SuperchatSegment", segment2: "SuperchatSegment"):
+
         if segment1.next_segment.id == segment2.id:
             # merging with next segment
             segment2.start_time = segment1.start_time

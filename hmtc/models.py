@@ -70,10 +70,10 @@ class Series(BaseModel):
     end_date = DateField(null=True)
 
     def __repr__(self):
-        return f"Series({self.id} - {self.name})"
+        return f"SeriesModel({self.id} - {self.name})"
 
     def __str__(self):
-        return f"Series({self.id} - {self.name})"
+        return f"SeriesModel({self.id} - {self.name})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -99,10 +99,10 @@ class Channel(BaseModel):
         )
 
     def __repr__(self):
-        return f"Channel({self.id} - {self.name=})"
+        return f"ChannelModel({self.id} - {self.name=})"
 
     def __str__(self):
-        return f"Channel({self.id} - {self.name=})"
+        return f"ChannelModel({self.id} - {self.name=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -265,10 +265,10 @@ class Album(BaseModel):
     release_date = DateField(null=True)
 
     def __repr__(self):
-        return f"Album({self.id} - {self.title=})"
+        return f"AlbumModel({self.id} - {self.title=})"
 
     def __str__(self):
-        return f"Album({self.id} - {self.title=})"
+        return f"AlbumModel({self.id} - {self.title=})"
 
     def simple_dict(self):
         return {
@@ -312,10 +312,10 @@ class Video(BaseModel):
     youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
 
     def __repr__(self):
-        return f"Video({self.id} - {self.title=})"
+        return f"VideoModel({self.id} - {self.title=})"
 
     def __str__(self):
-        return f"Video({self.id} - {self.title=})"
+        return f"VideoModel({self.id} - {self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -353,10 +353,10 @@ class Track(BaseModel):
         }
 
     def __repr__(self):
-        return f"Track({self.id} - {self.title=})"
+        return f"TrackModel({self.id} - {self.title=})"
 
     def __str__(self):
-        return f"Track({self.id} - {self.title=})"
+        return f"TrackModel({self.id} - {self.title=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -371,10 +371,12 @@ class Section(BaseModel):
     track = ForeignKeyField(Track, backref="section", null=True)
 
     def __repr__(self):
-        return f"Section({self.id} - {self.start}:{self.end} - {self.section_type})"
+        return (
+            f"SectionModel({self.id} - {self.start}:{self.end} - {self.section_type})"
+        )
 
     def __str__(self):
-        return f"Section({self.id} - {self.section_type})"
+        return f"SectionModel({self.id} - {self.section_type})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -417,10 +419,10 @@ class File(BaseModel):
     track = ForeignKeyField(Track, backref="files", null=True)
 
     def __repr__(self):
-        return f"File({self.id} - {self.filename=})"
+        return f"FileModel({self.id} - {self.filename=})"
 
     def __str__(self):
-        return f"File({self.id} - {self.filename=})"
+        return f"FileModel({self.id} - {self.filename=})"
 
     def simple_dict(self):
         return {
@@ -492,10 +494,10 @@ class Artist(BaseModel):
     url = CharField(null=True)
 
     def __repr__(self):
-        return f"Artist({self.id} - {self.name=})"
+        return f"ArtistModel({self.id} - {self.name=})"
 
     def __str__(self):
-        return f"Artist({self.id} - {self.name=})"
+        return f"ArtistModel({self.id} - {self.name=})"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -515,10 +517,10 @@ class TrackBeat(BaseModel):
     track = ForeignKeyField(Track, backref="beats")
 
     def __repr__(self):
-        return f"TrackBeat({self.id} - {self.beat=} - {self.track=})"
+        return f"TrackBeatModel({self.id} - {self.beat=} - {self.track=})"
 
     def __str__(self):
-        return f"TrackBeat({self.id} - {self.beat=} - {self.track=})"
+        return f"TrackBeatModel({self.id} - {self.beat=} - {self.track=})"
 
     class Meta:
         indexes = (
@@ -533,10 +535,10 @@ class BeatArtist(BaseModel):
     artist = ForeignKeyField(Artist, backref="beats")
 
     def __repr__(self):
-        return f"BeatArtist({self.id} - {self.beat=} - {self.artist=})"
+        return f"BeatArtistModel({self.id} - {self.beat=} - {self.artist=})"
 
     def __str__(self):
-        return f"BeatArtist({self.id} - {self.beat=} - {self.artist=})"
+        return f"BeatArtistModel({self.id} - {self.beat=} - {self.artist=})"
 
     class Meta:
         indexes = (
@@ -549,10 +551,10 @@ class Topic(BaseModel):
     text = CharField()
 
     def __repr__(self):
-        return f"Topic({self.id} - {self.text=})"
+        return f"TopicModel({self.id} - {self.text=})"
 
     def __str__(self):
-        return f"Topic({self.id} - {self.text=})"
+        return f"TopicModel({self.id} - {self.text=})"
 
 
 # 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -562,10 +564,10 @@ class SectionTopics(BaseModel):
     order = IntegerField()
 
     def __repr__(self):
-        return f"SectionTopics({self.id} - {self.section=})"
+        return f"SectionTopicsModel({self.id} - {self.section=})"
 
     def __str__(self):
-        return f"SectionTopics({self.id} - {self.section=})"
+        return f"SectionTopicsModel({self.id} - {self.section=})"
 
 
 class SuperchatSegment(BaseModel):
@@ -586,18 +588,20 @@ class Superchat(BaseModel):
 
     frame_number = IntegerField()
     video = ForeignKeyField(Video, backref="superchats")
+    segment = ForeignKeyField(SuperchatSegment, backref="superchats", null=True)
 
     def __repr__(self):
-        return f"Superchat({self.id} - {self.frame_number=})"
+        return f"SuperchatModel({self.id} - {self.frame_number=})"
 
     def __str__(self):
-        return f"Superchat({self.id} - {self.frame_number=})"
+        return f"SuperchatModel({self.id} - {self.frame_number=})"
 
     def simple_dict(self):
         return {
             "id": self.id,
             "frame_number": self.frame_number,
             "video_id": self.video.id,
+            "superchat_segment_id": self.superchat_segment.id,
         }
 
     class Meta:

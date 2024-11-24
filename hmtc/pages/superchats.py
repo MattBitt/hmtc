@@ -34,7 +34,7 @@ def SuperchatCard(
     superchat: SuperchatItem,
     refresh_trigger,
 ):
-    img = superchat.image
+    img = superchat.get_image()
 
     if img is None:
         raise ValueError("No image found for segment")

@@ -129,53 +129,50 @@ def test_image_as_file_speed(test_image_filename):
     file_load_time = time.time() - start
 
 
-def test_superchat_model():
-    new_vid = VideoModel.create(
-        title="Test Video",
-        description="This is a test video",
-        youtube_id="123456",
-        upload_date="2021-01-01",
-        duration=1200,
-    )
+def test_superchat_model(video):
+
     sc = SuperchatModel(
         frame_number=0,
-        video_id=new_vid.id,
+        video_id=video.id,
     )
     sc.save()
 
 
-def test_superchat_item():
+def test_superchat_item(superchat):
     tp = TARGET_PATH / "superchat_item"
     tp.mkdir(exist_ok=True)
 
-    new_vid = VideoModel.create(
-        title="Test Video",
-        description="This is a test video",
-        youtube_id="123456",
-        upload_date="2021-01-01",
-        duration=1200,
-    )
-    sci = SuperchatItem(
-        frame_number=0,
-        video=new_vid,
-        image=ImageManager(np.zeros((100, 100, 3), dtype=np.uint8)),
-    )
-    sci.image.save_image(tp / "superchat_item.jpg")
+    sci = SuperchatItem.from_model(superchat)
+    assert sci.id == superchat.id
 
 
-def test_ripper_to_item(test_ww116_images, test_ww_video_file):
+def test_superchat_item_with_file(superchat, superchat_image_file):
+    tp = TARGET_PATH / "superchat_item_with_file"
+    tp.mkdir(exist_ok=True)
+
+    sci = SuperchatItem.from_model(superchat)
+    sci.add_image(superchat_image_file)
+    assert sci.id == superchat.id
+    assert len(sci.files) == 1
+
+
+def test_superchat_item_with_array(superchat, superchat_image_array):
+    tp = TARGET_PATH / "superchat_item_with_array"
+    tp.mkdir(exist_ok=True)
+
+    sci = SuperchatItem.from_model(superchat)
+    sci.add_image(superchat_image_array)
+    assert sci.id == superchat.id
+
+    assert len(sci.files) == 1
+
+
+def test_ripper_to_item(video_with_file, test_ww116_images):
+    video = video_with_file
     has_superchats, _ = test_ww116_images
     tp = TARGET_PATH / "ripper_to_item"
     tp.mkdir(exist_ok=True)
 
-    new_vid = VideoModel.create(
-        title="Test Video",
-        description="This is a test video",
-        youtube_id="123456",
-        upload_date="2021-01-01",
-        duration=1200,
-    )
-    FileManager.add_path_to_video(path=test_ww_video_file, video=new_vid)
     counter = 0
     for image in has_superchats:
         editor = ImageManager(image)
@@ -183,21 +180,15 @@ def test_ripper_to_item(test_ww116_images, test_ww_video_file):
         sc = SuperChatRipper(editor.image)
         sc_image, found = sc.find_superchat()
         assert found
-        superchat = SuperchatItem(
-            frame_number=counter,
-            video=new_vid,
-            image=ImageManager(sc_image).image,
-        )
-        ImageManager(superchat.image).write_on_image("Mizzle Bizzle Foshizzle")
-        superchat.save_to_db()
-        superchat.write_image(tp / f"{image.stem}_superchat.jpg")
-
-        new_sc = SuperchatModel.get(frame_number=counter, video_id=new_vid.id)
+        new_sc = SuperchatModel.create(frame_number=counter, video_id=video.id)
+        superchat = SuperchatItem.from_model(new_sc)
+        superchat.add_image(sc_image)
+        new_sc = SuperchatModel.get(frame_number=counter, video_id=video.id)
         assert new_sc is not None
-        assert new_sc.video.id == new_vid.id
+        assert new_sc.video.id == video.id
         assert new_sc.frame_number == counter
         sc_file_db = SuperchatFileModel.get_or_none(superchat_id=new_sc.id)
         assert sc_file_db is not None
         img = superchat.get_image()
-        assert isinstance(img, np.ndarray)
+        assert isinstance(img.image, np.ndarray)
         counter = counter + 1

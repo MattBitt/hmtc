@@ -7,6 +7,7 @@ from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.schemas.base import BaseItem
+from hmtc.schemas.superchat_segment import SuperchatSegment
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_manager import ImageManager
 
@@ -15,31 +16,20 @@ from hmtc.utils.opencv.image_manager import ImageManager
 class Superchat:
 
     frame_number: int
-    image: np.ndarray = None
-    id: int = None
+    id: int
     video: VideoItem = None
+    segment: SuperchatSegment = None
     files: list = field(default_factory=list)
+    im: ImageManager = None
 
     @staticmethod
     def from_model(superchat: SuperchatModel) -> "Superchat":
-        i = (
-            SuperchatFileModel.select()
-            .where(SuperchatFileModel.superchat_id == superchat.id)
-            .get_or_none()
-        )
-        if i is None:
-            logger.error(f"No image found for superchat {superchat.id}")
-            return Superchat(
-                id=superchat.id,
-                frame_number=superchat.frame_number,
-                video=VideoItem.from_model(superchat.video),
-            )
-        im = ImageManager(Path(i.path) / i.filename)
         return Superchat(
             id=superchat.id,
             frame_number=superchat.frame_number,
             video=superchat.video,
-            image=im.image,
+            segment=superchat.segment,
+            files=superchat.files,
         )
 
     def serialize(self) -> dict:
@@ -47,6 +37,8 @@ class Superchat:
             "id": self.id,
             "frame_number": self.frame_number,
             "video": self.video.serialize(),
+            "segment": self.segment.serialize(),
+            "files": [f.serialize() for f in self.files],
         }
 
     @staticmethod
@@ -63,15 +55,21 @@ class Superchat:
         self.delete_id(self.id)
 
     def save_to_db(self) -> None:
-        sc = SuperchatModel(
-            frame_number=self.frame_number,
-            video_id=self.video.id,
-        )
-        sc.save()
-        self.id = sc.id
+        if self.id is None:
+            sc = SuperchatModel(
+                frame_number=self.frame_number,
+                video_id=self.video.id,
+            )
+            sc.save()
+            self.id = sc.id
+        else:
+            sc = SuperchatModel.get_by_id(self.id)
+            sc.frame_number = self.frame_number
+            sc.video_id = self.video.id
+            sc.save()
 
-    def get_image(self) -> ImageManager:
-        if self.image is None:
+    def get_image(self):
+        if self.im is None:
             image_file = (
                 SuperchatFileModel.select()
                 .where(
@@ -80,14 +78,49 @@ class Superchat:
                 )
                 .get()
             )
-            self.image = ImageManager(Path(image_file.path) / image_file.filename).image
-        return self.image
+            self.im = ImageManager(Path(image_file.path) / image_file.filename)
+        if self.im is None:
+            raise ValueError("Image not found. Please add an image to the superchat.")
+        return self.im.image
+
+    def add_image(self, new_path) -> None:
+        if isinstance(new_path, Path):
+            path = new_path
+            image_db_file = SuperchatFileModel(
+                superchat_id=self.id,
+                path=path.parent,
+                filename=path.name,
+                file_type="image",
+            )
+            image_db_file.save()
+        elif isinstance(new_path, np.ndarray):
+            vid_file_path = (
+                FileModel.select().where(FileModel.video_id == self.video.id).first()
+            )
+            image_file_path = (
+                Path(vid_file_path.path) / "superchats" / f"{self.frame_number}.jpg"
+            )
+            if self.im is None:
+                self.im = ImageManager(new_path)
+                self.im.save_image(image_file_path)
+                image_db_file = SuperchatFileModel(
+                    superchat_id=self.id,
+                    path=image_file_path.parent,
+                    filename=image_file_path.name,
+                    file_type="image",
+                )
+                image_db_file.save()
+            else:
+                logger.warning("🧪🧪🧪 Does this execute? 11-24-24")
+                self.im.image = new_path
+        else:
+            raise TypeError(
+                f"Image must be a file path or a numpy array. Got {type(new_path)}"
+            )
+
+        # self.im.save_image(Path(image_db_file.path) / image_db_file.filename)
 
     def write_image(self, filename, new_path: Path = None) -> None:
-        if self.id is None:
-            raise ValueError("Superchat must be saved to the database first")
-        if self.image is None:
-            raise ValueError("Superchat image must be SET before saving")
         if new_path is None:
             vid_file = (
                 FileModel.select()
@@ -107,7 +140,7 @@ class Superchat:
             file_type="image",
         )
         image_db_file.save()
-        ImageManager(self.image).save_image(new_path / filename)
+        self.im.save_image(new_path / filename)
 
     def __repr__(self):
         return f"<SuperchatItem {self.id} - Frame {self.frame_number}>"
