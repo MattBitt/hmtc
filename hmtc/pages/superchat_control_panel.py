@@ -99,33 +99,23 @@ def Page():
 
     def create_segments():
         searching.set(True)
-        new_segment = SuperchatSegmentModel.create(
-            start_time=0, end_time=0, video_id=video.id
-        )
+        segment = None
         for sc in existing_superchats:
-            if len(new_segment.files) == 0:
+            if segment is None:
+                sc_item = SuperchatItem.from_model(sc)
+                segment = SuperchatSegmentItem.create_from_superchat(sc_item)
                 # initial segment gets the first superchat found
-                if len(sc.files) == 0:
-                    logger.error(f"No files found for superchat {sc.id}. Skipping")
-                    continue
-                img = [i for i in sc.files if i.file_type == "image"][0]
-                img.segment_id = new_segment.id
-                img.save()
                 continue
             if False:  # images are the same
                 # start a new segment
                 pass
             else:
                 # close out the current segment
-                new_segment.end_time = sc.frame_number
-                new_segment.save()
-                img = [i for i in sc.files if i.file_type == "image"][0]
-                _new_segment = SuperchatSegmentModel.create(
-                    start_time=sc.frame_number, end_time=0, video_id=video.id
-                )
-                new_segment.next_segment_id = _new_segment.id
-                new_segment.save()
-                new_segment = _new_segment
+                segment.close_segment(sc.frame_number)
+                sc_item = SuperchatItem.from_model(sc)
+                __segment = SuperchatSegmentItem.create_from_superchat(sc_item)
+                segment.set_next_segment(__segment.id)
+                segment = __segment
             logger.debug(f"Creating segment for {sc.frame_number}")
         searching.set(False)
 

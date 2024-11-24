@@ -35,18 +35,25 @@ def SuperchatSegmentCard(
     combine_cards,
     delete_segment,
 ):
-    img = segment.image.image
+    if segment.image is None:
+        logger.error(f"No image found for segment {segment.id}")
+        img = None
+    else:
+        img = segment.image.image
+    _prev = segment.previous_segment.get_or_none()
 
     def merge_with_previous():
         # first segment in the function keeps the image
-        main = SuperchatSegmentModel.get_by_id(segment.id)
-        other = main.previous_segment if main.previous_segment else None
-        combine_cards(other, main)
+        if _prev is None:
+            logger.error("No previous segment found")
+            return
+        current = SuperchatSegmentModel.get_by_id(segment.id)
+        combine_cards(_prev, current)
 
     def merge_with_next():
-        main = SuperchatSegmentModel.get_by_id(segment.id)
-        other = main.next_segment if main.next_segment else None
-        combine_cards(main, other)
+        current = SuperchatSegmentModel.get_by_id(segment.id)
+        other = current.next_segment.get()
+        combine_cards(current, other)
 
     if img is None:
         raise ValueError("No image found for segment")
@@ -54,7 +61,7 @@ def SuperchatSegmentCard(
         with solara.Row(justify="space-between"):
             solara.Text(f"Start: {segment.start_time}")
             solara.Text(f"End: {segment.end_time}")
-            solara.Text(f"Duration: {segment.end_time - segment.start_time}")
+
             solara.Button(
                 icon_name="mdi-delete",
                 on_click=delete_segment,
@@ -66,12 +73,17 @@ def SuperchatSegmentCard(
                 icon_name="mdi-arrow-left",
                 classes=["button"],
                 on_click=merge_with_previous,
+                disabled=not bool(_prev),
             )
+            solara.Text(f"<- Merge ->")
             solara.Button(
                 icon_name="mdi-arrow-right",
                 classes=["button"],
                 on_click=merge_with_next,
+                disabled=segment.next_segment is None,
             )
+        with solara.Row(justify="center"):
+            solara.Text(f"Duration: {segment.end_time - segment.start_time}")
 
 
 @solara.component
@@ -92,7 +104,7 @@ def Page():
         .order_by(SuperchatSegmentModel.start_time.asc())
     )
     num_segments = existing_segments.count()
-    num_pages = num_segments // NUM_IMAGES
+    num_pages = num_segments // NUM_IMAGES + 1
     existing_segments = existing_segments.paginate(current_page.value, NUM_IMAGES)
 
     segments = [SuperchatSegmentItem.from_model(seg) for seg in existing_segments]

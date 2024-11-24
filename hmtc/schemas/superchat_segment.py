@@ -1,7 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
+from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.utils.opencv.image_manager import ImageManager
 
 
@@ -14,12 +15,16 @@ class SuperchatSegment:
     id: int = None
     image: ImageManager = None
     next_segment: "SuperchatSegment" = None
+    previous_segment: "SuperchatSegment" = None
     video_id: int = None
     track_id: int = None
+    files: list = field(default_factory=list)
 
     @staticmethod
     def from_model(segment: SuperchatSegmentModel) -> "SuperchatSegment":
+
         image_file = segment.files[0] if segment.files else None
+
         if image_file:
             image = ImageManager(image_file)
         else:
@@ -30,9 +35,31 @@ class SuperchatSegment:
             end_time=segment.end_time,
             image=image,
             next_segment=segment.next_segment,
+            previous_segment=segment.previous_segment,
             video_id=segment.video_id,
             track_id=segment.track_id,
+            files=segment.files,
         )
+
+    @staticmethod
+    def create_from_superchat(superchat: SuperchatItem) -> "SuperchatSegment":
+        ss = SuperchatSegmentModel.create(
+            start_time=superchat.frame_number,
+            end_time=superchat.frame_number,
+            video=superchat.video,
+        )
+        if superchat.image is None:
+            logger.error("IMage is blank here")
+            return SuperchatSegment.from_model(ss)
+        superchat_files = SuperchatFileModel.select().where(
+            SuperchatFileModel.superchat_id == superchat.id
+        )
+        for file in superchat_files:
+            if file.file_type == "image":
+                file.segment_id = ss.id
+                file.save()
+
+        return SuperchatSegment.from_model(ss)
 
     def serialize(self) -> dict:
         return {
@@ -43,6 +70,16 @@ class SuperchatSegment:
             "video_id": self.video_id,
             "track_id": self.track_id,
         }
+
+    def close_segment(self, end_time: int):
+        ss = SuperchatSegmentModel.get_by_id(self.id)
+        ss.end_time = end_time
+        ss.save()
+
+    def set_next_segment(self, next_segment_id: int):
+        ss = SuperchatSegmentModel.get_by_id(self.id)
+        ss.next_segment = next_segment_id
+        ss.save()
 
     @staticmethod
     def delete_id(item_id):
@@ -69,9 +106,34 @@ class SuperchatSegment:
     def combine_segments(
         segment1: SuperchatSegmentModel, segment2: SuperchatSegmentModel
     ):
-        segment1.end_time = segment2.end_time
-        # still need to assign image and next_segment
-        segment1.save()
-        segment2.delete_instance()
+        if segment1.next_segment.id != segment2.id:
+            segment2.start_time = segment1.start_time
+            _old_prev = segment1.previous_segment.get_or_none()
+            if _old_prev is not None:
+                _old_prev.next_segment = segment2.id
+                _old_prev.save()
+            old_file = (
+                SuperchatFileModel.select()
+                .where(SuperchatFileModel.segment_id == segment1.id)
+                .get_or_none()
+            )
+            if old_file is not None:
+                old_file.delete_instance(recursive=True)
+
+            segment1.delete_instance()
+            segment2.save()
+        else:
+            # merging with previous segment
+            segment1.end_time = segment2.end_time
+            segment1.next_segment = segment2.next_segment
+            old_file = (
+                SuperchatFileModel.select()
+                .where(SuperchatFileModel.segment_id == segment2.id)
+                .get_or_none()
+            )
+            if old_file is not None:
+                old_file.delete_instance(recursive=True)
+            segment1.save()
+            segment2.delete_instance()
 
         return segment1

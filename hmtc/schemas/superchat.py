@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from loguru import logger
 import numpy as np
@@ -18,6 +18,7 @@ class Superchat:
     image: np.ndarray = None
     id: int = None
     video: VideoItem = None
+    files: list = field(default_factory=list)
 
     @staticmethod
     def from_model(superchat: SuperchatModel) -> "Superchat":
