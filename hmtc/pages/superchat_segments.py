@@ -6,6 +6,7 @@ import peewee
 import solara
 from loguru import logger
 
+from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
@@ -17,7 +18,6 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.components.shared.pagination_controls import PaginationControls
 
 
 def parse_url_args():
@@ -32,33 +32,53 @@ def parse_url_args():
 @solara.component
 def SuperchatSegmentCard(
     segment: SuperchatSegmentItem,
-    combine_cards,
+    refresh_trigger,
     delete_segment,
 ):
-    img = segment.image.image
+    img = segment.get_image()
     _prev = segment.previous_segment.get_or_none()
 
     def merge_with_previous():
         # first segment in the function keeps the image
-        if _prev is None:
-            logger.error("No previous segment found")
-            return
         prev = SuperchatSegmentItem.from_model(_prev)
-        combine_cards(prev, segment)
+        logger.error(f"About to add {len(segment.superchats)} superchats to {prev.id}")
+        for sc in segment.superchats:
+            prev.add_superchat(sc)
+        _prev.end_time = segment.end_time
+        _prev.save()
+
+        if segment.next_segment is not None:
+            next_segment = SuperchatSegmentItem.from_model(segment.next_segment)
+            _prev.next_segment = next_segment.id
+            _prev.save()
+        segment.delete_me()
+
+        refresh_trigger.set(refresh_trigger.value + 1)
 
     def merge_with_next():
-        ns = segment.next_segment.get()
-        nsi = SuperchatSegmentItem.from_model(ns)
-        combine_cards(segment, nsi)
+        next = SuperchatSegmentItem.from_model(segment.next_segment)
+        logger.error(f"About to add {len(segment.superchats)} superchats to {next.id}")
+        for sc in segment.superchats:
+            next.add_superchat(sc)
+        _next = SuperchatSegmentModel.get_by_id(next.id)
+        _next.start_time = segment.start_time
+        _next.save()
 
-    if img is None:
-        raise ValueError("No image found for segment")
+        if _prev is not None:
+            _prev.next_segment = next.id
+            _prev.save()
+        segment.delete_me()
+        refresh_trigger.set(refresh_trigger.value + 1)
+
     with solara.Card():
         with solara.Row(justify="space-between"):
+            if _prev is not None:
+                solara.Text(f"Previous Segment: {_prev.id}")
             solara.Text(f"Segment ID: {segment.id}")
             solara.Text(f"Start: {segment.start_time}")
             solara.Text(f"End: {segment.end_time}")
-
+            if segment.next_segment is not None:
+                solara.Text(f"Next Segment: {segment.next_segment.id}")
             solara.Button(
                 icon_name="mdi-delete",
                 on_click=delete_segment,
@@ -72,7 +92,7 @@ def SuperchatSegmentCard(
                 on_click=merge_with_previous,
                 disabled=not bool(_prev),
             )
-            solara.Text(f"<- Merge ->")
+            solara.Text(f"Superchats: {len(segment.superchats)}")
             solara.Button(
                 icon_name="mdi-arrow-right",
                 classes=["button"],
@@ -121,9 +141,8 @@ def Page():
 
             with solara.ColumnsResponsive(6):
                 for segment in segments:
-                    assert segment.image is not None
                     SuperchatSegmentCard(
                         segment,
-                        combine_cards=combine_cards,
+                        refresh_trigger=refresh_trigger,
                         delete_segment=lambda: delete_segment(segment.id),
                     )

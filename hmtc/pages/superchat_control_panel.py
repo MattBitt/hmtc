@@ -35,6 +35,7 @@ def parse_url_args():
 @solara.component
 def Page():
     N_FRAMES = 10
+    NUMBER_SUPERCHATS_DEV = 3
     router = solara.use_router()
     MySidebar(router=router)
 
@@ -70,7 +71,10 @@ def Page():
         ie = ImageExtractor(Path(vf.path) / vf.filename)
         counter = 0
         for frame in ie.frame_each_n_seconds(N_FRAMES):
-            if config["general"]["environment"] == "development" and counter > 18:
+            if (
+                config["general"]["environment"] == "development"
+                and counter > NUMBER_SUPERCHATS_DEV
+            ):
                 logger.warning("Development mode, stopping after 15 superchats")
                 break
 
@@ -129,6 +133,9 @@ def Page():
     def delete_all_segments():
         searching.set(True)
         for segment in existing_segments:
+            for sc in segment.superchats:
+                sc.segment_id = None
+                sc.save()
             segment_item = SuperchatSegmentItem.from_model(segment)
             segment_item.delete_me()
         searching.set(False)

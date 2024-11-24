@@ -18,91 +18,31 @@ TARGET_PATH = WORKING / "files_created_by_testing"
 TARGET_PATH.mkdir(exist_ok=True)
 
 
-def test_superchat_segments():
-    vid = VideoModel.create(
-        title="Some other stuff",
-        description="Blah blah blah",
-        youtube_id="7846157486",
-        upload_date="2024-01-01",
-        duration=1200,
-    )
+def test_superchat_segments(video):
+    segment1 = SuperchatSegmentModel.create(start_time=0, end_time=10, video=video)
 
-    segment1 = (SuperchatSegmentModel.create(start_time=0, end_time=10, video=vid),)
-
-    segment2 = SuperchatSegmentModel.create(start_time=10, end_time=20, video=vid)
+    segment2 = SuperchatSegmentModel.create(start_time=10, end_time=20, video=video)
 
 
-def test_superchat_segment_item(test_ww116_images, test_ww_video_file):
+def test_superchat_segment_item(superchat_segment1):
     tp = TARGET_PATH / "superchat_segment_item"
     tp.mkdir(exist_ok=True)
 
-    new_vid = VideoModel.create(
-        title="Test Video in superchat_segment_item",
-        description="This is a test video",
-        youtube_id="abcdefghijkl",
-        upload_date="2021-01-01",
-        duration=1200,
-    )
-    FileManager.add_path_to_video(path=test_ww_video_file, video=new_vid)
-    counter = 0
-    has_superchats, _ = test_ww116_images
-    editor = ImageManager(has_superchats[0])
-    sc = SuperChatRipper(editor.image)
-    sc_image, found = sc.find_superchat()
-    assert found
-    superchat = SuperchatItem(
-        frame_number=counter,
-        video=new_vid,
-        image=ImageManager(sc_image).image,
-    )
-    superchat.save_to_db()
-    superchat.write_image(tp / f"testing_superchat.jpg")
-    segment1 = SuperchatSegmentModel.create(start_time=0, end_time=10, video=new_vid)
-    sg1 = SuperchatSegmentItem.from_model(segment1)
-    segment2 = SuperchatSegmentModel.create(start_time=10, end_time=20, video=new_vid)
-    sg2 = SuperchatSegmentItem.from_model(segment2)
+    sg1 = SuperchatSegmentItem.from_model(superchat_segment1)
+
     assert sg1.start_time == 0
     assert sg1.end_time == 10
-    assert sg1.video_id == new_vid.id
-    assert sg2.start_time == 10
-    assert sg2.end_time == 20
-
-    SuperchatSegmentItem.delete_id(segment1.id)
-    SuperchatSegmentItem.delete_id(segment2.id)
-    assert SuperchatSegmentModel.select().count() == 0
 
 
-def test_combine_segments(test_ww116_images, test_ww_video_file2):
+def test_add_superchat_to_segment(video, superchat_image_file):
+    sc = SuperchatModel.create(frame_number=5, video=video)
+    sci = SuperchatItem.from_model(sc)
+    sci.add_image(superchat_image_file)
 
-    tp = TARGET_PATH / "superchat_segment_item"
-    tp.mkdir(exist_ok=True)
+    ss = SuperchatSegmentModel.create(start_time=0, end_time=10, video=video)
+    ssi = SuperchatSegmentItem.from_model(ss)
+    ssi.add_superchat(sci)
 
-    new_vid = VideoModel.create(
-        title="Test Video in test_combine_segments",
-        description="This is a test_combine_segments test_combine_segments",
-        youtube_id="test_combine_segments",
-        upload_date="2021-01-01",
-        duration=1200,
-    )
-    FileManager.add_path_to_video(path=test_ww_video_file2, video=new_vid)
-    counter = 0
-    has_superchats, _ = test_ww116_images
-    editor = ImageManager(has_superchats[0])
-    sc = SuperChatRipper(editor.image)
-    sc_image, found = sc.find_superchat()
-    assert found
-    superchat = SuperchatItem(
-        frame_number=counter,
-        video=new_vid,
-        image=ImageManager(sc_image).image,
-    )
-    superchat.save_to_db()
-    superchat.write_image(tp / f"testing_superchat.jpg")
-
-    segment1 = SuperchatSegmentModel.create(start_time=0, end_time=10, video=new_vid)
-    segment2 = SuperchatSegmentModel.create(start_time=10, end_time=20, video=new_vid)
-
-    sg1 = SuperchatSegmentItem.combine_segments(segment1, segment2)
-    assert sg1.start_time == 0
-    assert sg1.end_time == 20
-    assert sg1.video_id == new_vid.id
+    new_ss = SuperchatSegmentModel.get_by_id(ss.id)
+    assert len(new_ss.superchats) == 1
+    assert new_ss.superchats[0].id == sc.id

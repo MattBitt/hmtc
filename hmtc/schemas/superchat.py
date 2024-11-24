@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from loguru import logger
+
 import numpy as np
+from loguru import logger
 
 from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel

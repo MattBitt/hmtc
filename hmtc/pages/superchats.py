@@ -6,6 +6,7 @@ import peewee
 import solara
 from loguru import logger
 
+from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
@@ -17,7 +18,6 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.components.shared.pagination_controls import PaginationControls
 
 
 def parse_url_args():

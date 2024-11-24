@@ -1,22 +1,23 @@
 import os
 from pathlib import Path
 
+import numpy as np
 import pytest
 from loguru import logger
-import numpy as np
 from PIL import Image
 
 os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
+from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
-from hmtc.utils.general import copy_tree, my_copy_file, remove_tree
-from hmtc.utils.my_logging import setup_logging
-from hmtc.models import Superchat as SuperchatModel
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
+from hmtc.utils.general import copy_tree, my_copy_file, remove_tree
+from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
 setup_logging(config)
@@ -143,10 +144,10 @@ def video_with_file(test_ww_video_file):
 
 
 @pytest.fixture(scope="function")
-def superchat(video) -> SuperchatModel:
+def superchat(video_with_file) -> SuperchatModel:
     sc = SuperchatModel(
-        frame_number=0,
-        video_id=video.id,
+        frame_number=15,
+        video_id=video_with_file.id,
     )
     sc.save()
     return sc
@@ -174,5 +175,16 @@ def superchat_with_file(video_with_file, superchat_image_file) -> SuperchatItem:
     )
     sci = SuperchatItem.from_model(sc)
     sci.add_image(sc_file)
-
     return sc
+
+
+@pytest.fixture(scope="function")
+def superchat_segment1(video):
+    ss = SuperchatSegmentModel.create(start_time=0, end_time=10, video=video)
+    return ss
+
+
+@pytest.fixture(scope="function")
+def superchat_segment2(video):
+    ss = SuperchatSegmentModel.create(start_time=18, end_time=30, video=video)
+    return ss
