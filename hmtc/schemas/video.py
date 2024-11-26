@@ -34,6 +34,7 @@ from hmtc.utils.image import convert_webp_to_png
 from hmtc.utils.jellyfin_functions import refresh_library
 from hmtc.utils.xml_creator import create_album_xml
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
+from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 
 config = init_config()
 WORKING = Path(config["paths"]["working"]) / "downloads"
@@ -75,6 +76,7 @@ class VideoItem(BaseItem):
     section_ids: list = field(default_factory=list)
     sections: list = field(default_factory=list)
     section_count: int = 0
+
     # tracks are associated with sections
     track_count: int = 0
 
@@ -82,6 +84,10 @@ class VideoItem(BaseItem):
     file_count: int = 0
 
     superchats: list = field(default_factory=list)
+    superchats_count: int = 0
+
+    segments: list = field(default_factory=list)
+    segments_count: int = 0
 
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
@@ -97,6 +103,8 @@ class VideoItem(BaseItem):
             .where(SectionModel.video_id == video.id)
             .scalar()
         )
+
+        num_segments = len([x for x in video.superchats if x.segment_id is not None])
 
         return VideoItem(
             id=video.id,
@@ -124,6 +132,7 @@ class VideoItem(BaseItem):
             files=[FileItem.from_model(f) for f in video.files],
             sections=[SectionItem.from_model(s) for s in video.sections],
             superchats=video.superchats,
+            segments_count=num_segments,
         )
 
     def serialize(self) -> dict:
@@ -133,7 +142,11 @@ class VideoItem(BaseItem):
         total_section_durations = sum(
             [(section.end - section.start) / 1000 for section in sections]
         )
-        sectionalized_ratio = total_section_durations / self.duration
+        sectionalized_ratio = (
+            (total_section_durations / self.duration)
+            if self.duration is not None
+            else 0
+        )
         superchats = (
             [s.simple_dict() for s in self.superchats]
             if len(self.superchats) > 0
@@ -170,6 +183,7 @@ class VideoItem(BaseItem):
             "files": [file.serialize() for file in self.files],
             "sections": [section.serialize() for section in self.sections],
             "superchats": superchats,
+            "segments_count": self.segments_count,
         }
 
     @staticmethod

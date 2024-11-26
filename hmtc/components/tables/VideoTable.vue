@@ -217,6 +217,16 @@
           v-model="item.contains_unique_content"
         ></v-simple-checkbox>
       </template>
+      <template v-slot:item.superchats="{ item }">
+        <a :href="'/superchats/' + item.id">
+          <v-chip color="info">{{ item.superchats?.length }}</v-chip>
+        </a>
+      </template>
+      <template v-slot:item.segments_count="{ item }">
+        <a :href="'/superchat-segments/' + item.id">
+          <v-chip color="info">{{ item.segments_count }}</v-chip>
+        </a>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil

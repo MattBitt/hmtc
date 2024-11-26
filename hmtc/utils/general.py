@@ -283,3 +283,9 @@ def get_file_type(file: str, override=None):
         filetype = "unknown"
 
     return filetype
+
+
+def paginate(query, page, per_page):
+    num_items = query.count()
+    num_pages = num_items // per_page
+    return query.paginate(page, per_page), num_items, num_pages

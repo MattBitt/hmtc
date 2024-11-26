@@ -4,7 +4,7 @@ import pandas as pd
 import peewee
 import solara
 from loguru import logger
-
+from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.video_table import VideoTable
 from hmtc.models import (
@@ -14,12 +14,13 @@ from hmtc.models import (
     Channel,
     Playlist,
     Series,
-    YoutubeSeries,
+    YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.models import File as FileModel
 from hmtc.models import (
     Section as SectionModel,
 )
+from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import (
     Track as TrackModel,
 )
@@ -60,14 +61,14 @@ def create_query_from_url():
             Channel,
             Series,
             Playlist,
-            YoutubeSeries,
+            YoutubeSeriesModel,
             AlbumModel,
         )
         .join(Channel, peewee.JOIN.LEFT_OUTER)
         .switch(VideoModel)
         .join(Series)
         .switch(VideoModel)
-        .join(YoutubeSeries, peewee.JOIN.LEFT_OUTER)
+        .join(YoutubeSeriesModel, peewee.JOIN.LEFT_OUTER)
         .switch(VideoModel)
         .join(Playlist, peewee.JOIN.LEFT_OUTER)
         .switch(VideoModel)
@@ -118,6 +119,30 @@ def create_query_from_url():
             )
             videos = all_videos - videos_with_files
             return videos, "missing-files", file_type, False
+        case ["videos", "wednesdays", option]:
+            if option not in ["have", "need"]:
+                logger.error(f"Invalid option: {option}")
+                return
+
+            vids = (
+                VideoModel.select(VideoModel)
+                .join(YoutubeSeriesModel)
+                .switch(VideoModel)
+                .join(FileModel)
+                .where(
+                    FileModel.video_id.is_null(False) & (FileModel.file_type == "video")
+                )
+                .where(YoutubeSeriesModel.title == "Wordplay Wednesday")
+            )
+            superchat_vid_ids = SuperchatModel.select(SuperchatModel.video_id).where(
+                SuperchatModel.video_id.is_null(False)
+            )
+            if option == "have":
+                vids = vids.where(VideoModel.id.in_(superchat_vid_ids))
+            else:
+                vids = vids.where(VideoModel.id.not_in(superchat_vid_ids))
+
+            return vids, "wednesdays", None, False
         case [_, filter, id_to_filter, "all"]:
             if filter in valid_filters:
                 return (
@@ -160,8 +185,8 @@ def create_query_from_url():
                 logger.debug(f"Invalid filter: {filter}")
                 return None, None, None, False
         case [_]:
-            # this is the /videos page view
-            return unique, None, None, False
+            query = unique.order_by(VideoModel.upload_date.desc())
+            return query, None, None, False
         case _:
             logger.error(f"Invalid URL: {router.parts}")
             raise ValueError("Invalid URL")
@@ -177,7 +202,9 @@ def create_table_title(filter, id_to_filter):
 
             table_title = (
                 "Youtube Series: "
-                + YoutubeSeries.get(YoutubeSeries.id == id_to_filter).title.title()
+                + YoutubeSeriesModel.get(
+                    YoutubeSeriesModel.id == id_to_filter
+                ).title.title()
             )
 
         elif "series" in filter:
@@ -238,25 +265,41 @@ def Page():
     base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
 
     if base_query is None:
-        base_query = VideoModel.select().where(
-            VideoModel.contains_unique_content == True
+        base_query = (
+            VideoModel.select()
+            .where(VideoModel.contains_unique_content == True)
+            .order_by(VideoModel.upload_date.desc())
         )
 
-    headers = [
-        {
-            "text": "Upload Date",
-            "value": "upload_date",
-            "sortable": True,
-            "width": "10%",
-        },
-        {"text": "ID", "value": "id", "sortable": True, "align": "right"},
-        {"text": "Title", "value": "title", "width": "30%"},
-        {"text": "Duration", "value": "duration", "sortable": True},
-        {"text": "Sections", "value": "section_info.section_count", "sortable": False},
-        {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
-        {"text": "Files", "value": "file_count", "sortable": False},
-        {"text": "Actions", "value": "actions", "sortable": False},
-    ]
+    if filter == "wednesdays":
+        headers = [
+            {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+            {"text": "Title", "value": "title", "width": "30%"},
+            {"text": "Episode", "value": "episode", "sortable": True},
+            {"text": "Superchats", "value": "superchats", "sortable": False},
+            {"text": "Segments", "value": "segments_count", "sortable": False},
+            {"text": "Actions", "value": "actions", "sortable": False},
+        ]
+    else:
+        headers = [
+            {
+                "text": "Upload Date",
+                "value": "upload_date",
+                "sortable": True,
+                "width": "10%",
+            },
+            {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+            {"text": "Title", "value": "title", "width": "30%"},
+            {"text": "Duration", "value": "duration", "sortable": True},
+            {
+                "text": "Sections",
+                "value": "section_info.section_count",
+                "sortable": False,
+            },
+            {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
+            {"text": "Files", "value": "file_count", "sortable": False},
+            {"text": "Actions", "value": "actions", "sortable": False},
+        ]
 
     search_fields = [VideoModel.youtube_id, VideoModel.title]
     VideoTable(

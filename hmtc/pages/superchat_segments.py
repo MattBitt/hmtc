@@ -18,15 +18,25 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+from hmtc.utils.general import paginate
 
 
 def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
+
     if len(router.parts) == 1:
         router.push("/videos")
-    else:
-        return router.parts[level:][0]
+    match router.parts:
+        case ["superchat-segments", video_id]:
+            return (
+                SuperchatSegmentModel.select()
+                .where(SuperchatSegmentModel.video_id == video_id)
+                .order_by(SuperchatSegmentModel.start_time.asc())
+            )
+        case _:
+            logger.error(f"Invalid URL: {router.url}")
+            router.push("/videos")
 
 
 @solara.component
@@ -35,11 +45,11 @@ def SuperchatSegmentCard(
     refresh_trigger,
     delete_segment,
 ):
-    img = segment.get_image()
+
     _prev = segment.previous_segment.get_or_none()
 
     def merge_with_previous():
-        # first segment in the function keeps the image
+        # the one i click on should be the one that has the correct image
         prev = SuperchatSegmentItem.from_model(_prev)
         logger.error(f"About to add {len(segment.superchats)} superchats to {prev.id}")
         for sc in segment.superchats:
@@ -56,6 +66,7 @@ def SuperchatSegmentCard(
         refresh_trigger.set(refresh_trigger.value + 1)
 
     def merge_with_next():
+        # the one i click on should be the one that has the correct image
         next = SuperchatSegmentItem.from_model(segment.next_segment)
         logger.error(f"About to add {len(segment.superchats)} superchats to {next.id}")
         for sc in segment.superchats:
@@ -82,9 +93,9 @@ def SuperchatSegmentCard(
             solara.Button(
                 icon_name="mdi-delete",
                 on_click=delete_segment,
-                classes=["button", "warning"],
+                classes=["button", "mywarning"],
             )
-        solara.Image(img, width="300px")
+        solara.Image(segment.get_image(), width="300px")
         with solara.Row(justify="space-between"):
             solara.Button(
                 icon_name="mdi-arrow-left",
@@ -100,49 +111,40 @@ def SuperchatSegmentCard(
                 disabled=segment.next_segment is None,
             )
         with solara.Row(justify="center"):
-            solara.Text(f"Duration: {segment.end_time - segment.start_time}")
+            solara.Text(
+                f"Duration: {(segment.end_time - segment.start_time)*60/1000} seconds"
+            )
+
+
+@solara.component
+def SegmentsPanel(segments, refresh_trigger):
+    with solara.ColumnsResponsive(6):
+        for segment in segments:
+            SuperchatSegmentCard(
+                segment,
+                refresh_trigger=refresh_trigger,
+                delete_segment=lambda: logger.debug(f"Deleting segment {segment.id}"),
+            )
 
 
 @solara.component
 def Page():
-    NUM_IMAGES = 6
     router = solara.use_router()
     MySidebar(router=router)
+
     current_page = solara.use_reactive(1)
-    video_id = parse_url_args()
     refresh_trigger = solara.use_reactive(1)  # Add a reactive state for refresh
-    if video_id is None or video_id == 0:
-        raise ValueError(f"No Video Found {video_id}")
 
-    video = VideoItem.from_model(VideoModel.get_by_id(video_id))
-    existing_segments = (
-        SuperchatSegmentModel.select()
-        .where(SuperchatSegmentModel.video_id == video_id)
-        .order_by(SuperchatSegmentModel.start_time.asc())
+    segment_query = parse_url_args()
+    query, num_items, num_pages = paginate(
+        query=segment_query,
+        page=current_page.value,
+        per_page=6,
     )
-    num_segments = existing_segments.count()
-    num_pages = num_segments // NUM_IMAGES + 1
-    existing_segments = existing_segments.paginate(current_page.value, NUM_IMAGES)
 
-    segments = [SuperchatSegmentItem.from_model(seg) for seg in existing_segments]
-
-    def combine_cards(segment1: SuperchatSegmentItem, segment2: SuperchatSegmentItem):
-        SuperchatSegmentItem.combine_segments(segment1, segment2)
-        refresh_trigger.set(refresh_trigger.value + 1)
-
-    def delete_segment(segment_id):
-        SuperchatSegmentItem.delete_id(segment_id)
-        refresh_trigger.set(refresh_trigger.value + 1)
+    segments = [SuperchatSegmentItem.from_model(seg) for seg in query]
 
     if refresh_trigger.value > 0:
         with solara.Column(classes=["main-container"]):
-            solara.Text(f"Superchat -> Sections Converter")
-            PaginationControls(current_page, num_pages, num_segments)
-
-            with solara.ColumnsResponsive(6):
-                for segment in segments:
-                    SuperchatSegmentCard(
-                        segment,
-                        refresh_trigger=refresh_trigger,
-                        delete_segment=lambda: delete_segment(segment.id),
-                    )
+            PaginationControls(current_page, num_pages, num_items)
+            SegmentsPanel(segments, refresh_trigger)

@@ -601,7 +601,7 @@ class Superchat(BaseModel):
             "id": self.id,
             "frame_number": self.frame_number,
             "video_id": self.video.id,
-            "superchat_segment_id": self.superchat_segment.id,
+            "superchat_segment_id": self.segment.id if self.segment else None,
         }
 
     class Meta:

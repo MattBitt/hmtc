@@ -9,6 +9,7 @@ from PIL import Image
 os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 from hmtc.config import init_config
+
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
@@ -154,13 +155,13 @@ def superchat(video_with_file) -> SuperchatModel:
 
 
 @pytest.fixture(scope="function")
-def superchat_image_file(test_files):
+def superchat_image_file(test_files) -> Path:
     sc_file = [x for x in test_files.glob("*.jpg") if x.stem == "superchat"][0]
     return sc_file
 
 
 @pytest.fixture(scope="function")
-def superchat_image_array():
+def superchat_image_array() -> np.ndarray:
     img = Image.new("RGB", (100, 100), color="red")
     img = np.array(img)
     return img
@@ -179,12 +180,12 @@ def superchat_with_file(video_with_file, superchat_image_file) -> SuperchatItem:
 
 
 @pytest.fixture(scope="function")
-def superchat_segment1(video):
+def superchat_segment1(video) -> SuperchatSegmentModel:
     ss = SuperchatSegmentModel.create(start_time=0, end_time=10, video=video)
     return ss
 
 
 @pytest.fixture(scope="function")
-def superchat_segment2(video):
+def superchat_segment2(video) -> SuperchatSegmentModel:
     ss = SuperchatSegmentModel.create(start_time=18, end_time=30, video=video)
     return ss

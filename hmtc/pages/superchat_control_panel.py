@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+import cv2
 import numpy as np
 import solara
 from loguru import logger
@@ -19,7 +20,6 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-import cv2
 
 config = init_config()
 
@@ -66,7 +66,7 @@ def parse_url_args():
 @solara.component
 def Page():
     N_FRAMES = 10
-    NUMBER_SUPERCHATS_DEV = 20
+    NUMBER_SUPERCHATS_DEV = 18
     router = solara.use_router()
     MySidebar(router=router)
 
@@ -100,29 +100,27 @@ def Page():
         existing_frames = [sc.frame_number for sc in existing_superchats]
         vf = [v for v in video.files if v.file_type == "video"][0]
         ie = ImageExtractor(Path(vf.path) / vf.filename)
-        counter = 0
+        counter = 1
         for frame in ie.frame_each_n_seconds(N_FRAMES):
             if (
                 config["general"]["environment"] == "development"
                 and counter > NUMBER_SUPERCHATS_DEV
             ):
-                logger.warning("Development mode, stopping after 15 superchats")
+                logger.warning(
+                    f"Development mode, stopping after {NUMBER_SUPERCHATS_DEV} superchats"
+                )
                 break
 
             if ie.current_time in existing_frames:
-                # logger.debug(f"Skipping frame {ie.current_time}")
+                # for now, no reason to rerip superchats we already have
                 continue
-            # logger.error(f"Processing frame {ie.current_time}")
+
             sc_image, found = SuperChatRipper(frame).find_superchat()
             if found:
-
-                sci = ImageManager(sc_image)
-
                 sc = SuperchatModel.create(
                     frame_number=ie.current_time,
                     video_id=video.id,
                 )
-
                 sci = SuperchatItem.from_model(sc)
                 sci.add_image(sc_image)
                 counter += 1
@@ -160,7 +158,6 @@ def Page():
     def delete_all_superchats():
         searching.set(True)
         for sc in existing_superchats:
-
             sci = SuperchatItem.from_model(sc)
             sci.delete_me()
         searching.set(False)
@@ -219,7 +216,7 @@ def Page():
                         label="Delete All Superchats",
                         icon_name="mdi-delete",
                         on_click=delete_all_superchats,
-                        classes=["button", "warning"],
+                        classes=["button", "mywarning"],
                         disabled=len(superchats) == 0,
                     )
 
@@ -237,7 +234,7 @@ def Page():
                         label="Delete All Superchat Segments",
                         icon_name="mdi-delete",
                         on_click=delete_all_segments,
-                        classes=["button", "warning"],
+                        classes=["button", "mywarning"],
                         disabled=len(segments) == 0,
                     )
 

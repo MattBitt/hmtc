@@ -18,15 +18,25 @@ from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+from hmtc.utils.general import paginate
 
 
 def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
+
     if len(router.parts) == 1:
         router.push("/videos")
-    else:
-        return router.parts[level:][0]
+    match router.parts:
+        case ["superchats", video_id]:
+            return (
+                SuperchatModel.select(SuperchatModel)
+                .where(SuperchatModel.video_id == video_id)
+                .order_by(SuperchatModel.frame_number.asc())
+            )
+        case _:
+            logger.error(f"Invalid URL: {router.url}")
+            router.push("/videos")
 
 
 @solara.component
@@ -50,39 +60,40 @@ def SuperchatCard(
             solara.Button(
                 icon_name="mdi-delete",
                 on_click=delete_superchat,
-                classes=["button", "warning"],
+                classes=["button", "mywarning"],
             )
         solara.Image(img, width="300px")
 
 
 @solara.component
+def SuperchatsPanel(superchats, refresh_trigger):
+    with solara.ColumnsResponsive(6):
+        for superchat in superchats:
+            SuperchatCard(
+                superchat=superchat,
+                refresh_trigger=refresh_trigger,
+            )
+
+
+@solara.component
 def Page():
-    NUM_IMAGES = 6
+
     router = solara.use_router()
     MySidebar(router=router)
-    current_page = solara.use_reactive(1)
-    video_id = parse_url_args()
-    refresh_trigger = solara.use_reactive(1)  # Add a reactive state for refresh
-    if video_id is None or video_id == 0:
-        raise ValueError(f"No Video Found {video_id}")
 
-    existing_superchats = (
-        SuperchatModel.select(SuperchatModel)
-        .where(SuperchatModel.video_id == video_id)
-        .order_by(SuperchatModel.frame_number.asc())
+    current_page = solara.use_reactive(1)
+    refresh_trigger = solara.use_reactive(1)
+
+    segment_query = parse_url_args()
+    query, num_items, num_pages = paginate(
+        query=segment_query,
+        page=current_page.value,
+        per_page=6,
     )
-    num_superchats = existing_superchats.count()
-    num_pages = num_superchats // NUM_IMAGES
-    existing_superchats = existing_superchats.paginate(current_page.value, NUM_IMAGES)
+
+    superchats = [SuperchatItem.from_model(sc) for sc in query]
 
     if refresh_trigger.value > 0:
         with solara.Column(classes=["main-container"]):
-            solara.Text(f"Superchats found for video {video_id}")
-            PaginationControls(current_page, num_pages, num_superchats)
-
-            with solara.ColumnsResponsive(6):
-                for superchat in existing_superchats:
-                    SuperchatCard(
-                        SuperchatItem.from_model(superchat),
-                        refresh_trigger=refresh_trigger,
-                    )
+            PaginationControls(current_page, num_pages, num_items)
+            SuperchatsPanel(superchats, refresh_trigger)

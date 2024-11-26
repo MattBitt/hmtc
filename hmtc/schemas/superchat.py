@@ -22,9 +22,24 @@ class Superchat:
     segment: SuperchatSegment = None
     files: list = field(default_factory=list)
     im: ImageManager = None
+    image_file: Path = None
+
+    def __post_init__(self):
+        if self.id is not None:
+            _image_file = (
+                SuperchatFileModel.select()
+                .where(
+                    (SuperchatFileModel.superchat_id == self.id)
+                    & (SuperchatFileModel.file_type == "image")
+                )
+                .get_or_none()
+            )
+            if _image_file is not None:
+                self.image_file = Path(_image_file.path) / _image_file.filename
 
     @staticmethod
     def from_model(superchat: SuperchatModel) -> "Superchat":
+
         return Superchat(
             id=superchat.id,
             frame_number=superchat.frame_number,
@@ -70,18 +85,12 @@ class Superchat:
             sc.save()
 
     def get_image(self):
+        if self.image_file is None:
+            raise ValueError("No image file associated with this superchat")
+
         if self.im is None:
-            image_file = (
-                SuperchatFileModel.select()
-                .where(
-                    (SuperchatFileModel.superchat_id == self.id)
-                    & (SuperchatFileModel.file_type == "image")
-                )
-                .get()
-            )
-            self.im = ImageManager(Path(image_file.path) / image_file.filename)
-        if self.im is None:
-            raise ValueError("Image not found. Please add an image to the superchat.")
+            self.im = ImageManager(self.image_file)
+
         return self.im.image
 
     def add_image(self, new_path) -> None:
@@ -101,25 +110,20 @@ class Superchat:
             image_file_path = (
                 Path(vid_file_path.path) / "superchats" / f"{self.frame_number}.jpg"
             )
-            if self.im is None:
-                self.im = ImageManager(new_path)
-                self.im.save_image(image_file_path)
-                image_db_file = SuperchatFileModel(
-                    superchat_id=self.id,
-                    path=image_file_path.parent,
-                    filename=image_file_path.name,
-                    file_type="image",
-                )
-                image_db_file.save()
-            else:
-                logger.warning("🧪🧪🧪 Does this execute? 11-24-24")
-                self.im.image = new_path
+
+            self.im = ImageManager(new_path)
+            self.im.save_image(image_file_path)
+            image_db_file = SuperchatFileModel(
+                superchat_id=self.id,
+                path=image_file_path.parent,
+                filename=image_file_path.name,
+                file_type="image",
+            )
+            image_db_file.save()
         else:
             raise TypeError(
                 f"Image must be a file path or a numpy array. Got {type(new_path)}"
             )
-
-        # self.im.save_image(Path(image_db_file.path) / image_db_file.filename)
 
     def write_image(self, filename, new_path: Path = None) -> None:
         if new_path is None:

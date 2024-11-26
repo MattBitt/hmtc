@@ -117,6 +117,16 @@ export default {
         icon: "mdi-video",
         url: "/videos/sections/some",
       },
+      {
+        text: "WW (HAS Superchats)",
+        icon: "mdi-video",
+        url: "/videos/wednesdays/have",
+      },
+      {
+        text: "WW (NO Superchats)",
+        icon: "mdi-video",
+        url: "/videos/wednesdays/need",
+      },
     ],
     other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/settings" },

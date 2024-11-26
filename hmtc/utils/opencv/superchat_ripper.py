@@ -59,11 +59,11 @@ class SuperChatRipper:
 
         x, y, w, h = cv2.boundingRect(contours[0])
         if h < MIN_HEIGHT or w < MIN_WIDTH:
-            logger.error(f"Superchat is too small, skipping")
+            # logger.error(f"Superchat is too small, skipping")
             return image, False
 
         if h > w * 2:  # superchat is too tall
-            logger.debug(f"Superchat is too tall, skipping")
+            # logger.debug(f"Superchat is too tall, skipping")
             return image, False
 
         return image[y : y + h, x : x + w], True
@@ -71,8 +71,8 @@ class SuperChatRipper:
     def grab_superchats_from_video(self, video_path: Path):
         ie = ImageExtractor(video_path)
         if ie is None:
-            logger.error(f"Could not create ImageExtractor for video {video_path}")
-            return
+            # logger.error(f"Could not create ImageExtractor for video {video_path}")
+            raise ValueError(f"Could not create ImageExtractor for video {video_path}")
 
         for frame in ie.frame_each_n_seconds(5):
             sc_image, found = self.find_superchat(frame)
