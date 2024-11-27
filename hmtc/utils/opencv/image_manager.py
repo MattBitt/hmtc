@@ -85,4 +85,6 @@ class ImageManager:
             if self.image_path is None:
                 raise ValueError("No path provided to save the image.")
             path = self.image_path
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(path), self.image)

@@ -62,7 +62,12 @@ class Superchat:
         superchat = SuperchatModel.get_by_id(item_id)
         sc_file = SuperchatFileModel.get_or_none(superchat_id=superchat.id)
         if sc_file is not None:
-            (Path(sc_file.path) / sc_file.filename).unlink()
+            try:
+                (Path(sc_file.path) / sc_file.filename).unlink()
+            except FileNotFoundError:
+                logger.debug(
+                    f"Error: Could not find file {sc_file.filename}. But we are trying to delete it anyway."
+                )
             sc_file.delete_instance()
 
         superchat.delete_instance()
@@ -146,9 +151,3 @@ class Superchat:
         )
         image_db_file.save()
         self.im.save_image(new_path / filename)
-
-    def __repr__(self):
-        return f"<SuperchatItem {self.id} - Frame {self.frame_number}>"
-
-    def __str__(self):
-        return f"SuperchatItem {self.id} - Frame {self.frame_number}"
