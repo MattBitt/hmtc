@@ -28,6 +28,21 @@ def parse_url_args():
     if len(router.parts) == 1:
         router.push("/videos")
     match router.parts:
+        case ["superchat-segments", "long-enough", video_id]:
+            return (
+                SuperchatSegmentModel.select()
+                .where(
+                    (SuperchatSegmentModel.video_id == video_id)
+                    & (
+                        (
+                            SuperchatSegmentModel.end_time
+                            - SuperchatSegmentModel.start_time
+                        )
+                        > 400
+                    )
+                )
+                .order_by(SuperchatSegmentModel.start_time.asc())
+            )
         case ["superchat-segments", video_id]:
             return (
                 SuperchatSegmentModel.select()
@@ -146,5 +161,6 @@ def Page():
 
     if refresh_trigger.value > 0:
         with solara.Column(classes=["main-container"]):
-            PaginationControls(current_page, num_pages, num_items)
+            if num_pages > 0:
+                PaginationControls(current_page, num_pages, num_items)
             SegmentsPanel(segments, refresh_trigger)

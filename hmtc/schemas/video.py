@@ -103,8 +103,17 @@ class VideoItem(BaseItem):
             .where(SectionModel.video_id == video.id)
             .scalar()
         )
-
-        num_segments = len([x for x in video.superchats if x.segment_id is not None])
+        num_superchats = SuperchatModel.select(SuperchatModel.id).where(
+            SuperchatModel.video_id == video.id
+        )
+        num_segments = (
+            SuperchatModel.select(fn.Count(SuperchatModel.id))
+            .where(
+                (SuperchatModel.video_id == video.id)
+                & (SuperchatModel.segment_id.is_null(False))
+            )
+            .scalar()
+        )
 
         return VideoItem(
             id=video.id,
@@ -132,6 +141,7 @@ class VideoItem(BaseItem):
             files=[FileItem.from_model(f) for f in video.files],
             sections=[SectionItem.from_model(s) for s in video.sections],
             superchats=video.superchats,
+            superchats_count=num_superchats,
             segments_count=num_segments,
         )
 

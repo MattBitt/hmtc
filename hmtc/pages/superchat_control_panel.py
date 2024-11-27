@@ -73,14 +73,14 @@ def Page():
         counter = 1
 
         for frame in ie.frame_each_n_seconds(N_FRAMES):
-            if (
-                config["general"]["environment"] == "development"
-                and counter > NUMBER_SUPERCHATS_DEV
-            ):
-                logger.warning(
-                    f"Development mode, stopping after {NUMBER_SUPERCHATS_DEV} superchats"
-                )
-                break
+            # if (
+            #     config["general"]["environment"] == "development"
+            #     and counter > NUMBER_SUPERCHATS_DEV
+            # ):
+            #     logger.warning(
+            #         f"Development mode, stopping after {NUMBER_SUPERCHATS_DEV} superchats"
+            #     )
+            #     break
 
             if ie.current_time in existing_frames:
                 # for now, no reason to rerip superchats we already have
@@ -189,6 +189,16 @@ def Page():
                         icon_name="mdi-circle-slice-5",
                         classes=["button"],
                         on_click=lambda: router.push(f"/superchat-segments/{video.id}"),
+                        disabled=len(segments) == 0,
+                    )
+
+                    solara.Button(
+                        label="Superchat Segments (Long Enough)",
+                        icon_name="mdi-circle-slice-5",
+                        classes=["button"],
+                        on_click=lambda: router.push(
+                            f"/superchat-segments/long-enough/{video.id}"
+                        ),
                         disabled=len(segments) == 0,
                     )
 
