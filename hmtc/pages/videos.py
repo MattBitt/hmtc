@@ -5,6 +5,7 @@ import peewee
 import solara
 from loguru import logger
 from peewee import fn
+
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.video_table import VideoTable
 from hmtc.models import (
@@ -14,7 +15,6 @@ from hmtc.models import (
     Channel,
     Playlist,
     Series,
-    YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.models import File as FileModel
 from hmtc.models import (
@@ -26,6 +26,9 @@ from hmtc.models import (
 )
 from hmtc.models import (
     Video as VideoModel,
+)
+from hmtc.models import (
+    YoutubeSeries as YoutubeSeriesModel,
 )
 from hmtc.schemas.video import VideoItem
 

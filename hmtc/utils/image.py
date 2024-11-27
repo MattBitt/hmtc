@@ -1,7 +1,8 @@
 from pathlib import Path
+
 import cv2
-from PIL import Image
 import numpy as np
+from PIL import Image
 
 
 def convert_webp_to_png(file, path=None) -> Path:

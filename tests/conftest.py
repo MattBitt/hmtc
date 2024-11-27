@@ -9,7 +9,6 @@ from PIL import Image
 os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 from hmtc.config import init_config
-
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel

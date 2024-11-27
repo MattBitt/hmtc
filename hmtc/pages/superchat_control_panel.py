@@ -17,10 +17,10 @@ from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.schemas.video import VideoItem
+from hmtc.utils.image import are_images_similar
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.utils.image import are_images_similar
 
 config = init_config()
 
