@@ -343,6 +343,16 @@ def get_user_id(user_name):
             return item["Id"]
 
 
+def load_media_item(media_id):
+    session = get_user_session()
+    url = f"/Sessions/{session['Id']}/Playing?playCommand=PlayNow&itemIds={media_id}"
+    res = jf_post(url)
+    if res.status_code == 204:
+        logger.error(f"Loaded {media_id} successfully")
+    else:
+        logger.error(f"Error loading {res.status_code}")
+
+
 if __name__ == "__main__":
     playlists = get_user_playlists()
     if len(playlists) == 0:

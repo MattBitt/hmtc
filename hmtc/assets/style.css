@@ -142,6 +142,15 @@ a {
   text-align: center;
 }
 
+.seven-seg-tiny {
+  font-family: mySevenSegDisplay;
+  font-size: 1em;
+  padding: 0.125em;
+  color: var(--on-primary);
+  background-color: var(--primary);
+  text-align: center;
+}
+
 /* adding on 9/25/2024 for version number in appbar */
 .version-number {
   font-size: 1em;
@@ -268,4 +277,19 @@ form .input_box .password_title {
 
 form .input_box {
   position: relative;
+}
+
+.mysubtitle {
+  color: var(--primary) !important;
+
+  font-size: 1em;
+  font-weight: 600;
+  padding: 0.25em;
+  margin: 0.25em;
+}
+.progress {
+  color: var(--success) !important;
+  font-size: 1em;
+  font-weight: 600;
+  border-radius: 10px;
 }

@@ -19,6 +19,7 @@ from hmtc.models import (
 from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import (
     Video as VideoModel,
@@ -75,45 +76,15 @@ class VideoItem(BaseItem):
     # Video has multiple
     section_ids: list = field(default_factory=list)
     sections: list = field(default_factory=list)
-    section_count: int = 0
-
-    # tracks are associated with sections
-    track_count: int = 0
 
     files: list = field(default_factory=list)
-    file_count: int = 0
 
     superchats: list = field(default_factory=list)
-    superchats_count: int = 0
 
     segments: list = field(default_factory=list)
-    segments_count: int = 0
 
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
-        files = [
-            FileItem.from_model(x)
-            for x in FileModel.select().where((FileModel.video_id == video.id))
-        ]
-
-        sections = SectionModel.select().where((SectionModel.video_id == video.id))
-        num_tracks = (
-            TrackModel.select(fn.Count(TrackModel.id))
-            .join(SectionModel)
-            .where(SectionModel.video_id == video.id)
-            .scalar()
-        )
-        num_superchats = SuperchatModel.select(SuperchatModel.id).where(
-            SuperchatModel.video_id == video.id
-        )
-        num_segments = (
-            SuperchatModel.select(fn.Count(SuperchatModel.id))
-            .where(
-                (SuperchatModel.video_id == video.id)
-                & (SuperchatModel.segment_id.is_null(False))
-            )
-            .scalar()
-        )
 
         return VideoItem(
             id=video.id,
@@ -129,9 +100,6 @@ class VideoItem(BaseItem):
             has_chapters=video.has_chapters,
             manually_edited=video.manually_edited,
             jellyfin_id=video.jellyfin_id,
-            file_count=len(files),
-            section_count=len(sections),
-            track_count=num_tracks,
             album=video.album,
             album_id=video.album_id,
             channel_id=video.channel_id,
@@ -141,16 +109,11 @@ class VideoItem(BaseItem):
             files=[FileItem.from_model(f) for f in video.files],
             sections=[SectionItem.from_model(s) for s in video.sections],
             superchats=video.superchats,
-            superchats_count=num_superchats,
-            segments_count=num_segments,
         )
 
     def serialize(self) -> dict:
-        sections = SectionModel.select(SectionModel.start, SectionModel.end).where(
-            SectionModel.video_id == self.id
-        )
         total_section_durations = sum(
-            [(section.end - section.start) / 1000 for section in sections]
+            [(section.end - section.start) / 1000 for section in self.sections]
         )
         sectionalized_ratio = (
             (total_section_durations / self.duration)
@@ -162,6 +125,25 @@ class VideoItem(BaseItem):
             if len(self.superchats) > 0
             else []
         )
+        files = [
+            FileItem.from_model(x)
+            for x in FileModel.select().where((FileModel.video_id == self.id))
+        ]
+        segment_ids = (
+            SuperchatModel.select(SuperchatModel.segment_id)
+            .where(SuperchatModel.video_id == self.id)
+            .distinct()
+        )
+        num_segments = (
+            SuperchatSegmentModel.select()
+            .where(SuperchatSegmentModel.id.in_(segment_ids))
+            .count()
+        )
+        track_ids = SectionModel.select(SectionModel.track_id).where(
+            SectionModel.video_id == self.id
+        )
+        track_count = TrackModel.select().where(TrackModel.id.in_(track_ids)).count()
+
         return {
             "id": self.id,
             "title": self.title,
@@ -176,10 +158,9 @@ class VideoItem(BaseItem):
             "has_chapters": self.has_chapters,
             "manually_edited": self.manually_edited,
             "jellyfin_id": self.jellyfin_id,
-            "file_count": self.file_count,
             "section_info": {
-                "section_count": self.section_count,
-                "track_count": self.track_count,
+                "section_count": len(self.sections),
+                "track_count": track_count,
                 "my_new_column": sectionalized_ratio,
             },
             "channel_id": self.channel_id,
@@ -193,7 +174,8 @@ class VideoItem(BaseItem):
             "files": [file.serialize() for file in self.files],
             "sections": [section.serialize() for section in self.sections],
             "superchats": superchats,
-            "segments_count": self.segments_count,
+            "segments_count": num_segments,
+            "file_count": len(files),
         }
 
     @staticmethod

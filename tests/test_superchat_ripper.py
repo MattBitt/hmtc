@@ -183,6 +183,7 @@ def test_ripper_to_item(video_with_file, test_ww116_images):
         new_sc = SuperchatModel.create(frame_number=counter, video_id=video.id)
         superchat = SuperchatItem.from_model(new_sc)
         superchat.add_image(sc_image)
+        assert superchat.get_image() is not None
         new_sc = SuperchatModel.get(frame_number=counter, video_id=video.id)
         assert new_sc is not None
         assert new_sc.video.id == video.id

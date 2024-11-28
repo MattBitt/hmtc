@@ -28,9 +28,6 @@ class SuperchatSegment:
     @staticmethod
     def from_model(segment: SuperchatSegmentModel) -> "SuperchatSegment":
 
-        if len(segment.files) > 0:
-            image_file = [f for f in segment.files if f.file_type == "image"][0]
-
         return SuperchatSegment(
             id=segment.id,
             start_time=segment.start_time,
@@ -133,8 +130,6 @@ class SuperchatSegment:
             raise ValueError("Image not found. Please add an image to the superchat.")
         return self.im.image
 
-    def __repr__(self):
-        return f"SuperchatSegmentItem({self.id}, {self.start_time}, {self.end_time})"
-
-    def __str__(self):
-        return f"SuperchatSegmentItem({self.id}, {self.start_time}, {self.end_time})"
+    @property
+    def duration(self):
+        return self.end_time - self.start_time

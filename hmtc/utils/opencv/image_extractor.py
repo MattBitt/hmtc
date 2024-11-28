@@ -85,6 +85,8 @@ class ImageExtractor:
     def frame_each_n_seconds(self, num_seconds):
         timestamp = 0
         frames_to_grab = self.frame_count // (num_seconds * self.fps) - 1
+        logger.debug(f"About to grab a frame every {num_seconds} seconds")
+        logger.debug(f"Total frames to grab: {frames_to_grab}")
         for _ in range(frames_to_grab):
             timestamp += self.fps * num_seconds
             frame = self.grab_frame(timestamp)
