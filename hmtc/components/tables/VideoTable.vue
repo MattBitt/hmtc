@@ -219,7 +219,7 @@
       </template>
       <template v-slot:item.superchats="{ item }">
         <a :href="'/superchats/' + item.id">
-          <v-chip color="info">{{ item.superchats?.length }}</v-chip>
+          <v-chip color="info">{{ item.superchats_count }}</v-chip>
         </a>
       </template>
       <template v-slot:item.segments_count="{ item }">

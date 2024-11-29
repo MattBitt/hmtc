@@ -56,18 +56,17 @@ def SuperchatCard(
 
     with solara.Card():
         with solara.Row(justify="space-between"):
-            solara.Text(f"Frame Number: {superchat.frame_number}")
+            solara.Image(img, width="80px")
             solara.Button(
                 icon_name="mdi-delete",
                 on_click=delete_superchat,
                 classes=["button", "mywarning"],
             )
-        solara.Image(img, width="300px")
 
 
 @solara.component
 def SuperchatsPanel(superchats, refresh_trigger):
-    with solara.ColumnsResponsive(6):
+    with solara.ColumnsResponsive(3):
         for superchat in superchats:
             SuperchatCard(
                 superchat=superchat,
@@ -88,7 +87,7 @@ def Page():
     query, num_items, num_pages = paginate(
         query=segment_query,
         page=current_page.value,
-        per_page=6,
+        per_page=28,
     )
 
     superchats = [SuperchatItem.from_model(sc) for sc in query]

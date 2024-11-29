@@ -38,61 +38,66 @@ def parse_url_args():
                             SuperchatSegmentModel.end_time
                             - SuperchatSegmentModel.start_time
                         )
-                        > 400
+                        > 500
                     )
                 )
                 .order_by(SuperchatSegmentModel.start_time.asc())
-            )
+            ), True
         case ["superchat-segments", video_id]:
             return (
                 SuperchatSegmentModel.select()
                 .where(SuperchatSegmentModel.video_id == video_id)
                 .order_by(SuperchatSegmentModel.start_time.asc())
-            )
+            ), False
         case _:
             logger.error(f"Invalid URL: {router.url}")
             router.push("/")
 
 
+def merge_with_previous(segment: SuperchatSegmentItem, refresh_trigger):
+    _prev = segment.previous_segment.get_or_none()
+    prev = SuperchatSegmentItem.from_model(_prev)
+    logger.error(f"About to add {len(segment.superchats)} superchats to {prev.id}")
+    for sc in segment.superchats:
+        prev.add_superchat(sc)
+    _prev.end_time = segment.end_time
+    _prev.save()
+
+    if segment.next_segment is not None:
+        next_segment = SuperchatSegmentItem.from_model(segment.next_segment)
+        _prev.next_segment = next_segment.id
+        _prev.save()
+    segment.delete_me()
+
+    refresh_trigger.set(refresh_trigger.value + 1)
+
+
+def merge_with_next(segment: SuperchatSegmentItem, refresh_trigger):
+    _prev = segment.previous_segment.get_or_none()
+    next = SuperchatSegmentItem.from_model(segment.next_segment)
+    logger.error(f"About to add {len(segment.superchats)} superchats to {next.id}")
+    for sc in segment.superchats:
+        next.add_superchat(sc)
+    _next = SuperchatSegmentModel.get_by_id(next.id)
+    _next.start_time = segment.start_time
+    _next.save()
+
+    if _prev is not None:
+        _prev.next_segment = next.id
+        _prev.save()
+    segment.delete_me()
+    refresh_trigger.set(refresh_trigger.value + 1)
+
+
 @solara.component
 def SuperchatSegmentCard(
     segment: SuperchatSegmentItem,
+    long_enough,
     router,
     refresh_trigger,
 ):
 
     _prev = segment.previous_segment.get_or_none()
-
-    def merge_with_previous():
-        prev = SuperchatSegmentItem.from_model(_prev)
-        logger.error(f"About to add {len(segment.superchats)} superchats to {prev.id}")
-        for sc in segment.superchats:
-            prev.add_superchat(sc)
-        _prev.end_time = segment.end_time
-        _prev.save()
-
-        if segment.next_segment is not None:
-            next_segment = SuperchatSegmentItem.from_model(segment.next_segment)
-            _prev.next_segment = next_segment.id
-            _prev.save()
-        segment.delete_me()
-
-        refresh_trigger.set(refresh_trigger.value + 1)
-
-    def merge_with_next():
-        next = SuperchatSegmentItem.from_model(segment.next_segment)
-        logger.error(f"About to add {len(segment.superchats)} superchats to {next.id}")
-        for sc in segment.superchats:
-            next.add_superchat(sc)
-        _next = SuperchatSegmentModel.get_by_id(next.id)
-        _next.start_time = segment.start_time
-        _next.save()
-
-        if _prev is not None:
-            _prev.next_segment = next.id
-            _prev.save()
-        segment.delete_me()
-        refresh_trigger.set(refresh_trigger.value + 1)
 
     with solara.Card():
         with solara.Row(justify="space-between"):
@@ -114,35 +119,48 @@ def SuperchatSegmentCard(
                 f"{_start // 60:02}:{_start % 60:02}-{_end // 60:02}:{_end % 60:02}",
                 classes=["seven-seg-tiny"],
             )
-            solara.Text(f"{segment.duration* 60 / 1000:0.0f} seconds")
-
-        solara.Image(segment.get_image(), width="300px")
-        with solara.Row(justify="space-between"):
-            solara.Button(
-                icon_name="mdi-arrow-left",
-                classes=["button"],
-                on_click=merge_with_previous,
-                disabled=not bool(_prev),
+            solara.Text(
+                f"{segment.duration* 60 / 1000:0.0f} s", classes=["seven-seg-tiny"]
             )
+
+        with solara.Row(justify="space-between"):
+            with solara.Columns([4, 8]):
+                solara.Button(
+                    icon_name="mdi-delete",
+                    on_click=lambda: logger.error("asdf"),
+                    classes=["button mywarning"],
+                )
+                solara.Image(segment.get_image(), width="200px")
+
+        with solara.Row(justify="center"):
+            if not long_enough:
+                solara.Button(
+                    icon_name="mdi-arrow-left",
+                    classes=["button"],
+                    on_click=lambda: merge_with_previous(segment, refresh_trigger),
+                    disabled=not bool(_prev),
+                )
             solara.Button(
                 icon_name="mdi-settings-helper",
                 classes=["button"],
                 on_click=lambda: router.push(f"/segment-editor/{segment.id}"),
             )
-            solara.Button(
-                icon_name="mdi-arrow-right",
-                classes=["button"],
-                on_click=merge_with_next,
-                disabled=segment.next_segment is None,
-            )
+            if not long_enough:
+                solara.Button(
+                    icon_name="mdi-arrow-right",
+                    classes=["button"],
+                    on_click=lambda: merge_with_next(segment, refresh_trigger),
+                    disabled=segment.next_segment is None,
+                )
 
 
 @solara.component
-def SegmentsPanel(segments, router, refresh_trigger):
+def SegmentsPanel(segments, long_enough, router, refresh_trigger):
     with solara.ColumnsResponsive(6):
         for segment in segments:
             SuperchatSegmentCard(
                 segment,
+                long_enough,
                 router,
                 refresh_trigger=refresh_trigger,
             )
@@ -156,7 +174,7 @@ def Page():
     current_page = solara.use_reactive(1)
     refresh_trigger = solara.use_reactive(1)  # Add a reactive state for refresh
 
-    segment_query = parse_url_args()
+    segment_query, long_enough = parse_url_args()
     query, num_items, num_pages = paginate(
         query=segment_query,
         page=current_page.value,
@@ -169,4 +187,4 @@ def Page():
         with solara.Column(classes=["main-container"]):
             if num_pages > 0:
                 PaginationControls(current_page, num_pages, num_items)
-            SegmentsPanel(segments, router, refresh_trigger)
+            SegmentsPanel(segments, long_enough, router, refresh_trigger)

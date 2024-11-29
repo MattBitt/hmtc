@@ -574,8 +574,8 @@ class SuperchatSegment(BaseModel):
     start_time = IntegerField()
     end_time = IntegerField()
     video = ForeignKeyField(Video, backref="superchats")
-    track = ForeignKeyField(Track, backref="superchat", null=True)
     next_segment: int = ForeignKeyField("self", backref="previous_segment", null=True)
+    section = ForeignKeyField(Section, backref="segment", null=True)
 
     def __repr__(self):
         return f"SuperchatSegmentModel({self.id} - {self.start_time}:{self.end_time})"

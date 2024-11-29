@@ -45,7 +45,7 @@ progress_message = solara.reactive("")
 @solara.component
 def Page():
     N_SECONDS = 10
-    NUMBER_SUPERCHATS_DEV = 40
+    NUMBER_SUPERCHATS_DEV = 58  # 2 pages of 28 and a 3rd page of 2
     router = solara.use_router()
     MySidebar(router=router)
 
@@ -150,9 +150,7 @@ def Page():
             if are_images_similar(image1, image2):
                 segment.add_superchat(superchat)
             else:
-                # close out the current segment
                 segment.close_segment(_sc.frame_number)
-                superchat = SuperchatItem.from_model(_sc)
                 new_segment = SuperchatSegmentItem.create_from_superchat(superchat)
                 segment.set_next_segment(new_segment.id)
                 segment = new_segment

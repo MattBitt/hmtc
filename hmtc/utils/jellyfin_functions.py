@@ -159,10 +159,9 @@ def get_user_session():
     x = all_sessions()
 
     if len(x) == 0:
-        logger.debug(f"No sessions found")
+        logger.debug(f"all_sessions: returned 0")
         return None
 
-    sess = None
     session = [
         x
         for x in all_sessions()
@@ -179,30 +178,27 @@ def get_user_session():
         }
     else:
         if len(session) > 1:
-            logger.error(
-                f"More than one session found: {session}. Using the most recent one"
-            )
-            last_activity = session[0]["LastActivityDate"]
-            for s in session:
-                logger.debug(f"Session Devices: {s['DeviceName']}")
-                if s["LastActivityDate"] > last_activity:
-                    sess = s
-                    last_activity = s["LastActivityDate"]
-
+            _sess = session[0]
+            last_activity = _sess["LastActivityDate"]
+            for sess in session[1:]:
+                if sess["LastActivityDate"] > last_activity:
+                    _sess = sess
+                    last_activity = sess["LastActivityDate"]
         else:
-            sess = session[0]
-        if sess is None:
-            logger.error("No session found")
-            return None
-        if "PositionTicks" not in sess["PlayState"].keys():
-            sess["PlayState"]["PositionTicks"] = 0
-        if "NowPlayingItem" not in sess.keys():
-            sess["NowPlayingItem"] = {
+            _sess = session[0]
+
+        # logger.error(
+        #     f"More than one session found for user {user}: {[s['Client'] for s in session]}. Using the most recent one {_sess['Client']}"
+        # )
+        if "PositionTicks" not in _sess["PlayState"].keys():
+            _sess["PlayState"]["PositionTicks"] = 0
+        if "NowPlayingItem" not in _sess.keys():
+            _sess["NowPlayingItem"] = {
                 "Id": 0,
                 "Name": "no-name",
                 "RunTimeTicks": 0,
             }
-        return sess
+        return _sess
 
 
 def get_current_user_timestamp():

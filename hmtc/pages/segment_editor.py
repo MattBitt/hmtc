@@ -1,12 +1,13 @@
 import solara
-from hmtc.components.shared.sidebar import MySidebar
 from loguru import logger
+
+from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.video.jf_panel import JFPanel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
-from hmtc.components.video.jf_panel import JFPanel
 from hmtc.schemas.video import VideoItem
-from hmtc.utils.jellyfin_functions import load_media_item, get_currently_playing
+from hmtc.utils.jellyfin_functions import get_currently_playing, load_media_item
 
 
 def parse_url_args():

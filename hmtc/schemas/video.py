@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 
 import peewee
 from loguru import logger
@@ -80,8 +81,9 @@ class VideoItem(BaseItem):
     files: list = field(default_factory=list)
 
     superchats: list = field(default_factory=list)
-
+    superchat_count: int = 0
     segments: list = field(default_factory=list)
+    segment_count: int = 0
 
     @staticmethod
     def from_model(video: VideoModel) -> "VideoItem":
@@ -115,33 +117,36 @@ class VideoItem(BaseItem):
         total_section_durations = sum(
             [(section.end - section.start) / 1000 for section in self.sections]
         )
+
         sectionalized_ratio = (
             (total_section_durations / self.duration)
             if self.duration is not None
             else 0
         )
-        superchats = (
-            [s.simple_dict() for s in self.superchats]
-            if len(self.superchats) > 0
-            else []
-        )
+
+        num_superchats = len(self.superchats)
+
         files = [
             FileItem.from_model(x)
             for x in FileModel.select().where((FileModel.video_id == self.id))
         ]
+
         segment_ids = (
             SuperchatModel.select(SuperchatModel.segment_id)
             .where(SuperchatModel.video_id == self.id)
             .distinct()
         )
+
         num_segments = (
             SuperchatSegmentModel.select()
             .where(SuperchatSegmentModel.id.in_(segment_ids))
             .count()
         )
+
         track_ids = SectionModel.select(SectionModel.track_id).where(
             SectionModel.video_id == self.id
         )
+
         track_count = TrackModel.select().where(TrackModel.id.in_(track_ids)).count()
 
         return {
@@ -167,15 +172,15 @@ class VideoItem(BaseItem):
             "playlist_id": self.playlist_id,
             "youtube_series_id": self.youtube_series_id,
             "series_id": self.series_id,
-            "section_ids": self.section_ids,
             "album": (
                 self.album.simple_dict() if self.album else AlbumModel.empty_dict()
             ),
             "files": [file.serialize() for file in self.files],
-            "sections": [section.serialize() for section in self.sections],
-            "superchats": superchats,
-            "segments_count": num_segments,
             "file_count": len(files),
+            "section_ids": self.section_ids,
+            "sections": [section.serialize() for section in self.sections],
+            "superchats_count": num_superchats,
+            "segments_count": num_segments,
         }
 
     @staticmethod

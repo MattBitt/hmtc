@@ -1,3 +1,4 @@
+from time import perf_counter
 from typing import Callable
 
 import pandas as pd
@@ -123,6 +124,7 @@ def create_query_from_url():
             videos = all_videos - videos_with_files
             return videos, "missing-files", file_type, False
         case ["videos", "wednesdays", option]:
+            _start = perf_counter()
             if option not in ["have", "need"]:
                 logger.error(f"Invalid option: {option}")
                 return
@@ -137,11 +139,16 @@ def create_query_from_url():
                 )
                 .where(YoutubeSeriesModel.title == "Wordplay Wednesday")
             )
-            superchat_vid_ids = SuperchatModel.select(SuperchatModel.video_id).where(
-                SuperchatModel.video_id.is_null(False)
+
+            superchat_vid_ids = (
+                SuperchatModel.select(SuperchatModel.video_id)
+                .where(SuperchatModel.video_id.is_null(False))
+                .distinct()
             )
+
             if option == "have":
                 vids = vids.where(VideoModel.id.in_(superchat_vid_ids))
+
             else:
                 vids = vids.where(VideoModel.id.not_in(superchat_vid_ids))
 

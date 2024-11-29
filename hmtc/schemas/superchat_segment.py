@@ -21,7 +21,7 @@ class SuperchatSegment:
     next_segment: "SuperchatSegment" = None
     previous_segment: "SuperchatSegment" = None
     video_id: int = None
-    track_id: int = None
+    section_id: int = None
     superchats: list = field(default_factory=list)
     files: list = field(default_factory=list)
 
@@ -35,7 +35,7 @@ class SuperchatSegment:
             next_segment=segment.next_segment,
             previous_segment=segment.previous_segment,
             video_id=segment.video_id,
-            track_id=segment.track_id,
+            section_id=segment.section_id,
             files=segment.files,
             superchats=segment.superchats,
         )
@@ -67,7 +67,7 @@ class SuperchatSegment:
             "end_time": self.end_time,
             "next_segment": self.next_segment,
             "video_id": self.video_id,
-            "track_id": self.track_id,
+            "section_id": self.section_id,
         }
 
     def close_segment(self, end_time: int):
@@ -100,7 +100,7 @@ class SuperchatSegment:
             start_time=self.start_time,
             end_time=self.end_time,
             video_id=self.video_id,
-            track_id=self.track_id,
+            section_id=self.section_id,
             next_segment=self.next_segment.id if self.next_segment else None,
         )
         segment.save()

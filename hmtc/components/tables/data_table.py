@@ -1,3 +1,5 @@
+from time import perf_counter
+
 import solara
 from loguru import logger
 
@@ -83,14 +85,13 @@ def DataTable(
 
     num_items = base_query.count()
     base_query = base_query.paginate(current_page.value, per_page.value)
-    items = solara.use_reactive(
-        [schema_item.from_model(item).serialize() for item in base_query]
-    )
+
+    items = [schema_item.from_model(item).serialize() for item in base_query]
 
     vue_component(
         loading=loading.value,
         headers=headers,
-        items=items.value,
+        items=items,
         total_pages=(num_items // per_page.value) + 1,
         current_page=current_page.value,
         total_items=num_items,
