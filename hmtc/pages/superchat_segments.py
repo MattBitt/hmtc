@@ -6,14 +6,19 @@ import peewee
 import solara
 from loguru import logger
 
-from hmtc.components.shared.check_and_x.check_x import Check, X
+from hmtc.components.shared.check_and_x.check_x import (
+    CheckClickable,
+    XClickable,
+    Check,
+    X,
+)
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.schemas.file import FileManager
-from hmtc.schemas.superchat import Superchat as SuperchatItem
+from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.general import paginate
@@ -167,9 +172,14 @@ def SuperchatSegmentCard(
             )
             if segment.section_id is not None:
                 solara.Text(f"Section: {segment.section_id}")
+
                 Check()
             else:
-                X()
+                solara.Button(
+                    label="Create Section",
+                    on_click=lambda: SectionItem.create_from_segment(segment),
+                    classes=["button"],
+                )
 
 
 @solara.component

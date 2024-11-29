@@ -70,6 +70,14 @@ class SuperchatSegment:
             "section_id": self.section_id,
         }
 
+    def update_from_dict(self, new_data):
+        ss = SuperchatSegmentModel.get_by_id(self.id)
+        ss.start_time = new_data.get("start_time", ss.start_time)
+        ss.end_time = new_data.get("end_time", ss.end_time)
+        ss.video_id = new_data.get("video_id", ss.video_id)
+        ss.section_id = new_data.get("section_id", ss.section_id)
+        ss.save()
+
     def close_segment(self, end_time: int):
         ss = SuperchatSegmentModel.get_by_id(self.id)
         ss.end_time = end_time
@@ -147,3 +155,11 @@ class SuperchatSegment:
     @property
     def duration(self):
         return self.end_time - self.start_time
+
+    @property
+    def start_time_milliseconds(self):
+        return self.start_time / 30 * 1000
+
+    @property
+    def end_time_milliseconds(self):
+        return self.end_time / 30 * 1000

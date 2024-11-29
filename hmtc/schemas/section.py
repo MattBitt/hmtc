@@ -13,6 +13,9 @@ from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
 from hmtc.models import (
+    SuperchatSegment as SuperchatSegmentModel,
+)
+from hmtc.models import (
     Topic as TopicModel,
 )
 from hmtc.models import (
@@ -21,6 +24,7 @@ from hmtc.models import (
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.topic import Topic as TopicItem
+from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 
 
 def create_hms_dict(seconds):
@@ -96,14 +100,36 @@ class Section(BaseItem):
     @staticmethod
     def update_from_dict(item_id, new_data):
         section = SectionModel.get(SectionModel.id == item_id)
-        section.start = new_data["start"]
-        section.end = new_data["end"]
-        section.section_type = new_data["section_type"]
+        section.start = new_data.get("start", section.start)
+        section.end = new_data.get("end", section.end)
+        section.section_type = new_data.get("section_type", section.section_type)
         section.save()
+
+    @staticmethod
+    def create_from_segment(segment: SuperchatSegmentItem):
+        logger.debug(f"Creating Section from SuperchatSegment: {segment}")
+        section = SectionModel.create(
+            start=segment.start_time_milliseconds,
+            end=segment.end_time_milliseconds,
+            section_type="instrumental",
+            video_id=segment.video_id,
+        )
+        segment.update_from_dict({"section_id": section.id})
+        return section.id
 
     @staticmethod
     def delete_id(item_id):
         section = SectionModel.get_by_id(item_id)
+
+        segment = (
+            SuperchatSegmentModel.select()
+            .where(SuperchatSegmentModel.section_id == item_id)
+            .get_or_none()
+        )
+        if segment:
+            segment.section_id = None
+            segment.save()
+
         logger.debug(f"Deleting Section: {item_id}")
         SectionTopicsModel.delete().where(
             SectionTopicsModel.section_id == item_id
@@ -135,12 +161,6 @@ class Section(BaseItem):
             logger.error(e)
             raise
 
-    def __str__(self) -> str:
-        return f"Section {self.id}: {self.start} - {self.end} - {self.section_type}"
-
-    def __repr__(self) -> str:
-        return f"Section {self.id}: {self.start} - {self.end} - {self.section_type}"
-
 
 @dataclass
 class SectionManager:
@@ -167,6 +187,8 @@ class SectionManager:
             raise ValueError("Duration must be greater than 0")
 
     ##### definitely used functions (9/13/24)
+    #### but probably shouldn't be 11/28/24...
+
     @property
     def sections(self):
         return self._sections
