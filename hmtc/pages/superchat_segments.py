@@ -6,6 +6,7 @@ import peewee
 import solara
 from loguru import logger
 
+from hmtc.components.shared.check_and_x.check_x import Check, X
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Superchat as SuperchatModel
@@ -89,6 +90,11 @@ def merge_with_next(segment: SuperchatSegmentItem, refresh_trigger):
     refresh_trigger.set(refresh_trigger.value + 1)
 
 
+def delete_segment(segment: SuperchatSegmentItem, refresh_trigger):
+    segment.delete_me()
+    refresh_trigger.set(refresh_trigger.value + 1)
+
+
 @solara.component
 def SuperchatSegmentCard(
     segment: SuperchatSegmentItem,
@@ -122,36 +128,48 @@ def SuperchatSegmentCard(
             solara.Text(
                 f"{segment.duration* 60 / 1000:0.0f} s", classes=["seven-seg-tiny"]
             )
-
+        image_ = segment.get_image()
         with solara.Row(justify="space-between"):
-            with solara.Columns([4, 8]):
-                solara.Button(
-                    icon_name="mdi-delete",
-                    on_click=lambda: logger.error("asdf"),
-                    classes=["button mywarning"],
-                )
-                solara.Image(segment.get_image(), width="200px")
-
-        with solara.Row(justify="center"):
             if not long_enough:
+                with solara.Columns([4, 8]):
+                    solara.Button(
+                        icon_name="mdi-delete",
+                        on_click=lambda: delete_segment(segment, refresh_trigger),
+                        classes=["button mywarning"],
+                    )
+                if image_ is not None:
+                    solara.Image(segment.get_image(), width="200px")
+            else:
+                with solara.Column():
+                    if image_ is not None:
+                        solara.Image(segment.get_image(), width="400px")
+
+        if not long_enough:
+            with solara.Row(justify="center"):
                 solara.Button(
                     icon_name="mdi-arrow-left",
                     classes=["button"],
                     on_click=lambda: merge_with_previous(segment, refresh_trigger),
                     disabled=not bool(_prev),
                 )
-            solara.Button(
-                icon_name="mdi-settings-helper",
-                classes=["button"],
-                on_click=lambda: router.push(f"/segment-editor/{segment.id}"),
-            )
-            if not long_enough:
+
                 solara.Button(
                     icon_name="mdi-arrow-right",
                     classes=["button"],
                     on_click=lambda: merge_with_next(segment, refresh_trigger),
                     disabled=segment.next_segment is None,
                 )
+        else:
+            solara.Button(
+                icon_name="mdi-settings-helper",
+                classes=["button"],
+                on_click=lambda: router.push(f"/segment-editor/{segment.id}"),
+            )
+            if segment.section_id is not None:
+                solara.Text(f"Section: {segment.section_id}")
+                Check()
+            else:
+                X()
 
 
 @solara.component
@@ -174,11 +192,19 @@ def Page():
     current_page = solara.use_reactive(1)
     refresh_trigger = solara.use_reactive(1)  # Add a reactive state for refresh
 
+    # long enough is a boolean that indicates if the segments are long enough
+    # this view is more detailed and oriented towards creating sections from the
+    # segments
     segment_query, long_enough = parse_url_args()
+    if long_enough:
+        per_page = 4
+    else:
+        per_page = 6
+
     query, num_items, num_pages = paginate(
         query=segment_query,
         page=current_page.value,
-        per_page=4,
+        per_page=per_page,
     )
 
     segments = [SuperchatSegmentItem.from_model(seg) for seg in query]

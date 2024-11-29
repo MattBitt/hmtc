@@ -83,6 +83,17 @@ class SuperchatSegment:
     @staticmethod
     def delete_id(item_id):
         segment = SuperchatSegmentModel.get_by_id(item_id)
+        prev = segment.previous_segment.get_or_none()
+
+        if prev:
+            if segment.next_segment_id is not None:
+                prev.next_segment = segment.next_segment_id
+                prev.save()
+
+        for sc in segment.superchats:
+            sc.segment_id = None
+            sc.save()
+
         segment.delete_instance()
 
     def delete_me(self):
@@ -117,14 +128,17 @@ class SuperchatSegment:
 
     def get_image(self):
         if self.im is None:
-            image_file = (
-                SuperchatFileModel.select()
-                .where(
-                    (SuperchatFileModel.segment_id == self.id)
-                    & (SuperchatFileModel.file_type == "image")
+            try:
+                image_file = (
+                    SuperchatFileModel.select()
+                    .where(
+                        (SuperchatFileModel.segment_id == self.id)
+                        & (SuperchatFileModel.file_type == "image")
+                    )
+                    .get()
                 )
-                .get()
-            )
+            except SuperchatFileModel.DoesNotExist:
+                return None
             self.im = ImageManager(Path(image_file.path) / image_file.filename)
         if self.im is None:
             raise ValueError("Image not found. Please add an image to the superchat.")
