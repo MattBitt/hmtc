@@ -23,8 +23,8 @@ from hmtc.models import (
 )
 from hmtc.schemas.base import BaseItem
 from hmtc.schemas.file import FileManager
-from hmtc.schemas.topic import Topic as TopicItem
 from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
+from hmtc.schemas.topic import Topic as TopicItem
 
 
 def create_hms_dict(seconds):

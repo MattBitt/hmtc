@@ -7,10 +7,10 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.check_and_x.check_x import (
-    CheckClickable,
-    XClickable,
     Check,
+    CheckClickable,
     X,
+    XClickable,
 )
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar

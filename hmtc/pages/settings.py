@@ -22,6 +22,8 @@ from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
+from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import (
     Topic as TopicModel,
 )
@@ -105,6 +107,7 @@ class PageState:
     updating = solara.reactive(False)
     i = solara.reactive(0)
     num_to_download = solara.reactive(10)
+    bad_superchat_path_videos = solara.reactive([])
 
     @staticmethod
     def rip_ww_screenshots():
@@ -347,6 +350,25 @@ class PageState:
                         )
                 logger.debug(f"Section created: {section}")
 
+    @staticmethod
+    def find_bad_superchat_paths():
+        bad_videos = set()
+        superchat_files = SuperchatFileModel.select(
+            SuperchatFileModel.superchat_id
+        ).where(
+            (SuperchatFileModel.file_type == "image")
+            & (SuperchatFileModel.path.contains("videos/None"))
+        )
+        for scf in superchat_files:
+            superchat = SuperchatModel.get_by_id(scf.superchat_id)
+            video = VideoModel.get_by_id(superchat.video.id)
+            bad_videos.add(video.title)
+        logger.error(f"Found {len(bad_videos)} bad superchat paths")
+        for vid in bad_videos:
+            logger.error(f"Bad video: {vid}")
+            # file.delete_instance()
+        PageState.bad_superchat_path_videos.set(list(bad_videos)[0:50])
+
 
 status = solara.reactive("")
 
@@ -372,4 +394,20 @@ def Page():
             solara.Button(
                 label="Rip Wordplay Wednesday screen shots 11/16/24",
                 on_click=PageState.rip_ww_screenshots,
+                classes=["button"],
             )
+
+        with solara.Card("Troublshooting functions"):
+            solara.Button(
+                label="Find bad superchat Paths",
+                classes=["button"],
+                on_click=PageState.find_bad_superchat_paths,
+            )
+        with solara.Card("Bad Superchat Videos"):
+            solara.Text(
+                str(len(PageState.bad_superchat_path_videos.value)),
+                classes=["mywarning"],
+            )
+            for v in PageState.bad_superchat_path_videos.value:
+                with solara.Row():
+                    solara.Text(v)
