@@ -9,7 +9,7 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - .:/workspace/app_code:cached
+      - .:/workspace/:cached
       - ~/apps/data_for_development/hmtc/staging/storage:/app/hmtc/storage
       - ~/apps/data_for_development/hmtc/staging/working:/app/hmtc/working
       - ~/apps/data_for_development/hmtc/staging/logs:/app/hmtc/logs
