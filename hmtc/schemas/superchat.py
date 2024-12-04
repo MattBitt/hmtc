@@ -103,6 +103,10 @@ class Superchat:
     def add_image(self, new_path) -> None:
         if isinstance(new_path, Path):
             path = new_path
+            if path.parent is None or "videos/None" in str(path.parent):
+                raise ValueError(
+                    f"Path must have a parent directory not {type(path.parent)}. This is thie bug!!!💡💡💡💡"
+                )
             image_db_file = SuperchatFileModel(
                 superchat_id=self.id,
                 path=path.parent,
@@ -112,7 +116,12 @@ class Superchat:
             image_db_file.save()
         elif isinstance(new_path, np.ndarray):
             vid_file_path = (
-                FileModel.select().where(FileModel.video_id == self.video.id).first()
+                FileModel.select()
+                .where(
+                    (FileModel.video_id == self.video.id)
+                    & (FileModel.file_type == "video")
+                )
+                .get()
             )
             image_file_path = (
                 Path(vid_file_path.path) / "superchats" / f"{self.frame_number}.jpg"
@@ -121,6 +130,12 @@ class Superchat:
             self.im = ImageManager(new_path)
             self.im.save_image(image_file_path)
             self.image_file = image_file_path
+            if image_file_path.parent is None or "videos/None" in str(
+                image_file_path.parent
+            ):
+                raise ValueError(
+                    f"image_file_path must have a parent directory not {type(image_file_path.parent)}. This is thie bug!!!☹️☹️☹️☹️☹️"
+                )
             image_db_file = SuperchatFileModel(
                 superchat_id=self.id,
                 path=image_file_path.parent,

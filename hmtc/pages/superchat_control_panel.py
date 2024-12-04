@@ -96,7 +96,11 @@ def Page():
                     video_id=video.id,
                 )
                 sci = SuperchatItem.from_model(sc)
-                sci.add_image(sc_image)
+                try:
+                    sci.add_image(sc_image)
+                except Exception as e:
+                    logger.error(f"Error adding image: {e}")
+                    # should probably undo it if its really an error
                 counter += 1
             progress_current.set(progress_current.value + N_SECONDS)
 
@@ -111,9 +115,16 @@ def Page():
 
     def delete_all_superchats():
         searching.set(True)
-        for sc in existing_superchats:
+        start = time.perf_counter()
+        scs = SuperchatModel.select().where(SuperchatModel.video_id == video.id)
+        query_time = time.perf_counter() - start
+        logger.debug(f"Query time: {query_time}")
+        start = time.perf_counter()
+        for sc in scs:
             sci = SuperchatItem.from_model(sc)
             sci.delete_me()
+        delete_time = time.perf_counter() - start
+        logger.debug(f"Delete time: {delete_time}")
         searching.set(False)
         progress_current.set(0)
         progress_total.set(0)
@@ -165,13 +176,19 @@ def Page():
 
     def delete_all_segments():
         searching.set(True)
-
+        start = time.perf_counter()
+        # update superchats to remove the segments
+        SuperchatModel.update(segment_id=None).where(
+            SuperchatModel.video_id == video.id
+        ).execute()
+        query_time = time.perf_counter() - start
+        logger.debug(f"Query time: {query_time}")
+        start = time.perf_counter()
         for segment in existing_segments:
-            for sc in segment.superchats:
-                sc.segment_id = None
-                sc.save()
             segment_item = SuperchatSegmentItem.from_model(segment)
             segment_item.delete_me()
+        delete_time = time.perf_counter() - start
+        logger.debug(f"Delete time: {delete_time}")
         searching.set(False)
 
     def create_all():

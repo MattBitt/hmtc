@@ -352,12 +352,15 @@ class PageState:
 
     @staticmethod
     def find_bad_superchat_paths():
+        logger.error(f"Checking for bad superchat paths")
         bad_videos = set()
-        superchat_files = SuperchatFileModel.select(
-            SuperchatFileModel.superchat_id
-        ).where(
-            (SuperchatFileModel.file_type == "image")
-            & (SuperchatFileModel.path.contains("videos/None"))
+        superchat_files = (
+            SuperchatFileModel.select(SuperchatFileModel.superchat_id)
+            .where(
+                (SuperchatFileModel.file_type == "image")
+                & (SuperchatFileModel.path.contains("videos/None"))
+            )
+            .distinct()
         )
         for scf in superchat_files:
             superchat = SuperchatModel.get_by_id(scf.superchat_id)
@@ -368,6 +371,7 @@ class PageState:
             logger.error(f"Bad video: {vid}")
             # file.delete_instance()
         PageState.bad_superchat_path_videos.set(list(bad_videos)[0:50])
+        logger.error(f"Finished Checking for bad superchat paths")
 
 
 status = solara.reactive("")
