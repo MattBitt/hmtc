@@ -12,8 +12,10 @@ from hmtc.models import (
     Beat,
     BeatArtist,
     Channel,
-    EpisodeNumberTemplate,
     File,
+    FileType,
+    Bird,
+    BirdFile,
     Playlist,
     Section,
     SectionTopics,
@@ -25,7 +27,6 @@ from hmtc.models import (
     Track,
     TrackBeat,
     User,
-    UserInfo,
     Video,
     YoutubeSeries,
 )
@@ -41,27 +42,28 @@ MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 def create_tables(db, download_info=False):
     db.create_tables(
         [
+            Album,
+            Artist,
+            Beat,
+            BeatArtist,
+            Channel,
+            File,
+            Bird,
+            BirdFile,
+            FileType,
             Playlist,
-            Video,
+            Section,
+            SectionTopics,
             Series,
             Superchat,
             SuperchatFile,
-            Album,
-            Track,
-            EpisodeNumberTemplate,
-            File,
-            Beat,
-            BeatArtist,
-            TrackBeat,
-            Artist,
-            Section,
-            User,
-            UserInfo,
-            Channel,
-            YoutubeSeries,
-            Topic,
-            SectionTopics,
             SuperchatSegment,
+            Topic,
+            Track,
+            TrackBeat,
+            User,
+            Video,
+            YoutubeSeries,
         ]
     )
     if download_info:
@@ -73,27 +75,28 @@ def create_tables(db, download_info=False):
 def drop_tables(db):
     db.drop_tables(
         [
-            Playlist,
-            Video,
-            Series,
             Album,
-            Track,
-            EpisodeNumberTemplate,
-            Superchat,
-            SuperchatFile,
-            File,
+            Artist,
             Beat,
             BeatArtist,
-            TrackBeat,
-            Artist,
-            Section,
-            Topic,
-            User,
-            UserInfo,
             Channel,
-            YoutubeSeries,
+            File,
+            FileType,
+            Playlist,
+            Bird,
+            BirdFile,
+            Section,
             SectionTopics,
+            Series,
+            Superchat,
+            SuperchatFile,
             SuperchatSegment,
+            Topic,
+            Track,
+            TrackBeat,
+            User,
+            Video,
+            YoutubeSeries,
         ]
     )
 
@@ -221,65 +224,15 @@ def import_playlist_info():
                 logger.error(f"Playlist {p['title']} not found in db")
 
 
-def download_channel_videos():
-    logger.warning("Download List of Videos for channel. Please wait...")
-    logger.warning(
-        "To disable these checks, set the 'download_on_init' config to False"
-    )
-
-
-def download_playlist_videos():
-    logger.warning("Download List of Videos for playlist. Please wait...")
-    logger.warning(
-        "To disable these checks, set the 'download_on_init' config to False"
-    )
-
-
 def is_db_empty():
     vids = Video.select(Video.id).count()
     logger.debug(f"DB currently has: {vids} Videos")
     return vids < 10
 
 
-def get_playlist(playlist: dict):
-    try:
-        return Playlist.get(Playlist.title == playlist["name"])
-    except Playlist.DoesNotExist:
-        logger.info(f"Playlist {playlist['name']} not found in db")
-        return None
-    except Exception as e:
-        logger.error(f"Error getting playlist from db: {e}")
-        return None
-
-
-def get_list_yt_playlists():
-    playlists = []
-    # for p in Playlist.select().where(Playlist.enabled == True).order_by(Playlist.title):
-    #     playlists.append(p.name)
-    return playlists
-
-
-def get_list_videos():
-    videos = []
-    # for v in Video.select().where(Video.private is False).order_by(Video.title):
-    #     videos.append(v.title)
-    return videos
-
-
-def get_series(series: str):
-    try:
-        return Series.get(Series.name == series)
-    except Series.DoesNotExist:
-        logger.info(f"Series {series} not found in db")
-        return None
-    except Exception as e:
-        logger.error(f"Error getting series from db: {e}")
-        return None
-
-
 def import_existing_video_files_to_db(path):
-    # probably only need this to get the existing files
-    # scaffoled (sp) into the database
+    # havent tested in a million years, but might be a good starting point
+    # for the file import
     found = 0
     unfound = 0
     f = Path(path)

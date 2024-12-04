@@ -23,6 +23,8 @@ from peewee import (
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, get_file_type, my_move_file
 from hmtc.utils.youtube_functions import fetch_ids_from
+from dataclasses import dataclass
+from typing import List
 
 db_null = PostgresqlDatabase(None)
 
@@ -38,16 +40,18 @@ MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
 class BaseModel(Model):
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
-    deleted_at = DateTimeField(null=True)
     id = AutoField(primary_key=True)
 
     def save(self, *args, **kwargs):
         self.updated_at = datetime.now()
-        return super(BaseModel, self).save(*args, **kwargs)
+        try:
+            x = super(BaseModel, self).save(*args, **kwargs)
+        except Exception as e:
+            db_null.rollback()
 
-    def my_delete_instance(self, *args, **kwargs):
-        # Not implemented yet
-        super(BaseModel, self).delete_instance(*args, **kwargs, recursive=True)
+            logger.error(f"Error saving model: {e}")
+            raise e
+        return x
 
     class Meta:
         database = db_null
@@ -117,11 +121,6 @@ class Playlist(BaseModel):
     album_per_episode = BooleanField(default=True)
     enable_video_downloads = BooleanField(default=True)
     has_chapters = BooleanField(default=False)
-
-    # if it doesn't contain unique content, it should probably
-    # point to the original
-    # eg Omegle Bars Clip 91.4 should point to the original Omegle Bars Clip 91
-    # Omegle Bars Clip media would not be downloaded
     contains_unique_content = BooleanField(default=False)
 
     series = ForeignKeyField(Series, backref="playlists", null=True)
@@ -297,10 +296,7 @@ class Video(BaseModel):
     upload_date = DateField(null=True)
     duration = IntegerField(null=True)
     description = TextField(null=True)
-    enabled = BooleanField(default=True)
-    private = BooleanField(default=False)
-    contains_unique_content = BooleanField(default=True)
-    has_chapters = BooleanField(default=False)
+    contains_unique_content = BooleanField(default=False)
     manually_edited = BooleanField(default=False)
     jellyfin_id = CharField(null=True, max_length=255)
 
@@ -599,9 +595,56 @@ class SuperchatFile(BaseFile):
     segment_id: int = ForeignKeyField(SuperchatSegment, backref="files", null=True)
 
 
-class Foo(BaseModel):
-    foo_id = IntegerField()
+class FileType(BaseModel):
+    title = CharField(unique=True)  # eg "info", "poster", "video", "audio", "image"
+
+    def __repr__(self):
+        return f"FileTypeModel({self.id} - {self.file_type=})"
+
+    def __str__(self):
+        return f"FileTypeModel({self.id} - {self.file_type=})"
+
+    def simple_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+        }
+
+    @staticmethod
+    def empty_dict():
+        return {
+            "id": 0,
+            "title": "No Title for File Type....",
+        }
 
 
-class FooFile(BaseFile):
-    foo_id = ForeignKeyField(Foo, backref="files", null=True)
+class Bird(BaseModel):
+    species = CharField(unique=True)
+    weight = IntegerField()
+    color = CharField(null=True)
+
+    def __repr__(self):
+        return f"BirdModel({self.id} - {self.species=})"
+
+    def __str__(self):
+        return f"BirdModel({self.id} - {self.species=})"
+
+
+class BirdFile(BaseModel):
+    bird_id = ForeignKeyField(Bird, backref="files")
+    file_type = ForeignKeyField(FileType, backref="files")
+    path = CharField()
+    filename = CharField()
+    verified_on_disk = DateField(null=True)
+
+    def __repr__(self):
+        return f"BirdFileModel({self.bird_id} - {self.file_type=})"
+
+    def __str__(self):
+        return f"BirdFileModel({self.id} - {self.file_type=})"
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index
+            (("bird_id", "file_type"), False),
+        )

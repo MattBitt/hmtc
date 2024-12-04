@@ -6,8 +6,11 @@ import pytest
 from loguru import logger
 from PIL import Image
 
+# these are needed before the app imports to set the environment variables
 os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
+
+from hmtc.real_world_tests import BirdManager
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import Superchat as SuperchatModel
@@ -188,3 +191,15 @@ def superchat_segment1(video) -> SuperchatSegmentModel:
 def superchat_segment2(video) -> SuperchatSegmentModel:
     ss = SuperchatSegmentModel.create(start_time=18, end_time=30, video=video)
     return ss
+
+
+@pytest.fixture(scope="function")
+def robin_bm():
+    bm = BirdManager.create(species="robin", weight=13, color="red")
+    return bm
+
+
+@pytest.fixture(scope="function")
+def bluejay_bm():
+    bm = BirdManager.create(species="blue jay", weight=20, color="blue")
+    return bm

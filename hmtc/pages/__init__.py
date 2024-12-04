@@ -10,8 +10,6 @@ from hmtc.assets.colors import Colors
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,
-    download_channel_videos,
-    download_playlist_videos,
     init_db,
     is_db_empty,
     seed_database,

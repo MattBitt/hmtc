@@ -83,68 +83,31 @@ def test_playlist():
 
 def test_video():
     v = VideoModel.create(
-        youtube_id="asbsdrjgkdlsa;",
-        title="test",
-        episode="",
+        youtube_id="abcdefghijk",
+        title="Test Youtube Video",
         upload_date="2020-01-01",
+        episode="",
         duration=8531,
         description="this is a test",
-        enabled=True,
-        private=False,
     )
-    assert v.title == "test"
+    assert v.title == "Test Youtube Video"
     try:
-        VideoModel.create(title="test")
-
+        VideoModel.create(title="Test Youtube Video")
     except peewee.IntegrityError:
+        # fail on purpose
         assert len(VideoModel.select()) == 1
 
-    v3, created3 = VideoModel.get_or_create(title="test")
-    assert v3.title == "test"
+    v3, created3 = VideoModel.get_or_create(title="Test Youtube Video")
+    assert v3.title == "Test Youtube Video"
     assert created3 is False
     assert len(VideoModel.select()) == 1
-    v.my_delete_instance()
+    v.delete_instance()
+    assert len(VideoModel.select()) == 0
 
 
 def test_delete_series():
     s = Series.create(name="test")
     assert s is not None
-    s.my_delete_instance()
+    s.delete_instance()
     s2 = Series.get_or_none(Series.name == "test")
     assert s2 is None
-
-
-@pytest.mark.skip
-def test_create_channel_file(test_files):
-    target = Path(config["paths"]["working"]) / "test_file_output"
-
-    c = Channel.create(name="test", url="www.yahoo.com", youtube_id="asbsdrjgkdlsa;")
-
-    assert c is not None
-
-    for file in test_files:
-        # with open(source / file, "rb") as src_file:
-        #     f: FileInfo = {"name": file, "size": 100, "data": src_file.read()}
-
-        new_name = target / file
-        file_type = get_file_type(file)
-        nf1 = File(
-            path=new_name.parent,
-            filename=new_name,
-            file_type=file_type,
-            extension="asdf",
-            channel=c,
-        )
-        assert nf1 is not None
-        assert nf1.extension == "asdf"
-
-        nf2 = File.get_or_create(
-            path=target,
-            filename="some other name",
-            file_type="poster",
-            extension="asdffdsa",
-            channel=c,
-        )
-        assert nf2 is not None
-    # assert c.files.count() == len(test_files) + 1
-    c.my_delete_instance()
