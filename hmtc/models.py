@@ -319,12 +319,6 @@ class Video(BaseModel):
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class EpisodeNumberTemplate(BaseModel):
-    playlist = ForeignKeyField(Playlist, backref="episode_number_templates")
-    template = CharField()
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Track(BaseModel):
     title = CharField()
     track_number = IntegerField(null=False)
@@ -389,17 +383,6 @@ class User(BaseModel):
 
     def __str__(self):
         return f"User({self.id} - {self.username=})"
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class UserInfo(BaseModel):
-    key = CharField(max_length=64)
-    value = CharField(max_length=64)
-
-    user = ForeignKeyField(User)
-
-    def __str__(self):
-        return f"{self.key} - {self.value}"
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -614,3 +597,11 @@ class Superchat(BaseModel):
 class SuperchatFile(BaseFile):
     superchat_id: int = ForeignKeyField(Superchat, backref="files", null=True)
     segment_id: int = ForeignKeyField(SuperchatSegment, backref="files", null=True)
+
+
+class Foo(BaseModel):
+    foo_id = IntegerField()
+
+
+class FooFile(BaseFile):
+    foo_id = ForeignKeyField(Foo, backref="files", null=True)
