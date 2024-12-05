@@ -84,11 +84,10 @@ def find_jellyfin_id_in_db(jf_id):
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-    solara.Markdown("## Playlists")
-    playlists = get_user_playlists()
-    for p in playlists:
-        solara.Markdown(f"### {p['Name']}")
+    solara.Markdown(f"# Replace this. Don't try to mend it.....")
+    return
     solara.Markdown("## Now Playling")
+
     jf_id = get_currently_playing()
 
     if jf_id == "":

@@ -381,21 +381,38 @@ class User(BaseModel):
         return f"User({self.id} - {self.username=})"
 
 
+class FileType(BaseModel):
+    title = CharField(unique=True)  # eg "info", "poster", "video", "audio", "image"
+
+    def __repr__(self):
+        return f"FileTypeModel({self.id} - {self.file_type=})"
+
+    def __str__(self):
+        return f"FileTypeModel({self.id} - {self.file_type=})"
+
+    def simple_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+        }
+
+    @staticmethod
+    def empty_dict():
+        return {
+            "id": 0,
+            "title": "No Title for File Type....",
+        }
+
+
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class File(BaseModel):
-    WORKING_PATH = WORKING / "uploads"
-
-    path = CharField(null=True)
-    filename = CharField()
-    extension = CharField(null=True)
-    file_type = CharField(null=True)
-    channel = ForeignKeyField(Channel, backref="files", null=True)
-    series = ForeignKeyField(Series, backref="files", null=True)
-    playlist = ForeignKeyField(Playlist, backref="files", null=True)
+    filename = CharField(unique=True)
+    file_type = ForeignKeyField(FileType, backref="file")
+    # to be deprecated 12/4/24
     video = ForeignKeyField(Video, backref="files", null=True)
     album = ForeignKeyField(Album, backref="files", null=True)
-    youtube_series = ForeignKeyField(YoutubeSeries, backref="files", null=True)
     track = ForeignKeyField(Track, backref="files", null=True)
+    # deprecated
 
     def __repr__(self):
         return f"FileModel({self.id} - {self.filename=})"
@@ -406,65 +423,9 @@ class File(BaseModel):
     def simple_dict(self):
         return {
             "id": self.id,
-            "path": self.path,
             "filename": self.filename,
-            "extension": self.extension,
             "file_type": self.file_type,
         }
-
-    @classmethod
-    def add_new_file(cls, source, target, move_file=True, **kwargs):
-        over_ride = kwargs["override"] if "override" in kwargs else None
-        file_type = get_file_type(source, override=over_ride)
-        extension = "".join(Path(source).suffixes)
-        fname = target.stem
-        if fname.endswith(".info"):
-            fname = fname.replace(".info", "")
-        elif fname.endswith(".en"):
-            fname = fname.replace(".en", "")
-
-        logger.debug(f"Final Name = {fname}")
-
-        f = cls.create(
-            path=target.parent,
-            filename=fname,
-            file_type=file_type,
-            extension=extension,
-        )
-
-        if "series" in kwargs:
-            f.series = kwargs["series"]
-
-        if "channel" in kwargs:
-            f.channel = kwargs["channel"]
-
-        if "playlist" in kwargs:
-            f.playlist = kwargs["playlist"]
-
-        if "video" in kwargs:
-            f.video_id = kwargs["video"].id
-
-        if "youtube_id" in kwargs:
-            f.video_id = (
-                Video.select().where(Video.youtube_id == kwargs["youtube_id"]).get().id
-            )
-        if "album" in kwargs:
-            f.album = kwargs["album"]
-
-        if "youtube_series" in kwargs:
-            f.youtube_series = kwargs["youtube_series"]
-
-        if "track" in kwargs:
-            f.track = kwargs["track"]
-
-        f.save()
-
-        if not target.exists():
-            logger.debug(f"Creating new file {target} 💥💥💥💥💥")
-            my_move_file(source, target)
-
-        else:
-            logger.error(f"File {target} already exists")
 
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
@@ -593,29 +554,6 @@ class Superchat(BaseModel):
 class SuperchatFile(BaseFile):
     superchat_id: int = ForeignKeyField(Superchat, backref="files", null=True)
     segment_id: int = ForeignKeyField(SuperchatSegment, backref="files", null=True)
-
-
-class FileType(BaseModel):
-    title = CharField(unique=True)  # eg "info", "poster", "video", "audio", "image"
-
-    def __repr__(self):
-        return f"FileTypeModel({self.id} - {self.file_type=})"
-
-    def __str__(self):
-        return f"FileTypeModel({self.id} - {self.file_type=})"
-
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-        }
-
-    @staticmethod
-    def empty_dict():
-        return {
-            "id": 0,
-            "title": "No Title for File Type....",
-        }
 
 
 class Bird(BaseModel):

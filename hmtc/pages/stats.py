@@ -42,6 +42,10 @@ def Page():
         .group_by(VideoModel.id)
         .where(VideoModel.contains_unique_content == True)
     )
+    if vids.count() == 0:
+        solara.Markdown(f"### No videos found")
+        logger.error("No videos found")
+        return
     vids_with_sections = vids.having(fn.COUNT(SectionModel.id) > 0)
 
     vids_with_equal_sections_and_tracks = vids_with_sections.having(

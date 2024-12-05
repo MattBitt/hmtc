@@ -69,10 +69,15 @@ def Page():
         ChannelModel.select()
         .order_by(ChannelModel.last_update_completed.desc())
         .where(ChannelModel.last_update_completed.is_null(False))
-        .first()
+        .get_or_none()
     )
-    how_long_ago_refreshed = datetime.now() - last_updated.last_update_completed
-    can_refresh = how_long_ago_refreshed > timedelta(hours=1)
+    if last_updated is None:
+        # no videos in the db. either fresh or disaster. not sure
+        can_refresh = True
+    else:
+        how_long_ago_refreshed = datetime.now() - last_updated.last_update_completed
+        can_refresh = how_long_ago_refreshed > timedelta(hours=1)
+
     latest_vids = (
         VideoModel.select()
         .where(VideoModel.contains_unique_content == True)

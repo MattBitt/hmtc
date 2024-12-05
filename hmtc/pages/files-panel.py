@@ -284,7 +284,11 @@ def VideoFilesInfoCard():
 @solara.component
 def Page():
     MySidebar(router=solara.use_router())
+
     with solara.Column(classes=["main-container"]):
+        solara.Markdown("## Files Panel")
+        solara.Markdown(f"Deprecate me please!")
+        return
         with solara.Card(title="Video Files"):
             VideoFilesInfoCard()
         with solara.Card(title="Album and Track Files"):
