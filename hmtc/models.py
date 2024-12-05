@@ -407,7 +407,7 @@ class FileType(BaseModel):
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class File(BaseModel):
     filename = CharField(unique=True)
-    file_type = ForeignKeyField(FileType, backref="file")
+    file_type = ForeignKeyField(FileType, backref="files")
     # to be deprecated 12/4/24
     video = ForeignKeyField(Video, backref="files", null=True)
     album = ForeignKeyField(Album, backref="files", null=True)
@@ -571,9 +571,9 @@ class Bird(BaseModel):
 class BirdFile(BaseModel):
     bird_id = ForeignKeyField(Bird, backref="files")
     file_type = ForeignKeyField(FileType, backref="files")
-    path = CharField()
     filename = CharField()
     verified_on_disk = DateField(null=True)
+    missing_from_disk = DateField(null=True)
 
     def __repr__(self):
         return f"BirdFileModel({self.bird_id} - {self.file_type=})"

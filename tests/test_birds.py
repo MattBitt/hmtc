@@ -3,6 +3,8 @@ import pytest
 from loguru import logger
 
 from hmtc.real_world_tests import BirdManager
+from hmtc.schemas.file_interface import BirdFileInterface
+from pathlib import Path
 
 
 def test_create_robin(robin_bm):
@@ -42,3 +44,8 @@ def test_create_bird_duplicate(robin_bm):
         bm = BirdManager.create(species="robin", weight=42, color="red", files=[])
     except peewee.IntegrityError as e:
         assert "violates unique constraint" in str(e)
+
+
+def test_file_interface(bluejay_bm):
+    _path = Path("tests/test_file_interface.py")
+    bluejay_bm.add_file(_path)
