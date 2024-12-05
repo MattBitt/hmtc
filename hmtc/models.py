@@ -1,8 +1,10 @@
 import json
 import os
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import total_ordering
 from pathlib import Path
+from typing import List
 
 from loguru import logger
 from peewee import (
@@ -23,8 +25,6 @@ from peewee import (
 from hmtc.config import init_config
 from hmtc.utils.general import clean_filename, get_file_type, my_move_file
 from hmtc.utils.youtube_functions import fetch_ids_from
-from dataclasses import dataclass
-from typing import List
 
 db_null = PostgresqlDatabase(None)
 

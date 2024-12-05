@@ -1,7 +1,8 @@
-from hmtc.real_world_tests import BirdManager
 import peewee
-from loguru import logger
 import pytest
+from loguru import logger
+
+from hmtc.real_world_tests import BirdManager
 
 
 def test_create_robin(robin_bm):
@@ -38,6 +39,6 @@ def test_delete_bird(robin_bm):
 def test_create_bird_duplicate(robin_bm):
     # robin_bm is a fixture that creates a bird with species="robin"
     try:
-        bm = BirdManager.create(species="robin", weight=42, color="red")
+        bm = BirdManager.create(species="robin", weight=42, color="red", files=[])
     except peewee.IntegrityError as e:
         assert "violates unique constraint" in str(e)

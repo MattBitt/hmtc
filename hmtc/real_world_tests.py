@@ -1,32 +1,18 @@
-import peewee
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List
+
+import peewee
+from loguru import logger
+
+from hmtc.config import init_config
 from hmtc.models import (
     Bird as BirdModel,
-    File as FileModel,
-    FileType as FileTypeModel,
 )
 from hmtc.pages import db
-from loguru import logger
-from hmtc.config import init_config
+from hmtc.schemas.file_interface import FileInterface
 
 config = init_config()
-
-
-@dataclass(frozen=True)
-class FileInterface:
-    path: Path
-    file_model: FileModel
-    object_type: str
-
-    @staticmethod
-    def from_path(path: Path) -> "FileInterface":
-        pass
-
-    @staticmethod
-    def from_id(bird_id: int) -> "FileInterface":
-        pass
 
 
 @dataclass(frozen=True)
@@ -51,17 +37,17 @@ class BirdFiles:
 class BirdManager:
     bird_model: BirdModel
     bird_files: BirdFiles
+    files_optional: bool = True
 
     @staticmethod
-    def create(
-        species: str, weight: int, color: str, files: list = []
-    ) -> "BirdManager":
-
+    def create(species: str, weight: int, color: str, files: list) -> "BirdManager":
+        if not BirdManager.files_optional and not files:
+            raise ValueError("Files are required for creating a bird")
         with db.atomic():
             try:
                 _bird = BirdModel(species=species, weight=weight, color=color)
                 for file in files:
-                    _bird.add_file(file)
+                    logger.debug(f"Need to Adding file: {file} during creating bird")
             except Exception as e:
                 logger.error(f"Error creating bird: {e}")
                 raise e
@@ -74,9 +60,9 @@ class BirdManager:
     def load(*args, **kwargs) -> "BirdManager":
         try:
             if "id" in kwargs:
-                bird = BirdModel.get(BirdModel.id == kwargs["id"])
+                _bird = BirdModel.get(BirdModel.id == kwargs["id"])
             elif "species" in kwargs:
-                bird = BirdModel.get(BirdModel.species == kwargs["species"])
+                _bird = BirdModel.get(BirdModel.species == kwargs["species"])
             else:
                 raise ValueError("No valid arguments found")
 
@@ -84,7 +70,11 @@ class BirdManager:
             logger.debug(f"Bird not found: {e, args, kwargs}")
             raise e
         bird_files = []
-        return BirdManager(bird_model=bird, bird_files=bird_files)
+        return BirdManager(bird_model=_bird, bird_files=bird_files)
+
+    @staticmethod
+    def how_many() -> int:
+        return BirdModel.select().count()
 
     def delete_me(self) -> None:
         try:
@@ -94,13 +84,13 @@ class BirdManager:
             db.rollback()
             raise e
 
-
-if __name__ == "__main__":
     logger.debug(f"Initial: # birds = {BirdModel.select().count()}")
 
+
+def bird_manager():
     with db.atomic():
         try:
-            bird = BirdManager.create(species="robin", weight=15, color="red")
+            bird = BirdManager.create(species="robin", weight=15, color="red", files=[])
             logger.debug(f"Step #1 = {BirdModel.select().count()}")
         except peewee.IntegrityError as e:
             logger.error(f"Error creating bird: {e}")
@@ -129,3 +119,7 @@ if __name__ == "__main__":
 
         db.rollback()
     logger.debug(f"After Rollback: # birds = {BirdModel.select().count()}")
+
+
+if __name__ == "__main__":
+    bird_manager()

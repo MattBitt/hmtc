@@ -10,13 +10,13 @@ from PIL import Image
 os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 
-from hmtc.real_world_tests import BirdManager
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_tables, init_db
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
+from hmtc.real_world_tests import BirdManager
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.utils.general import copy_tree, my_copy_file, remove_tree
@@ -195,11 +195,13 @@ def superchat_segment2(video) -> SuperchatSegmentModel:
 
 @pytest.fixture(scope="function")
 def robin_bm():
-    bm = BirdManager.create(species="robin", weight=13, color="red")
+    bm = BirdManager.create(species="robin", weight=13, color="red", files=[])
     return bm
 
 
 @pytest.fixture(scope="function")
 def bluejay_bm():
-    bm = BirdManager.create(species="blue jay", weight=20, color="blue")
+    bm = BirdManager.create(
+        species="blue jay", weight=20, color="blue", files=["abc.txt"]
+    )
     return bm
