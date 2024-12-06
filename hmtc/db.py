@@ -6,7 +6,16 @@ from pathlib import Path
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import (
+from hmtc.models import *
+from hmtc.utils.general import get_youtube_id
+
+config = init_config()
+WORKING = Path(config["paths"]["working"])
+STORAGE = Path(config["paths"]["storage"])
+
+MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
+
+TABLES = [
     Album,
     Artist,
     Beat,
@@ -28,70 +37,17 @@ from hmtc.models import (
     User,
     Video,
     YoutubeSeries,
-)
-from hmtc.utils.general import get_youtube_id
-
-config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
-
-MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
+]
 
 
-def create_tables(db, download_info=False):
-    db.create_tables(
-        [
-            Album,
-            Artist,
-            Beat,
-            BeatArtist,
-            Channel,
-            File,
-            Bird,
-            BirdFile,
-            FileType,
-            Section,
-            SectionTopics,
-            Series,
-            Superchat,
-            SuperchatFile,
-            SuperchatSegment,
-            Topic,
-            Track,
-            TrackBeat,
-            User,
-            Video,
-            YoutubeSeries,
-        ]
-    )
+def create_tables(db, tables=[]):
+    if not tables:
+        tables = TABLES
+    db.create_tables(tables)
 
 
-def drop_tables(db):
-    db.drop_tables(
-        [
-            Album,
-            Artist,
-            Beat,
-            BeatArtist,
-            Channel,
-            File,
-            FileType,
-            Bird,
-            BirdFile,
-            Section,
-            SectionTopics,
-            Series,
-            Superchat,
-            SuperchatFile,
-            SuperchatSegment,
-            Topic,
-            Track,
-            TrackBeat,
-            User,
-            Video,
-            YoutubeSeries,
-        ]
-    )
+def drop_all_tables(db):
+    db.drop_tables(TABLES)
 
 
 def init_db(db, config):
@@ -103,6 +59,18 @@ def init_db(db, config):
         port=config["database"]["port"],
     )
     return db
+
+
+def seed_database():
+    # this is a good starting point for seeding the database
+    # with some initial data
+
+    # try to use series as the 'type' of audience for his performances
+    channels = ["Harry Mack", "Harry Mack Clips"]
+    for channel in channels:
+        c = Channel.create_from_dict({})
+    series = ["Guerrilla", "Busking", "Concert", "Interview", "Livestream", "Written"]
+    youtube_serieses = ["Omegle Bars", "Guerilla Bars", "Wordplay Wednesday"]
 
 
 def is_db_empty():

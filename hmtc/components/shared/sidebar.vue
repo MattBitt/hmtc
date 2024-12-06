@@ -97,11 +97,6 @@ export default {
       { text: "Recent", icon: "mdi-history", url: "/recent" },
       { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
       { text: "Jellyfin Info", icon: "mdi-information", url: "/jellyfin-info" },
-      {
-        text: "Playlists",
-        icon: "mdi-playlist-music",
-        url: "/playlists",
-      },
     ],
     videoItems: [
       { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },

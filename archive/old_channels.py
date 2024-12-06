@@ -7,7 +7,7 @@ from solara.lab import task
 from solara.lab.toestand import Ref
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.schemas.channel import ChannelItem
+from hmtc.domains.channel import ChannelItem
 
 
 @solara.component

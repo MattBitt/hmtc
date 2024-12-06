@@ -52,17 +52,6 @@ def test_permanance_execute():
     assert s is None
 
 
-def test_channel():
-    Channel.create_table()
-    c, created = Channel.get_or_create(
-        title="test", url="www.yahoo.com", youtube_id="asbsdrjgkdlsa;"
-    )
-    assert c.title == "test"
-    assert created == True
-
-    c.delete_instance()
-
-
 def test_video():
     v = VideoModel.create(
         youtube_id="abcdefghijk",

@@ -9,7 +9,7 @@ from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
-from hmtc.models import Channel, Playlist, Series
+from hmtc.models import Channel, Series
 from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
@@ -41,14 +41,6 @@ def get_folder_files(folder):
 def get_series_files():
     db_files = Series.select().join(FileModel).where(FileModel.series_id.is_null(False))
     folder_files = get_folder_files(STORAGE / "series")
-    return db_files, folder_files
-
-
-def get_playlist_files():
-    db_files = (
-        Playlist.select().join(FileModel).where(FileModel.playlist_id.is_null(False))
-    )
-    folder_files = get_folder_files(STORAGE / "playlists")
     return db_files, folder_files
 
 

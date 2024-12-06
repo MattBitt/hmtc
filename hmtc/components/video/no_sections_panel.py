@@ -38,7 +38,7 @@ from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
-from hmtc.schemas.series import Series as SeriesItem
+from hmtc.domains.series import Series as SeriesItem
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem

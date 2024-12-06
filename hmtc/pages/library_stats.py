@@ -9,7 +9,7 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import Playlist, Series
+from hmtc.models import Series
 from hmtc.models import Video as VideoModel
 
 title = "Library Stats"

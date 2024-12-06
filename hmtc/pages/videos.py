@@ -14,7 +14,6 @@ from hmtc.models import (
 )
 from hmtc.models import (
     Channel,
-    Playlist,
     Series,
 )
 from hmtc.models import File as FileModel
@@ -64,7 +63,6 @@ def create_query_from_url():
             VideoModel.jellyfin_id,
             Channel,
             Series,
-            Playlist,
             YoutubeSeriesModel,
             AlbumModel,
         )
@@ -74,10 +72,10 @@ def create_query_from_url():
         .switch(VideoModel)
         .join(YoutubeSeriesModel, peewee.JOIN.LEFT_OUTER)
         .switch(VideoModel)
-        .join(Playlist, peewee.JOIN.LEFT_OUTER)
-        .switch(VideoModel)
         .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
     )
+    if len(all) == 0:
+        return None, None, None, False
 
     unique = all.where(VideoModel.contains_unique_content == True)
 
@@ -86,7 +84,6 @@ def create_query_from_url():
         "youtube_series",
         "channel",
         "album",
-        "playlist",
         "sections",
     ]
     router = solara.use_router()
@@ -275,46 +272,42 @@ def Page():
     base_query, filter, id_to_filter, show_nonunique = create_query_from_url()
 
     if base_query is None:
-        base_query = (
-            VideoModel.select()
-            .where(VideoModel.contains_unique_content == True)
-            .order_by(VideoModel.upload_date.desc())
-        )
-
-    if filter == "wednesdays":
-        headers = [
-            {"text": "ID", "value": "id", "sortable": True, "align": "right"},
-            {"text": "Title", "value": "title", "width": "30%"},
-            {"text": "Episode", "value": "episode", "sortable": True},
-            {"text": "Superchats", "value": "superchats", "sortable": False},
-            {"text": "Segments", "value": "segments_count", "sortable": False},
-            {"text": "Actions", "value": "actions", "sortable": False},
-        ]
+        solara.Markdown("No Videos Found")
     else:
-        headers = [
-            {
-                "text": "Upload Date",
-                "value": "upload_date",
-                "sortable": True,
-                "width": "10%",
-            },
-            {"text": "ID", "value": "id", "sortable": True, "align": "right"},
-            {"text": "Title", "value": "title", "width": "30%"},
-            {"text": "Duration", "value": "duration", "sortable": True},
-            {
-                "text": "Sections",
-                "value": "section_info.section_count",
-                "sortable": False,
-            },
-            {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
-            {"text": "Files", "value": "file_count", "sortable": False},
-            {"text": "Actions", "value": "actions", "sortable": False},
-        ]
+        if filter == "wednesdays":
+            headers = [
+                {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+                {"text": "Title", "value": "title", "width": "30%"},
+                {"text": "Episode", "value": "episode", "sortable": True},
+                {"text": "Superchats", "value": "superchats", "sortable": False},
+                {"text": "Segments", "value": "segments_count", "sortable": False},
+                {"text": "Actions", "value": "actions", "sortable": False},
+            ]
+        else:
+            headers = [
+                {
+                    "text": "Upload Date",
+                    "value": "upload_date",
+                    "sortable": True,
+                    "width": "10%",
+                },
+                {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+                {"text": "Title", "value": "title", "width": "30%"},
+                {"text": "Duration", "value": "duration", "sortable": True},
+                {
+                    "text": "Sections",
+                    "value": "section_info.section_count",
+                    "sortable": False,
+                },
+                {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
+                {"text": "Files", "value": "file_count", "sortable": False},
+                {"text": "Actions", "value": "actions", "sortable": False},
+            ]
 
-    search_fields = [VideoModel.youtube_id, VideoModel.title]
-    VideoTable(
-        router=router,
-        headers=headers,
-        base_query=base_query,
-        search_fields=search_fields,
-    )
+        search_fields = [VideoModel.youtube_id, VideoModel.title]
+        VideoTable(
+            router=router,
+            headers=headers,
+            base_query=base_query,
+            search_fields=search_fields,
+        )

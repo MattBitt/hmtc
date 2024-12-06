@@ -3,7 +3,7 @@ from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
 from hmtc.models import Channel as ChannelModel
-from hmtc.schemas.channel import Channel as ChannelItem
+from hmtc.domains.channel import Channel as ChannelItem
 
 
 @solara.component_vue("ChannelTable.vue", vuetify=True)

@@ -11,7 +11,7 @@ os.environ["HMTC_ENV"] = "testing"
 os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 
 from hmtc.config import init_config
-from hmtc.db import create_tables, drop_tables, init_db
+from hmtc.db import create_tables, drop_all_tables, init_db
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
@@ -64,7 +64,7 @@ def db():
     except Exception as e:
         logger.error(e)
     yield (db_instance, config)
-    drop_tables(db_instance)
+    drop_all_tables(db_instance)
 
 
 @pytest.fixture(scope="session")

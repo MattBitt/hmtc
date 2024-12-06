@@ -10,6 +10,7 @@ from loguru import logger
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
+from hmtc.db import seed_database
 from hmtc.models import Channel as ChannelModel
 from hmtc.models import Video as VideoModel
 from hmtc.pages.settings import PageState
@@ -58,40 +59,40 @@ def ProgressCircle():
     pass
 
 
-def setup_new_database():
-    pass
-
-
 @solara.component
 def Page():
 
     MySidebar(
         router=solara.use_router(),
     )
+
     channels = ChannelModel.select()
     if len(channels) == 0:
         empty_db = True
+        last_updated = None
+        can_refresh = False
     else:
         empty_db = False
-    last_updated = (
-        ChannelModel.select()
-        .order_by(ChannelModel.last_update_completed.desc())
-        .where(ChannelModel.last_update_completed.is_null(False))
-        .get_or_none()
-    )
-    if last_updated is None:
-        # no videos in the db. either fresh or disaster. not sure
-        can_refresh = True
-    else:
-        how_long_ago_refreshed = datetime.now() - last_updated.last_update_completed
-        can_refresh = how_long_ago_refreshed > timedelta(hours=1)
 
-    latest_vids = (
-        VideoModel.select()
-        .where(VideoModel.contains_unique_content == True)
-        .order_by(VideoModel.upload_date.desc())
-        .limit(3)
-    )
+        last_updated = (
+            ChannelModel.select()
+            .order_by(ChannelModel.last_update_completed.desc())
+            .where(ChannelModel.last_update_completed.is_null(False))
+            .get_or_none()
+        )
+
+        if last_updated is None:
+            can_refresh = True
+        else:
+            how_long_ago_refreshed = datetime.now() - last_updated.last_update_completed
+            can_refresh = how_long_ago_refreshed > timedelta(hours=1)
+
+        latest_vids = (
+            VideoModel.select()
+            .where(VideoModel.contains_unique_content == True)
+            .order_by(VideoModel.upload_date.desc())
+            .limit(3)
+        )
 
     with solara.Column(
         classes=["main-container"], style={"background-color": Colors.BACKGROUND}
@@ -124,16 +125,16 @@ def Page():
                     solara.Button(
                         f"Setup New Database...",
                         classes=["button"],
-                        on_click=setup_new_database,
+                        on_click=seed_database,
                     )
+        else:
+            with solara.ColumnsResponsive(default=12, large=4):
+                for vid in latest_vids:
+                    poster = FileManager.get_file_for_video(vid, "poster")
+                    video_image = ImageManager(poster)
 
-        with solara.ColumnsResponsive(default=12, large=4):
-            for vid in latest_vids:
-                poster = FileManager.get_file_for_video(vid, "poster")
-                video_image = ImageManager(poster)
-
-                with solara.Card():
-                    with solara.Column():
-                        with solara.Link(f"/video-details/{vid.id}"):
-                            solara.Image(image=video_image.image)
-                        solara.Markdown(f"#### {vid.title}")
+                    with solara.Card():
+                        with solara.Column():
+                            with solara.Link(f"/video-details/{vid.id}"):
+                                solara.Image(image=video_image.image)
+                            solara.Markdown(f"#### {vid.title}")

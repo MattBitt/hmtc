@@ -7,7 +7,6 @@ from loguru import logger
 from hmtc.models import File as FileModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatFile as SuperchatFileModel
-from hmtc.schemas.base import BaseItem
 from hmtc.schemas.superchat_segment import SuperchatSegment
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_manager import ImageManager

@@ -19,8 +19,8 @@
             <v-row>
               <v-col cols="12" sm="6" md="4">
                 <v-text-field
-                  v-model="currentItem.name"
-                  label="name"
+                  v-model="currentItem.title"
+                  label="title"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">
@@ -104,8 +104,8 @@
       <template v-slot:item.last_update_completed="{ item }">
         <v-chip color="info">{{ item.last_update_completed }}</v-chip>
       </template>
-      <template v-slot:item.name="{ item }">
-        <span>{{ item.name }}</span>
+      <template v-slot:item.title="{ item }">
+        <span>{{ item.title }}</span>
       </template>
 
       <template v-slot:item.actions="{ item }">
@@ -119,7 +119,7 @@
 
 <script>
 module.exports = {
-  name: "ChannelTable",
+  title: "ChannelTable",
   props: {
     items: Array,
     headers: Array,

@@ -29,7 +29,7 @@ def save_channel(dict_of_items):
         ChannelModel.create(**edited_item)
         return
 
-    channel.name = edited_item["name"]
+    channel.title = edited_item["title"]
     channel.url = edited_item["url"]
     channel.youtube_id = edited_item["youtube_id"]
     channel.save()
@@ -43,13 +43,13 @@ def Page():
     MySidebar(router)
 
     headers = [
-        {"text": "Name", "value": "name"},
+        {"text": "Title", "value": "title"},
         {"text": "Youtube ID", "value": "youtube_id"},
         {"text": "Last Update Completed", "value": "last_update_completed"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
 
-    search_fields = [ChannelModel.name, ChannelModel.url, ChannelModel.youtube_id]
+    search_fields = [ChannelModel.title, ChannelModel.url, ChannelModel.youtube_id]
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
         ChannelTable(

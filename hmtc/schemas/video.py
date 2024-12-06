@@ -26,7 +26,6 @@ from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.schemas.base import BaseItem
-from hmtc.schemas.channel import Channel as ChannelItem
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem

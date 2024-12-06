@@ -3,7 +3,7 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.channel import Channel as ChannelItem
+from hmtc.domains.channel import Channel as ChannelItem
 from hmtc.schemas.video import VideoItem
 
 status = solara.reactive("Waiting for video URL")
@@ -141,14 +141,15 @@ def VideoInfo():
 
 
 def add_channel():
-    logger.error("Adding a new channel")
-    new_item = ChannelItem(
-        name=channel_name.value,
-        enabled=True,
-        youtube_id=channel_youtube_id.value,
-        url=channel_url.value,
-    )
-    new_item.save_to_db()
+    pass
+    # logger.error("Adding a new channel")
+    # new_item = ChannelItem(
+    #     name=channel_name.value,
+    #     enabled=True,
+    #     youtube_id=channel_youtube_id.value,
+    #     url=channel_url.value,
+    # )
+    # new_item.save_to_db()
 
 
 def add_video_to_db():

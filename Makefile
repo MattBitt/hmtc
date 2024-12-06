@@ -3,6 +3,10 @@ all: run
 dev_db:
 	docker-compose -f ./docker-compose.dev.yml up -d
 
+dev_db_restart:
+	docker-compose -f ./docker-compose.dev.yml down
+	docker-compose -f ./docker-compose.dev.yml up -d
+
 staging:
 	docker-compose up --build
 

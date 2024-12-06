@@ -72,10 +72,10 @@ class Series(BaseModel):
     end_date = DateField(null=True)
 
     def __repr__(self):
-        return f"SeriesModel({self.id} - {self.name})"
+        return f"SeriesModel({self.id} - {self.title})"
 
     def __str__(self):
-        return f"SeriesModel({self.id} - {self.name})"
+        return f"SeriesModel({self.id} - {self.title})"
 
 
 class Channel(BaseModel):
@@ -83,12 +83,13 @@ class Channel(BaseModel):
     url = CharField()
     youtube_id = CharField(unique=True)
     last_update_completed = DateTimeField(null=True)
+    auto_update = BooleanField(default=False)
 
     def __repr__(self):
-        return f"ChannelModel({self.id} - {self.name=})"
+        return f"ChannelModel({self.id} - {self.title=})"
 
     def __str__(self):
-        return f"ChannelModel({self.id} - {self.name=})"
+        return f"ChannelModel({self.id} - {self.title=})"
 
 
 class YoutubeSeries(BaseModel):
@@ -277,13 +278,13 @@ class Artist(BaseModel):
 
 
 class Beat(BaseModel):
-    name = CharField()
+    title = CharField()
 
     def __repr__(self):
-        return f"Beat({self.id} - {self.name=})"
+        return f"Beat({self.id} - {self.title=})"
 
     def __str__(self):
-        return f"Beat({self.id} - {self.name=})"
+        return f"Beat({self.id} - {self.title=})"
 
 
 class TrackBeat(BaseModel):
@@ -419,3 +420,28 @@ class BirdFile(BaseModel):
             # Create a unique composite index
             (("bird_id", "file_type"), False),
         )
+
+
+__all__ = [
+    "Album",
+    "Artist",
+    "Beat",
+    "BeatArtist",
+    "Bird",
+    "BirdFile",
+    "Channel",
+    "File",
+    "FileType",
+    "Section",
+    "SectionTopics",
+    "Series",
+    "Superchat",
+    "SuperchatFile",
+    "SuperchatSegment",
+    "Topic",
+    "Track",
+    "TrackBeat",
+    "User",
+    "Video",
+    "YoutubeSeries",
+]

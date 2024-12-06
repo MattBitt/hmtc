@@ -9,7 +9,7 @@ from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.series_table import SeriesTable
 from hmtc.models import Series as SeriesModel
-from hmtc.schemas.series import Series as SeriesItem
+from hmtc.domains.series import Series as SeriesItem
 
 force_update_counter = solara.reactive(0)
 
@@ -34,7 +34,7 @@ def save_series(dict_of_items):
         SeriesModel.create(**edited_item)
         return
 
-    series.name = edited_item["name"]
+    series.title = edited_item["title"]
     series.start_date = edited_item["start_date"]
     series.end_date = edited_item["end_date"]
 
@@ -51,12 +51,12 @@ def Page():
 
     headers = [
         {"text": "ID", "value": "id"},
-        {"text": "Name", "value": "name"},
+        {"text": "Title", "value": "title"},
         {"text": "Start Date", "value": "start_date"},
         {"text": "End Date", "value": "end_date"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
-    search_fields = [SeriesModel.name]
+    search_fields = [SeriesModel.title]
     with solara.Column(classes=["main-container"]):
         # solara.Markdown(f"{force_update_counter.value}")
         SeriesTable(
