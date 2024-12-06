@@ -23,7 +23,7 @@ from peewee import (
 )
 
 from hmtc.config import init_config
-from hmtc.utils.general import clean_filename, get_file_type, my_move_file
+from hmtc.utils.general import clean_filename
 from hmtc.utils.youtube_functions import fetch_ids_from
 
 db_null = PostgresqlDatabase(None)
@@ -38,12 +38,13 @@ MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
 
 ## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class BaseModel(Model):
+    id = AutoField(primary_key=True)
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
-    id = AutoField(primary_key=True)
 
     def save(self, *args, **kwargs):
         self.updated_at = datetime.now()
+
         try:
             x = super(BaseModel, self).save(*args, **kwargs)
         except Exception as e:
@@ -65,11 +66,8 @@ class BaseFile(BaseModel):
     file_type = CharField()
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Series(BaseModel):
-    MEDIA_PATH = STORAGE / "series"
-
-    name = CharField(unique=True)
+    title = CharField(unique=True)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
 
@@ -80,27 +78,11 @@ class Series(BaseModel):
         return f"SeriesModel({self.id} - {self.name})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Channel(BaseModel):
-    MEDIA_PATH = STORAGE / "channels"
-
-    name = CharField(null=True)
-    url = CharField(null=True)
-    youtube_id = CharField()
-    enabled = BooleanField(default=True)
+    title = CharField(unique=True)
+    url = CharField()
+    youtube_id = CharField(unique=True)
     last_update_completed = DateTimeField(null=True)
-
-    def grab_ids(self):
-        return fetch_ids_from(self.url)
-
-    def add_file(self, filename, move_file=True):
-        extension = "".join(Path(filename).suffixes)
-        final_name = Path(self.MEDIA_PATH) / (
-            clean_filename(self.name.lower()) + extension
-        )
-        File.add_new_file(
-            source=filename, target=final_name, move_file=move_file, channel=self
-        )
 
     def __repr__(self):
         return f"ChannelModel({self.id} - {self.name=})"
@@ -109,144 +91,6 @@ class Channel(BaseModel):
         return f"ChannelModel({self.id} - {self.name=})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
-class Playlist(BaseModel):
-    MEDIA_PATH = STORAGE / "playlists"
-
-    title = CharField(default="Untitled")
-    url = CharField(unique=True, null=True)
-    youtube_id = CharField(unique=True, null=True)
-    enabled = BooleanField(default=True)
-    last_update_completed = DateTimeField(null=True)
-    album_per_episode = BooleanField(default=True)
-    enable_video_downloads = BooleanField(default=True)
-    has_chapters = BooleanField(default=False)
-    contains_unique_content = BooleanField(default=False)
-
-    series = ForeignKeyField(Series, backref="playlists", null=True)
-    channel = ForeignKeyField(Channel, backref="playlists", null=True)
-
-    def load_info(self):
-        logger.error("Deprecated: Playlist.load_info")
-        return
-
-    @classmethod
-    def create_from_youtube_id(cls, youtube_id=None, channel=None):
-        if youtube_id is None or youtube_id == "":
-            logger.error("No youtube ID")
-            return None
-
-        info, files = cls.download_playlist_info(youtube_id)
-        if info is None:
-            logger.error(f"Error downloading video info for {youtube_id}")
-            return None
-
-        return cls.create(**info, channel=channel)
-
-    def get_video_list_from_yt(self):
-        download_path = WORKING / "downloads"
-        ids = fetch_ids_from(self.url, download_path)
-        return ids
-
-    def update_videos_with_playlist_info(self):
-        # download list of videos from youtube
-        # as a list of youtube ids as strings "example abCdgeseg12"
-        # also create any videos that don't exist
-        # what about videos from other channels?
-        # not going to track that yet. maybe one day.
-        ids = self.get_video_list_from_yt()
-
-        logger.debug(f"Found {len(ids)} videos in playlist {self.title}")
-
-        for youtube_id in ids:
-            if youtube_id == "":
-                logger.error("No youtube ID")
-            else:
-                vid, created = Video.get_or_create(
-                    youtube_id=youtube_id,
-                )
-                if vid:
-                    vid.playlist = self
-                    if vid.playlist.series:
-                        vid.series = vid.playlist.series
-                    vid.enabled = self.enable_video_downloads
-                    vid.contains_unique_content = self.contains_unique_content
-                    vid.save()
-
-        # once finished updating the playlist, update the last_updated field
-        self.last_update_completed = datetime.now()
-        self.save()
-        logger.success(f"Finished updating playlist {self.title}")
-
-    def add_file(self, filename, move_file=True):
-        extension = "".join(Path(filename).suffixes)
-        final_name = Path(self.MEDIA_PATH) / (
-            clean_filename(self.title.lower()) + extension
-        )
-        File.add_new_file(
-            source=filename, target=final_name, move_file=move_file, playlist=self
-        )
-
-    @property
-    def poster(self):
-        p = self._poster(self.id)
-        if p:
-            return p.file_string
-        return None
-
-    @property
-    def info(self):
-        logger.debug(f"Getting info file for playlist {self.title}")
-        i = (
-            File.select()
-            .where(File.file_type == "info")
-            .where(File.playlist_id == self.id)
-            .get_or_none()
-        )
-        # p = self.files.where(ChannelFile.file_type == "poster").get_or_none()
-        if i:
-            return i
-        return None
-
-    @property
-    def has_poster(self):
-        logger.error("I think this function is disabled too")
-        return
-
-    def apply_to_videos(self):
-        vids = Video.select(Video.id, Video.playlist_id).where(
-            Video.playlist_id == self.id
-        )
-        for vid in vids:
-            vid.contains_unique_content = self.contains_unique_content
-            vid.has_chapters = self.has_chapters
-            vid.save()
-
-    def __repr__(self):
-        return f"Playlist({self.title})"
-
-    # used to serialize model to dict for vue
-    def model_to_dict(self):
-        # im leaving this here for now, but it should be moved to a
-        # schema class with a serialize method
-        # likely wont need this, so leaving as is for now
-        # 11-10-24
-        new_dict = {
-            "id": self.id,
-            "youtube_id": self.youtube_id,
-            "url": self.url,
-            "title": self.title,
-            "enabled": self.enabled,
-            "last_update_completed": (
-                self.last_update_completed.isoformat()
-                if self.last_update_completed
-                else None
-            ),
-        }
-        return new_dict
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class YoutubeSeries(BaseModel):
     title = CharField(unique=True, max_length=120)
     series = ForeignKeyField(Series, backref="youtube_series", null=True)
@@ -258,7 +102,6 @@ class YoutubeSeries(BaseModel):
         return f"YoutubeSeriesModel({self.id} - {self.title=})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Album(BaseModel):
     title = CharField(unique=True)
     release_date = DateField(null=True)
@@ -287,7 +130,6 @@ class Album(BaseModel):
         ) + 1
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Video(BaseModel):
     youtube_id = CharField(unique=True)
     url = CharField(null=True)
@@ -304,7 +146,7 @@ class Video(BaseModel):
     album = ForeignKeyField(Album, backref="videos", null=True)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
-    playlist = ForeignKeyField(Playlist, backref="videos", null=True)
+
     youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
 
     def __repr__(self):
@@ -314,7 +156,6 @@ class Video(BaseModel):
         return f"VideoModel({self.id} - {self.title=})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Track(BaseModel):
     title = CharField()
     track_number = IntegerField(null=False)
@@ -349,7 +190,6 @@ class Track(BaseModel):
         return f"TrackModel({self.id} - {self.title=})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Section(BaseModel):
     start = IntegerField(null=True)
     end = IntegerField(null=True)
@@ -369,7 +209,6 @@ class Section(BaseModel):
         return f"SectionModel({self.id} - {self.section_type})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class User(BaseModel):
     username = CharField(max_length=80)
     email = CharField(max_length=120)
@@ -404,7 +243,6 @@ class FileType(BaseModel):
         }
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class File(BaseModel):
     filename = CharField(unique=True)
     file_type = ForeignKeyField(FileType, backref="files")
@@ -412,7 +250,6 @@ class File(BaseModel):
     video = ForeignKeyField(Video, backref="files", null=True)
     album = ForeignKeyField(Album, backref="files", null=True)
     track = ForeignKeyField(Track, backref="files", null=True)
-    # deprecated
 
     def __repr__(self):
         return f"FileModel({self.id} - {self.filename=})"
@@ -428,7 +265,6 @@ class File(BaseModel):
         }
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Artist(BaseModel):
     name = CharField()
     url = CharField(null=True)
@@ -440,7 +276,6 @@ class Artist(BaseModel):
         return f"ArtistModel({self.id} - {self.name=})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class Beat(BaseModel):
     name = CharField()
 
@@ -451,7 +286,6 @@ class Beat(BaseModel):
         return f"Beat({self.id} - {self.name=})"
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class TrackBeat(BaseModel):
     beat = ForeignKeyField(Beat, backref="tracks")
     track = ForeignKeyField(Track, backref="beats")
@@ -469,7 +303,6 @@ class TrackBeat(BaseModel):
         )
 
 
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class BeatArtist(BaseModel):
     beat = ForeignKeyField(Beat, backref="artists")
     artist = ForeignKeyField(Artist, backref="beats")
@@ -497,7 +330,6 @@ class Topic(BaseModel):
         return f"TopicModel({self.id} - {self.text=})"
 
 
-# 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class SectionTopics(BaseModel):
     section = ForeignKeyField(Section, backref="topics")
     topic = ForeignKeyField(Topic, backref="sections")
@@ -513,8 +345,9 @@ class SectionTopics(BaseModel):
 class SuperchatSegment(BaseModel):
     start_time = IntegerField()
     end_time = IntegerField()
-    video = ForeignKeyField(Video, backref="superchats")
     next_segment: int = ForeignKeyField("self", backref="previous_segment", null=True)
+
+    video = ForeignKeyField(Video, backref="superchats")
     section = ForeignKeyField(Section, backref="segment", null=True)
 
     def __repr__(self):
@@ -525,8 +358,8 @@ class SuperchatSegment(BaseModel):
 
 
 class Superchat(BaseModel):
-
     frame_number = IntegerField()
+
     video = ForeignKeyField(Video, backref="superchats")
     segment = ForeignKeyField(SuperchatSegment, backref="superchats", null=True)
 

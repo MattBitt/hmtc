@@ -10,11 +10,9 @@ from hmtc.schemas.base import BaseItem
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Channel(BaseItem):
     name: str
-    item_type: str = "CHANNEL"
     url: str = None
     youtube_id: str = None
     id: int = None
-    enabled: bool = True
     last_update_completed: datetime = None
 
     @staticmethod
@@ -24,7 +22,6 @@ class Channel(BaseItem):
             name=channel.name,
             url=channel.url,
             youtube_id=channel.youtube_id,
-            enabled=channel.enabled,
             last_update_completed=channel.last_update_completed,
         )
 
@@ -34,7 +31,6 @@ class Channel(BaseItem):
             "name": self.name,
             "url": self.url,
             "youtube_id": self.youtube_id,
-            "enabled": self.enabled,
             "last_update_completed": self.last_update_completed,
         }
 
@@ -43,7 +39,6 @@ class Channel(BaseItem):
         channel.name = new_data["name"]
         channel.url = new_data["url"]
         channel.youtube_id = new_data["youtube_id"]
-        channel.enabled = new_data["enabled"]
         channel.save()
 
     def delete_id(channel_id) -> None:
@@ -62,7 +57,6 @@ class Channel(BaseItem):
                 url=item.url,
                 id=item.id,
                 youtube_id=item.youtube_id,
-                enabled=item.enabled,
                 # last_update_completed=item.last_update_completed,
             )
             for item in items
@@ -89,7 +83,6 @@ class Channel(BaseItem):
             ChannelModel.update(
                 name=self.name,
                 youtube_id=self.youtube_id,
-                enabled=self.enabled,
                 url=self.url,
             ).where(ChannelModel.id == self.id).execute()
 

@@ -12,7 +12,6 @@ from hmtc.db import (
     create_tables,
     init_db,
     is_db_empty,
-    seed_database,
 )
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable

@@ -32,7 +32,6 @@ def save_channel(dict_of_items):
     channel.name = edited_item["name"]
     channel.url = edited_item["url"]
     channel.youtube_id = edited_item["youtube_id"]
-    channel.enabled = edited_item["enabled"]
     channel.save()
     force_update_counter.set(force_update_counter.value + 1)
 

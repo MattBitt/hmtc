@@ -19,7 +19,7 @@ from hmtc.models import db_null
 from hmtc.real_world_tests import BirdManager
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.superchat import Superchat as SuperchatItem
-from hmtc.utils.general import copy_tree, my_copy_file, remove_tree
+from hmtc.utils.general import copy_tree, remove_tree
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
@@ -195,13 +195,11 @@ def superchat_segment2(video) -> SuperchatSegmentModel:
 
 @pytest.fixture(scope="function")
 def robin_bm():
-    bm = BirdManager.create(species="robin", weight=13, color="red", files=[])
+    bm = BirdManager.create(species="robin", weight=13, color="red")
     return bm
 
 
 @pytest.fixture(scope="function")
 def bluejay_bm():
-    bm = BirdManager.create(
-        species="blue jay", weight=20, color="blue", files=["abc.txt"]
-    )
+    bm = BirdManager.create(species="blue jay", weight=20, color="blue")
     return bm

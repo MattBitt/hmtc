@@ -5,14 +5,11 @@ import pytest
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.db import seed_database
 from hmtc.models import (
     Channel,
     File,
-    Playlist,
     Section,
     Series,
-    get_file_type,
 )
 from hmtc.models import (
     Topic as TopicModel,
@@ -25,7 +22,6 @@ config = init_config()
 
 
 def test_empty_db():
-    assert len(Playlist.select()) == 0
     assert len(Channel.select()) == 0
     assert len(Series.select()) == 0
     assert len(VideoModel.select()) == 0
@@ -35,10 +31,10 @@ def test_empty_db():
 
 def test_series():
     s, created = Series.get_or_create(
-        name="test", start_date="2020-01-01", end_date="2020-12-31"
+        title="test", start_date="2020-01-01", end_date="2020-12-31"
     )
     assert created == True
-    assert s.name == "test"
+    assert s.title == "test"
 
     all_series = Series.select()
     assert all_series.count() == 1
@@ -47,38 +43,24 @@ def test_series():
 
 # this test leaves a record in the database
 def test_permanance_setup():
-    s = Series.create(name="testing permanent record")
+    s = Series.create(title="testing permanent record")
     assert s is not None
 
 
 def test_permanance_execute():
-    s = Series.get_or_none(Series.name == "testing permanent record")
+    s = Series.get_or_none(Series.title == "testing permanent record")
     assert s is None
 
 
 def test_channel():
     Channel.create_table()
     c, created = Channel.get_or_create(
-        name="test", url="www.yahoo.com", youtube_id="asbsdrjgkdlsa;"
+        title="test", url="www.yahoo.com", youtube_id="asbsdrjgkdlsa;"
     )
-    assert c.name == "test"
+    assert c.title == "test"
     assert created == True
 
     c.delete_instance()
-
-
-def test_playlist():
-    Playlist.create_table()
-    p, created = Playlist.get_or_create(
-        title="test", url="www.yahoo.com/playlists", youtube_id="PLTvadsfadghas"
-    )
-    assert created == True
-    assert p.title == "test"
-
-    all_playlist = Playlist.select()
-    # assert all_playlist.count()  > 1
-
-    p.delete_instance()
 
 
 def test_video():
@@ -106,8 +88,8 @@ def test_video():
 
 
 def test_delete_series():
-    s = Series.create(name="test")
+    s = Series.create(title="test")
     assert s is not None
     s.delete_instance()
-    s2 = Series.get_or_none(Series.name == "test")
+    s2 = Series.get_or_none(Series.title == "test")
     assert s2 is None

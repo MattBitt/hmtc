@@ -42,7 +42,7 @@ def refresh_from_youtube():
         num_new_vids += len(ids_to_update)
         c.last_update_completed = datetime.now()
         c.save()
-        for id in ids_to_update:
+        for id in ids_to_update[:5]:
             VideoItem.create_from_youtube_id(id)
 
     if num_new_vids == 0:
@@ -58,13 +58,21 @@ def ProgressCircle():
     pass
 
 
+def setup_new_database():
+    pass
+
+
 @solara.component
 def Page():
 
     MySidebar(
         router=solara.use_router(),
     )
-
+    channels = ChannelModel.select()
+    if len(channels) == 0:
+        empty_db = True
+    else:
+        empty_db = False
     last_updated = (
         ChannelModel.select()
         .order_by(ChannelModel.last_update_completed.desc())
@@ -105,6 +113,19 @@ def Page():
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
             solara.Image(image=logo_image.image)
+
+        if empty_db:
+            with solara.Row(justify="center"):
+                with solara.Column():
+                    solara.Text(
+                        f"#### No channels found in the database. Hope this is a fresh install.",
+                        classes=["primary--text"],
+                    )
+                    solara.Button(
+                        f"Setup New Database...",
+                        classes=["button"],
+                        on_click=setup_new_database,
+                    )
 
         with solara.ColumnsResponsive(default=12, large=4):
             for vid in latest_vids:

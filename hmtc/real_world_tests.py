@@ -10,7 +10,7 @@ from hmtc.models import (
     Bird as BirdModel,
 )
 from hmtc.pages import db
-from hmtc.schemas.file_interface import FileInterface
+from hmtc.schemas.file_interface import BirdFileInterface
 
 config = init_config()
 
@@ -18,15 +18,15 @@ config = init_config()
 @dataclass(frozen=True)
 class BirdFiles:
     bird_id: int
-    image: FileInterface
-    video: FileInterface
-    audio: FileInterface
+    image: BirdFileInterface
+    video: BirdFileInterface
+    audio: BirdFileInterface
 
     @staticmethod
     def load(bird_id: int) -> "BirdFiles":
         pass
 
-    def add_file(self, path: Path) -> FileInterface:
+    def add_file(self, path: Path) -> BirdFileInterface:
         pass
 
     def delete_file(self, path: Path) -> None:
@@ -43,17 +43,21 @@ class BirdManager:
     def create(species: str, weight: int, color: str, files: list) -> "BirdManager":
         if not BirdManager.files_optional and not files:
             raise ValueError("Files are required for creating a bird")
+
+        bird_files = []
         with db.atomic():
             try:
                 _bird = BirdModel(species=species, weight=weight, color=color)
                 for file in files:
                     logger.debug(f"Need to Adding file: {file} during creating bird")
+                    new_bird_file = BirdFileInterface.add_file(file)
+                    bird_files.append(new_bird_file)
             except Exception as e:
                 logger.error(f"Error creating bird: {e}")
                 raise e
 
         _bird.save()
-        bird_files = []
+
         return BirdManager(bird_model=_bird, bird_files=bird_files)
 
     @staticmethod
