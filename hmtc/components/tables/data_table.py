@@ -99,7 +99,7 @@ def DataTable(
     if domain_class is None:
         items = [schema_item.from_model(item).serialize() for item in base_query]
     else:
-        items = [item.simple_dict() for item in base_query]
+        items = [item.my_dict() for item in base_query]
 
     vue_component(
         loading=loading.value,

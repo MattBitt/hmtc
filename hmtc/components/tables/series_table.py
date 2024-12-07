@@ -42,5 +42,6 @@ def SeriesTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
+        domain_class=SeriesItem,
         **item_info,
     )

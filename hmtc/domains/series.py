@@ -1,64 +1,36 @@
-import datetime
-from dataclasses import dataclass
+from typing import List
 
 from loguru import logger
 
 from hmtc.repos.base_repo import Repository
 from hmtc.models import Series as SeriesModel
-from hmtc.models import Video as VideoModel
 
 
-@dataclass(frozen=True, kw_only=True)
-class Series(Repository):
-    series: SeriesModel
+class Series:
+    model = SeriesModel()
+    repo = Repository(model=model, label="Series")
 
-    @staticmethod
-    def from_model(series: SeriesModel) -> "Series":
-        return Series(
-            id=series.id,
-            title=series.title,
-            start_date=series.start_date,
-            end_date=series.end_date,
-        )
+    @classmethod
+    def create(cls, data) -> SeriesModel:
+        return cls.repo.create_item(data=data)
 
-    def serialize(self) -> dict:
-        if self.start_date is None:
-            start_date = None
-        else:
-            start_date = self.start_date.isoformat()
-        if self.end_date is None:
-            end_date = None
-        else:
-            end_date = self.end_date.isoformat()
-        return {
-            "id": self.id,
-            "title": self.title,
-            "start_date": start_date,
-            "end_date": end_date,
-        }
+    @classmethod
+    def load(cls, item_id) -> SeriesModel:
+        return cls.repo.load_item(item_id=item_id)
 
-    @staticmethod
-    def update_item(series_id, new_data) -> None:
-        series = SeriesModel.get_by_id(series_id)
-        series.title = new_data["title"]
-        series.start_date = new_data["start_date"]
-        series.end_date = new_data["end_date"]
-        series.save()
+    @classmethod
+    def update(cls, data) -> SeriesModel:
+        return cls.repo.update_item(data=data)
 
-    @staticmethod
-    def delete_id(series_id) -> None:
-        series = SeriesModel.select().where(SeriesModel.id == series_id)
-        logger.error(f"Deleting Series {series.title} ")
-        series.delete_instance(recursive=True)
+    @classmethod
+    def get_all(cls) -> List[SeriesModel]:
+        return list(cls.repo.get_all())
 
-    @staticmethod
-    def delete_if_unused(series_id) -> None:
-        series = SeriesModel.get_by_id(series_id)
-        videos = VideoModel.select().where(VideoModel.series_id == series_id)
-        if len(videos) == 0:
-            logger.error(f"Series {series.title} not in use. Deleting")
-            series.delete_instance()
-        else:
-            logger.error(f"Series {series.title} in use. Not deleting")
-            return False
-        return True
+    @classmethod
+    def serialize(cls, item_id) -> dict:
+        item = cls.load(item_id)
+        return item.my_dict()
+
+    @classmethod
+    def delete_id(cls, item_id) -> None:
+        cls.repo.delete_by_id(item_id=item_id)

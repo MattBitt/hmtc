@@ -62,7 +62,7 @@ def test_serialize():
     assert s["url"] == ex_channel1["url"]
     assert s["youtube_id"] == ex_channel1["youtube_id"]
     assert s["auto_update"] == ex_channel1["auto_update"]
-    assert s["last_update_completed"] == ex_channel1["last_update_completed"]
+    assert str(s["last_update_completed"]) == ex_channel1["last_update_completed"]
 
 
 def test_get_all(channel_dict):

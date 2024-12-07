@@ -54,6 +54,10 @@ class BaseModel(Model):
 
         return x
 
+    def my_dict(self):
+        cols = self._meta.columns
+        return {col: getattr(self, col) for col in cols}
+
     class Meta:
         database = db_null
 

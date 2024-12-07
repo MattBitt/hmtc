@@ -214,3 +214,39 @@ def channel_dict():
         "auto_update": True,
         "last_update_completed": "2024-12-01 00:00:00",
     }
+
+
+@pytest.fixture(scope="function")
+def series_dict1():
+    return {
+        "title": "Guerrilla Bars",
+        "start_date": "2021-01-01",
+        "end_date": "2021-12-31",
+    }
+
+
+@pytest.fixture(scope="function")
+def series_dict2():
+    return {
+        "title": "Livestreams",
+        "start_date": "2020-01-01",
+        "end_date": "2023-12-31",
+    }
+
+
+@pytest.fixture(scope="function")
+def series_dict3():
+    return {
+        "title": "Busking",
+        "start_date": "2019-01-01",
+        "end_date": "2015-12-31",
+    }
+
+
+@pytest.fixture(scope="function")
+def series_dicts(series_dict1, series_dict2, series_dict3):
+    return [
+        series_dict1,
+        series_dict2,
+        series_dict3,
+    ]

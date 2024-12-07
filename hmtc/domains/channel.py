@@ -43,7 +43,7 @@ class Channel:
     @classmethod
     def serialize(cls, item_id) -> dict:
         item = cls.load(item_id)
-        return item.simple_dict()
+        return item.my_dict()
 
     @staticmethod
     def last_update_completed() -> str | None:

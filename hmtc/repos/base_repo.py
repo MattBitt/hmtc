@@ -23,12 +23,14 @@ class Repository:
     @myhandler
     def update_item(self, data) -> BaseModel:
         _id = data.pop("id")
+
         item = self.model.get_by_id(_id)
+
         for key, value in data.items():
             setattr(item, key, value)
+
         item.save()
-        _updated_item = self.load_item(_id)
-        return _updated_item
+        return item
 
     @myhandler
     def get_all(self):
