@@ -5,6 +5,7 @@ from loguru import logger
 
 from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.config import init_config
+from hmtc.domains.series import Series as SeriesItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     File as FileModel,
@@ -33,7 +34,6 @@ from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
-from hmtc.domains.series import Series as SeriesItem
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem

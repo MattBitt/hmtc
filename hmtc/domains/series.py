@@ -3,13 +3,13 @@ from dataclasses import dataclass
 
 from loguru import logger
 
+from hmtc.domains.base import Repository
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
-from hmtc.domains.base import BaseDomain
 
 
 @dataclass(frozen=True, kw_only=True)
-class Series(BaseDomain):
+class Series(Repository):
     series: SeriesModel
 
     @staticmethod

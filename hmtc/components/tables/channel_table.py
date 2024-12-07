@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
+from hmtc.domains.channel import Channels as ChannelItem
 from hmtc.models import Channel as ChannelModel
-from hmtc.domains.channel import Channel as ChannelItem
 
 
 @solara.component_vue("ChannelTable.vue", vuetify=True)
@@ -42,5 +42,6 @@ def ChannelTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
+        domain_class=ChannelItem,
         **item_info,
     )

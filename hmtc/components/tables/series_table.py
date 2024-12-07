@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import Series as SeriesModel
 from hmtc.domains.series import Series as SeriesItem
+from hmtc.models import Series as SeriesModel
 
 
 @solara.component_vue("SeriesTable.vue", vuetify=True)

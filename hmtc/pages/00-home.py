@@ -10,8 +10,8 @@ from loguru import logger
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.db import seed_database
-from hmtc.models import Channel as ChannelModel
+from hmtc.utils.seed_database import seed_database
+from hmtc.domains.channel import Channels
 from hmtc.models import Video as VideoModel
 from hmtc.pages.settings import PageState
 from hmtc.schemas.file import FileManager
@@ -32,12 +32,12 @@ def refresh_from_youtube():
             VideoModel.youtube_id.is_null(False)
         )
     ]
-    channels = ChannelModel.select().where((ChannelModel.name.contains("Harry")))
+    channels = Channels().to_auto_update()
 
     num_new_vids = 0
 
     for c in channels:
-        logger.debug(f"Checking channel {c.name}")
+        logger.debug(f"Checking channel {c.channel.title}")
         yt_ids = c.grab_ids()
         ids_to_update = [id for id in yt_ids if id not in existing_ids]
         num_new_vids += len(ids_to_update)
@@ -66,26 +66,22 @@ def Page():
         router=solara.use_router(),
     )
 
-    channels = ChannelModel.select()
+    channels = list(Channels().get_all())
+
     if len(channels) == 0:
         empty_db = True
         last_updated = None
         can_refresh = False
     else:
         empty_db = False
-
-        last_updated = (
-            ChannelModel.select()
-            .order_by(ChannelModel.last_update_completed.desc())
-            .where(ChannelModel.last_update_completed.is_null(False))
-            .get_or_none()
-        )
+        last_updated = Channels().last_update_completed()
 
         if last_updated is None:
             can_refresh = True
         else:
-            how_long_ago_refreshed = datetime.now() - last_updated.last_update_completed
-            can_refresh = how_long_ago_refreshed > timedelta(hours=1)
+            # how_long_ago_refreshed = datetime.now() - last_updated
+            # can_refresh = how_long_ago_refreshed > timedelta(hours=1)
+            can_refresh = True
 
         latest_vids = (
             VideoModel.select()
@@ -94,9 +90,7 @@ def Page():
             .limit(3)
         )
 
-    with solara.Column(
-        classes=["main-container"], style={"background-color": Colors.BACKGROUND}
-    ):
+    with solara.Column(classes=["main-container"]):
         with solara.Row(justify="center", style={"background-color": Colors.SURFACE}):
             if busy_downloading.value:
                 ProgressCircle()

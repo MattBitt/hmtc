@@ -61,18 +61,6 @@ def init_db(db, config):
     return db
 
 
-def seed_database():
-    # this is a good starting point for seeding the database
-    # with some initial data
-
-    # try to use series as the 'type' of audience for his performances
-    channels = ["Harry Mack", "Harry Mack Clips"]
-    for channel in channels:
-        c = Channel.create_from_dict({})
-    series = ["Guerrilla", "Busking", "Concert", "Interview", "Livestream", "Written"]
-    youtube_serieses = ["Omegle Bars", "Guerilla Bars", "Wordplay Wednesday"]
-
-
 def is_db_empty():
     vids = Video.select(Video.id).count()
     logger.debug(f"DB currently has: {vids} Videos")

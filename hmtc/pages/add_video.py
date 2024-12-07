@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.domains.channel import Channels as ChannelItem
 from hmtc.models import Video as VideoModel
-from hmtc.domains.channel import Channel as ChannelItem
 from hmtc.schemas.video import VideoItem
 
 status = solara.reactive("Waiting for video URL")

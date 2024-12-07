@@ -49,9 +49,9 @@ class BaseModel(Model):
             x = super(BaseModel, self).save(*args, **kwargs)
         except Exception as e:
             db_null.rollback()
-
             logger.error(f"Error saving model: {e}")
             raise e
+
         return x
 
     class Meta:
@@ -82,8 +82,18 @@ class Channel(BaseModel):
     title = CharField(unique=True)
     url = CharField()
     youtube_id = CharField(unique=True)
-    last_update_completed = DateTimeField(null=True)
+    last_update_completed = DateTimeField(default=datetime.now())
     auto_update = BooleanField(default=False)
+
+    def simple_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "url": self.url,
+            "youtube_id": self.youtube_id,
+            "last_update_completed": str(self.last_update_completed),
+            "auto_update": self.auto_update,
+        }
 
     def __repr__(self):
         return f"ChannelModel({self.id} - {self.title=})"
@@ -147,7 +157,6 @@ class Video(BaseModel):
     album = ForeignKeyField(Album, backref="videos", null=True)
     channel = ForeignKeyField(Channel, backref="videos", null=True)
     series = ForeignKeyField(Series, backref="videos", null=True)
-
     youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
 
     def __repr__(self):

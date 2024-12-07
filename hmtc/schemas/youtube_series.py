@@ -3,9 +3,9 @@ import datetime
 
 from loguru import logger
 
+from hmtc.domains.series import Series as SeriesItem
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.schemas.base import BaseItem
-from hmtc.domains.series import Series as SeriesItem
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

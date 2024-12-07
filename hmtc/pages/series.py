@@ -8,8 +8,8 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.series_table import SeriesTable
-from hmtc.models import Series as SeriesModel
 from hmtc.domains.series import Series as SeriesItem
+from hmtc.models import Series as SeriesModel
 
 force_update_counter = solara.reactive(0)
 

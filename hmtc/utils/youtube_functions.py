@@ -247,34 +247,3 @@ def download_video_info_from_id(
             "error": False,
             "error_info": "",
         }, files
-
-
-def download_playlist_info(
-    playlist_id, download_path, thumbnail=True, subtitle=True, info=True
-):
-    playlist = get_playlist_info(playlist_id, download_path, thumbnail, subtitle, info)
-    files = []
-    for f in Path(download_path).glob(f"*{id}*"):
-        files.append(f)
-    if "error" in playlist.keys():
-        return {
-            "youtube_id": id,
-            "title": "",
-            "episode": "",
-            "upload_date": "",
-            "private": False,
-            "error": True,
-            "error_info": playlist["error_info"],
-        }, ["errrrrrorrrr"]
-
-    else:
-        return {
-            "youtube_id": playlist["id"],
-            "title": playlist["title"],
-            "upload_date": playlist["upload_date"],
-            "duration": playlist["duration"],
-            "description": playlist["description"],
-            "private": False,
-            "error": False,
-            "error_info": "",
-        }, files

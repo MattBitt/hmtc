@@ -17,6 +17,7 @@ def DataTable(
     action1_icon="",
     action2_path=None,
     action2_icon="",
+    domain_class=None,
 ):
     current_page = solara.use_reactive(1)
     current_sort_field = solara.use_reactive("id")
@@ -57,12 +58,24 @@ def DataTable(
         loading.set(False)
 
     def save_item(*args):
-        logger.error(f"Saving {schema_item.item_type} Item: {args[0]['id']}")
-        schema_item.update_from_dict(args[0]["id"], args[0])
+        if domain_class is None:
+            logger.error(f"Saving {schema_item.item_type} Item: {args[0]['id']}")
+            schema_item.update_from_dict(args[0]["id"], args[0])
+        else:
+            luc = args[0].get("last_update_completed")
+            luc = str(luc) if luc is not None else None
+            if luc is not None:
+                if luc == "None":
+                    args[0]["last_update_completed"] = None
+            domain_class.update(args[0]["id"], args[0])
 
     def delete_item(*args):
-        logger.error(f"Deleting {schema_item.item_type} Item: {args[0]['id']}")
-        schema_item.delete_id(args[0]["id"])
+        if domain_class is None:
+            logger.error(f"Deleting {schema_item.item_type} Item: {args[0]['id']}")
+            schema_item.delete_id(args[0]["id"])
+        else:
+            _item = domain_class().load(args[0]["id"])
+            domain_class(_item).delete_me()
 
     if search_text.value != "":
         if len(search_fields) == 1:
@@ -86,7 +99,12 @@ def DataTable(
     num_items = base_query.count()
     base_query = base_query.paginate(current_page.value, per_page.value)
 
-    items = [schema_item.from_model(item).serialize() for item in base_query]
+    # while converting to the 'domain' models, keep the tables working
+    # with the 'from_model' algorithm
+    if domain_class is None:
+        items = [schema_item.from_model(item).serialize() for item in base_query]
+    else:
+        items = [domain_class(item).serialize() for item in base_query]
 
     vue_component(
         loading=loading.value,
