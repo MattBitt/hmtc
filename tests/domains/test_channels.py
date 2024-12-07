@@ -66,10 +66,10 @@ def test_serialize():
 
 
 def test_get_all(channel_dict):
-    Channel().create(ex_channel1)
-    Channel().create(channel_dict)
-    Channel().create(ex_channel3)
-    all_channels = Channel().get_all()
+    Channel.create(ex_channel1)
+    Channel.create(channel_dict)
+    Channel.create(ex_channel3)
+    all_channels = Channel.get_all()
     assert len(list(all_channels)) == 3
 
 
@@ -85,7 +85,7 @@ def test_update_channels():
     new_id = Channel.create(ex_channel1)
     channel = Channel.load(new_id)
     assert channel.title == ex_channel1["title"]
-    Channel.update(new_id, {"title": "A whole nother title"})
+    Channel.update({"title": "A whole nother title", "id": new_id})
     assert ChannelModel.get_by_id(new_id).title == "A whole nother title"
 
 

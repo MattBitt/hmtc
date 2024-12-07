@@ -63,16 +63,14 @@ def DataTable(
             schema_item.update_from_dict(args[0]["id"], args[0])
         else:
             logger.error(f"Saving {domain_class} Item: {args[0]['id']}")
-            item = domain_class().load(args[0]["id"])
-            item.update(args[0])
+            domain_class.update(args[0])
 
     def delete_item(*args):
         if domain_class is None:
             logger.error(f"Deleting {schema_item.item_type} Item: {args[0]['id']}")
             schema_item.delete_id(args[0]["id"])
         else:
-            _item = domain_class().load(args[0]["id"])
-            domain_class(_item).delete_me()
+            domain_class.delete_id(args[0]["id"])
 
     if search_text.value != "":
         if len(search_fields) == 1:

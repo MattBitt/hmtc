@@ -30,12 +30,13 @@ class Channel:
         return _item
 
     @classmethod
-    def update(cls, item_id, data) -> ChannelModel:
-        _item = cls.repo.update_item(item_id=item_id, data=data)
+    def update(cls, data) -> ChannelModel:
+        _item = cls.repo.update_item(data=data)
         return _item
 
-    def get_all(self) -> List[ChannelModel]:
-        return list(self.repo.get_all())
+    @classmethod
+    def get_all(cls) -> List[ChannelModel]:
+        return list(cls.repo.get_all())
 
     @classmethod
     def delete_id(cls, item_id) -> None:

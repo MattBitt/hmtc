@@ -21,9 +21,14 @@ class Repository:
         return self.model.create(**data)
 
     @myhandler
-    def update_item(self, item_id, data) -> BaseModel:
-        self.load_item(item_id).update(**data).execute()
-        return self.load_item(item_id)
+    def update_item(self, data) -> BaseModel:
+        _id = data.pop("id")
+        item = self.model.get_by_id(_id)
+        for key, value in data.items():
+            setattr(item, key, value)
+        item.save()
+        _updated_item = self.load_item(_id)
+        return _updated_item
 
     @myhandler
     def get_all(self):

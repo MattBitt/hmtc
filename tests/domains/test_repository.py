@@ -42,5 +42,5 @@ def test_update_from_dict(channel_dict):
     repo = Repository(model=ChannelModel, label="Channel")
     new_item = repo.create_item(channel_dict)
     assert new_item.id > 0
-    updated_item = repo.update_item(new_item.id, {"title": "New Title - Line 42"})
+    updated_item = repo.update_item({"title": "New Title - Line 42", "id": new_item.id})
     assert updated_item.title == "New Title - Line 42"
