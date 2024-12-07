@@ -203,3 +203,14 @@ def robin_bm():
 def bluejay_bm():
     bm = BirdManager.create(species="blue jay", weight=20, color="blue")
     return bm
+
+
+@pytest.fixture(scope="function")
+def channel_dict():
+    return {
+        "title": "Harry Mack Test Clips",
+        "url": "https://www.youtube.com/channel/NotAREaslChannElurl",
+        "youtube_id": "tAREaslChannElurl",
+        "auto_update": True,
+        "last_update_completed": "2024-12-01 00:00:00",
+    }

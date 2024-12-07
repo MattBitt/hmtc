@@ -62,12 +62,9 @@ def DataTable(
             logger.error(f"Saving {schema_item.item_type} Item: {args[0]['id']}")
             schema_item.update_from_dict(args[0]["id"], args[0])
         else:
-            luc = args[0].get("last_update_completed")
-            luc = str(luc) if luc is not None else None
-            if luc is not None:
-                if luc == "None":
-                    args[0]["last_update_completed"] = None
-            domain_class.update(args[0]["id"], args[0])
+            logger.error(f"Saving {domain_class} Item: {args[0]['id']}")
+            item = domain_class().load(args[0]["id"])
+            item.update(args[0])
 
     def delete_item(*args):
         if domain_class is None:
@@ -104,7 +101,7 @@ def DataTable(
     if domain_class is None:
         items = [schema_item.from_model(item).serialize() for item in base_query]
     else:
-        items = [domain_class(item).serialize() for item in base_query]
+        items = [item.simple_dict() for item in base_query]
 
     vue_component(
         loading=loading.value,

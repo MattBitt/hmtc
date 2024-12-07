@@ -7,7 +7,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import init_db
-from hmtc.domains.base import Repository
+from hmtc.repos.base_repo import Repository
 from hmtc.models import db_null
 from hmtc.models import Channel as ChannelModel
 
@@ -15,40 +15,41 @@ config = init_config()
 db = init_db(db_null, config)
 
 
-@dataclass()
-class Channels:
-    model: ChannelModel = field(default_factory=ChannelModel)
-    model_verbose: str = field(default="Channel")
-    _id: int = field(default=None)
+class Channel:
+    model = ChannelModel()
+    repo = Repository(model=model, label="Channel")
 
-    def __post_init__(self):
-        self._id = self.model.id or None
+    @classmethod
+    def create(cls, data) -> ChannelModel:
+        new_channel = cls.repo.create_item(data=data)
+        return new_channel
 
-    def create(self, data) -> "Channels":
-        _item = Repository.create_from_dict(model=self.model, data=data)
-        return Channels(model=_item)
+    @classmethod
+    def load(cls, item_id) -> ChannelModel:
+        _item = cls.repo.load_item(item_id=item_id)
+        return _item
 
-    def load(self, _id) -> "Channels":
-        _item = Repository.load_by_id(model=self.model, _id=_id)
-        return Channels(model=_item)
+    @classmethod
+    def update(cls, item_id, data) -> ChannelModel:
+        _item = cls.repo.update_item(item_id=item_id, data=data)
+        return _item
 
-    def update(self, data):
-        _item = Repository.update_from_dict(model=self.model, _id=self._id, data=data)
-        return Channels(model=_item)
+    def get_all(self) -> List[ChannelModel]:
+        return list(self.repo.get_all())
 
-    def get_all(self) -> List["Channels"]:
-        return Repository.get_all(model=self.model)
-
-    def delete_me(self) -> None:
-        if self._id is None:
-            logger.error(f"Need to load data before deleting")
-            item = self.load(self.model.id)
-
-        Repository.delete_by_id(model=self.model, _id=self._id)
+    @classmethod
+    def delete_id(cls, item_id) -> None:
+        cls.repo.delete_by_id(item_id=item_id)
         logger.success(f"Deleted !")
 
-    def serialize(self) -> dict:
-        return asdict(self).pop("model").simple_dict()
+    @classmethod
+    def serialize(cls, item_id) -> dict:
+        item = cls.load(item_id)
+        return item.simple_dict()
+
+    @staticmethod
+    def get_by_id(item_id) -> ChannelModel:
+        return ChannelModel.get_by_id(item_id)
 
     @staticmethod
     def last_update_completed() -> str | None:
@@ -71,6 +72,6 @@ class Channels:
     def to_auto_update(cls):
         channels = ChannelModel.select().where(ChannelModel.auto_update == True)
         for channel in channels:
-            yield cls(channel)
+            yield channel
         else:
             return None

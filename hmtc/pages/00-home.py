@@ -11,7 +11,7 @@ from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.utils.seed_database import seed_database
-from hmtc.domains.channel import Channels
+from hmtc.domains.channel import Channel
 from hmtc.models import Video as VideoModel
 from hmtc.pages.settings import PageState
 from hmtc.schemas.file import FileManager
@@ -32,7 +32,7 @@ def refresh_from_youtube():
             VideoModel.youtube_id.is_null(False)
         )
     ]
-    channels = Channels().to_auto_update()
+    channels = Channel().to_auto_update()
 
     num_new_vids = 0
 
@@ -66,7 +66,7 @@ def Page():
         router=solara.use_router(),
     )
 
-    channels = list(Channels().get_all())
+    channels = list(Channel().get_all())
 
     if len(channels) == 0:
         empty_db = True
@@ -74,7 +74,7 @@ def Page():
         can_refresh = False
     else:
         empty_db = False
-        last_updated = Channels().last_update_completed()
+        last_updated = Channel().last_update_completed()
 
         if last_updated is None:
             can_refresh = True

@@ -1,4 +1,4 @@
-from hmtc.domains.channel import Channels
+from hmtc.domains.channel import Channel
 
 
 def seed_database():
@@ -21,7 +21,7 @@ def seed_database():
     ]
 
     for channel_dict in channels:
-        c = Channels.create(channel_dict)
+        c = Channel.create(channel_dict)
 
     # try to use series as the 'type' of audience for his performances
     series = [

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from loguru import logger
 
-from hmtc.domains.base import Repository
+from hmtc.repos.base_repo import Repository
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
 
@@ -38,7 +38,7 @@ class Series(Repository):
         }
 
     @staticmethod
-    def update_from_dict(series_id, new_data) -> None:
+    def update_item(series_id, new_data) -> None:
         series = SeriesModel.get_by_id(series_id)
         series.title = new_data["title"]
         series.start_date = new_data["start_date"]

@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.channel import Channels as ChannelItem
+from hmtc.domains.channel import Channel as ChannelItem
 from hmtc.models import Channel as ChannelModel
 
 
