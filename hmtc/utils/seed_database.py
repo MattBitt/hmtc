@@ -1,8 +1,10 @@
 from datetime import datetime
+
+from hmtc.db import create_tables, drop_all_tables
+from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
 from hmtc.domains.youtube_series import YoutubeSeries
-from hmtc.db import create_tables, drop_all_tables
 
 
 def seed_database():
@@ -25,9 +27,9 @@ def seed_database():
     ]
 
     for channel_dict in channels:
-        c = Channel.create(channel_dict)
+        Channel.create(channel_dict)
 
-    # try to use series as the 'type' of audience for his performances
+    # trying to use series as the 'type' of audience for his performances
     series = [
         "Omegle",
         "Guerrilla",
@@ -36,6 +38,7 @@ def seed_database():
         "Interview",
         "Livestream",
         "Written",
+        "Advertisement",
     ]
     start = datetime(2021, 1, 1)
     end = datetime(2021, 12, 31)
@@ -50,6 +53,14 @@ def seed_database():
 
     for yts in youtube_serieses:
         YoutubeSeries.create(yts)
+
+    albums = [
+        {"title": "Omegle Bars", "release_date": "2024-09-23"},
+        {"title": "Guerrilla Bars", "release_date": "2023-09-23"},
+        {"title": "Wordplay Wednesday", "release_date": datetime(2021, 12, 31)},
+    ]
+    for album in albums:
+        Album.create(album)
 
 
 def recreate_database(_db):

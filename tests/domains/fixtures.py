@@ -1,8 +1,17 @@
 import pytest
+
+from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
+from hmtc.domains.section import Section
+from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
 
+album_dicts = [
+    {"title": "Omegle Bars", "release_date": "2024-09-23"},
+    {"title": "Guerrilla Bars", "release_date": "2023-09-23"},
+    {"title": "Wordplay Wednesday", "release_date": "2022-09-23"},
+]
 channel_dicts = [
     {
         "title": "Clips of harry Mack",
@@ -57,6 +66,62 @@ youtube_series_dicts = [
     {
         "title": "Omegle Bars",
         "series": "Livestreams",
+    },
+]
+
+video_dicts = [
+    {
+        "description": "Harry Mack raps on the street",
+        "duration": 400,
+        "title": "Guerrilla Bars 1",
+        "unique_content": True,
+        "upload_date": "2021-01-01",
+        "url": "https://www.youtube.com/watch?v=1234",
+        "youtube_id": "1234",
+        "episode": 1,
+        "channel": "Another Harry Mack Channel",
+        "series": "Guerrilla",
+        "youtube_series": "Guerrilla Bars",
+        "album": "Guerrilla Bars",
+    },
+    {
+        "description": "Harry Mack raps on the street",
+        "duration": 4000,
+        "title": "Wordplay Wednesday 84",
+        "unique_content": True,
+        "upload_date": "2023-01-01",
+        "url": "https://www.youtube.com/watch?v=1234zxcvasd",
+        "youtube_id": "1234cvdde",
+        "episode": None,
+        "channel": "Yet another HM Channel",
+        "series": "Livestreams",
+        "youtube_series": "Wordplay Wednesday",
+        "album": "Wordplay Wednesday",
+    },
+    {
+        "description": "Harry Mack raps on the street",
+        "duration": 1200,
+        "title": "Omegle Bars 18",
+        "unique_content": True,
+        "upload_date": "2024-01-01",
+        "url": "https://www.youtube.com/watch?v=12345678",
+        "youtube_id": "123781",
+        "episode": 0,
+        "channel": "Clips of harry Mack",
+        "series": "Concerts",
+        "youtube_series": "Omegle Bars",
+        "album": "Omegle Bars",
+    },
+]
+
+section_dicts = [
+    {"start": 50, "end": 250, "section_type": "Intro", "video": "Guerrilla Bars 1"},
+    {"start": 250, "end": 350, "section_type": "Verse 1", "video": "Guerrilla Bars 1"},
+    {
+        "start": 1000,
+        "end": 2000,
+        "section_type": "Chorus",
+        "video": "Wordplay Wednesday 84",
     },
 ]
 
@@ -121,3 +186,68 @@ def youtube_series_item(series_item):
     youtube_series_dicts[0]["series"] = series_item.title
     yts = YoutubeSeries.create(youtube_series_dicts[0])
     return yts
+
+
+@pytest.fixture(scope="function")
+def album_dict1():
+    return album_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def album_dict2():
+    return album_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def album_dict3():
+    return album_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def album_item():
+    return Album.create(album_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def section_dict1():
+    return section_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def section_dict2():
+    return section_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def section_dict3():
+    return section_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def section_item(video_item):
+    section_dicts[0]["video"] = video_item.title
+    return Section.create(section_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def video_dict1():
+    return video_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def video_dict2():
+    return video_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def video_dict3():
+    return video_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def video_item(series_item, youtube_series_item, album_item, channel_item):
+    video_dicts[0]["series"] = series_item.title
+    video_dicts[0]["youtube_series"] = youtube_series_item.title
+    video_dicts[0]["album"] = album_item.title
+    video_dicts[0]["channel"] = channel_item.title
+    return Video.create(video_dicts[0])

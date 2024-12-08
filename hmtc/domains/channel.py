@@ -2,8 +2,8 @@ from typing import List
 
 from loguru import logger
 
-from hmtc.repos.base_repo import Repository
 from hmtc.models import Channel as ChannelModel
+from hmtc.repos.base_repo import Repository
 
 
 class Channel:

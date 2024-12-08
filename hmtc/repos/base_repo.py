@@ -1,8 +1,8 @@
 from loguru import logger
 
 from hmtc.config import init_config
-from hmtc.models import BaseModel
 from hmtc.decorators import myhandler
+from hmtc.models import BaseModel
 
 config = init_config()
 

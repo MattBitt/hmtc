@@ -1,6 +1,8 @@
 {
     "python.testing.pytestArgs": [
         ".",
+        "--ignore=archive",
+        "--ignore=tests/old_tests",
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

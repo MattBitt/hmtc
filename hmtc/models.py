@@ -146,21 +146,25 @@ class Album(BaseModel):
 
 
 class Video(BaseModel):
+    description = TextField()
+    duration = IntegerField()
+    title = CharField()
+    unique_content = BooleanField(default=False)
+    upload_date = DateField()
+    url = CharField()
     youtube_id = CharField(unique=True)
-    url = CharField(null=True)
-    title = CharField(null=True)
+
+    # really more associated with youtube serieses. probably should be moved
     episode = CharField(null=True)
-    upload_date = DateField(null=True)
-    duration = IntegerField(null=True)
-    description = TextField(null=True)
-    contains_unique_content = BooleanField(default=False)
-    manually_edited = BooleanField(default=False)
+
+    # won't be assigned by jellyfin until after the video is uploaded
     jellyfin_id = CharField(null=True, max_length=255)
 
     # relationships
     album = ForeignKeyField(Album, backref="videos", null=True)
-    channel = ForeignKeyField(Channel, backref="videos", null=True)
+    channel = ForeignKeyField(Channel, backref="videos")
     series = ForeignKeyField(Series, backref="videos", null=True)
+    # this needs to go the other way, im pretty sure
     youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
 
     def __repr__(self):
@@ -205,13 +209,11 @@ class Track(BaseModel):
 
 
 class Section(BaseModel):
-    start = IntegerField(null=True)
-    end = IntegerField(null=True)
-    section_type = CharField(null=True)
-    is_first = BooleanField(default=False)
-    is_last = BooleanField(default=False)
-    ordinal = IntegerField(null=True)
-    video = ForeignKeyField(Video, backref="sections", null=True)
+    start = IntegerField()
+    end = IntegerField()
+    section_type = CharField()
+    next_section: int = ForeignKeyField("self", backref="previous_section", null=True)
+    video = ForeignKeyField(Video, backref="sections")
     track = ForeignKeyField(Track, backref="section", null=True)
 
     def __repr__(self):

@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
+from hmtc.domains.album import Album as AlbumItem
 from hmtc.models import Album as AlbumModel
-from hmtc.schemas.album import Album as AlbumItem
 
 
 @solara.component_vue("AlbumTable.vue", vuetify=True)
@@ -42,5 +42,6 @@ def AlbumTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
+        domain_class=AlbumItem,
         **item_info,
     )

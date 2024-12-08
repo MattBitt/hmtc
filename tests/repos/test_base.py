@@ -1,5 +1,5 @@
-from hmtc.repos.base_repo import Repository
 from hmtc.models import BaseModel
+from hmtc.repos.base_repo import Repository
 
 
 def test_base_repository():

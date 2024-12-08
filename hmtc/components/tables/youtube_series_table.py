@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
+from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 
 
 @solara.component_vue("YoutubeSeriesTable.vue", vuetify=True)

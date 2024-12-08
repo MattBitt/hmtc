@@ -36,7 +36,6 @@ from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
-from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_user_favorites,

@@ -2,10 +2,10 @@ from typing import List
 
 from loguru import logger
 
-from hmtc.repos.base_repo import Repository
-from hmtc.models import YoutubeSeries as YoutubeSeriesModel
-from hmtc.models import Series as SeriesModel
 from hmtc.domains.series import Series
+from hmtc.models import Series as SeriesModel
+from hmtc.models import YoutubeSeries as YoutubeSeriesModel
+from hmtc.repos.base_repo import Repository
 
 
 class YoutubeSeries:
@@ -32,14 +32,9 @@ class YoutubeSeries:
 
     @classmethod
     def serialize(cls, item_id) -> dict:
-
         item = cls.load(item_id)
-
-        series = Series.serialize(item.series.id)
-
         _dict = item.my_dict()
-        _dict["series"] = series["title"]
-
+        _dict["series"] = Series.serialize(item.series.id)
         return _dict
 
     @classmethod

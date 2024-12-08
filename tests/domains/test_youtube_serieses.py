@@ -1,12 +1,13 @@
 import pytest
+
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
+    series_item,
     youtube_series_dict1,
     youtube_series_dict2,
     youtube_series_dict3,
-    series_item,
     youtube_series_item,
 )
 

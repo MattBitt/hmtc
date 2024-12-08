@@ -1,6 +1,5 @@
-from hmtc.repos.base_repo import Repository
-
 from hmtc.models import Channel as ChannelModel
+from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import channel_dict1
 
 

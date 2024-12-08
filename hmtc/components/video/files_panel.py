@@ -8,6 +8,7 @@ from hmtc.components.video.jf_panel import JFPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.config import init_config
 from hmtc.domains.series import Series as SeriesItem
+from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     File as FileModel,
@@ -38,7 +39,6 @@ from hmtc.schemas.section import Section as SectionItem
 from hmtc.schemas.section import SectionManager
 from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
-from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_user_favorites,
