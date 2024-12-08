@@ -85,7 +85,7 @@ def Page():
 
         latest_vids = (
             VideoModel.select()
-            .where(VideoModel.contains_unique_content == True)
+            .where(VideoModel.unique_content == True)
             .order_by(VideoModel.upload_date.desc())
             .limit(3)
         )
@@ -124,11 +124,12 @@ def Page():
         else:
             with solara.ColumnsResponsive(default=12, large=4):
                 for vid in latest_vids:
-                    poster = FileManager.get_file_for_video(vid, "poster")
-                    video_image = ImageManager(poster)
+                    # poster = FileManager.get_file_for_video(vid, "poster")
+                    # video_image = ImageManager(poster)
 
                     with solara.Card():
                         with solara.Column():
                             with solara.Link(f"/video-details/{vid.id}"):
-                                solara.Image(image=video_image.image)
+                                solara.Markdown(f"## Video Image Goes HERE")
+                                # solara.Image(image=video_image.image)
                             solara.Markdown(f"#### {vid.title}")

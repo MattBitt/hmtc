@@ -4,13 +4,13 @@ from hmtc.domains.video import Video
 from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
+    album_item,
+    channel_item,
+    series_item,
     video_dict1,
     video_dict2,
     video_dict3,
     video_item,
-    album_item,
-    channel_item,
-    series_item,
     youtube_series_item,
 )
 

@@ -3,10 +3,11 @@ from datetime import datetime
 from hmtc.db import create_tables, drop_all_tables
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
+from hmtc.domains.section import Section
 from hmtc.domains.series import Series
+from hmtc.domains.track import Track
 from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
-from hmtc.domains.section import Section
 
 
 def seed_database():
@@ -117,22 +118,53 @@ def seed_database():
             "end": 400,
             "section_type": "verse",
             "video": "DELETE ME ME ME (FIRST)",
+            "track_id": 1,
         },
         {
             "start": 0,
             "end": 400,
             "section_type": "verse",
             "video": "DELETE ME ME ME (second)",
+            "track_id": 2,
         },
         {
             "start": 0,
             "end": 400,
             "section_type": "verse",
             "video": "DELETE ME ME ME (LAST)",
+            "track_id": 3,
         },
     ]
     for section in sections:
         Section.create(section)
+    tracks = [
+        {
+            "id": 1,
+            "title": "My First Track",
+            "track_number": 1,
+            "length": 45,
+            "album": "Omegle Bars",
+            "video": "DELETE ME ME ME (second)",
+        },
+        {
+            "id": 2,
+            "title": "My Second Track",
+            "track_number": 2,
+            "length": 45,
+            "album": "Omegle Bars",
+            "video": "DELETE ME ME ME (second)",
+        },
+        {
+            "id": 3,
+            "title": "My Third Track",
+            "track_number": 3,
+            "length": 45,
+            "album": "Guerrilla Bars",
+            "video": "DELETE ME ME ME (FIRST)",
+        },
+    ]
+    for track in tracks:
+        Track.create(track)
 
 
 def recreate_database(_db):

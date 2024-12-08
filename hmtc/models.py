@@ -176,19 +176,18 @@ class Video(BaseModel):
 
 class Track(BaseModel):
     title = CharField()
-    track_number = IntegerField(null=False)
-    length = IntegerField(null=True)
+    track_number = IntegerField()
+    length = IntegerField()
     jellyfin_id = IntegerField(null=True)
-    album = ForeignKeyField(Album, backref="tracks", null=True)
+    album = ForeignKeyField(Album, backref="tracks")
+    video = ForeignKeyField(Video, backref="tracks")
 
     def simple_dict(self):
-        files = File.select().where(File.track_id == self.id)
         return {
             "id": self.id,
             "title": self.title,
             "track_number": self.track_number,
             "length": self.length,
-            "files": [f.simple_dict() for f in files],
         }
 
     @staticmethod

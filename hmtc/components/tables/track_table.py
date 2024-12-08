@@ -4,6 +4,7 @@ from loguru import logger
 from hmtc.components.tables.data_table import DataTable
 from hmtc.models import Track as TrackModel
 from hmtc.schemas.track import Track as TrackItem
+from hmtc.domains.track import Track
 
 
 @solara.component_vue("TrackTable.vue", vuetify=True)
@@ -46,5 +47,6 @@ def TrackTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
+        domain_class=Track,
         **item_info,
     )

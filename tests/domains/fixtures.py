@@ -2,10 +2,11 @@ import pytest
 
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
-from hmtc.domains.series import Series
 from hmtc.domains.section import Section
+from hmtc.domains.series import Series
 from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
+from hmtc.domains.track import Track
 
 album_dicts = [
     {"title": "Omegle Bars", "release_date": "2024-09-23"},
@@ -115,13 +116,53 @@ video_dicts = [
 ]
 
 section_dicts = [
-    {"start": 50, "end": 250, "section_type": "Intro", "video": "Guerrilla Bars 1"},
-    {"start": 250, "end": 350, "section_type": "Verse 1", "video": "Guerrilla Bars 1"},
+    {
+        "start": 50,
+        "end": 250,
+        "section_type": "Intro",
+        "video": "Guerrilla Bars 1",
+        "track_id": 1,
+    },
+    {
+        "start": 250,
+        "end": 350,
+        "section_type": "Verse 1",
+        "video": "Guerrilla Bars 1",
+        "track_id": 2,
+    },
     {
         "start": 1000,
         "end": 2000,
         "section_type": "Chorus",
         "video": "Wordplay Wednesday 84",
+        "track_id": 3,
+    },
+]
+
+track_dicts = [
+    {
+        "id": 1,
+        "title": "My First Track",
+        "track_number": 1,
+        "length": 45,
+        "album": "Omegle Bars",
+        "video": "Omegle Bars 18",
+    },
+    {
+        "id": 1,
+        "title": "My Second Track",
+        "track_number": 2,
+        "length": 45,
+        "album": "Omegle Bars",
+        "video": "Omegle Bars 18",
+    },
+    {
+        "id": 3,
+        "title": "First Track on different album",
+        "track_number": 1,
+        "length": 45,
+        "album": "Guerrilla Bars",
+        "video": "Guerrilla Bars 1",
     },
 ]
 
@@ -251,3 +292,25 @@ def video_item(series_item, youtube_series_item, album_item, channel_item):
     video_dicts[0]["album"] = album_item.title
     video_dicts[0]["channel"] = channel_item.title
     return Video.create(video_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def track_dict1():
+    return track_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def track_dict2():
+    return track_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def track_dict3():
+    return track_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def track_item(video_item):
+    track_dicts[0]["video"] = video_item.title
+    track_dicts[0]["album"] = video_item.album.title
+    return Track.create(track_dicts[0])

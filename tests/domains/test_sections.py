@@ -4,14 +4,14 @@ from hmtc.domains.section import Section
 from hmtc.models import Section as SectionModel
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
+    album_item,
+    channel_item,
     section_dict1,
     section_dict2,
     section_dict3,
     section_item,
-    video_item,
-    album_item,
-    channel_item,
     series_item,
+    video_item,
     youtube_series_item,
 )
 

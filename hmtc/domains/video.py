@@ -1,16 +1,17 @@
 from typing import List
 
 from loguru import logger
-from hmtc.models import Album as AlbumModel
-from hmtc.models import Channel as ChannelModel
-from hmtc.models import Series as SeriesModel
-from hmtc.models import YoutubeSeries as YoutubeSeriesModel
-from hmtc.models import Video as VideoModel
-from hmtc.repos.base_repo import Repository
+
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
 from hmtc.domains.youtube_series import YoutubeSeries
+from hmtc.models import Album as AlbumModel
+from hmtc.models import Channel as ChannelModel
+from hmtc.models import Series as SeriesModel
+from hmtc.models import Video as VideoModel
+from hmtc.models import YoutubeSeries as YoutubeSeriesModel
+from hmtc.repos.base_repo import Repository
 
 
 class Video:

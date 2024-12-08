@@ -40,9 +40,10 @@ def Page():
         return
     with solara.Columns([6, 6]):
         with solara.Column():
-            poster = FileManager.get_file_for_album(album=album, filetype="poster")
-            image = ImageManager(poster).image
-            solara.Image(image, width="400")
+            # poster = FileManager.get_file_for_album(album=album, filetype="poster")
+            # image = ImageManager(poster).image
+            solara.Markdown(f"## Album Poster:")
+            # solara.Image(image, width="400")
             solara.Markdown(f"Album Title: {album.title}")
         with solara.Column():
             solara.Markdown(f"Album ID: {album.id}")
@@ -52,10 +53,7 @@ def Page():
             with solara.Row():
 
                 solara.Markdown(f"{video.title}")
-                solara.Button(
-                    "Use Album Art",
-                    on_click=lambda: album.use_video_poster(video=video),
-                )
+
                 with solara.Link(f"/video-details/{video.id}"):
                     solara.Markdown("Details")
     with solara.Info(label="Tracks"):
