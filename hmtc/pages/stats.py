@@ -4,11 +4,11 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.domains.album import Album as AlbumItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.album import Album as AlbumItem
 
 
 def create_missing_tracks(vids_with_missing_tracks):

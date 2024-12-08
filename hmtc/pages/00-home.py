@@ -11,10 +11,9 @@ from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains.channel import Channel
+from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Video as VideoModel
 from hmtc.pages.settings import PageState
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.video import VideoItem
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.seed_database import seed_database
 

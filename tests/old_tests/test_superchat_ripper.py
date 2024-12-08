@@ -8,11 +8,9 @@ from loguru import logger
 from PIL import Image
 
 from hmtc.config import init_config
+from hmtc.domains.superchat import Superchat as SuperchatItem
 from hmtc.models import Superchat as SuperchatModel
-from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
@@ -132,7 +130,7 @@ def test_image_as_file_speed(test_image_filename):
 def test_superchat_model(video):
 
     sc = SuperchatModel(
-        frame_number=0,
+        frame=0,
         video_id=video.id,
     )
     sc.save()
@@ -180,16 +178,16 @@ def test_ripper_to_item(video_with_file, test_ww116_images):
         sc = SuperChatRipper(editor.image)
         sc_image, found = sc.find_superchat()
         assert found
-        new_sc = SuperchatModel.create(frame_number=counter, video_id=video.id)
+        new_sc = SuperchatModel.create(frame=counter, video_id=video.id)
         superchat = SuperchatItem.from_model(new_sc)
         superchat.add_image(sc_image)
         assert superchat.get_image() is not None
-        new_sc = SuperchatModel.get(frame_number=counter, video_id=video.id)
+        new_sc = SuperchatModel.get(frame=counter, video_id=video.id)
         assert new_sc is not None
         assert new_sc.video.id == video.id
-        assert new_sc.frame_number == counter
-        sc_file_db = SuperchatFileModel.get_or_none(superchat_id=new_sc.id)
-        assert sc_file_db is not None
+        assert new_sc.frame == counter
+        # sc_file_db = SuperchatFileModel.get_or_none(superchat_id=new_sc.id)
+        # assert sc_file_db is not None
         img = superchat.get_image()
         assert isinstance(img, np.ndarray)
         counter = counter + 1

@@ -3,8 +3,8 @@ from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.video import Video as VideoItem
+from hmtc.domains.video import VideoItem as _VideoItem
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.video import VideoItem as _VideoItem
 
 
 @solara.component_vue("VideoTable.vue", vuetify=True)

@@ -11,19 +11,18 @@ from loguru import logger
 from hmtc.components.shared.progress_slider import SimpleProgressBar
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
+from hmtc.domains.album import Album as AlbumItem
+from hmtc.domains.track import Track as TrackItem
+from hmtc.domains.video import Video as VideoItem
 from hmtc.models import (
     Album as AlbumModel,
 )
 from hmtc.models import Channel
-from hmtc.models import (
-    File as FileModel,
-)
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
 )
 from hmtc.models import Superchat as SuperchatModel
-from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import (
     Topic as TopicModel,
 )
@@ -34,12 +33,6 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.schemas.file import File as FileItem
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.section import Section, SectionManager
-from archive.track import Track as TrackItem
-from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import search_for_media
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.seed_database import recreate_database

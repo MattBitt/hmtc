@@ -5,7 +5,6 @@ from typing import List, Optional
 import peewee
 from loguru import logger
 
-from hmtc.models import File as FileModel
 from hmtc.models import (
     Section as SectionModel,
 )

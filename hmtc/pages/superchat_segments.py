@@ -14,13 +14,12 @@ from hmtc.components.shared.check_and_x.check_x import (
 )
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.domains.section import Section as SectionItem
+from hmtc.domains.superchat_segment import SuperchatSegment as SuperchatSegmentItem
+from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.section import Section as SectionItem
-from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
-from hmtc.schemas.video import VideoItem
 from hmtc.utils.general import paginate
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
@@ -41,19 +40,19 @@ def parse_url_args():
                     (SuperchatSegmentModel.video_id == video_id)
                     & (
                         (
-                            SuperchatSegmentModel.end_time
-                            - SuperchatSegmentModel.start_time
+                            SuperchatSegmentModel.end_time_ms
+                            - SuperchatSegmentModel.start_time_ms
                         )
                         > 500
                     )
                 )
-                .order_by(SuperchatSegmentModel.start_time.asc())
+                .order_by(SuperchatSegmentModel.start_time_ms.asc())
             ), True
         case ["superchat-segments", video_id]:
             return (
                 SuperchatSegmentModel.select()
                 .where(SuperchatSegmentModel.video_id == video_id)
-                .order_by(SuperchatSegmentModel.start_time.asc())
+                .order_by(SuperchatSegmentModel.start_time_ms.asc())
             ), False
         case _:
             logger.error(f"Invalid URL: {router.url}")

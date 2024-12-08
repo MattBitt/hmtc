@@ -5,7 +5,6 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.utils.jellyfin_functions import (

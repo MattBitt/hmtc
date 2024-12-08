@@ -39,32 +39,32 @@ class ImageExtractor:
             raise Exception("Error: Could not open the video.")
 
     def extract_frame(self, seconds: int):
-        frame_number = seconds * self.fps
-        frame = self.grab_frame(frame_number)
+        frame = seconds * self.fps
+        frame = self.grab_frame(frame)
         return frame
 
     def extract_frame_sequence(self, start_time, end_time, interval):
         for timestamp in range(start_time, end_time, interval):
-            frame_number = timestamp * self.fps
-            frame = self.grab_frame(frame_number)
+            frame = timestamp * self.fps
+            frame = self.grab_frame(frame)
             logger.error(f"Extracted frame at {timestamp}")
             yield frame
 
-    def grab_frame(self, frame_number) -> NDArray:
-        if frame_number < 0:
+    def grab_frame(self, frame) -> NDArray:
+        if frame < 0:
             logger.error("Frame_number cannot be negative")
-            raise ValueError(f"Frame_number cannot be negative {frame_number}")
-        if frame_number > self.frame_count:
+            raise ValueError(f"Frame_number cannot be negative {frame}")
+        if frame > self.frame_count:
             logger.error("Frame_number cannot be greater than frame count")
             raise ValueError(
-                f"Frame_number cannot exceed frame count {frame_number} / {self.frame_count}"
+                f"Frame_number cannot exceed frame count {frame} / {self.frame_count}"
             )
 
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
         ret, frame = self.cap.read()
         if not ret:
-            logger.error(f"Could not read frame at frame_number {frame_number}")
-            raise Exception(f"Could not read frame at frame_number {frame_number}")
+            logger.error(f"Could not read frame at frame {frame}")
+            raise Exception(f"Could not read frame at frame {frame}")
         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def save_image(self, image_filename, frame):

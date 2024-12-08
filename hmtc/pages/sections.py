@@ -8,8 +8,8 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.section_table import SectionTable
+from hmtc.domains.section import Section as SectionItem
 from hmtc.models import Section as SectionModel
-from hmtc.schemas.section import Section as SectionItem
 
 force_update_counter = solara.reactive(0)
 

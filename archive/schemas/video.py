@@ -17,7 +17,6 @@ from hmtc.models import (
     Series,
     YoutubeSeries,
 )
-from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel

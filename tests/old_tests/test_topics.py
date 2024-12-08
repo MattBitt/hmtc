@@ -1,3 +1,4 @@
+from hmtc.domains.section import Section as SectionItem
 from hmtc.models import (
     Section as SectionModel,
 )
@@ -10,7 +11,6 @@ from hmtc.models import (
 from hmtc.models import (
     Video as VideoModel,
 )
-from hmtc.schemas.section import Section as SectionItem
 
 
 def test_topic():

@@ -9,6 +9,7 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.video_table import VideoTable
+from hmtc.domains.video import VideoItem
 from hmtc.models import (
     Album as AlbumModel,
 )
@@ -16,7 +17,6 @@ from hmtc.models import (
     Channel,
     Series,
 )
-from hmtc.models import File as FileModel
 from hmtc.models import (
     Section as SectionModel,
 )
@@ -30,7 +30,6 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
-from hmtc.schemas.video import VideoItem
 
 
 def create_query_from_url():

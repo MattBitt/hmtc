@@ -2,9 +2,9 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import Track as TrackModel
-from archive.track import Track as TrackItem
 from hmtc.domains.track import Track
+from hmtc.domains.track import Track as TrackItem
+from hmtc.models import Track as TrackModel
 
 
 @solara.component_vue("TrackTable.vue", vuetify=True)

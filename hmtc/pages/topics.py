@@ -8,9 +8,9 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.topic_table import TopicTable
+from hmtc.domains.topic import Topic as TopicItem
 from hmtc.models import SectionTopics as SectionTopicModel
 from hmtc.models import Topic as TopicModel
-from hmtc.schemas.topic import Topic as TopicItem
 
 force_update_counter = solara.reactive(0)
 

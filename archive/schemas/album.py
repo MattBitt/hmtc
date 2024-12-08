@@ -7,7 +7,6 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.models import Album as AlbumModel
-from hmtc.models import File as FileModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Track as TrackModel

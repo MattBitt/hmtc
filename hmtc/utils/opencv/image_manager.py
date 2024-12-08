@@ -9,8 +9,6 @@ from numpy.typing import NDArray
 from PIL import Image
 
 from hmtc.config import init_config
-from hmtc.models import SuperchatFile as SuperchatFileModel
-from hmtc.schemas.file import File as FileItem
 
 config = init_config()
 WORKING = Path(config["paths"]["working"])
@@ -35,17 +33,6 @@ class ImageManager:
             self.image = cv2.imread(str(self.image_path), cv2.IMREAD_UNCHANGED)
 
         elif isinstance(image, FileItem):
-            self.image_path = Path(image.path) / image.filename
-
-            if not self.image_path.exists():
-                raise Exception(f"Error: Could not open the image. {image}")
-
-            self.image = cv2.imread(str(self.image_path), cv2.IMREAD_UNCHANGED)
-
-            if self.image_path.suffix == ".webp":
-                self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
-
-        elif isinstance(image, SuperchatFileModel):
             self.image_path = Path(image.path) / image.filename
 
             if not self.image_path.exists():

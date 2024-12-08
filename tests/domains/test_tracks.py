@@ -6,12 +6,12 @@ from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
     album_item,
     channel_item,
+    section_item,
+    series_item,
     track_dict1,
     track_dict2,
     track_dict3,
     track_item,
-    section_item,
-    series_item,
     video_item,
     youtube_series_item,
 )

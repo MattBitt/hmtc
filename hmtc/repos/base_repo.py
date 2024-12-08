@@ -40,5 +40,6 @@ class Repository:
     def delete_by_id(self, item_id: int) -> None:
         self.model.delete_by_id(item_id)
 
+    @myhandler
     def get(self, **kwargs):
         return self.model.get(**kwargs)

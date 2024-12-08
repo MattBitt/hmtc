@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
+from hmtc.domains.topic import Topic as TopicItem
 from hmtc.models import Topic as TopicModel
-from hmtc.schemas.topic import Topic as TopicItem
 
 
 @solara.component_vue("TopicTable.vue", vuetify=True)

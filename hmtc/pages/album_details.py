@@ -4,9 +4,8 @@ import PIL
 import solara
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.domains.album import Album as AlbumItem
 from hmtc.models import Album as AlbumModel
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.schemas.file import FileManager
 from hmtc.utils.opencv.image_manager import ImageManager
 
 

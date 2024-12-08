@@ -4,9 +4,12 @@ from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.section import Section
 from hmtc.domains.series import Series
+from hmtc.domains.superchat import Superchat
+from hmtc.domains.superchat_segment import SuperchatSegment
+from hmtc.domains.topic import Topic
+from hmtc.domains.track import Track
 from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
-from hmtc.domains.track import Track
 
 album_dicts = [
     {"title": "Omegle Bars", "release_date": "2024-09-23"},
@@ -165,6 +168,22 @@ track_dicts = [
         "video": "Guerrilla Bars 1",
     },
 ]
+topic_dicts = [
+    {"text": "orange"},
+    {"text": "apple"},
+    {"text": "banana"},
+    {"text": "bottle"},
+]
+superchat_dicts = [
+    {"frame": 100, "video": "Guerrilla Bars 1"},
+    {"frame": 200, "video": "Wordplay Wednesday 84"},
+    {"frame": 300, "video": "Omegle Bars 18"},
+]
+superchat_segment_dicts = [
+    {"start_time_ms": 100, "end_time_ms": 200, "video": "Guerrilla Bars 1"},
+    {"start_time_ms": 200, "end_time_ms": 300, "video": "Wordplay Wednesday 84"},
+    {"start_time_ms": 300, "end_time_ms": 400, "video": "Omegle Bars 18"},
+]
 
 
 @pytest.fixture(scope="function")
@@ -315,3 +334,67 @@ def track_item(video_item, section_item):
     track_dicts[0]["album"] = video_item.album.title
     track_dicts[0]["section"] = section_item.id
     return Track.create(track_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def topic_dict1():
+    return topic_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def topic_dict2():
+    return topic_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def topic_dict3():
+    return topic_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def topic_item(section_item):
+    topic_dicts[0]["section"] = section_item.id
+    return Topic.create(topic_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def superchat_dict1():
+    return superchat_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def superchat_dict2():
+    return superchat_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def superchat_dict3():
+    return superchat_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def superchat_item(video_item):
+    superchat_dicts[0]["video"] = video_item.title
+    return Superchat.create(superchat_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def superchat_segment_dict1():
+    return superchat_segment_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def superchat_segment_dict2():
+    return superchat_segment_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def superchat_segment_dict3():
+    return superchat_segment_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def superchat_segment_item(video_item, section_item):
+    superchat_segment_dicts[0]["video"] = video_item.title
+    superchat_segment_dicts[0]["section"] = section_item.id
+    return SuperchatSegment.create(superchat_segment_dicts[0])

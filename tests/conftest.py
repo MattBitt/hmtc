@@ -12,13 +12,11 @@ os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
+from hmtc.domains.superchat import Superchat as SuperchatItem
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
-from hmtc.real_world_tests import BirdManager
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.superchat import Superchat as SuperchatItem
 from hmtc.utils.general import copy_tree, remove_tree
 from hmtc.utils.my_logging import setup_logging
 
@@ -142,14 +140,14 @@ def video_with_file(test_ww_video_file):
         enabled=True,
         private=False,
     )
-    FileManager.add_path_to_video(path=test_ww_video_file, video=vid)
+    # FileManager.add_path_to_video(path=test_ww_video_file, video=vid)
     return vid
 
 
 @pytest.fixture(scope="function")
 def superchat(video_with_file) -> SuperchatModel:
     sc = SuperchatModel(
-        frame_number=15,
+        frame=15,
         video_id=video_with_file.id,
     )
     sc.save()
@@ -173,7 +171,7 @@ def superchat_image_array() -> np.ndarray:
 def superchat_with_file(video_with_file, superchat_image_file) -> SuperchatItem:
     sc_file = superchat_image_file
     sc = SuperchatModel.create(
-        frame_number=0,
+        frame=0,
         video_id=video_with_file.id,
     )
     sci = SuperchatItem.from_model(sc)
@@ -191,15 +189,3 @@ def superchat_segment1(video) -> SuperchatSegmentModel:
 def superchat_segment2(video) -> SuperchatSegmentModel:
     ss = SuperchatSegmentModel.create(start_time=18, end_time=30, video=video)
     return ss
-
-
-@pytest.fixture(scope="function")
-def robin_bm():
-    bm = BirdManager.create(species="robin", weight=13, color="red")
-    return bm
-
-
-@pytest.fixture(scope="function")
-def bluejay_bm():
-    bm = BirdManager.create(species="blue jay", weight=20, color="blue")
-    return bm

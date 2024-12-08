@@ -3,10 +3,10 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.video.jf_panel import JFPanel
+from hmtc.domains.superchat_segment import SuperchatSegment as SuperchatSegmentItem
+from hmtc.domains.video import VideoItem
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
-from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import get_currently_playing, load_media_item
 
 

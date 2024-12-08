@@ -1,12 +1,11 @@
 from pathlib import Path
 
 from hmtc.config import init_config
+from hmtc.domains.superchat import Superchat as SuperchatItem
+from hmtc.domains.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.superchat import Superchat as SuperchatItem
-from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 
@@ -35,7 +34,7 @@ def test_superchat_segment_item(superchat_segment1):
 
 
 def test_add_superchat_to_segment(video, superchat_image_file):
-    sc = SuperchatModel.create(frame_number=5, video=video)
+    sc = SuperchatModel.create(frame=5, video=video)
     sci = SuperchatItem.from_model(sc)
     sci.add_image(superchat_image_file)
 

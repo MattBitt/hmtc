@@ -235,51 +235,6 @@ class User(BaseModel):
         return f"User({self.id} - {self.username=})"
 
 
-class FileType(BaseModel):
-    title = CharField(unique=True)  # eg "info", "poster", "video", "audio", "image"
-
-    def __repr__(self):
-        return f"FileTypeModel({self.id} - {self.file_type=})"
-
-    def __str__(self):
-        return f"FileTypeModel({self.id} - {self.file_type=})"
-
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-        }
-
-    @staticmethod
-    def empty_dict():
-        return {
-            "id": 0,
-            "title": "No Title for File Type....",
-        }
-
-
-class File(BaseModel):
-    filename = CharField(unique=True)
-    file_type = ForeignKeyField(FileType, backref="files")
-    # to be deprecated 12/4/24
-    video = ForeignKeyField(Video, backref="files", null=True)
-    album = ForeignKeyField(Album, backref="files", null=True)
-    track = ForeignKeyField(Track, backref="files", null=True)
-
-    def __repr__(self):
-        return f"FileModel({self.id} - {self.filename=})"
-
-    def __str__(self):
-        return f"FileModel({self.id} - {self.filename=})"
-
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "filename": self.filename,
-            "file_type": self.file_type,
-        }
-
-
 class Artist(BaseModel):
     name = CharField()
     url = CharField(null=True)
@@ -358,36 +313,36 @@ class SectionTopics(BaseModel):
 
 
 class SuperchatSegment(BaseModel):
-    start_time = IntegerField()
-    end_time = IntegerField()
+    start_time_ms = IntegerField()
+    end_time_ms = IntegerField()
     next_segment: int = ForeignKeyField("self", backref="previous_segment", null=True)
 
-    video = ForeignKeyField(Video, backref="superchats")
-    section = ForeignKeyField(Section, backref="segment", null=True)
+    video = ForeignKeyField(Video, backref="superchat_segments")
+    section = ForeignKeyField(Section, backref="superchat_segments", null=True)
 
     def __repr__(self):
-        return f"SuperchatSegmentModel({self.id} - {self.start_time}:{self.end_time})"
+        return f"SuperchatSegmentModel({self.id} - {self.start_time_ms}:{self.end_time_ms})"
 
     def __str__(self):
-        return f"SuperchatSegmentModel({self.id} - {self.start_time}:{self.end_time})"
+        return f"SuperchatSegmentModel({self.id} - {self.start_time_ms}:{self.end_time_ms})"
 
 
 class Superchat(BaseModel):
-    frame_number = IntegerField()
+    frame = IntegerField()
 
     video = ForeignKeyField(Video, backref="superchats")
     segment = ForeignKeyField(SuperchatSegment, backref="superchats", null=True)
 
     def __repr__(self):
-        return f"SuperchatModel({self.id} - {self.frame_number=})"
+        return f"SuperchatModel({self.id} - {self.frame=})"
 
     def __str__(self):
-        return f"SuperchatModel({self.id} - {self.frame_number=})"
+        return f"SuperchatModel({self.id} - {self.frame=})"
 
     def simple_dict(self):
         return {
             "id": self.id,
-            "frame_number": self.frame_number,
+            "frame": self.frame,
             "video_id": self.video.id,
             "superchat_segment_id": self.segment.id if self.segment else None,
         }
@@ -395,44 +350,7 @@ class Superchat(BaseModel):
     class Meta:
         indexes = (
             # Create a unique composite index on beat and Artist
-            (("frame_number", "video"), True),
-        )
-
-
-class SuperchatFile(BaseFile):
-    superchat_id: int = ForeignKeyField(Superchat, backref="files", null=True)
-    segment_id: int = ForeignKeyField(SuperchatSegment, backref="files", null=True)
-
-
-class Bird(BaseModel):
-    species = CharField(unique=True)
-    weight = IntegerField()
-    color = CharField(null=True)
-
-    def __repr__(self):
-        return f"BirdModel({self.id} - {self.species=})"
-
-    def __str__(self):
-        return f"BirdModel({self.id} - {self.species=})"
-
-
-class BirdFile(BaseModel):
-    bird_id = ForeignKeyField(Bird, backref="files")
-    file_type = ForeignKeyField(FileType, backref="files")
-    filename = CharField()
-    verified_on_disk = DateField(null=True)
-    missing_from_disk = DateField(null=True)
-
-    def __repr__(self):
-        return f"BirdFileModel({self.bird_id} - {self.file_type=})"
-
-    def __str__(self):
-        return f"BirdFileModel({self.id} - {self.file_type=})"
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index
-            (("bird_id", "file_type"), False),
+            (("frame", "video"), True),
         )
 
 
@@ -441,16 +359,11 @@ __all__ = [
     "Artist",
     "Beat",
     "BeatArtist",
-    "Bird",
-    "BirdFile",
     "Channel",
-    "File",
-    "FileType",
     "Section",
     "SectionTopics",
     "Series",
     "Superchat",
-    "SuperchatFile",
     "SuperchatSegment",
     "Topic",
     "Track",

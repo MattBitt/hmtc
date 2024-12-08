@@ -10,7 +10,6 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Channel, Series
-from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 

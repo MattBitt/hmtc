@@ -10,12 +10,10 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.album_table import AlbumTable
+from hmtc.domains.album import Album as AlbumItem
 from hmtc.models import Album as AlbumModel
-from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.schemas.file import FileManager
 
 
 def create_query_from_url():
@@ -48,13 +46,13 @@ def create_query_from_url():
             if file_type not in ["poster"]:
                 logger.error(f"Invalid file type: {file_type}")
                 return
-            albums_with_files = (
-                AlbumModel.select(AlbumModel)
-                .join(FileModel, on=(AlbumModel.id == FileModel.album_id))
-                .where(FileModel.file_type == file_type)
-            )
+            # albums_with_files = (
+            #     AlbumModel.select(AlbumModel)
+            #     .join(FileModel, on=(AlbumModel.id == FileModel.album_id))
+            #     .where(FileModel.file_type == file_type)
+            # )
             all_albums = AlbumModel.select()
-            albums = all_albums - albums_with_files
+            # albums = all_albums - albums_with_files
             return albums, "missing-files", file_type
 
         case _:

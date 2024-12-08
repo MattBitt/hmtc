@@ -9,15 +9,12 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import File as FileModel
+from hmtc.domains.superchat import Superchat as SuperchatItem
+from hmtc.domains.superchat_segment import SuperchatSegment as SuperchatSegmentItem
+from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Superchat as SuperchatModel
-from hmtc.models import SuperchatFile as SuperchatFileModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.superchat import Superchat as SuperchatItem
-from hmtc.schemas.superchat_segment import SuperchatSegment as SuperchatSegmentItem
-from hmtc.schemas.video import VideoItem
 from hmtc.utils.image import are_images_similar
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
@@ -61,14 +58,14 @@ def Page():
     existing_superchats = (
         SuperchatModel.select()
         .where(SuperchatModel.video_id == video.id)
-        .order_by(SuperchatModel.frame_number.asc())
+        .order_by(SuperchatModel.frame.asc())
     )
 
     superchats = [SuperchatItem.from_model(superchat=sc) for sc in existing_superchats]
 
     def search_for_superchats():
         searching.set(True)
-        existing_frames = [sc.frame_number for sc in existing_superchats]
+        existing_frames = [sc.frame for sc in existing_superchats]
         progress_total.set(video.duration)
         progress_message.set(f"Searching for Superchats....")
         vf = [v for v in video.files if v.file_type == "video"][0]
@@ -92,7 +89,7 @@ def Page():
             sc_image, found = SuperChatRipper(frame).find_superchat()
             if found:
                 sc = SuperchatModel.create(
-                    frame_number=ie.current_time,
+                    frame=ie.current_time,
                     video_id=video.id,
                 )
                 sci = SuperchatItem.from_model(sc)
@@ -132,7 +129,7 @@ def Page():
     existing_segments = (
         SuperchatSegmentModel.select()
         .where(SuperchatSegmentModel.video_id == video.id)
-        .order_by(SuperchatSegmentModel.start_time.asc())
+        .order_by(SuperchatSegmentModel.start_time_ms.asc())
     )
 
     def create_segments():
@@ -140,7 +137,7 @@ def Page():
         superchats = (
             SuperchatModel.select()
             .where(SuperchatModel.video_id == video.id)
-            .order_by(SuperchatModel.frame_number.asc())
+            .order_by(SuperchatModel.frame.asc())
         )
 
         progress_total.set(len(superchats))
@@ -161,7 +158,7 @@ def Page():
             if are_images_similar(image1, image2):
                 segment.add_superchat(superchat)
             else:
-                segment.close_segment(_sc.frame_number)
+                segment.close_segment(_sc.frame)
                 new_segment = SuperchatSegmentItem.create_from_superchat(superchat)
                 segment.set_next_segment(new_segment.id)
                 segment = new_segment

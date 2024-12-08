@@ -8,8 +8,6 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.file_table import FileTable
-from hmtc.models import File as FileModel
-from hmtc.schemas.file import File as FileItem
 
 
 @solara.component

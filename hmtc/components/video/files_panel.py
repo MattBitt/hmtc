@@ -7,7 +7,12 @@ from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.config import init_config
+from hmtc.domains.album import Album as AlbumItem
+from hmtc.domains.section import Section as SectionItem
+from hmtc.domains.section import SectionManager
 from hmtc.domains.series import Series as SeriesItem
+from hmtc.domains.track import Track as TrackItem
+from hmtc.domains.video import VideoItem
 from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import (
@@ -32,13 +37,6 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
-from hmtc.schemas.album import Album as AlbumItem
-from hmtc.schemas.file import File as FileItem
-from hmtc.schemas.file import FileManager
-from hmtc.schemas.section import Section as SectionItem
-from hmtc.schemas.section import SectionManager
-from archive.track import Track as TrackItem
-from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_user_favorites,
@@ -88,15 +86,15 @@ def FilesPanel(video):
     def download_video(*args):
         loading.set(True)
         logger.info(f"Downloading video: {video.title}")
-        FileManager.remove_existing_files(
-            video.id, video.youtube_id, ["video", "audio"]
-        )
+        # FileManager.remove_existing_files(
+        #     video.id, video.youtube_id, ["video", "audio"]
+        # )
         info, files = download_video_file(video.youtube_id, WORKING, progress_hook=None)
 
         vid = VideoModel.select().where(VideoModel.id == video.id).get()
         for file in files:
             logger.debug(f"Processing files in download_video of the list item {file}")
-            FileManager.add_path_to_video(file, vid)
+            # FileManager.add_path_to_video(file, vid)
             # this is where i need to add the jellyfin id to the database,
             # but, i need to make sure that the video is in jellyfin first
         loading.set(False)
@@ -109,7 +107,7 @@ def FilesPanel(video):
     else:
 
         FileTypeCheckboxes(
-            db_files=[FileItem.from_model(x).serialize() for x in video.files],
+            db_files=[],
             folder_files=[],
             has_audio="audio" in file_types_found,
             has_video="video" in file_types_found,
