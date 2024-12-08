@@ -54,7 +54,7 @@ def test_track_delete(track_item):
     assert c is None
 
 
-def test_serialize(track_item, video_item, album_item):
+def test_serialize(track_item, video_item, album_item, section_item):
     s = Track.serialize(track_item.id)
     assert s["title"] == track_item.title
     assert s["track_number"] == track_item.track_number
@@ -62,6 +62,8 @@ def test_serialize(track_item, video_item, album_item):
     assert s["id"] == track_item.id
     assert s["video"]["title"] == video_item.title
     assert s["album"]["title"] == album_item.title
+    assert s["section"]["start"] == section_item.start
+    assert s["section"]["end"] == section_item.end
 
 
 def test_get_all(track_item):

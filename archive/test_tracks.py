@@ -15,7 +15,7 @@ from hmtc.models import (
 )
 from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import FileManager
-from hmtc.schemas.track import Track as TrackItem
+from archive.track import Track as TrackItem
 
 
 def test_track():

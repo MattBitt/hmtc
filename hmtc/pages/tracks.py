@@ -11,7 +11,7 @@ from hmtc.components.tables.track_table import TrackTable
 from hmtc.models import Album as AlbumModel
 from hmtc.models import File as FileModel
 from hmtc.models import Track as TrackModel
-from hmtc.schemas.track import Track as TrackItem
+from archive.track import Track as TrackItem
 
 force_update_counter = solara.reactive(0)
 

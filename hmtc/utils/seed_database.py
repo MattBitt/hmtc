@@ -1,4 +1,5 @@
 from datetime import datetime
+from loguru import logger
 
 from hmtc.db import create_tables, drop_all_tables
 from hmtc.domains.album import Album
@@ -67,21 +68,21 @@ def seed_database():
 
     vids = [
         {
-            "description": "DELETEME",
-            "duration": 500,
-            "title": "DELETE ME ME ME (FIRST)",
+            "description": "Omegle Bars 1 (initial Source)",
+            "duration": 1500,
+            "title": "Omegle Bars 1 (initial Source)",
             "unique_content": True,
             "upload_date": "2021-01-01",
             "url": "https://www.youtube.com/watch?v=1234",
             "youtube_id": "1234",
             "episode": 1,
             "channel": "Harry Mack",
-            "series": "Guerrilla",
-            "youtube_series": "Guerrilla Bars",
-            "album": "Guerrilla Bars",
+            "series": "Livestream",
+            "youtube_series": "Omegle Bars",
+            "album": "Omegle Bars",
         },
         {
-            "description": "DELETEME",
+            "description": "Omegle Bars 1 (initial Source)",
             "duration": 4000,
             "title": "DELETE ME ME ME (second)",
             "unique_content": True,
@@ -95,18 +96,18 @@ def seed_database():
             "album": "Wordplay Wednesday",
         },
         {
-            "description": "DELETEME",
+            "description": "Omegle Bars 1 (initial Source)",
             "duration": 1200,
-            "title": "DELETE ME ME ME (LAST)",
+            "title": "Guerrilla Bars 17 (initial Source)",
             "unique_content": True,
             "upload_date": "2024-01-01",
-            "url": "https://www.youtube.com/watch?v=12345678",
-            "youtube_id": "123781",
+            "url": "https://www.youtube.com/watch?v=84561564",
+            "youtube_id": "358741",
             "episode": 0,
             "channel": "Harry Mack",
-            "series": "Concert",
-            "youtube_series": "Omegle Bars",
-            "album": "Omegle Bars",
+            "series": "Guerrilla",
+            "youtube_series": "Guerrilla Bars",
+            "album": "Guerrilla Bars",
         },
     ]
     for vid in vids:
@@ -114,63 +115,90 @@ def seed_database():
 
     sections = [
         {
-            "start": 0,
+            "start": 100,
             "end": 400,
             "section_type": "verse",
-            "video": "DELETE ME ME ME (FIRST)",
-            "track_id": 1,
+            "video": vids[0]["title"],
+        },
+        {
+            "start": 500,
+            "end": 900,
+            "section_type": "verse",
+            "video": vids[0]["title"],
+        },
+        {
+            "start": 1000,
+            "end": 1300,
+            "section_type": "verse",
+            "video": vids[0]["title"],
         },
         {
             "start": 0,
             "end": 400,
             "section_type": "verse",
-            "video": "DELETE ME ME ME (second)",
-            "track_id": 2,
+            "video": vids[1]["title"],
         },
         {
             "start": 0,
             "end": 400,
             "section_type": "verse",
-            "video": "DELETE ME ME ME (LAST)",
-            "track_id": 3,
+            "video": vids[2]["title"],
         },
     ]
 
     tracks = [
         {
             "id": 1,
-            "title": "My First Track",
+            "title": "OB 1 - Verse 1",
             "track_number": 1,
             "length": 45,
-            "album": "Omegle Bars",
-            "video": "DELETE ME ME ME (second)",
+            "album": albums[0]["title"],
+            "video": vids[0]["title"],
         },
         {
             "id": 2,
-            "title": "My Second Track",
+            "title": "OB 1 - Verse 2",
             "track_number": 2,
-            "length": 45,
-            "album": "Omegle Bars",
-            "video": "DELETE ME ME ME (second)",
+            "length": 142,
+            "album": albums[0]["title"],
+            "video": vids[0]["title"],
         },
         {
             "id": 3,
+            "title": "OB 1 - Verse 3",
+            "track_number": 1,
+            "length": 543,
+            "album": albums[0]["title"],
+            "video": vids[0]["title"],
+        },
+        {
+            "id": 4,
             "title": "My Third Track",
-            "track_number": 3,
-            "length": 45,
-            "album": "Guerrilla Bars",
-            "video": "DELETE ME ME ME (FIRST)",
+            "track_number": 1,
+            "length": 657,
+            "album": albums[1]["title"],
+            "video": vids[1]["title"],
+        },
+        {
+            "id": 4,
+            "title": "Another Track from a vid",
+            "track_number": 1,
+            "length": 432,
+            "album": albums[2]["title"],
+            "video": vids[2]["title"],
         },
     ]
     for section in sections:
         sect = Section.create(section)
         for track in tracks:
-            if track["video"] == section["video"]:
+            if track["video"] == section["video"].title:
                 track["section"] = sect.id
                 Track.create(track)
 
 
 def recreate_database(_db):
+    logger.debug("Recreating database")
     drop_all_tables(_db)
     create_tables(_db)
     seed_database()
+    logger.success("Database recreated")

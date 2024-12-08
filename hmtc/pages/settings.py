@@ -38,7 +38,7 @@ from hmtc.schemas.album import Album as AlbumItem
 from hmtc.schemas.file import File as FileItem
 from hmtc.schemas.file import FileManager
 from hmtc.schemas.section import Section, SectionManager
-from hmtc.schemas.track import Track as TrackItem
+from archive.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import search_for_media
 from hmtc.utils.opencv.image_extractor import ImageExtractor
