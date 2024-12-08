@@ -5,9 +5,7 @@ from hmtc.repos.base_repo import Repository
 
 def test_empty_series():
     c = Series()
-    assert type(c.model) == SeriesModel
     assert type(c.repo) == Repository
-    assert c.model.id is None
 
 
 def test_series_create_and_load(series_dict1):

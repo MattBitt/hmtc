@@ -7,8 +7,7 @@ from hmtc.models import Series as SeriesModel
 
 
 class Series:
-    model = SeriesModel()
-    repo = Repository(model=model, label="Series")
+    repo = Repository(model=SeriesModel(), label="Series")
 
     @classmethod
     def create(cls, data) -> SeriesModel:
@@ -29,7 +28,10 @@ class Series:
     @classmethod
     def serialize(cls, item_id) -> dict:
         item = cls.load(item_id)
-        return item.my_dict()
+        _dict = item.my_dict()
+        _dict["start_date"] = str(_dict["start_date"])
+        _dict["end_date"] = str(_dict["end_date"])
+        return _dict
 
     @classmethod
     def delete_id(cls, item_id) -> None:

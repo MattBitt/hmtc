@@ -1,18 +1,9 @@
-import json
-from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from typing import List
 
 from loguru import logger
 
-from hmtc.config import init_config
-from hmtc.db import init_db
 from hmtc.repos.base_repo import Repository
-from hmtc.models import db_null
 from hmtc.models import Channel as ChannelModel
-
-config = init_config()
-db = init_db(db_null, config)
 
 
 class Channel:
@@ -36,14 +27,13 @@ class Channel:
         return list(cls.repo.get_all())
 
     @classmethod
-    def delete_id(cls, item_id) -> None:
-        cls.repo.delete_by_id(item_id=item_id)
-        logger.success(f"Deleted !")
-
-    @classmethod
     def serialize(cls, item_id) -> dict:
         item = cls.load(item_id)
         return item.my_dict()
+
+    @classmethod
+    def delete_id(cls, item_id) -> None:
+        cls.repo.delete_by_id(item_id=item_id)
 
     @staticmethod
     def last_update_completed() -> str | None:

@@ -58,7 +58,6 @@ def Page():
     ]
     search_fields = [SeriesModel.title]
     with solara.Column(classes=["main-container"]):
-        # solara.Markdown(f"{force_update_counter.value}")
         SeriesTable(
             router=router,
             headers=headers,

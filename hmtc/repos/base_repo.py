@@ -23,7 +23,6 @@ class Repository:
     @myhandler
     def update_item(self, data) -> BaseModel:
         _id = data.pop("id")
-
         item = self.model.get_by_id(_id)
 
         for key, value in data.items():
@@ -38,5 +37,5 @@ class Repository:
             yield item
 
     @myhandler
-    def delete_by_id(self, item_id: int):
+    def delete_by_id(self, item_id: int) -> None:
         self.model.delete_by_id(item_id)

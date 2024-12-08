@@ -42,6 +42,7 @@ from hmtc.schemas.track import Track as TrackItem
 from hmtc.schemas.video import VideoItem
 from hmtc.utils.jellyfin_functions import search_for_media
 from hmtc.utils.opencv.image_extractor import ImageExtractor
+from hmtc.utils.seed_database import recreate_database
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()
@@ -101,6 +102,11 @@ def create_album_xmls():
 @solara.component_vue("../components/GOBY/ButtonShowcase.vue")
 def ButtonShowCase():
     pass
+
+
+def remake_db():
+    db = VideoModel._meta.database
+    recreate_database(db)
 
 
 class PageState:
@@ -415,3 +421,5 @@ def Page():
             for v in PageState.bad_superchat_path_videos.value:
                 with solara.Row():
                     solara.Text(v)
+        if config["general"]["environment"] != "production":
+            solara.Button("Recreate Database", on_click=remake_db)
