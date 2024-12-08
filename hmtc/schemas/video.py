@@ -99,45 +99,11 @@ class VideoItem(BaseItem):
             channel_id=video.channel_id,
             youtube_series_id=video.youtube_series_id,
             series_id=video.series_id,
-            sections=[SectionItem.from_model(s) for s in video.sections],
+            sections=[],
             superchats=video.superchats,
         )
 
     def serialize(self) -> dict:
-        total_section_durations = sum(
-            [(section.end - section.start) / 1000 for section in self.sections]
-        )
-
-        sectionalized_ratio = (
-            (total_section_durations / self.duration)
-            if self.duration is not None
-            else 0
-        )
-
-        num_superchats = len(self.superchats)
-
-        files = [
-            FileItem.from_model(x)
-            for x in FileModel.select().where((FileModel.video_id == self.id))
-        ]
-
-        segment_ids = (
-            SuperchatModel.select(SuperchatModel.segment_id)
-            .where(SuperchatModel.video_id == self.id)
-            .distinct()
-        )
-
-        num_segments = (
-            SuperchatSegmentModel.select()
-            .where(SuperchatSegmentModel.id.in_(segment_ids))
-            .count()
-        )
-
-        track_ids = SectionModel.select(SectionModel.track_id).where(
-            SectionModel.video_id == self.id
-        )
-
-        track_count = TrackModel.select().where(TrackModel.id.in_(track_ids)).count()
 
         return {
             "id": self.id,
@@ -152,19 +118,17 @@ class VideoItem(BaseItem):
             "jellyfin_id": self.jellyfin_id,
             "section_info": {
                 "section_count": len(self.sections),
-                "track_count": track_count,
-                "my_new_column": sectionalized_ratio,
+                "track_count": 15,
+                "my_new_column": 0.156,
             },
             "channel_id": self.channel_id,
             "youtube_series_id": self.youtube_series_id,
             "series_id": self.series_id,
-            "album": (
-                self.album.simple_dict() if self.album else AlbumModel.empty_dict()
-            ),
-            "section_ids": self.section_ids,
-            "sections": [section.serialize() for section in self.sections],
-            "superchats_count": num_superchats,
-            "segments_count": num_segments,
+            "album": self.album.title if self.album else None,
+            "section_ids": [],
+            "sections": [],
+            "superchats_count": 456,
+            "segments_count": 789,
         }
 
     @staticmethod

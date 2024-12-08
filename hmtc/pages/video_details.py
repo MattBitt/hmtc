@@ -41,9 +41,7 @@ def Page():
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
     sections = SectionModel.select().where(SectionModel.video_id == video.id)
-    reactive_sections = solara.use_reactive(
-        [SectionItem.from_model(s) for s in sections]
-    )
+    reactive_sections = solara.use_reactive([])
 
     with solara.Column(classes=["main-container"]):
         TopRow(

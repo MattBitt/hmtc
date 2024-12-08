@@ -174,6 +174,22 @@ class Video(BaseModel):
         return f"VideoModel({self.id} - {self.title=})"
 
 
+class Section(BaseModel):
+    start = IntegerField()
+    end = IntegerField()
+    section_type = CharField()
+    next_section: int = ForeignKeyField("self", backref="previous_section", null=True)
+    video = ForeignKeyField(Video, backref="sections")
+
+    def __repr__(self):
+        return (
+            f"SectionModel({self.id} - {self.start}:{self.end} - {self.section_type})"
+        )
+
+    def __str__(self):
+        return f"SectionModel({self.id} - {self.section_type})"
+
+
 class Track(BaseModel):
     title = CharField()
     track_number = IntegerField()
@@ -181,6 +197,7 @@ class Track(BaseModel):
     jellyfin_id = IntegerField(null=True)
     album = ForeignKeyField(Album, backref="tracks")
     video = ForeignKeyField(Video, backref="tracks")
+    section = ForeignKeyField(Section, backref="tracks")
 
     def simple_dict(self):
         return {
@@ -205,23 +222,6 @@ class Track(BaseModel):
 
     def __str__(self):
         return f"TrackModel({self.id} - {self.title=})"
-
-
-class Section(BaseModel):
-    start = IntegerField()
-    end = IntegerField()
-    section_type = CharField()
-    next_section: int = ForeignKeyField("self", backref="previous_section", null=True)
-    video = ForeignKeyField(Video, backref="sections")
-    track = ForeignKeyField(Track, backref="section", null=True)
-
-    def __repr__(self):
-        return (
-            f"SectionModel({self.id} - {self.start}:{self.end} - {self.section_type})"
-        )
-
-    def __str__(self):
-        return f"SectionModel({self.id} - {self.section_type})"
 
 
 class User(BaseModel):

@@ -310,7 +310,8 @@ def track_dict3():
 
 
 @pytest.fixture(scope="function")
-def track_item(video_item):
+def track_item(video_item, section_item):
     track_dicts[0]["video"] = video_item.title
     track_dicts[0]["album"] = video_item.album.title
+    track_dicts[0]["section"] = section_item.id
     return Track.create(track_dicts[0])

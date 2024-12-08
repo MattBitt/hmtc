@@ -135,8 +135,7 @@ def seed_database():
             "track_id": 3,
         },
     ]
-    for section in sections:
-        Section.create(section)
+
     tracks = [
         {
             "id": 1,
@@ -163,8 +162,12 @@ def seed_database():
             "video": "DELETE ME ME ME (FIRST)",
         },
     ]
-    for track in tracks:
-        Track.create(track)
+    for section in sections:
+        sect = Section.create(section)
+        for track in tracks:
+            if track["video"] == section["video"]:
+                track["section"] = sect.id
+                Track.create(track)
 
 
 def recreate_database(_db):

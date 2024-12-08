@@ -3,7 +3,8 @@ from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
 from hmtc.models import Section as SectionModel
-from hmtc.schemas.section import Section as SectionItem
+from hmtc.schemas.section import Section as _SectionItem
+from hmtc.domains.section import Section
 
 
 @solara.component_vue("SectionTable.vue", vuetify=True)
@@ -32,7 +33,7 @@ def _SectionTable(
 def SectionTable(router, headers, base_query, search_fields):
     item_info = {
         "model": SectionModel,
-        "schema_item": SectionItem,
+        "schema_item": _SectionItem,
         "vue_component": _SectionTable,
         "action1_path": "",
         "action1_icon": "",
@@ -42,5 +43,6 @@ def SectionTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
+        domain_class=Section,
         **item_info,
     )

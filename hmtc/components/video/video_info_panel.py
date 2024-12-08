@@ -76,7 +76,7 @@ def VideoInfoPanel(video):
     # image = ImageManager(poster).image
     background_processing = solara.use_reactive(0)
     sections = SectionModel.select(
-        SectionModel.id, SectionModel.start, SectionModel.end, SectionModel.track_id
+        SectionModel.id, SectionModel.start, SectionModel.end
     ).where(SectionModel.video_id == video.id)
 
     def auto_create_tracks(*args):
@@ -85,7 +85,6 @@ def VideoInfoPanel(video):
                 album = AlbumModel.get_by_id(video.album_id)
                 album_item = AlbumItem.from_model(album)
                 track = album_item.create_from_section(section=section, video=video)
-                section.track_id = track.id
                 section.save()
 
     section_durations = [
@@ -93,8 +92,6 @@ def VideoInfoPanel(video):
     ]  # list of sections in seconds
 
     section_percentage = sum(section_durations) / video.duration * 100
-
-    tracks_created = len([x for x in sections if x.track_id is not None])
 
     num_segments = (
         SuperchatSegmentModel.select()
@@ -129,19 +126,7 @@ def VideoInfoPanel(video):
                     solara.Markdown(
                         f"Sections: {len(section_durations)} ({section_percentage:.2f}%)"
                     )
-                    solara.Markdown(
-                        f"Tracks Created: {tracks_created} ({tracks_created / len(section_durations) * 100:.2f}%)"
-                    )
 
-            with solara.Row(justify="center"):
-                solara.Button(
-                    label=f"Create {len(sections)} Tracks",
-                    classes=["button"],
-                    disabled=(
-                        (len(sections) <= tracks_created) or video.album_id is None
-                    ),
-                    on_click=auto_create_tracks,
-                )
             with solara.Row(justify="center"):
                 with solara.Link(f"/frame-analyzer/{video.id}"):
                     solara.Button(
