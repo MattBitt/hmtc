@@ -110,7 +110,7 @@
         <span class="primary--text">{{ item.title }}</span>
       </template>
       <template v-slot:item.series="{ item }">
-        <span>{{ item.series.name }}</span>
+        <span>{{ item.series.title }}</span>
       </template>
 
       <template v-slot:item.actions="{ item }">

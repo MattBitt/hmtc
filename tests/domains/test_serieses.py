@@ -1,6 +1,12 @@
 from hmtc.domains.series import Series
 from hmtc.models import Series as SeriesModel
 from hmtc.repos.base_repo import Repository
+from tests.domains.fixtures import (
+    series_dict1,
+    series_dict2,
+    series_dict3,
+    series_dicts,
+)
 
 
 def test_empty_series():
@@ -36,8 +42,8 @@ def test_serialize(series_dict1):
     assert str(s["end_date"]) == series_dict1["end_date"]
 
 
-def test_get_all(series_dicts):
-    for sd in series_dicts:
+def test_get_all(series_dict1, series_dict2, series_dict3):
+    for sd in [series_dict1, series_dict2, series_dict3]:
         Series.create(sd)
 
     all_seriess = Series.get_all()

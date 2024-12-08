@@ -108,7 +108,7 @@ class Channel(BaseModel):
 
 class YoutubeSeries(BaseModel):
     title = CharField(unique=True, max_length=120)
-    series = ForeignKeyField(Series, backref="youtube_series", null=True)
+    series = ForeignKeyField(Series, backref="youtube_series")
 
     def __repr__(self):
         return f"YoutubeSeriesModel({self.id} - {self.title=})"

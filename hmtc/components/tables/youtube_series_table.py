@@ -3,7 +3,7 @@ from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
-from hmtc.schemas.youtube_series import YoutubeSeries as YoutubeSeriesItem
+from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 
 
 @solara.component_vue("YoutubeSeriesTable.vue", vuetify=True)
@@ -42,5 +42,6 @@ def YoutubeSeriesTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
+        domain_class=YoutubeSeriesItem,
         **item_info,
     )
