@@ -58,7 +58,11 @@ def SectionControlPanel(
 
 @solara.component
 def SectionDialogButton(video, reactive_sections):
-    jellyfin_status_dict = solara.use_reactive(get_user_session())
+    sess = get_user_session()
+    if sess is None:
+        jellyfin_status_dict = solara.use_reactive({})
+    else:
+        jellyfin_status_dict = solara.use_reactive(get_user_session())
 
     def delete_all_sections(*args):
         if len(reactive_sections.value) == 0:

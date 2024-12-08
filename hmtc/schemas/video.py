@@ -52,12 +52,10 @@ class VideoItem(BaseItem):
     url: str = None
     episode: str = None
     upload_date: datetime = None
-    private: bool = False
     duration: int = 0
     description: str = None
-    contains_unique_content: bool = False
-    has_chapters: bool = False
-    manually_edited: bool = False
+    unique_content: bool = False
+
     jellyfin_id: str = None
 
     # relationships
@@ -66,8 +64,6 @@ class VideoItem(BaseItem):
     album: AlbumModel = None
 
     channel_id: int = 0
-
-    playlist_id: int = 0
 
     series_id: int = 0
 
@@ -94,20 +90,15 @@ class VideoItem(BaseItem):
             url=video.url,
             episode=video.episode,
             upload_date=video.upload_date,
-            private=video.private,
             duration=video.duration,
             description=video.description,
-            contains_unique_content=video.contains_unique_content,
-            has_chapters=video.has_chapters,
-            manually_edited=video.manually_edited,
+            unique_content=video.unique_content,
             jellyfin_id=video.jellyfin_id,
             album=video.album,
             album_id=video.album_id,
             channel_id=video.channel_id,
             youtube_series_id=video.youtube_series_id,
-            playlist_id=video.playlist_id,
             series_id=video.series_id,
-            files=[FileItem.from_model(f) for f in video.files],
             sections=[SectionItem.from_model(s) for s in video.sections],
             superchats=video.superchats,
         )
@@ -155,12 +146,9 @@ class VideoItem(BaseItem):
             "url": self.url,
             "episode": self.episode,
             "upload_date": str(self.upload_date),
-            "private": self.private,
             "duration": self.duration,
             "description": self.description,
-            "contains_unique_content": self.contains_unique_content,
-            "has_chapters": self.has_chapters,
-            "manually_edited": self.manually_edited,
+            "unique_content": self.unique_content,
             "jellyfin_id": self.jellyfin_id,
             "section_info": {
                 "section_count": len(self.sections),
@@ -168,14 +156,11 @@ class VideoItem(BaseItem):
                 "my_new_column": sectionalized_ratio,
             },
             "channel_id": self.channel_id,
-            "playlist_id": self.playlist_id,
             "youtube_series_id": self.youtube_series_id,
             "series_id": self.series_id,
             "album": (
                 self.album.simple_dict() if self.album else AlbumModel.empty_dict()
             ),
-            "files": [file.serialize() for file in self.files],
-            "file_count": len(files),
             "section_ids": self.section_ids,
             "sections": [section.serialize() for section in self.sections],
             "superchats_count": num_superchats,

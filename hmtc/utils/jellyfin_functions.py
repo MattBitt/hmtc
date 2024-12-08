@@ -157,7 +157,9 @@ def all_sessions():
 
 def get_user_session():
     x = all_sessions()
-
+    if x is None:
+        logger.error("No jellyfin sessions found")
+        return None
     if len(x) == 0:
         logger.debug(f"all_sessions: returned 0")
         return None

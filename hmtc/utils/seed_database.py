@@ -4,7 +4,9 @@ from hmtc.db import create_tables, drop_all_tables
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
+from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
+from hmtc.domains.section import Section
 
 
 def seed_database():
@@ -47,7 +49,7 @@ def seed_database():
 
     youtube_serieses = [
         {"title": "Omegle Bars", "series": "Omegle"},
-        {"title": "Guerilla Bars", "series": "Guerrilla"},
+        {"title": "Guerrilla Bars", "series": "Guerrilla"},
         {"title": "Wordplay Wednesday", "series": "Livestream"},
     ]
 
@@ -61,6 +63,76 @@ def seed_database():
     ]
     for album in albums:
         Album.create(album)
+
+    vids = [
+        {
+            "description": "DELETEME",
+            "duration": 500,
+            "title": "DELETE ME ME ME (FIRST)",
+            "unique_content": True,
+            "upload_date": "2021-01-01",
+            "url": "https://www.youtube.com/watch?v=1234",
+            "youtube_id": "1234",
+            "episode": 1,
+            "channel": "Harry Mack",
+            "series": "Guerrilla",
+            "youtube_series": "Guerrilla Bars",
+            "album": "Guerrilla Bars",
+        },
+        {
+            "description": "DELETEME",
+            "duration": 4000,
+            "title": "DELETE ME ME ME (second)",
+            "unique_content": True,
+            "upload_date": "2023-01-01",
+            "url": "https://www.youtube.com/watch?v=1234zxcvasd",
+            "youtube_id": "1234cvdde",
+            "episode": None,
+            "channel": "Harry Mack",
+            "series": "Livestream",
+            "youtube_series": "Wordplay Wednesday",
+            "album": "Wordplay Wednesday",
+        },
+        {
+            "description": "DELETEME",
+            "duration": 1200,
+            "title": "DELETE ME ME ME (LAST)",
+            "unique_content": True,
+            "upload_date": "2024-01-01",
+            "url": "https://www.youtube.com/watch?v=12345678",
+            "youtube_id": "123781",
+            "episode": 0,
+            "channel": "Harry Mack",
+            "series": "Concert",
+            "youtube_series": "Omegle Bars",
+            "album": "Omegle Bars",
+        },
+    ]
+    for vid in vids:
+        Video.create(vid)
+
+    sections = [
+        {
+            "start": 0,
+            "end": 400,
+            "section_type": "verse",
+            "video": "DELETE ME ME ME (FIRST)",
+        },
+        {
+            "start": 0,
+            "end": 400,
+            "section_type": "verse",
+            "video": "DELETE ME ME ME (second)",
+        },
+        {
+            "start": 0,
+            "end": 400,
+            "section_type": "verse",
+            "video": "DELETE ME ME ME (LAST)",
+        },
+    ]
+    for section in sections:
+        Section.create(section)
 
 
 def recreate_database(_db):

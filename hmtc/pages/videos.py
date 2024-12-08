@@ -54,7 +54,7 @@ def create_query_from_url():
     all = (
         VideoModel.select(
             VideoModel.id,
-            VideoModel.contains_unique_content,
+            VideoModel.unique_content,
             VideoModel.upload_date,
             VideoModel.episode,
             VideoModel.title,
@@ -77,7 +77,7 @@ def create_query_from_url():
     if len(all) == 0:
         return None, None, None, False
 
-    unique = all.where(VideoModel.contains_unique_content == True)
+    unique = all.where(VideoModel.unique_content == True)
 
     valid_filters = [
         "series",
@@ -90,9 +90,7 @@ def create_query_from_url():
     # level = solara.use_route_level()
     vids_with_sections = SectionModel.select(SectionModel.video_id).distinct()
     vids_with_sections_ids = [x.video_id for x in vids_with_sections]
-    all_vids = VideoModel.select(VideoModel.id).where(
-        VideoModel.contains_unique_content == True
-    )
+    all_vids = VideoModel.select(VideoModel.id).where(VideoModel.unique_content == True)
     vids_without_sections = [
         x.id for x in all_vids if x.id not in vids_with_sections_ids
     ]
@@ -116,7 +114,7 @@ def create_query_from_url():
                 .where(FileModel.file_type == file_type)
             )
             all_videos = VideoModel.select(VideoModel).where(
-                VideoModel.contains_unique_content == True
+                VideoModel.unique_content == True
             )
             videos = all_videos - videos_with_files
             return videos, "missing-files", file_type, False
@@ -258,7 +256,7 @@ def save_video_item(dict_of_items):
     new_vid = VideoModel.get_by_id(item["id"])
     new_vid.duration = edited_item["duration"]
     new_vid.jellyfin_id = edited_item["jellyfin_id"]
-    new_vid.contains_unique_content = edited_item["contains_unique_content"]
+    new_vid.unique_content = edited_item["unique_content"]
     if episode_number is not None:
         new_vid.episode = episode_number
 

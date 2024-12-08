@@ -196,8 +196,8 @@ def InfoDialogButtons(
         for a in YoutubeSeriesModel.select().order_by(YoutubeSeriesModel.title)
     ]
     series_dicts = [
-        dict(id=a.id, name=a.name)
-        for a in SeriesModel.select().order_by(SeriesModel.name)
+        dict(id=a.id, name=a.title)
+        for a in SeriesModel.select().order_by(SeriesModel.title)
     ]
 
     try:

@@ -72,8 +72,8 @@ def ProcessingCard():
 @solara.component
 def VideoInfoPanel(video):
 
-    poster = FileManager.get_file_for_video(video, "poster")
-    image = ImageManager(poster).image
+    # poster = FileManager.get_file_for_video(video, "poster")
+    # image = ImageManager(poster).image
     background_processing = solara.use_reactive(0)
     sections = SectionModel.select(
         SectionModel.id, SectionModel.start, SectionModel.end, SectionModel.track_id
@@ -111,7 +111,8 @@ def VideoInfoPanel(video):
     with solara.Columns([6, 6]):
         with solara.Column():
             with solara.Row(justify="center"):
-                solara.Image(image, width=IMG_WIDTH)
+                solara.Markdown(f"Image Belongs Here")
+                # solara.Image(image, width=IMG_WIDTH)
             with solara.Row(justify="center"):
                 solara.Text(
                     f"Uploaded: {time_ago_string(video.upload_date)}",

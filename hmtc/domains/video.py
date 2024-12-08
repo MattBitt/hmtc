@@ -51,13 +51,23 @@ class Video:
     @classmethod
     def serialize(cls, item_id) -> dict:
         item = cls.load(item_id)
+
         _dict = item.my_dict()
         _dict["upload_date"] = str(_dict["upload_date"])
         _dict["series"] = Series.serialize(item.series.id)
         _dict["channel"] = Channel.serialize(item.channel.id)
         _dict["album"] = Album.serialize(item.album.id)
         _dict["youtube_series"] = YoutubeSeries.serialize(item.youtube_series.id)
-
+        _dict["section_info"] = (
+            {
+                "section_count": 789,
+                "track_count": 123,
+                "my_new_column": 456,
+            },
+        )
+        _dict["sections"] = []
+        _dict["superchats_count"] = 123
+        _dict["segments_count"] = 456
         return _dict
 
     @classmethod
