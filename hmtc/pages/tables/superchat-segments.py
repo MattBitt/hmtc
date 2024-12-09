@@ -9,9 +9,9 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.components.tables.superchat_table import SuperchatTable
-from hmtc.domains.superchat import Superchat
-from hmtc.models import Superchat as SuperchatModel
+from hmtc.components.tables.superchat_segment_table import SuperchatSegmentTable
+from hmtc.domains.superchat_segment import SuperchatSegment
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 
 
 def parse_url_args():
@@ -23,7 +23,7 @@ def parse_url_args():
 
 
 def view_details(router, item):
-    router.push(f"/superchat-details/{item['id']}")
+    router.push(f"/superchat_segment-details/{item['id']}")
 
 
 @solara.component
@@ -36,16 +36,17 @@ def Page():
 
     headers = [
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
-        {"text": "Frame", "value": "frame", "width": "30%"},
+        {"text": "Start", "value": "start_time_ms"},
+        {"text": "End", "value": "end_time_ms"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
 
-    search_fields = [SuperchatModel.frame]
+    search_fields = [SuperchatSegmentModel.start_time_ms]
 
     with solara.Column(classes=["main-container"]):
-        SuperchatTable(
+        SuperchatSegmentTable(
             router=router,
             headers=headers,
-            base_query=SuperchatModel.select(),
+            base_query=SuperchatSegmentModel.select(),
             search_fields=search_fields,
         )
