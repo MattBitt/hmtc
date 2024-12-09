@@ -22,7 +22,7 @@ from hmtc.utils.jellyfin_functions import (
 )
 
 
-@solara.component_vue("../components/track/LyricsScroller.vue", vuetify=True)
+@solara.component_vue("../../components/track/LyricsScroller.vue", vuetify=True)
 def LyricsScroller(lyrics, currentTimestamp, event_update):
     pass
 

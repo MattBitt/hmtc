@@ -6,5 +6,7 @@ def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
 
-    logger.debug(f"Router Parts: {router.parts}")
-    logger.debug(f"Router Level: {level}")
+    if level == 0:
+        return
+    else:
+        return router.parts[2:]

@@ -3,7 +3,7 @@
 {
 	"name": "HMTC - In Docker Compose",
 	"dockerComposeFile": [
-		"../docker-compose.yml" // the docker compose file that we want to run
+		"../../docker-compose.yml" // the docker compose file that we want to run
 	],
 	"service": "app", // The service in docker-compose.yml that we want vs code to use as a dev containers 
 	"shutdownAction": "stopCompose",
@@ -19,7 +19,7 @@
 // {
 // 	"name": "HMTC Docker Development",
 // 	"build": {
-// 		"dockerfile": "../Dockerfile",
+// 		"dockerfile": "../../Dockerfile",
 // 	},
 // 	"containerEnv": {
 // 		"ENVIRONMENT": "test",

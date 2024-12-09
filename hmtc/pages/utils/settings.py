@@ -92,7 +92,7 @@ def create_album_xmls():
         logger.debug(f"Created album.nfo file for {v.title} at {album_nfo}")
 
 
-@solara.component_vue("../components/GOBY/ButtonShowcase.vue")
+@solara.component_vue("../../components/GOBY/ButtonShowcase.vue")
 def ButtonShowCase():
     pass
 

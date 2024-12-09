@@ -57,7 +57,7 @@ def Page():
     ).order_by(YoutubeSeries.title)
     router = solara.use_router()
     MySidebar(router)
-    parse_url_args()
+    args = parse_url_args()
     headers = [
         {"text": "ID", "value": "id"},
         {"text": "Title", "value": "title"},

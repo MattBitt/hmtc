@@ -10,25 +10,6 @@
     </div>
 
     <v-divider></v-divider>
-    <div class="text-start">
-      <v-menu bottom offset-y>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn class="button" v-bind="attrs" v-on="on">
-            <v-icon>mdi-video</v-icon>Videos
-            <v-icon right>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-
-        <v-list>
-          <v-list-item v-for="(item, index) in videoItems" :key="item.url">
-            <v-btn class="button" @click="sidebar_clicked(item.url)">
-              <v-icon class="px-4">{{ item.icon }}</v-icon
-              >{{ item.text }}
-            </v-btn>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </div>
     <v-list class="top-list">
       <v-list-item v-for="(item, i) in items" :key="i" :value="item">
         <v-btn class="button" @click="sidebar_clicked(item.url)">
@@ -55,23 +36,6 @@
         </v-btn>
       </v-list-item>
     </v-list>
-    <div>
-      <v-menu offset-y>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn class="button" v-bind="attrs" v-on="on"> old functions </v-btn>
-        </template>
-        <v-list>
-          <v-list-item v-for="(item, index) in old_items" :key="index">
-            <v-list-item-title
-              ><v-btn class="button" @click="sidebar_clicked(item.url)">
-                <v-icon class="px-4">{{ item.icon }}</v-icon
-                >{{ item.text }}
-              </v-btn></v-list-item-title
-            >
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </div>
   </v-card>
 </template>
 
@@ -79,13 +43,13 @@
 export default {
   data: () => ({
     items: [
-      { text: "Videos (Unique)", icon: "mdi-video", url: "/tables/videos" },
       { text: "Albums", icon: "mdi-album", url: "/tables/albums" },
-      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tables/tracks" },
-      { text: "Series", icon: "mdi-shape", url: "/tables/series" },
       { text: "Channels", icon: "mdi-view-list", url: "/tables/channels" },
       { text: "Sections", icon: "mdi-youtube", url: "/tables/sections" },
+      { text: "Series", icon: "mdi-shape", url: "/tables/series" },
       { text: "Topics", icon: "mdi-book-open", url: "/tables/topics" },
+      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tables/tracks" },
+      { text: "Videos (Unique)", icon: "mdi-video", url: "/tables/videos" },
       {
         text: "Youtube Series",
         icon: "mdi-youtube",
@@ -94,52 +58,16 @@ export default {
     ],
     items2: [
       { text: "Stats", icon: "mdi-graph", url: "/dashboards/stats" },
+      { text: "Recent", icon: "mdi-history", url: "/utils/recent" },
       {
         text: "Now Playing",
         icon: "mdi-play-speed",
         url: "/utils/now-playing",
       },
-    ],
-    old_items: [
-      { text: "Recent", icon: "mdi-history", url: "/recent" },
-      {
-        text: "Now Playing",
-        icon: "mdi-play-speed",
-        url: "/utils/now-playing",
-      },
-      { text: "Jellyfin Info", icon: "mdi-information", url: "/jellyfin-info" },
-    ],
-    videoItems: [
-      { text: "Add New Video", icon: "mdi-plus-circle", url: "/add-video" },
-      { text: "Videos (Unique)", icon: "mdi-video", url: "/videos" },
-      { text: "Videos (all)", icon: "mdi-video", url: "/videos/all" },
-      {
-        text: "Videos (No sections)",
-        icon: "mdi-video",
-        url: "/videos/sections/none",
-      },
-      {
-        text: "Videos (With sections)",
-        icon: "mdi-video",
-        url: "/videos/sections/some",
-      },
-      {
-        text: "WW (HAS Superchats)",
-        icon: "mdi-video",
-        url: "/videos/wednesdays/have",
-      },
-      {
-        text: "WW (NO Superchats)",
-        icon: "mdi-video",
-        url: "/videos/wednesdays/need",
-      },
-    ],
-    other_items: [
       { text: "Settings", icon: "mdi-settings", url: "/utils/settings" },
-
-      { text: "Files", icon: "mdi-folder", url: "/files-panel" },
-      { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },
     ],
+
+    other_items: [{ text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" }],
     version: "-0.0.0",
   }),
 };
@@ -174,12 +102,14 @@ export default {
 }
 
 .bottom-list {
+  background-color: var(--primary) !important;
   position: absolute;
   bottom: 0;
   width: 100%;
 }
 
 .top-list {
+  background-color: var(--primary) !important;
   display: grid;
   grid-template-columns: 100px;
   grid-gap: 5px;

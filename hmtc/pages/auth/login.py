@@ -3,7 +3,7 @@ import solara
 from hmtc.components.shared.sidebar import MySidebar
 
 
-@solara.component_vue("../components/auth/LoginPage.vue")
+@solara.component_vue("../../components/auth/LoginPage.vue")
 def LoginPage():
     pass
 

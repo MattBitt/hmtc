@@ -53,7 +53,7 @@ def refresh_from_youtube():
     busy_downloading.set(False)
 
 
-@solara.component_vue("../components/shared/progress_circle.vue", vuetify=True)
+@solara.component_vue("../../components/shared/progress_circle.vue", vuetify=True)
 def ProgressCircle():
     pass
 
