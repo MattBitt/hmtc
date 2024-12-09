@@ -182,24 +182,6 @@ class Track(BaseModel):
     video = ForeignKeyField(Video, backref="tracks")
     section = ForeignKeyField(Section, backref="tracks")
 
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "track_number": self.track_number,
-            "length": self.length,
-        }
-
-    @staticmethod
-    def empty_dict():
-        return {
-            "id": 0,
-            "title": "No Track",
-            "track_number": 0,
-            "length": 0,
-            "files": [],
-        }
-
     def __repr__(self):
         return f"TrackModel({self.id} - {self.title=})"
 
@@ -210,6 +192,8 @@ class Track(BaseModel):
 class User(BaseModel):
     username = CharField(max_length=80)
     email = CharField(max_length=120)
+    hashed_password = CharField(max_length=255)
+    jellyfin_id = CharField(null=True)
 
     def __repr__(self):
         return f"User({self.id} - {self.username=})"
@@ -321,14 +305,6 @@ class Superchat(BaseModel):
 
     def __str__(self):
         return f"SuperchatModel({self.id} - {self.frame=})"
-
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "frame": self.frame,
-            "video_id": self.video.id,
-            "superchat_segment_id": self.segment.id if self.segment else None,
-        }
 
     class Meta:
         indexes = (

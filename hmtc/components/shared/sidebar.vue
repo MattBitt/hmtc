@@ -44,11 +44,20 @@ export default {
   data: () => ({
     items: [
       { text: "Albums", icon: "mdi-album", url: "/tables/albums" },
+      { text: "Artists", icon: "mdi-account", url: "/tables/artists" },
+      { text: "Beats", icon: "mdi-music", url: "/tables/beats" },
       { text: "Channels", icon: "mdi-view-list", url: "/tables/channels" },
       { text: "Sections", icon: "mdi-youtube", url: "/tables/sections" },
       { text: "Series", icon: "mdi-shape", url: "/tables/series" },
+      { text: "Superchats", icon: "mdi-account", url: "/tables/superchats" },
+      {
+        text: "Superchat Segments",
+        icon: "mdi-account",
+        url: "/tables/superchat-segments",
+      },
       { text: "Topics", icon: "mdi-book-open", url: "/tables/topics" },
       { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tables/tracks" },
+      { text: "Users", icon: "mdi-account", url: "/tables/users" },
       { text: "Videos (Unique)", icon: "mdi-video", url: "/tables/videos" },
       {
         text: "Youtube Series",

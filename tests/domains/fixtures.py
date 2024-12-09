@@ -1,5 +1,6 @@
 import pytest
-
+from hmtc.domains.beat import Beat
+from hmtc.domains.artist import Artist
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.section import Section
@@ -8,6 +9,7 @@ from hmtc.domains.superchat import Superchat
 from hmtc.domains.superchat_segment import SuperchatSegment
 from hmtc.domains.topic import Topic
 from hmtc.domains.track import Track
+from hmtc.domains.user import User
 from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
 
@@ -183,6 +185,44 @@ superchat_segment_dicts = [
     {"start_time_ms": 100, "end_time_ms": 200, "video": "Guerrilla Bars 1"},
     {"start_time_ms": 200, "end_time_ms": 300, "video": "Wordplay Wednesday 84"},
     {"start_time_ms": 300, "end_time_ms": 400, "video": "Omegle Bars 18"},
+]
+
+user_dicts = [
+    {
+        "username": "mizzle",
+        "email": "mizzle@xyz.com",
+        "hashed_password": "1234",
+        "jellyfin_id": "",
+    },
+    {
+        "username": "linz",
+        "email": "linz@xyz.com",
+        "hashed_password": "74156",
+        "jellyfin_id": "",
+    },
+    {
+        "username": "karmin",
+        "email": "karmin@xyz.com",
+        "hashed_password": "74156",
+        "jellyfin_id": "",
+    },
+    {
+        "username": "rhiannon",
+        "email": "rhiannon@xyz.com",
+        "hashed_password": "74156",
+        "jellyfin_id": "",
+    },
+]
+
+beat_dicts = [
+    {"title": "My First Beat"},
+    {"title": "My Second Beat"},
+    {"title": "My Third Beat"},
+]
+artist_dicts = [
+    {"name": "Harry Mack", "url": "https://www.youtube.com/user/harrewqrymck"},
+    {"name": "Beardyman", "url": "https://www.youtube.com/user/harryasdfmck"},
+    {"name": "Marc Rebillet", "url": "https://www.youtube.com/user/harvcxzvrymck"},
 ]
 
 
@@ -398,3 +438,63 @@ def superchat_segment_item(video_item, section_item):
     superchat_segment_dicts[0]["video"] = video_item.title
     superchat_segment_dicts[0]["section"] = section_item.id
     return SuperchatSegment.create(superchat_segment_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def user_dict1():
+    return user_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def user_dict2():
+    return user_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def user_dict3():
+    return user_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def user_item():
+    return User.create(user_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def beat_dict1():
+    return beat_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def beat_dict2():
+    return beat_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def beat_dict3():
+    return beat_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def beat_item():
+    return Beat.create(beat_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def artist_dict1():
+    return artist_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def artist_dict2():
+    return artist_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def artist_dict3():
+    return artist_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def artist_item():
+    return Artist.create(artist_dicts[0])
