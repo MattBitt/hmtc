@@ -27,7 +27,7 @@ def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
     if len(router.parts) == 1:
-        router.push("/videos")
+        router.push("/domains/videos")
     else:
         return router.parts[level:][0]
 

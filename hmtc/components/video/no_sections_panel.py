@@ -16,9 +16,6 @@ from hmtc.domains.series import Series as SeriesItem
 from hmtc.domains.track import Track as TrackItem
 from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Album as AlbumModel
-from hmtc.models import (
-    File as FileModel,
-)
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,

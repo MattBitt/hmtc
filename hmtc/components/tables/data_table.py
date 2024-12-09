@@ -8,7 +8,7 @@ from loguru import logger
 def DataTable(
     router,
     model,
-    schema_item,
+    domain_class,
     base_query,
     headers,
     search_fields,
@@ -17,7 +17,6 @@ def DataTable(
     action1_icon="",
     action2_path=None,
     action2_icon="",
-    domain_class=None,
 ):
     current_page = solara.use_reactive(1)
     current_sort_field = solara.use_reactive("id")
@@ -58,19 +57,12 @@ def DataTable(
         loading.set(False)
 
     def save_item(*args):
-        if domain_class is None:
-            logger.error(f"Saving {schema_item.item_type} Item: {args[0]['id']}")
-            schema_item.update_from_dict(args[0]["id"], args[0])
-        else:
-            logger.error(f"Saving {domain_class} Item: {args[0]['id']}")
-            domain_class.update(args[0])
+        logger.debug(f"Saving {domain_class} Item: {args[0]['id']}")
+        domain_class.update(args[0])
 
     def delete_item(*args):
-        if domain_class is None:
-            logger.error(f"Deleting {schema_item.item_type} Item: {args[0]['id']}")
-            schema_item.delete_id(args[0]["id"])
-        else:
-            domain_class.delete_id(args[0]["id"])
+        logger.debug(f"Deleting {domain_class} Item: {args[0]['id']}")
+        domain_class.delete_id(args[0]["id"])
 
     if search_text.value != "":
         if len(search_fields) == 1:
@@ -94,12 +86,7 @@ def DataTable(
     num_items = base_query.count()
     base_query = base_query.paginate(current_page.value, per_page.value)
 
-    # while converting to the 'domain' models, keep the tables working
-    # with the 'from_model' algorithm
-    if domain_class is None:
-        items = [schema_item.from_model(item).serialize() for item in base_query]
-    else:
-        items = [domain_class.serialize(item.id) for item in base_query]
+    items = [domain_class.serialize(item.id) for item in base_query]
 
     vue_component(
         loading=loading.value,

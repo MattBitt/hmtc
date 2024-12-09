@@ -12,9 +12,6 @@ from hmtc.domains.series import Series as SeriesItem
 from hmtc.domains.track import Track as TrackItem
 from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
-from hmtc.models import (
-    File as FileModel,
-)
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
@@ -34,6 +31,7 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
+from hmtc.domains.video import Video as VideoItem
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_user_favorites,
@@ -71,17 +69,18 @@ def SectionDialogButton(video, reactive_sections):
         reactive_sections.set([])
 
     def create_section(video, start, end, section_type="instrumental"):
-        sm = SectionManager.from_video(video)
-        new_sect_id = sm.create_section(start=start, end=end, section_type=section_type)
-        new_sect = SectionModel.get_by_id(new_sect_id)
-        reactive_sections.set(reactive_sections.value + [new_sect])
+        # sm = SectionManager.from_video(video)
+        # new_sect_id = sm.create_section(start=start, end=end, section_type=section_type)
+        # new_sect = SectionModel.get_by_id(new_sect_id)
+        # reactive_sections.set(reactive_sections.value + [new_sect])
+        pass
 
     def local_create(*args):
         logger.debug(f"Creating Section: {args}")
         create_section(video, args[0]["start"], args[0]["end"])
 
     SectionControlPanel(
-        video=video.serialize(),
+        video=VideoItem.serialize(video),
         jellyfin_status=jellyfin_status_dict.value,
         event_create_section=local_create,
         event_delete_all_sections=delete_all_sections,

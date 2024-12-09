@@ -13,7 +13,7 @@ from hmtc.config import init_config
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Video as VideoModel
-from hmtc.pages.settings import PageState
+from hmtc.pages.utils.settings import PageState
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.seed_database import seed_database
 
@@ -95,8 +95,8 @@ def Page():
                 ProgressCircle()
             else:
 
-                solara.Button("Videos", classes=["button"], href="/videos")
-                solara.Button("Tracks", classes=["button"], href="/tracks")
+                solara.Button("Videos", classes=["button"], href="/domains/videos")
+                solara.Button("Tracks", classes=["button"], href="/domains/tracks")
 
                 solara.Button(
                     "Refresh",

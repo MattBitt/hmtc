@@ -3,7 +3,6 @@ from pathlib import Path
 import solara
 from loguru import logger
 
-from hmtc.components.video.files_panel import FilesPanel
 from hmtc.components.video.info_dialog_buttons import InfoDialogButtons
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
@@ -28,9 +27,9 @@ def TopRow(video, reactive_sections):
             video=video,
         )
         # Button 4
-        FilesPanel(
-            video=video,
-        )
+        # FilesPanel(
+        #     video=video,
+        # )
         # Button 5
         SectionDialogButton(
             video=video,

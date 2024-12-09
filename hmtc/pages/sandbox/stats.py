@@ -130,11 +130,11 @@ def Page():
                         )
     with solara.Card():
         with solara.Info():
-            with solara.Link(f"/videos/no-jellyfin"):
+            with solara.Link(f"/domains/videos/no-jellyfin"):
                 solara.Markdown(
                     f"### {len(vids_missing_jellyfin_id)}/{len(vids)} videos have no jellyfin id"
                 )
-            with solara.Link(f"/tracks/no-jellyfin"):
+            with solara.Link(f"/domains/tracks/no-jellyfin"):
                 solara.Markdown(
                     f"### {len(tracks_missing_jellyfin_id)}/{num_tracks} tracks have no jellyfin id"
                 )

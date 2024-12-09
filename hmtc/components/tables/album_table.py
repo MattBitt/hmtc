@@ -32,7 +32,6 @@ def _AlbumTable(
 def AlbumTable(router, headers, base_query, search_fields):
     item_info = {
         "model": AlbumModel,
-        "schema_item": AlbumItem,
         "vue_component": _AlbumTable,
         "action1_path": "/album-details",
         "action1_icon": "mdi-album",

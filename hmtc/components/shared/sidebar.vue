@@ -79,23 +79,34 @@
 export default {
   data: () => ({
     items: [
-      { text: "Albums", icon: "mdi-album", url: "/albums" },
-      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tracks" },
-      { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
+      { text: "Videos (Unique)", icon: "mdi-video", url: "/tables/videos" },
+      { text: "Albums", icon: "mdi-album", url: "/tables/albums" },
+      { text: "Tracks", icon: "mdi-music-clef-treble", url: "/tables/tracks" },
+      { text: "Series", icon: "mdi-shape", url: "/tables/series" },
+      { text: "Channels", icon: "mdi-view-list", url: "/tables/channels" },
+      { text: "Sections", icon: "mdi-youtube", url: "/tables/sections" },
+      { text: "Topics", icon: "mdi-book-open", url: "/tables/topics" },
+      {
+        text: "Youtube Series",
+        icon: "mdi-youtube",
+        url: "/tables/youtube-series",
+      },
     ],
     items2: [
-      { text: "Stats", icon: "mdi-graph", url: "/stats" },
-      { text: "Series", icon: "mdi-shape", url: "/series" },
-      { text: "Youtube Series", icon: "mdi-youtube", url: "/youtube-series" },
-      { text: "Channels", icon: "mdi-view-list", url: "/channels" },
-      { text: "Sections", icon: "mdi-youtube", url: "/sections" },
-      { text: "Files", icon: "mdi-folder", url: "/files" },
-      { text: "Topics", icon: "mdi-book-open", url: "/topics" },
+      { text: "Stats", icon: "mdi-graph", url: "/dashboards/stats" },
+      {
+        text: "Now Playing",
+        icon: "mdi-play-speed",
+        url: "/utils/now-playing",
+      },
     ],
     old_items: [
-      { text: "Stats", icon: "mdi-chart-areaspline", url: "/library-stats" },
       { text: "Recent", icon: "mdi-history", url: "/recent" },
-      { text: "Now Playing", icon: "mdi-play-speed", url: "/now-playing" },
+      {
+        text: "Now Playing",
+        icon: "mdi-play-speed",
+        url: "/utils/now-playing",
+      },
       { text: "Jellyfin Info", icon: "mdi-information", url: "/jellyfin-info" },
     ],
     videoItems: [
@@ -124,7 +135,7 @@ export default {
       },
     ],
     other_items: [
-      { text: "Settings", icon: "mdi-settings", url: "/settings" },
+      { text: "Settings", icon: "mdi-settings", url: "/utils/settings" },
 
       { text: "Files", icon: "mdi-folder", url: "/files-panel" },
       { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" },

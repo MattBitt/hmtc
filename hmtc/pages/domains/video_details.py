@@ -8,7 +8,7 @@ from hmtc.components.video.top_row import TopRow
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.domains.section import Section as SectionItem
-from hmtc.domains.video import VideoItem
+from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     Video as VideoModel,
@@ -20,7 +20,7 @@ def parse_url_args():
     level = solara.use_route_level()
 
     if len(router.parts) == 1:
-        router.push("/videos")
+        router.push("/domains/videos")
     else:
         return router.parts[level:][0]
     logger.error(f"Does this execute? {router.parts}")
@@ -39,8 +39,7 @@ def Page():
             solara.Markdown(f"No Video Found {video_id}")
         return
 
-    video = VideoItem.from_model(VideoModel.get_by_id(video_id))
-    sections = SectionModel.select().where(SectionModel.video_id == video.id)
+    video = VideoItem.load(video_id)
     reactive_sections = solara.use_reactive([])
 
     with solara.Column(classes=["main-container"]):

@@ -127,23 +127,6 @@ class Album(BaseModel):
     def __str__(self):
         return f"AlbumModel({self.id} - {self.title=})"
 
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "release_date": str(self.release_date),
-        }
-
-    @staticmethod
-    def empty_dict():
-        return {"id": 0, "title": "No Album", "release_date": "2021-01-01"}
-
-    @staticmethod
-    def new_track_number(album_id):
-        return (
-            Track.select(fn.Count(Track.id)).where(Track.album_id == album_id).scalar()
-        ) + 1
-
 
 class Video(BaseModel):
     description = TextField()

@@ -11,6 +11,7 @@ from hmtc.components.tables.topic_table import TopicTable
 from hmtc.domains.topic import Topic as TopicItem
 from hmtc.models import SectionTopics as SectionTopicModel
 from hmtc.models import Topic as TopicModel
+from hmtc.router import parse_url_args
 
 force_update_counter = solara.reactive(0)
 
@@ -45,7 +46,7 @@ def save_topic(dict_of_items):
 def Page():
     router = solara.use_router()
     MySidebar(router)
-
+    parse_url_args()
     base_query = (
         TopicModel.select(
             TopicModel.id,
@@ -53,6 +54,7 @@ def Page():
         )
         .group_by(TopicModel.id, TopicModel.text)
         .order_by(TopicModel.text.asc())
+        .limit(100)
     )
 
     headers = [

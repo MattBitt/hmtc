@@ -14,7 +14,7 @@ def parse_url_args():
     level = solara.use_route_level()
 
     if len(router.parts) == 1:
-        router.push("/videos")
+        router.push("/domains/videos")
     else:
         return router.parts[level:][0]
 
@@ -31,7 +31,8 @@ def Page():
 
     video = VideoItem.from_model(VideoModel.get_by_id(video_id))
 
-    vid_file = FileManager.get_file_for_video(video, "video")
+    # vid_file = FileManager.get_file_for_video(video, "video")
+    vid_file = ""
     FRAME_INTERVAL = 0
     if vid_file.file_type == "":
         solara.Markdown(f"No video file found for video {video_id}")

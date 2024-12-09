@@ -12,7 +12,7 @@ from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import YoutubeSeries
 
-force_update_counter = solara.reactive(0)
+from hmtc.router import parse_url_args
 
 
 def delete_youtube_series(item):
@@ -57,6 +57,7 @@ def Page():
     ).order_by(YoutubeSeries.title)
     router = solara.use_router()
     MySidebar(router)
+    parse_url_args()
     headers = [
         {"text": "ID", "value": "id"},
         {"text": "Title", "value": "title"},

@@ -35,7 +35,6 @@ def _TrackTable(
 def TrackTable(router, headers, base_query, search_fields):
     item_info = {
         "model": TrackModel,
-        "schema_item": TrackItem,
         "vue_component": _TrackTable,
         "action1_path": "/video-details",
         "action1_icon": "mdi-rhombus-split",

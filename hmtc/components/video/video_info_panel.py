@@ -17,9 +17,6 @@ from hmtc.domains.track import Track as TrackItem
 from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
-from hmtc.models import (
-    File as FileModel,
-)
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,
@@ -124,7 +121,7 @@ def VideoInfoPanel(video):
                     )
 
             with solara.Row(justify="center"):
-                with solara.Link(f"/frame-analyzer/{video.id}"):
+                with solara.Link(f"utils/frame-analyzer/{video.id}"):
                     solara.Button(
                         label="Frame Analyzer",
                         classes=["button"],

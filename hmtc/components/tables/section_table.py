@@ -33,7 +33,6 @@ def _SectionTable(
 def SectionTable(router, headers, base_query, search_fields):
     item_info = {
         "model": SectionModel,
-        "schema_item": _SectionItem,
         "vue_component": _SectionTable,
         "action1_path": "",
         "action1_icon": "",

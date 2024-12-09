@@ -32,7 +32,6 @@ def _ChannelTable(
 def ChannelTable(router, headers, base_query, search_fields):
     item_info = {
         "model": ChannelModel,
-        "schema_item": ChannelItem,
         "vue_component": _ChannelTable,
         "action1_path": "channels",
         "action1_icon": "mdi-cancel",

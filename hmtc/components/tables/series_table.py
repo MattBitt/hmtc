@@ -32,7 +32,6 @@ def _SeriesTable(
 def SeriesTable(router, headers, base_query, search_fields):
     item_info = {
         "model": SeriesModel,
-        "schema_item": SeriesItem,
         "vue_component": _SeriesTable,
         "action1_path": "",
         "action1_icon": "",

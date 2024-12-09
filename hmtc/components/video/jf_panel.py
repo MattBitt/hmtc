@@ -7,14 +7,12 @@ from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.config import init_config
 from hmtc.domains.album import Album as AlbumItem
 from hmtc.domains.section import Section as SectionItem
-from hmtc.domains.section import SectionManager
+
 from hmtc.domains.series import Series as SeriesItem
 from hmtc.domains.track import Track as TrackItem
-from hmtc.domains.video import VideoItem
+from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Album as AlbumModel
-from hmtc.models import (
-    File as FileModel,
-)
+
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
     SectionTopics as SectionTopicsModel,

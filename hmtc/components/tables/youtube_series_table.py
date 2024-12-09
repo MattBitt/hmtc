@@ -32,7 +32,6 @@ def _YoutubeSeriesTable(
 def YoutubeSeriesTable(router, headers, base_query, search_fields):
     item_info = {
         "model": YoutubeSeriesModel,
-        "schema_item": YoutubeSeriesItem,
         "vue_component": _YoutubeSeriesTable,
         "action1_path": "",
         "action1_icon": "",

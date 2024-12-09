@@ -18,24 +18,7 @@ from hmtc.utils.general import paginate
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-
-
-def parse_url_args():
-    router = solara.use_router()
-    level = solara.use_route_level()
-
-    if len(router.parts) == 1:
-        router.push("/videos")
-    match router.parts:
-        case ["superchats", video_id]:
-            return (
-                SuperchatModel.select(SuperchatModel)
-                .where(SuperchatModel.video_id == video_id)
-                .order_by(SuperchatModel.frame.asc())
-            )
-        case _:
-            logger.error(f"Invalid URL: {router.url}")
-            router.push("/videos")
+from hmtc.router import parse_url_args
 
 
 @solara.component
@@ -81,8 +64,11 @@ def Page():
 
     current_page = solara.use_reactive(1)
     refresh_trigger = solara.use_reactive(1)
+    parse_url_args()
 
-    segment_query = parse_url_args()
+    segment_query = SuperchatSegmentModel.select(SuperchatSegmentModel).order_by(
+        SuperchatSegmentModel.id.asc()
+    )
     query, num_items, num_pages = paginate(
         query=segment_query,
         page=current_page.value,

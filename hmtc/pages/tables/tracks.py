@@ -15,32 +15,7 @@ from hmtc.models import Track as TrackModel
 force_update_counter = solara.reactive(0)
 
 
-def create_query_from_url():
-    # url options
-    # /tracks should be a list of all tracks (default)
-    # /tracks/album/<album_id> should be a list of tracks in an album
-    # /tracks/missing-files/audio should be a list of tracks missing audio files
-    # /tracks/missing-files/lyrics should be a list of tracks missing video files
-    all = (
-        TrackModel.select(
-            TrackModel,
-            AlbumModel,
-        )
-        .join(AlbumModel, peewee.JOIN.LEFT_OUTER)
-        .switch(TrackModel)
-    )
-
-    router = solara.use_router()
-
-    match router.parts:
-        case ["tracks"]:
-            return all, None, None
-        case ["tracks", "album", album_id]:
-            tracks = all.where(TrackModel.album_id == album_id)
-            return tracks, "album", album_id
-
-        case _:
-            logger.error(f"Invalid URL: {router.url}")
+from hmtc.router import parse_url_args
 
 
 def delete_track(item):
@@ -74,7 +49,9 @@ def Page():
 
     router = solara.use_router()
     MySidebar(router)
-    base_query, filter, id_to_filter = create_query_from_url()
+
+    parse_url_args()
+    base_query = TrackModel.select()
     headers = [
         {"text": "Title", "value": "title"},
         {"text": "Track Number", "value": "track_number"},
