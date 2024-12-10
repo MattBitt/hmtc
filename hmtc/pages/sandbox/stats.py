@@ -121,7 +121,7 @@ def Page():
                             f"### {len(vids_with_missing_tracks_and_no_album)} videos are missing tracks AND don't have an album assigned"
                         )
                         for vid in vids_with_missing_tracks_and_no_album:
-                            with solara.Link(f"/video-details/{vid.id}"):
+                            with solara.Link(f"/domains/video-details/{vid.id}"):
                                 solara.Markdown(f"### {vid.title}")
                 else:
                     with solara.Success():

@@ -22,7 +22,7 @@ def test_empty_section():
 
 
 def test_section_create_and_load(section_dict1, video_item):
-    section_dict1["video"] = video_item.title
+    section_dict1["video_id"] = video_item.id
     created_section = Section.create(section_dict1)
     assert created_section.start == section_dict1["start"]
 

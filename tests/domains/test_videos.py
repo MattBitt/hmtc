@@ -20,14 +20,9 @@ def test_empty_video():
     assert type(c.repo) == Repository
 
 
-def test_video_create_and_load(
-    video_dict1, series_item, youtube_series_item, album_item, channel_item
-):
+def test_video_create_and_load(video_dict1, channel_item):
     # setup relationships
-    video_dict1["series"] = series_item.title
-    video_dict1["youtube_series"] = youtube_series_item.title
-    video_dict1["album"] = album_item.title
-    video_dict1["channel"] = channel_item.title
+    video_dict1["channel_id"] = channel_item.id
 
     created_video = Video.create(video_dict1)
     assert created_video.title == video_dict1["title"]
@@ -35,9 +30,6 @@ def test_video_create_and_load(
 
     loaded_video = Video.load(created_video.id)
     assert loaded_video.title == video_dict1["title"]
-    assert loaded_video.series.title == series_item.title
-    assert loaded_video.youtube_series.title == youtube_series_item.title
-    assert loaded_video.album.title == album_item.title
     assert loaded_video.channel.title == channel_item.title
 
 

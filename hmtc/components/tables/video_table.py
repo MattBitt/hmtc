@@ -3,7 +3,6 @@ from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.video import Video as VideoItem
-
 from hmtc.models import Video as VideoModel
 
 
@@ -34,7 +33,7 @@ def VideoTable(router, headers, base_query, search_fields):
     item_info = {
         "model": VideoModel,
         "vue_component": _VideoTable,
-        "action1_path": "/video-details",
+        "action1_path": "/domains/video-details",
         "action1_icon": "mdi-rhombus-split",
     }
     DataTable(

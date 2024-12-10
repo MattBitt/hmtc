@@ -14,6 +14,7 @@ from peewee import (
     CharField,
     DateField,
     DateTimeField,
+    DeferredForeignKey,
     ForeignKeyField,
     IntegerField,
     Model,
@@ -82,22 +83,23 @@ class Series(BaseModel):
         return f"SeriesModel({self.id} - {self.title})"
 
 
+class Album(BaseModel):
+    title = CharField(unique=True)
+    release_date = DateField(null=True)
+
+    def __repr__(self):
+        return f"AlbumModel({self.id} - {self.title=})"
+
+    def __str__(self):
+        return f"AlbumModel({self.id} - {self.title=})"
+
+
 class Channel(BaseModel):
     title = CharField(unique=True)
     url = CharField()
     youtube_id = CharField(unique=True)
     last_update_completed = DateTimeField(default=datetime.now())
     auto_update = BooleanField(default=False)
-
-    def simple_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "url": self.url,
-            "youtube_id": self.youtube_id,
-            "last_update_completed": str(self.last_update_completed),
-            "auto_update": self.auto_update,
-        }
 
     def __repr__(self):
         return f"ChannelModel({self.id} - {self.title=})"
@@ -117,38 +119,39 @@ class YoutubeSeries(BaseModel):
         return f"YoutubeSeriesModel({self.id} - {self.title=})"
 
 
-class Album(BaseModel):
-    title = CharField(unique=True)
-    release_date = DateField(null=True)
+class YoutubeSeriesVideo(BaseModel):
+    youtube_series = ForeignKeyField(YoutubeSeries, backref="videos")
+    video = DeferredForeignKey("Video", backref="youtube_series")
+    episode_number = IntegerField(null=True)
+    episode_verbose = CharField(null=True)
 
     def __repr__(self):
-        return f"AlbumModel({self.id} - {self.title=})"
+        return f"YoutubeSeriesVideoModel({self.id} - {self.youtube_series=})"
 
     def __str__(self):
-        return f"AlbumModel({self.id} - {self.title=})"
+        return f"YoutubeSeriesVideoModel({self.id} - {self.youtube_series=})"
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and Artist
+            (("youtube_series", "video"), True),
+        )
 
 
 class Video(BaseModel):
     description = TextField()
     duration = IntegerField()
     title = CharField()
-    unique_content = BooleanField(default=False)
     upload_date = DateField()
     url = CharField()
     youtube_id = CharField(unique=True)
-
-    # really more associated with youtube serieses. probably should be moved
-    episode = CharField(null=True)
+    unique_content = BooleanField(default=False)
 
     # won't be assigned by jellyfin until after the video is uploaded
-    jellyfin_id = CharField(null=True, max_length=255)
+    jellyfin_id = CharField(null=True)
 
     # relationships
-    album = ForeignKeyField(Album, backref="videos", null=True)
     channel = ForeignKeyField(Channel, backref="videos")
-    series = ForeignKeyField(Series, backref="videos", null=True)
-    # this needs to go the other way, im pretty sure
-    youtube_series = ForeignKeyField(YoutubeSeries, backref="videos", null=True)
 
     def __repr__(self):
         return f"VideoModel({self.id} - {self.title=})"
@@ -161,7 +164,7 @@ class Section(BaseModel):
     start = IntegerField()
     end = IntegerField()
     section_type = CharField()
-    next_section: int = ForeignKeyField("self", backref="previous_section", null=True)
+    next_section = ForeignKeyField("self", backref="previous_section", null=True)
     video = ForeignKeyField(Video, backref="sections")
 
     def __repr__(self):
@@ -177,10 +180,11 @@ class Track(BaseModel):
     title = CharField()
     track_number = IntegerField()
     length = IntegerField()
+
+    # won't be assigned by jellyfin until after the track is uploaded
     jellyfin_id = IntegerField(null=True)
-    album = ForeignKeyField(Album, backref="tracks")
-    video = ForeignKeyField(Video, backref="tracks")
-    section = ForeignKeyField(Section, backref="tracks")
+
+    section = ForeignKeyField(Section, backref="track")
 
     def __repr__(self):
         return f"TrackModel({self.id} - {self.title=})"
@@ -267,7 +271,7 @@ class Topic(BaseModel):
         return f"TopicModel({self.id} - {self.text=})"
 
 
-class SectionTopics(BaseModel):
+class SectionTopic(BaseModel):
     section = ForeignKeyField(Section, backref="topics")
     topic = ForeignKeyField(Topic, backref="sections")
     order = IntegerField()
@@ -280,11 +284,12 @@ class SectionTopics(BaseModel):
 
 
 class SuperchatSegment(BaseModel):
+    # should probably use the Section as a base
     start_time_ms = IntegerField()
     end_time_ms = IntegerField()
-    next_segment: int = ForeignKeyField("self", backref="previous_segment", null=True)
+    next_segment = ForeignKeyField("self", backref="previous_segment", null=True)
 
-    video = ForeignKeyField(Video, backref="superchat_segments")
+    # section is the 'output' of the segment to turn it into a track
     section = ForeignKeyField(Section, backref="superchat_segments", null=True)
 
     def __repr__(self):
@@ -313,6 +318,44 @@ class Superchat(BaseModel):
         )
 
 
+class AlbumVideo(BaseModel):
+    album = ForeignKeyField(Album, backref="videos")
+    video = ForeignKeyField(Video, backref="albums")
+    disc_number = IntegerField()
+    disc_number_verbose = CharField(null=True)
+
+    def __repr__(self):
+        return f"AlbumVideoModel({self.id} - {self.album=})"
+
+    def __str__(self):
+        return f"AlbumVideoModel({self.id} - {self.album=})"
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and Artist
+            (("album", "video"), True),
+        )
+
+
+class AlbumTrack(BaseModel):
+    album = ForeignKeyField(Album, backref="tracks")
+    track = ForeignKeyField(Track, backref="albums")
+    track_number = IntegerField()
+    track_number_verbose = CharField(null=True)
+
+    def __repr__(self):
+        return f"AlbumTracksModel({self.id} - {self.album=})"
+
+    def __str__(self):
+        return f"AlbumTracksModel({self.id} - {self.album=})"
+
+    class Meta:
+        indexes = (
+            # Create a unique composite index on beat and Artist
+            (("album", "track"), True),
+        )
+
+
 __all__ = [
     "Album",
     "Artist",
@@ -320,7 +363,7 @@ __all__ = [
     "BeatArtist",
     "Channel",
     "Section",
-    "SectionTopics",
+    "SectionTopic",
     "Series",
     "Superchat",
     "SuperchatSegment",
@@ -330,4 +373,7 @@ __all__ = [
     "User",
     "Video",
     "YoutubeSeries",
+    "YoutubeSeriesVideo",
+    "AlbumVideo",
+    "AlbumTrack",
 ]

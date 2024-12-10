@@ -14,7 +14,7 @@ class YoutubeSeries:
 
     @classmethod
     def create(cls, data) -> YoutubeSeriesModel:
-        series = cls.series_repo.get(title=data["series"])
+        series = cls.series_repo.get(id=data["series_id"])
         data["series"] = series
         return cls.repo.create_item(data=data)
 

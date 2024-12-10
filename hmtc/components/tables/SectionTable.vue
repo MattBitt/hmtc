@@ -117,7 +117,7 @@
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <a :href="'/video-details/' + item.video_id">
+        <a :href="'/domains/video-details/' + item.video_id">
           <v-icon x-large color="primary" class="mb-4"
             >mdi-rhombus-split</v-icon
           >

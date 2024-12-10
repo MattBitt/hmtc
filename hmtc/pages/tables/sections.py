@@ -15,7 +15,7 @@ force_update_counter = solara.reactive(0)
 
 
 def view_details(router, item):
-    router.push(f"/video-details/{item['video_id']}")
+    router.push(f"/domains/video-details/{item['video_id']}")
 
 
 @solara.component

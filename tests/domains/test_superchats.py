@@ -22,7 +22,7 @@ def test_empty_superchat():
 
 
 def test_superchat_create_and_load(superchat_dict1, video_item):
-    superchat_dict1["video"] = video_item.title
+    superchat_dict1["video_id"] = video_item.id
     created_superchat = Superchat.create(superchat_dict1)
     assert created_superchat.frame == superchat_dict1["frame"]
 

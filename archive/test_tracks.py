@@ -5,7 +5,7 @@ from hmtc.models import Album as AlbumModel
 from hmtc.models import (
     Section as SectionModel,
 )
-from hmtc.models import SectionTopics as SectionTopicsModel
+from hmtc.models import SectionTopic as SectionTopicsModel
 from hmtc.models import Topic as TopicModel
 from hmtc.models import (
     Track as TrackModel,

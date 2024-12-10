@@ -19,7 +19,7 @@ from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
-    SectionTopics as SectionTopicsModel,
+    SectionTopic as SectionTopicsModel,
 )
 from hmtc.models import (
     Series as SeriesModel,

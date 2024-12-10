@@ -1,7 +1,8 @@
 import pytest
-from hmtc.domains.beat import Beat
-from hmtc.domains.artist import Artist
+
 from hmtc.domains.album import Album
+from hmtc.domains.artist import Artist
+from hmtc.domains.beat import Beat
 from hmtc.domains.channel import Channel
 from hmtc.domains.section import Section
 from hmtc.domains.series import Series
@@ -86,9 +87,6 @@ video_dicts = [
         "youtube_id": "1234",
         "episode": 1,
         "channel": "Another Harry Mack Channel",
-        "series": "Guerrilla",
-        "youtube_series": "Guerrilla Bars",
-        "album": "Guerrilla Bars",
     },
     {
         "description": "Harry Mack raps on the street",
@@ -100,9 +98,6 @@ video_dicts = [
         "youtube_id": "1234cvdde",
         "episode": None,
         "channel": "Yet another HM Channel",
-        "series": "Livestreams",
-        "youtube_series": "Wordplay Wednesday",
-        "album": "Wordplay Wednesday",
     },
     {
         "description": "Harry Mack raps on the street",
@@ -114,9 +109,6 @@ video_dicts = [
         "youtube_id": "123781",
         "episode": 0,
         "channel": "Clips of harry Mack",
-        "series": "Concerts",
-        "youtube_series": "Omegle Bars",
-        "album": "Omegle Bars",
     },
 ]
 
@@ -283,7 +275,7 @@ def youtube_series_dict3():
 
 @pytest.fixture(scope="function")
 def youtube_series_item(series_item):
-    youtube_series_dicts[0]["series"] = series_item.title
+    youtube_series_dicts[0]["series_id"] = series_item.id
     yts = YoutubeSeries.create(youtube_series_dicts[0])
     return yts
 
@@ -325,7 +317,7 @@ def section_dict3():
 
 @pytest.fixture(scope="function")
 def section_item(video_item):
-    section_dicts[0]["video"] = video_item.title
+    section_dicts[0]["video_id"] = video_item.id
     return Section.create(section_dicts[0])
 
 
@@ -345,11 +337,8 @@ def video_dict3():
 
 
 @pytest.fixture(scope="function")
-def video_item(series_item, youtube_series_item, album_item, channel_item):
-    video_dicts[0]["series"] = series_item.title
-    video_dicts[0]["youtube_series"] = youtube_series_item.title
-    video_dicts[0]["album"] = album_item.title
-    video_dicts[0]["channel"] = channel_item.title
+def video_item(channel_item):
+    video_dicts[0]["channel_id"] = channel_item.id
     return Video.create(video_dicts[0])
 
 
@@ -369,10 +358,8 @@ def track_dict3():
 
 
 @pytest.fixture(scope="function")
-def track_item(video_item, section_item):
-    track_dicts[0]["video"] = video_item.title
-    track_dicts[0]["album"] = video_item.album.title
-    track_dicts[0]["section"] = section_item.id
+def track_item(section_item):
+    track_dicts[0]["section_id"] = section_item.id
     return Track.create(track_dicts[0])
 
 
@@ -393,7 +380,7 @@ def topic_dict3():
 
 @pytest.fixture(scope="function")
 def topic_item(section_item):
-    topic_dicts[0]["section"] = section_item.id
+    topic_dicts[0]["section_id"] = section_item.id
     return Topic.create(topic_dicts[0])
 
 
@@ -414,7 +401,7 @@ def superchat_dict3():
 
 @pytest.fixture(scope="function")
 def superchat_item(video_item):
-    superchat_dicts[0]["video"] = video_item.title
+    superchat_dicts[0]["video_id"] = video_item.id
     return Superchat.create(superchat_dicts[0])
 
 
@@ -434,9 +421,8 @@ def superchat_segment_dict3():
 
 
 @pytest.fixture(scope="function")
-def superchat_segment_item(video_item, section_item):
-    superchat_segment_dicts[0]["video"] = video_item.title
-    superchat_segment_dicts[0]["section"] = section_item.id
+def superchat_segment_item(section_item):
+    superchat_segment_dicts[0]["section_id"] = section_item.id
     return SuperchatSegment.create(superchat_segment_dicts[0])
 
 

@@ -3,7 +3,7 @@ from hmtc.models import (
     Section as SectionModel,
 )
 from hmtc.models import (
-    SectionTopics as SectionTopicsModel,
+    SectionTopic as SectionTopicsModel,
 )
 from hmtc.models import (
     Topic as TopicModel,

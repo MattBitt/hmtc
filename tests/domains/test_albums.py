@@ -1,6 +1,7 @@
 import pytest
 
 from hmtc.domains.album import Album
+from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
@@ -8,7 +9,14 @@ from tests.domains.fixtures import (
     album_dict2,
     album_dict3,
     album_item,
+    channel_dict1,
+    channel_dict2,
+    channel_dict3,
+    channel_item,
     series_item,
+    video_dict1,
+    video_dict2,
+    video_dict3,
 )
 
 

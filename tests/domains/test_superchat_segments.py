@@ -22,11 +22,8 @@ def test_empty_superchat_segment():
     assert type(c.repo) == Repository
 
 
-def test_superchat_segment_create_and_load(
-    superchat_segment_dict1, video_item, section_item
-):
-    superchat_segment_dict1["video"] = video_item.title
-    superchat_segment_dict1["section"] = section_item.id
+def test_superchat_segment_create_and_load(superchat_segment_dict1, section_item):
+    superchat_segment_dict1["section_id"] = section_item.id
 
     created_superchat_segment = SuperchatSegment.create(superchat_segment_dict1)
     assert (
@@ -47,7 +44,6 @@ def test_superchat_segment_create_and_load(
         loaded_superchat_segment.end_time_ms == superchat_segment_dict1["end_time_ms"]
     )
     assert loaded_superchat_segment.id > 0
-    assert loaded_superchat_segment.video.title == video_item.title
     assert loaded_superchat_segment.section.id == section_item.id
 
 
@@ -62,12 +58,11 @@ def test_superchat_segment_delete(superchat_segment_item):
     assert c is None
 
 
-def test_serialize(superchat_segment_item, video_item, section_item):
+def test_serialize(superchat_segment_item, section_item):
     s = SuperchatSegment.serialize(superchat_segment_item.id)
     assert s["start_time_ms"] == superchat_segment_item.start_time_ms
     assert s["end_time_ms"] == superchat_segment_item.end_time_ms
     assert s["id"] == superchat_segment_item.id
-    assert s["video"]["title"] == video_item.title
     assert s["section"]["id"] == section_item.id
 
 

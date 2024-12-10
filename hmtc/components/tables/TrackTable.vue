@@ -128,7 +128,7 @@
         <a :href="'/album-details/' + item.album_id">
           <v-icon x-large color="primary" class="mb-4">mdi-album</v-icon>
         </a>
-        <a :href="'/video-details/' + item.section.video_id">
+        <a :href="'/domains/video-details/' + item.section.video_id">
           <v-icon x-large color="primary" class="mb-4"
             >mdi-rhombus-split</v-icon
           >

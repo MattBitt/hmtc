@@ -22,7 +22,7 @@ TABLES = [
     BeatArtist,
     Channel,
     Section,
-    SectionTopics,
+    SectionTopic,
     Series,
     Superchat,
     SuperchatSegment,
@@ -32,6 +32,10 @@ TABLES = [
     User,
     Video,
     YoutubeSeries,
+    YoutubeSeriesVideo,
+    YoutubeSeriesVideo,
+    AlbumTrack,
+    AlbumVideo,
 ]
 
 
@@ -39,6 +43,9 @@ def create_tables(db, tables=[]):
     if not tables:
         tables = TABLES
     db.create_tables(tables)
+    # to resolve the circular depedency between Video and YoutubeSeriesVideo
+    # may not need...
+    # YoutubeSeriesVideo._schema.create_foreign_key(YoutubeSeriesVideo.video)
 
 
 def drop_all_tables(db):
@@ -54,40 +61,3 @@ def init_db(db, config):
         port=config["database"]["port"],
     )
     return db
-
-
-def is_db_empty():
-    vids = Video.select(Video.id).count()
-    logger.debug(f"DB currently has: {vids} Videos")
-    return vids < 10
-
-
-def import_existing_video_files_to_db(path):
-    # havent tested in a million years, but might be a good starting point
-    # for the file import
-    found = 0
-    unfound = 0
-    f = Path(path)
-    for file in f.glob("**/*.*"):
-        if file.is_file():
-            youtube_id = get_youtube_id(file.stem)
-            if youtube_id:
-                vid = Video.get_or_none(Video.youtube_id == youtube_id)
-                if not vid:
-                    unfound = unfound + 1
-                    continue
-                else:
-                    logger.debug(
-                        f"Successfully found video{vid.youtube_id}. Adding file"
-                    )
-            else:
-                logger.debug(f"Could not find youtube_id in {file}")
-
-    logger.success("Finished importing files to the database.")
-    logger.debug(f"Found {found} new files.")
-    logger.debug(f"There were {unfound} files found with no associated video")
-
-    if not f.exists():
-        logger.error("Path not found")
-        return None
-    return f.glob("**/*")

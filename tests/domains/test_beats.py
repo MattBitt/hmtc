@@ -1,8 +1,8 @@
 import pytest
 
 from hmtc.domains.beat import Beat
-from hmtc.models import Section as SectionModel
 from hmtc.models import Beat as BeatModel
+from hmtc.models import Section as SectionModel
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
     beat_dict1,

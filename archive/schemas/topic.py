@@ -4,7 +4,7 @@ from pathlib import Path
 from loguru import logger
 from peewee import fn
 
-from hmtc.models import SectionTopics as SectionTopicsModel
+from hmtc.models import SectionTopic as SectionTopicsModel
 from hmtc.models import Topic as TopicModel
 
 

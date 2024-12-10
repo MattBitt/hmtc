@@ -20,7 +20,7 @@ from hmtc.models import (
 from hmtc.models import Channel
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
-    SectionTopics as SectionTopicsModel,
+    SectionTopic as SectionTopicsModel,
 )
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import (
@@ -33,9 +33,9 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
+from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.jellyfin_functions import search_for_media
 from hmtc.utils.opencv.image_extractor import ImageExtractor
-from hmtc.utils.seed_database import recreate_database
 
 MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 config = init_config()

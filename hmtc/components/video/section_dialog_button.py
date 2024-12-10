@@ -10,11 +10,12 @@ from hmtc.domains.album import Album as AlbumItem
 from hmtc.domains.section import Section as SectionItem
 from hmtc.domains.series import Series as SeriesItem
 from hmtc.domains.track import Track as TrackItem
+from hmtc.domains.video import Video as VideoItem
 from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
-    SectionTopics as SectionTopicsModel,
+    SectionTopic as SectionTopicsModel,
 )
 from hmtc.models import (
     Series as SeriesModel,
@@ -31,7 +32,6 @@ from hmtc.models import (
 from hmtc.models import (
     YoutubeSeries as YoutubeSeriesModel,
 )
-from hmtc.domains.video import Video as VideoItem
 from hmtc.utils.jellyfin_functions import (
     can_ping_server,
     get_user_favorites,

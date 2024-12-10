@@ -16,24 +16,12 @@ from hmtc.repos.base_repo import Repository
 
 class Video:
     repo = Repository(model=VideoModel(), label="Video")
-    series_repo = Repository(model=SeriesModel(), label="Series")
     channel_repo = Repository(model=ChannelModel(), label="Channel")
-    album_repo = Repository(model=AlbumModel(), label="Album")
-    youtube_series_repo = Repository(model=YoutubeSeriesModel(), label="Youtube Series")
 
     @classmethod
     def create(cls, data) -> VideoModel:
-        album = cls.album_repo.get(title=data["album"])
-        data["album"] = album
-
-        channel = cls.channel_repo.get(title=data["channel"])
+        channel = cls.channel_repo.get(id=data["channel_id"])
         data["channel"] = channel
-
-        series = cls.series_repo.get(title=data["series"])
-        data["series"] = series
-
-        youtube_series = cls.youtube_series_repo.get(title=data["youtube_series"])
-        data["youtube_series"] = youtube_series
 
         return cls.repo.create_item(data=data)
 
@@ -55,10 +43,7 @@ class Video:
 
         _dict = item.my_dict()
         _dict["upload_date"] = str(_dict["upload_date"])
-        _dict["series"] = Series.serialize(item.series.id)
         _dict["channel"] = Channel.serialize(item.channel.id)
-        _dict["album"] = Album.serialize(item.album.id)
-        _dict["youtube_series"] = YoutubeSeries.serialize(item.youtube_series.id)
         _dict["section_info"] = (
             {
                 "section_count": 789,

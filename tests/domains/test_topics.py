@@ -23,17 +23,15 @@ def test_empty_topic():
     assert type(c.repo) == Repository
 
 
-def test_topic_create_and_load(topic_dict1, section_item, video_item):
-    topic_dict1["section"] = section_item.id
+def test_topic_create_and_load(
+    topic_dict1,
+):
     created_topic = Topic.create(topic_dict1)
     assert created_topic.text == topic_dict1["text"]
     assert created_topic.id > 0
 
     loaded_topic = Topic.load(created_topic.id)
     assert loaded_topic.text == topic_dict1["text"]
-
-    new_section = SectionModel.get(id=section_item.id)
-    assert len(new_section.topics) == 1
 
 
 def test_topic_delete(video_item, topic_item):
@@ -47,8 +45,6 @@ def test_serialize(topic_item, video_item, section_item):
     t = Topic.serialize(topic_item.id)
     assert t["text"] == topic_item.text
     assert t["id"] == topic_item.id
-
-    assert t["sections"][0]["id"] == section_item.id
 
 
 def test_get_all(topic_item):

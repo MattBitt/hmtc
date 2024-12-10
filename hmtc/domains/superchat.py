@@ -14,7 +14,7 @@ class Superchat:
 
     @classmethod
     def create(cls, data) -> SuperchatModel:
-        video = cls.video_repo.get(title=data["video"])
+        video = cls.video_repo.get(id=data["video_id"])
         data["video"] = video
 
         return cls.repo.create_item(data=data)

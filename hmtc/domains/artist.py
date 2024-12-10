@@ -3,8 +3,8 @@ from typing import List
 from loguru import logger
 
 from hmtc.domains.section import Section
-from hmtc.models import Section as SectionModel
 from hmtc.models import Artist as ArtistModel
+from hmtc.models import Section as SectionModel
 from hmtc.repos.base_repo import Repository
 
 

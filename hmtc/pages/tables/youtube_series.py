@@ -11,7 +11,6 @@ from hmtc.components.tables.youtube_series_table import YoutubeSeriesTable
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import YoutubeSeries
-
 from hmtc.router import parse_url_args
 
 

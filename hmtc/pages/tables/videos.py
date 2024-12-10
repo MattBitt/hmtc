@@ -20,7 +20,6 @@ from hmtc.models import (
 from hmtc.models import (
     Section as SectionModel,
 )
-
 from hmtc.models import (
     Video as VideoModel,
 )
@@ -28,7 +27,7 @@ from hmtc.router import parse_url_args
 
 
 def view_details(router, item):
-    router.push(f"/video-details/{item['id']}")
+    router.push(f"/domains/video-details/{item['id']}")
 
 
 def delete_video_item(item):

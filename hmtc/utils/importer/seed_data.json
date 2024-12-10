@@ -1,0 +1,428 @@
+{
+  
+  "Album": [
+    {
+      "id": 1,
+      "title": "Greatest Hits",
+      "release_date": "2020-01-01"
+    },
+    {
+      "id": 2,
+      "title": "Summer Vibes",
+      "release_date": "2019-06-21"
+    },
+    {
+      "id": 3,
+      "title": "Winter Chill",
+      "release_date": "2021-12-01"
+    }
+  ],
+  "Artist": [
+    {
+      "id": 1,
+      "name": "Artist One",
+      "url": "https://artistone.com"
+    },
+    {
+      "id": 2,
+      "name": "Artist Two",
+      "url": "https://artisttwo.com"
+    },
+    {
+      "id": 3,
+      "name": "Artist Three",
+      "url": "https://artistthree.com"
+    }
+  ],
+  "Beat": [
+    {
+      "id": 1,
+      "title": "Beat One"
+    },
+    {
+      "id": 2,
+      "title": "Beat Two"
+    },
+    {
+      "id": 3,
+      "title": "Beat Three"
+    }
+  ],
+  "Channel": [
+    {
+      "id": 1,
+      "title": "Tech Guru",
+      "url": "https://youtube.com/techguru",
+      "youtube_id": "TG123",
+      "last_update_completed": "2023-10-01T12:00:00",
+      "auto_update": true
+    },
+    {
+      "id": 2,
+      "title": "Cooking Master",
+      "url": "https://youtube.com/cookingmaster",
+      "youtube_id": "CM456",
+      "last_update_completed": "2023-09-15T08:30:00",
+      "auto_update": false
+    },
+    {
+      "id": 3,
+      "title": "Travel Explorer",
+      "url": "https://youtube.com/travelexplorer",
+      "youtube_id": "TE789",
+      "last_update_completed": "2023-08-20T14:45:00",
+      "auto_update": true
+    }
+  ],
+  "Section": [
+    {
+      "id": 1,
+      "start": 0,
+      "end": 100,
+      "section_type": "Intro",
+      "next_section_id": 2,
+      "video_id": 1
+    },
+    {
+      "id": 2,
+      "start": 101,
+      "end": 200,
+      "section_type": "Verse",
+      "next_section_id": 3,
+      "video_id": 1
+    },
+    {
+      "id": 3,
+      "start": 201,
+      "end": 300,
+      "section_type": "Chorus",
+      "next_section_id": 4,
+      "video_id": 1
+    },
+    {
+      "id": 4,
+      "start": 301,
+      "end": 400,
+      "section_type": "Bridge",
+      "next_section_id": 5,
+      "video_id": 1
+    },
+    {
+      "id": 5,
+      "start": 401,
+      "end": 500,
+      "section_type": "Outro",
+      "next_section_id": null,
+      "video_id": 1
+    }
+  ],
+  "Series":
+  [
+    {
+    "id": 1,
+    "title": "On the Hiking Trail",
+    "start_date": "2022-01-01",
+    "end_date": "2022-12-31"
+    },
+    {
+    "id": 2,
+    "title": "Superdome Concert",
+    "start_date": "2021-05-01",
+    "end_date": "2021-11-01"
+    },
+    {
+    "id": 3,
+    "title": "In the Studio",
+    "start_date": "2020-03-15",
+    "end_date": "2020-09-15"
+    }
+
+  ],
+  "SuperchatSegment": [
+    {
+      "id": 1,
+      "start_time_ms": 1000,
+      "end_time_ms": 2000,
+      "next_superchat_segment_id": 2,
+      "section_id": 1
+    },
+    {
+      "id": 2,
+      "start_time_ms": 2001,
+      "end_time_ms": 3000,
+      "next_superchat_segment_id": 3,
+      "section_id": 2
+    },
+    {
+      "id": 3,
+      "start_time_ms": 3001,
+      "end_time_ms": 4000,
+      "next_superchat_segment_id": null,
+      "section_id": 3
+    }
+
+  ],
+  "Superchat": [
+    {
+    "id": 1,
+    "frame": 10,
+    "video_id": 1,
+    "superchat_segment_id": 1
+    },
+    {
+    "id": 2,
+    "frame": 20,
+    "video_id": 1,
+    "superchat_segment_id": 2
+    },
+    {
+    "id": 3,
+    "frame": 30,
+    "video_id": 1,
+    "superchat_segment_id": 3
+    }
+  ],
+  "Track": [
+    {
+      "id": 1,
+      "title": "Track One",
+      "track_number": 1,
+      "length": 210,
+      "jellyfin_id": 101,
+      "section_id": 1
+    },
+    {
+      "id": 2,
+      "title": "Track Two",
+      "track_number": 2,
+      "length": 180,
+      "jellyfin_id": 102,
+      "section_id": 2
+    },
+    {
+      "id": 3,
+      "title": "Track Three",
+      "track_number": 3,
+      "length": 240,
+      "jellyfin_id": 103,
+      "section_id": 3
+    }
+  ],
+  "Video": [
+    {
+      "id": 1,
+      "description": "An in-depth look at the latest tech trends.",
+      "duration": 500,
+      "title": "Tech Trends 2023",
+      "upload_date": "2023-01-01",
+      "url": "https://youtube.com/watch?v=techtrends2023",
+      "youtube_id": "VID123",
+      "unique_content": true,
+      "jellyfin_id": "JF123",
+      "channel_id": 1
+    },
+    {
+      "id": 2,
+      "description": "Delicious recipes for the summer.",
+      "duration": 1800,
+      "title": "Summer Recipes",
+      "upload_date": "2022-06-15",
+      "url": "https://youtube.com/watch?v=summerrecipes",
+      "youtube_id": "VID456",
+      "unique_content": false,
+      "jellyfin_id": "JF456",
+      "channel_id": 2
+    },
+    {
+      "id": 3,
+      "description": "Exploring the beautiful landscapes of Europe.",
+      "duration": 5400,
+      "title": "European Adventure",
+      "upload_date": "2021-09-10",
+      "url": "https://youtube.com/watch?v=europeanadventure",
+      "youtube_id": "VID789",
+      "unique_content": true,
+      "jellyfin_id": "JF789",
+      "channel_id": 3
+    }
+  ],
+  "User": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "hashed_password": "hashedpassword123",
+      "jellyfin_id": "JFUSER123"
+    },
+    {
+      "id": 2,
+      "username": "jane_smith",
+      "email": "jane@example.com",
+      "hashed_password": "hashedpassword456",
+      "jellyfin_id": "JFUSER456"
+    },
+    {
+      "id": 3,
+      "username": "alice_jones",
+      "email": "alice@example.com",
+      "hashed_password": "hashedpassword789",
+      "jellyfin_id": "JFUSER789"
+    }
+  ],
+  "YoutubeSeries": [
+    {
+      "id": 1,
+      "title": "Tech Talks",
+      "start_date": "2021-01-01",
+      "end_date": "2021-12-31",
+      "series_id": 1
+    },
+    {
+      "id": 2,
+      "title": "Cooking Show",
+      "start_date": "2020-05-01",
+      "end_date": "2020-11-01",
+      "series_id": 2
+    },
+    {
+      "id": 3,
+      "title": "Travel Vlogs",
+      "start_date": "2019-03-15",
+      "end_date": "2019-09-15",
+      "series_id": 3
+    }
+  ],
+
+
+  "AlbumTrack": [
+    {
+      "album_id": 1,
+      "track_id": 1,
+      "track_number": 1,
+      "track_number_verbose": "1 of 3"
+    },
+    {
+      "album_id": 1,
+      "track_id": 2,
+      "track_number": 2,
+      "track_number_verbose": "2 of 3"
+    },
+    {
+      "album_id": 1,
+      "track_id": 3,
+      "track_number": 1,
+      "track_number_verbose": "1 of 3"
+    }
+  ],
+  "AlbumVideo": [
+    {
+      "album_id": 1,
+      "video_id": 1,
+      "disc_number": 1,
+      "disc_number_verbose": "1 of 2"
+    },
+    {
+      "album_id": 1,
+      "video_id": 2,
+      "disc_number": 2,
+      "disc_number_verbose": "2 of 2"
+    },
+    {
+      "album_id": 3,
+      "video_id": 3,
+      "disc_number": 1,
+      "disc_number_verbose": "1 of 1"
+    }
+  ],
+  "TrackBeat": [
+    {
+      "track_id": 1,
+      "beat_id": 1
+    },
+    {
+      "track_id": 2,
+      "beat_id": 2
+    },
+    {
+      "track_id": 3,
+      "beat_id": 3
+    }
+  ],
+  "BeatArtist": [
+    {
+      "beat_id": 1,
+      "artist_id": 1
+    },
+    {
+      "beat_id": 2,
+      "artist_id": 2
+    },
+    {
+      "beat_id": 3,
+      "artist_id": 3
+    }
+  ],
+  "Topic":[
+    {
+    "id": 1,
+    "text": "apple"
+    },
+    {
+      "id": 2,
+      "text": "banana"
+    },
+    {
+      "id": 3,
+      "text": "cherry"
+    },
+    {
+      "id": 4,
+      "text": "date"
+    },
+    {
+      "id": 5,
+      "text": "elderberry"
+    },
+    {
+      "id": 6,
+      "text": "fig"
+    }
+  ],
+  "YoutubeSeriesVideo": [
+    {
+      "youtube_series_id": 1,
+      "video_id": 1,
+      "episode_number": 1,
+      "episode_number_verbose": "1 of 2"
+    },
+    {
+      "youtube_series_id": 2,
+      "video_id": 1,
+      "episode_number": 2,
+      "episode_number_verbose": "2 of 2"
+    },
+    {
+      "youtube_series_id": 3,
+      "video_id": 3,
+      "episode_number": 1,
+      "episode_number_verbose": "1 of 1"
+    }
+  ],
+  "SectionTopic": [
+    {
+      "section_id": 1,
+      "topic_id": 1,
+      "order": 1
+    },
+    {
+      "section_id": 1,
+      "topic_id": 2,
+      "order": 2
+    },
+    {
+      "section_id": 1,
+      "topic_id": 3,
+      "order": 3
+    }
+  ]
+}

@@ -14,19 +14,11 @@ from hmtc.repos.base_repo import Repository
 
 class Track:
     repo = Repository(model=TrackModel(), label="Track")
-    video_repo = Repository(model=VideoModel(), label="Video")
-    album_repo = Repository(model=AlbumModel(), label="Album")
     section_repo = Repository(model=SectionModel(), label="Section")
 
     @classmethod
     def create(cls, data) -> TrackModel:
-        video = cls.video_repo.get(title=data["video"])
-        data["video"] = video
-
-        album = cls.album_repo.get(title=data["album"])
-        data["album"] = album
-
-        section = cls.section_repo.get(id=data["section"])
+        section = cls.section_repo.get(id=data["section_id"])
         data["section"] = section
 
         return cls.repo.create_item(data=data)
@@ -46,11 +38,9 @@ class Track:
     @classmethod
     def serialize(cls, item_id) -> dict:
         item = cls.load(item_id)
-        _dict = item.my_dict()
-        _dict["video"] = Video.serialize(item.video.id)
-        _dict["album"] = Album.serialize(item.album.id)
-        _dict["section"] = Section.serialize(item.section.id)
 
+        _dict = item.my_dict()
+        _dict["section"] = Section.serialize(item.section.id)
         return _dict
 
     @classmethod

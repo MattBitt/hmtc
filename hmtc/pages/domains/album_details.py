@@ -53,7 +53,7 @@ def Page():
 
                 solara.Markdown(f"{video.title}")
 
-                with solara.Link(f"/video-details/{video.id}"):
+                with solara.Link(f"/domains/video-details/{video.id}"):
                     solara.Markdown("Details")
     with solara.Info(label="Tracks"):
         for track in album.tracks:

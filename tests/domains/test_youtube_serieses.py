@@ -18,7 +18,7 @@ def test_empty_youtube_series():
 
 
 def test_youtube_series_create_and_load(youtube_series_dict1, series_item):
-    youtube_series_dict1["series"] = series_item.title
+    youtube_series_dict1["series_id"] = series_item.id
     created_youtube_series = YoutubeSeries.create(youtube_series_dict1)
     assert created_youtube_series.title == youtube_series_dict1["title"]
 

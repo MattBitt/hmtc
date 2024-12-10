@@ -10,11 +10,12 @@ from hmtc.assets.colors import Colors
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,
+    drop_all_tables,
     init_db,
-    is_db_empty,
 )
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
+from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
 
 
@@ -57,8 +58,13 @@ def setup():
     setup_logging(config)
 
     db_instance = init_db(db_null, config)
+    if config["general"]["environment"] == "development":
+        drop_all_tables(db_instance)
 
     create_tables(db_instance)
+
+    if config["general"]["environment"] == "development":
+        seed_database_from_json()
 
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")

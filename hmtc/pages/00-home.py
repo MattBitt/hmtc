@@ -14,8 +14,8 @@ from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Video as VideoModel
 from hmtc.pages.utils.settings import PageState
+from hmtc.utils.importer.seed_database import seed_database
 from hmtc.utils.opencv.image_manager import ImageManager
-from hmtc.utils.seed_database import seed_database
 
 config = init_config()
 
@@ -128,7 +128,7 @@ def Page():
 
                     with solara.Card():
                         with solara.Column():
-                            with solara.Link(f"/video-details/{vid.id}"):
+                            with solara.Link(f"/domains/video-details/{vid.id}"):
                                 solara.Markdown(f"## Video Image Goes HERE")
                                 # solara.Image(image=video_image.image)
                             solara.Markdown(f"#### {vid.title}")

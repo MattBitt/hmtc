@@ -1,8 +1,8 @@
 import pytest
 
 from hmtc.domains.artist import Artist
-from hmtc.models import Section as SectionModel
 from hmtc.models import Artist as ArtistModel
+from hmtc.models import Section as SectionModel
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
     artist_dict1,

@@ -4,7 +4,6 @@ import solara
 from loguru import logger
 
 from hmtc.components.shared.my_spinner import MySpinner
-
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.config import init_config
@@ -17,7 +16,7 @@ from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import (
-    SectionTopics as SectionTopicsModel,
+    SectionTopic as SectionTopicsModel,
 )
 from hmtc.models import (
     Series as SeriesModel,
