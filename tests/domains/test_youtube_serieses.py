@@ -2,6 +2,7 @@ import pytest
 
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
+from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
     series_item,
@@ -14,7 +15,7 @@ from tests.domains.fixtures import (
 
 def test_empty_youtube_series():
     c = YoutubeSeries()
-    assert type(c.repo) == Repository
+    assert type(c.repo) == YoutubeSeriesRepo
 
 
 def test_youtube_series_create_and_load(youtube_series_dict1, series_item):

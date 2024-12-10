@@ -6,10 +6,11 @@ from hmtc.domains.series import Series
 from hmtc.models import Series as SeriesModel
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
+from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 
 
 class YoutubeSeries:
-    repo = Repository(model=YoutubeSeriesModel(), label="Youtube Series")
+    repo = YoutubeSeriesRepo()
     series_repo = Repository(model=SeriesModel(), label="Series")
 
     @classmethod
