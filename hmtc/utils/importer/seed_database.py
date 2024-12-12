@@ -180,14 +180,9 @@ def seed_database_from_json():
         Series.create(series)
     for album in data["Album"]:
         Album.create(album)
-    for video in data["Video"]:
-        Video.create(video)
+
     for yt_series in data["YoutubeSeries"]:
         YoutubeSeries.create(yt_series)
-
-    # reversed so the 'next' section is created before the 'previous' section
-    for section in reversed(data["Section"]):
-        Section.create(section)
 
     for artist in data["Artist"]:
         Artist.create(artist)
@@ -196,6 +191,13 @@ def seed_database_from_json():
 
     for disc in data["Disc"]:
         Disc.create(disc)
+
+    for video in data["Video"]:
+        Video.create(video)
+
+    # reversed so the 'next' section is created before the 'previous' section
+    for section in reversed(data["Section"]):
+        Section.create(section)
 
     for track in data["Track"]:
         Track.create(track)

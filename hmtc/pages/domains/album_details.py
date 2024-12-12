@@ -49,10 +49,9 @@ def Page():
             solara.Markdown(f"Album ID: {album.id}")
             solara.Markdown(f"Release Date: {album.release_date}")
     with solara.Info(label="Videos"):
-        for video in album.videos:
+        album_vids = AlbumItem.get_videos(album_id=album.id)
+        for video in album_vids:
             with solara.Row():
-
                 solara.Markdown(f"{video.title}")
-
                 with solara.Link(f"/domains/video-details/{video.id}"):
                     solara.Markdown("Details")

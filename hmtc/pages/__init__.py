@@ -53,7 +53,7 @@ def setup_folders():
         check_folder_exist_and_writable(path)
 
 
-def setup():
+def main():
     setup_folders()
     setup_logging(config)
 
@@ -72,9 +72,6 @@ def setup():
     return db_instance
 
 
-db = setup()
-
-
 # this is the base of the app
 @solara.component
 def Layout(children=[]):
@@ -88,3 +85,6 @@ def Layout(children=[]):
         sidebar_open=False,
         children=children,
     )
+
+
+main()
