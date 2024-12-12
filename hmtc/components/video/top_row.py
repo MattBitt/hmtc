@@ -3,7 +3,6 @@ from pathlib import Path
 import solara
 from loguru import logger
 
-from hmtc.components.video.info_dialog_buttons import InfoDialogButtons
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.config import init_config
@@ -23,14 +22,7 @@ def TopRow(video, reactive_sections):
     # VideoInfoInputCard.vue
     # Buttons 1, 2, 3
     with solara.Row(justify="center"):
-        InfoDialogButtons(
-            video=video,
-        )
-        # Button 4
-        # FilesPanel(
-        #     video=video,
-        # )
-        # Button 5
+
         SectionDialogButton(
             video=video,
             reactive_sections=reactive_sections,

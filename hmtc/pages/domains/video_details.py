@@ -7,12 +7,8 @@ from hmtc.components.video.section_details_panel import SectionsDetailsPanel
 from hmtc.components.video.top_row import TopRow
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
-from hmtc.domains.section import Section as SectionItem
+from hmtc.domains.section import Section
 from hmtc.domains.video import Video as VideoItem
-from hmtc.models import Section as SectionModel
-from hmtc.models import (
-    Video as VideoModel,
-)
 
 
 def parse_url_args():
@@ -40,7 +36,8 @@ def Page():
         return
 
     video = VideoItem.load(video_id)
-    reactive_sections = solara.use_reactive([])
+    sections = Section.load_for_video(video.id)
+    reactive_sections = solara.use_reactive(sections)
 
     with solara.Column(classes=["main-container"]):
         TopRow(

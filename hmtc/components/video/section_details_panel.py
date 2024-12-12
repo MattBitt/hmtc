@@ -70,7 +70,7 @@ def SectionsDetailsPanel(video, reactive_sections):
     reload = solara.use_reactive(False)
 
     section_dicts = solara.use_reactive(
-        [SectionItem.from_model(s).serialize() for s in reactive_sections.value]
+        [SectionItem.serialize(s.id) for s in reactive_sections.value]
     )
 
     def refresh_sections():

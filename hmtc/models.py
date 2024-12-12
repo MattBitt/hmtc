@@ -27,17 +27,10 @@ from hmtc.config import init_config
 from hmtc.utils.general import clean_filename
 from hmtc.utils.youtube_functions import fetch_ids_from
 
+# i think this is here so i can 'export' the database
 db_null = PostgresqlDatabase(None)
 
-config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
-VIDEO_MEDIA_PATH = STORAGE / "videos"
 
-MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH"))
-
-
-## 🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬🧬
 class BaseModel(Model):
     id = AutoField(primary_key=True)
     created_at = DateTimeField(default=datetime.now)
@@ -63,14 +56,6 @@ class BaseModel(Model):
         database = db_null
 
 
-class BaseFile(BaseModel):
-    WORKING_PATH = WORKING / "uploads"
-
-    path = CharField()
-    filename = CharField()
-    file_type = CharField()
-
-
 class Series(BaseModel):
     title = CharField(unique=True)
     start_date = DateField(null=True)
@@ -94,6 +79,17 @@ class Album(BaseModel):
         return f"AlbumModel({self.id} - {self.title=})"
 
 
+class Disc(BaseModel):
+    title = CharField()
+    album = ForeignKeyField(Album, backref="discs")
+
+    def __repr__(self):
+        return f"DiscModel({self.id} - {self.disc_title=})"
+
+    def __str__(self):
+        return f"DiscModel({self.id} - {self.disc_title=})"
+
+
 class Channel(BaseModel):
     title = CharField(unique=True)
     url = CharField()
@@ -110,6 +106,7 @@ class Channel(BaseModel):
 
 class YoutubeSeries(BaseModel):
     title = CharField(unique=True, max_length=120)
+
     series = ForeignKeyField(Series, backref="youtube_series")
 
     def __repr__(self):
@@ -117,25 +114,6 @@ class YoutubeSeries(BaseModel):
 
     def __str__(self):
         return f"YoutubeSeriesModel({self.id} - {self.title=})"
-
-
-class YoutubeSeriesVideo(BaseModel):
-    youtube_series = ForeignKeyField(YoutubeSeries, backref="videos")
-    video = DeferredForeignKey("Video", backref="youtube_series")
-    episode_number = IntegerField(null=True)
-    episode_verbose = CharField(null=True)
-
-    def __repr__(self):
-        return f"YoutubeSeriesVideoModel({self.id} - {self.youtube_series=})"
-
-    def __str__(self):
-        return f"YoutubeSeriesVideoModel({self.id} - {self.youtube_series=})"
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("youtube_series", "video"), True),
-        )
 
 
 class Video(BaseModel):
@@ -152,6 +130,7 @@ class Video(BaseModel):
 
     # relationships
     channel = ForeignKeyField(Channel, backref="videos")
+    disc = ForeignKeyField(Disc, backref="videos", null=True)
 
     def __repr__(self):
         return f"VideoModel({self.id} - {self.title=})"
@@ -160,10 +139,34 @@ class Video(BaseModel):
         return f"VideoModel({self.id} - {self.title=})"
 
 
+class AlbumDiscVideo(BaseModel):
+    album_id = ForeignKeyField(Album, backref="videos")
+    video_id = ForeignKeyField(Video, backref="albums")
+    disc_id = ForeignKeyField(Disc, backref="albums")
+    order = IntegerField()
+
+
+class YoutubeSeriesVideo(BaseModel):
+    youtube_series = ForeignKeyField(YoutubeSeries, backref="video")
+    video = ForeignKeyField(Video, backref="youtube_series")
+    episode_number = IntegerField(null=True)
+    episode_verbose = CharField(null=True)
+
+    class Meta:
+        indexes = ((("youtube_series", "video"), True),)
+
+    def __repr__(self):
+        return f"YoutubeSeriesVideoModel({self.id} - {self.youtube_series=})"
+
+    def __str__(self):
+        return f"YoutubeSeriesVideoModel({self.id} - {self.youtube_series=})"
+
+
 class Section(BaseModel):
     start = IntegerField()
     end = IntegerField()
     section_type = CharField()
+
     next_section = ForeignKeyField("self", backref="previous_section", null=True)
     video = ForeignKeyField(Video, backref="sections")
 
@@ -176,15 +179,38 @@ class Section(BaseModel):
         return f"SectionModel({self.id} - {self.section_type})"
 
 
+class Topic(BaseModel):
+    text = CharField()
+
+    def __repr__(self):
+        return f"TopicModel({self.id} - {self.text=})"
+
+    def __str__(self):
+        return f"TopicModel({self.id} - {self.text=})"
+
+
+class SectionTopic(BaseModel):
+    section = ForeignKeyField(Section, backref="topics")
+    topic = ForeignKeyField(Topic, backref="sections")
+    order = IntegerField()
+
+    def __repr__(self):
+        return f"SectionTopicsModel({self.id} - {self.section=})"
+
+    def __str__(self):
+        return f"SectionTopicsModel({self.id} - {self.section=})"
+
+
 class Track(BaseModel):
     title = CharField()
     track_number = IntegerField()
+    track_number_verbose = CharField(null=True)
     length = IntegerField()
-
     # won't be assigned by jellyfin until after the track is uploaded
     jellyfin_id = IntegerField(null=True)
 
     section = ForeignKeyField(Section, backref="track")
+    disc = ForeignKeyField(Disc, backref="tracks")
 
     def __repr__(self):
         return f"TrackModel({self.id} - {self.title=})"
@@ -238,10 +264,7 @@ class TrackBeat(BaseModel):
         return f"TrackBeatModel({self.id} - {self.beat=} - {self.track=})"
 
     class Meta:
-        indexes = (
-            # Create a unique composite index on beat and track
-            (("beat", "track"), True),
-        )
+        indexes = ((("beat", "track"), True),)
 
 
 class BeatArtist(BaseModel):
@@ -255,32 +278,7 @@ class BeatArtist(BaseModel):
         return f"BeatArtistModel({self.id} - {self.beat=} - {self.artist=})"
 
     class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("beat", "artist"), True),
-        )
-
-
-class Topic(BaseModel):
-    text = CharField()
-
-    def __repr__(self):
-        return f"TopicModel({self.id} - {self.text=})"
-
-    def __str__(self):
-        return f"TopicModel({self.id} - {self.text=})"
-
-
-class SectionTopic(BaseModel):
-    section = ForeignKeyField(Section, backref="topics")
-    topic = ForeignKeyField(Topic, backref="sections")
-    order = IntegerField()
-
-    def __repr__(self):
-        return f"SectionTopicsModel({self.id} - {self.section=})"
-
-    def __str__(self):
-        return f"SectionTopicsModel({self.id} - {self.section=})"
+        indexes = ((("beat", "artist"), True),)
 
 
 class SuperchatSegment(BaseModel):
@@ -312,56 +310,17 @@ class Superchat(BaseModel):
         return f"SuperchatModel({self.id} - {self.frame=})"
 
     class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("frame", "video"), True),
-        )
-
-
-class AlbumVideo(BaseModel):
-    album = ForeignKeyField(Album, backref="videos")
-    video = ForeignKeyField(Video, backref="albums")
-    disc_number = IntegerField()
-    disc_number_verbose = CharField(null=True)
-
-    def __repr__(self):
-        return f"AlbumVideoModel({self.id} - {self.album=})"
-
-    def __str__(self):
-        return f"AlbumVideoModel({self.id} - {self.album=})"
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("album", "video"), True),
-        )
-
-
-class AlbumTrack(BaseModel):
-    album = ForeignKeyField(Album, backref="tracks")
-    track = ForeignKeyField(Track, backref="albums")
-    track_number = IntegerField()
-    track_number_verbose = CharField(null=True)
-
-    def __repr__(self):
-        return f"AlbumTracksModel({self.id} - {self.album=})"
-
-    def __str__(self):
-        return f"AlbumTracksModel({self.id} - {self.album=})"
-
-    class Meta:
-        indexes = (
-            # Create a unique composite index on beat and Artist
-            (("album", "track"), True),
-        )
+        indexes = ((("frame", "video"), True),)
 
 
 __all__ = [
     "Album",
+    "AlbumDiscVideo",
     "Artist",
     "Beat",
     "BeatArtist",
     "Channel",
+    "Disc",
     "Section",
     "SectionTopic",
     "Series",
@@ -374,6 +333,4 @@ __all__ = [
     "Video",
     "YoutubeSeries",
     "YoutubeSeriesVideo",
-    "AlbumVideo",
-    "AlbumTrack",
 ]

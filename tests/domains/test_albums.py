@@ -25,8 +25,7 @@ def test_empty_album():
     assert type(c.repo) == Repository
 
 
-def test_album_create_and_load(album_dict1, series_item):
-    album_dict1["series"] = series_item.title
+def test_album_create_and_load(album_dict1):
     created_album = Album.create(album_dict1)
     assert created_album.title == album_dict1["title"]
 

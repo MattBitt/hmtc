@@ -4,6 +4,7 @@ from loguru import logger
 
 from hmtc.domains.video import Video
 from hmtc.models import Section as SectionModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 
@@ -42,3 +43,7 @@ class Section:
     @classmethod
     def delete_id(cls, item_id) -> None:
         cls.repo.delete_by_id(item_id=item_id)
+
+    @classmethod
+    def load_for_video(cls, video_id) -> List[SectionModel]:
+        return SectionModel.select().where(SectionModel.video_id == video_id)

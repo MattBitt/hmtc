@@ -11,6 +11,7 @@ from hmtc.domains.album import Album
 from hmtc.domains.artist import Artist
 from hmtc.domains.beat import Beat
 from hmtc.domains.channel import Channel
+from hmtc.domains.disc import Disc
 from hmtc.domains.section import Section
 from hmtc.domains.series import Series
 from hmtc.domains.superchat import Superchat
@@ -170,6 +171,7 @@ def seed_database_from_json():
     db_instance = init_db(db_null, config)
     drop_all_tables(db_instance)
     create_tables(db_instance)
+
     with open("hmtc/utils/importer/seed_data.json", "r") as f:
         data = json.load(f)
     for channel in data["Channel"]:
@@ -180,19 +182,23 @@ def seed_database_from_json():
         Album.create(album)
     for video in data["Video"]:
         Video.create(video)
+    for yt_series in data["YoutubeSeries"]:
+        YoutubeSeries.create(yt_series)
 
     # reversed so the 'next' section is created before the 'previous' section
     for section in reversed(data["Section"]):
         Section.create(section)
-    for track in data["Track"]:
-        Track.create(track)
-    for yt_series in data["YoutubeSeries"]:
-        YoutubeSeries.create(yt_series)
 
     for artist in data["Artist"]:
         Artist.create(artist)
     for beat in data["Beat"]:
         Beat.create(beat)
+
+    for disc in data["Disc"]:
+        Disc.create(disc)
+
+    for track in data["Track"]:
+        Track.create(track)
 
     for superchat in data["Superchat"]:
         Superchat.create(superchat)
@@ -204,6 +210,7 @@ def seed_database_from_json():
 
     for user in data["User"]:
         User.create(user)
+
     logger.success("Database seeded from seed_data.json")
 
 

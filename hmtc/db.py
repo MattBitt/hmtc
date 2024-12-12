@@ -1,26 +1,19 @@
-import json
-import os
-from datetime import datetime, timedelta
-from pathlib import Path
-
 from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.models import *
-from hmtc.utils.general import get_youtube_id
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
 
-MEDIA_INFO = Path(os.environ.get("HMTC_CONFIG_PATH")) / "media_info"
 
 TABLES = [
     Album,
+    AlbumDiscVideo,
     Artist,
     Beat,
     BeatArtist,
     Channel,
+    Disc,
     Section,
     SectionTopic,
     Series,
@@ -33,9 +26,6 @@ TABLES = [
     Video,
     YoutubeSeries,
     YoutubeSeriesVideo,
-    YoutubeSeriesVideo,
-    AlbumTrack,
-    AlbumVideo,
 ]
 
 

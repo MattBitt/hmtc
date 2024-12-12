@@ -6,6 +6,7 @@ from hmtc.repos.base_repo import Repository
 from tests.domains.fixtures import (
     album_item,
     channel_item,
+    disc_item,
     section_item,
     series_item,
     track_dict1,
@@ -22,8 +23,9 @@ def test_empty_track():
     assert type(c.repo) == Repository
 
 
-def test_track_create_and_load(track_dict1, section_item):
+def test_track_create_and_load(track_dict1, section_item, disc_item):
     track_dict1["section_id"] = section_item.id
+    track_dict1["disc_id"] = disc_item.id
     created_track = Track.create(track_dict1)
     assert created_track.id > 0
     assert created_track.title == track_dict1["title"]
@@ -42,13 +44,12 @@ def test_track_create_and_load(track_dict1, section_item):
 
 
 def test_track_delete(track_item):
-
     Track.delete_id(track_item.id)
     c = TrackModel.select().where(TrackModel.id == track_item.id).get_or_none()
     assert c is None
 
 
-def test_serialize(track_item, section_item):
+def test_serialize(track_item, section_item, disc_item):
     s = Track.serialize(track_item.id)
     assert s["title"] == track_item.title
     assert s["track_number"] == track_item.track_number
@@ -56,6 +57,7 @@ def test_serialize(track_item, section_item):
     assert s["id"] == track_item.id
     assert s["section"]["start"] == section_item.start
     assert s["section"]["end"] == section_item.end
+    assert s["disc"]["title"] == disc_item.title
 
 
 def test_get_all(track_item):

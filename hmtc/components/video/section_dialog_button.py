@@ -40,7 +40,7 @@ from hmtc.utils.jellyfin_functions import (
 from hmtc.utils.youtube_functions import download_video_file
 
 
-@solara.component_vue("../../section/SectionControlPanel.vue", vuetify=True)
+@solara.component_vue("../section/SectionControlPanel.vue", vuetify=True)
 def SectionControlPanel(
     video,
     jellyfin_status,

@@ -1,31 +1,73 @@
-{
-  
+{  
   "Album": [
     {
       "id": 1,
-      "title": "Greatest Hits",
+      "title": "Omegle Bars",
       "release_date": "2020-01-01"
     },
     {
       "id": 2,
-      "title": "Summer Vibes",
-      "release_date": "2019-06-21"
+      "title": "The Singles",
+      "release_date": "2024-12-21"
     },
     {
       "id": 3,
-      "title": "Winter Chill",
-      "release_date": "2021-12-01"
+      "title": "Wordplay Wednesday",
+      "release_date": "2019-12-01"
+    }
+  ],
+  "Disc": [
+    {
+    "id": 1,
+    "title": "Omegle Bars 18",
+    "album_id": 1
+    },
+    {
+    "id": 2,
+    "title": "Omegle Bars 28",
+    "album_id": 1
+    },
+    {
+    "id": 3,
+    "title": "Omegle Bars Exclusive",
+    "album_id": 1
+    },
+    {
+      "id": 4,
+      "title": "2024",
+      "album_id": 1
+
+    },
+    {
+      "id": 5,
+      "title": "Suggested You Listen",
+      "album_id": 2
+    },
+    {
+      "id": 6,
+      "title": "Wordplay Wednesday 108",
+      "album_id": 3
+    },
+    {
+      "id": 7,
+      "title": "Wordplay Wednesday 109",
+      "album_id": 3
+    },
+    {
+      "id": 8,
+      "title": "Wordplay Wednesday 110",
+      "album_id": 3
     }
   ],
   "Artist": [
     {
       "id": 1,
-      "name": "Artist One",
+      "name": "Harry Mack",
       "url": "https://artistone.com"
     },
     {
       "id": 2,
-      "name": "Artist Two",
+      "name": "Beardyman",
       "url": "https://artisttwo.com"
     },
     {
@@ -51,7 +93,7 @@
   "Channel": [
     {
       "id": 1,
-      "title": "Tech Guru",
+      "title": "Harry Mack",
       "url": "https://youtube.com/techguru",
       "youtube_id": "TG123",
       "last_update_completed": "2023-10-01T12:00:00",
@@ -59,19 +101,19 @@
     },
     {
       "id": 2,
-      "title": "Cooking Master",
+      "title": "Harry Mack Clips",
       "url": "https://youtube.com/cookingmaster",
       "youtube_id": "CM456",
       "last_update_completed": "2023-09-15T08:30:00",
-      "auto_update": false
+      "auto_update": true
     },
     {
       "id": 3,
-      "title": "Travel Explorer",
+      "title": "Beardyman",
       "url": "https://youtube.com/travelexplorer",
       "youtube_id": "TE789",
       "last_update_completed": "2023-08-20T14:45:00",
-      "auto_update": true
+      "auto_update": false
     }
   ],
   "Section": [
@@ -189,7 +231,8 @@
       "track_number": 1,
       "length": 210,
       "jellyfin_id": 101,
-      "section_id": 1
+      "section_id": 1,
+      "disc_id": 1
     },
     {
       "id": 2,
@@ -197,7 +240,8 @@
       "track_number": 2,
       "length": 180,
       "jellyfin_id": 102,
-      "section_id": 2
+      "section_id": 2,
+      "disc_id": 1
     },
     {
       "id": 3,
@@ -205,7 +249,8 @@
       "track_number": 3,
       "length": 240,
       "jellyfin_id": 103,
-      "section_id": 3
+      "section_id": 3,
+      "disc_id": 1
     }
   ],
   "Video": [
@@ -213,7 +258,7 @@
       "id": 1,
       "description": "An in-depth look at the latest tech trends.",
       "duration": 500,
-      "title": "Tech Trends 2023",
+      "title": "Omegle Bars 88",
       "upload_date": "2023-01-01",
       "url": "https://youtube.com/watch?v=techtrends2023",
       "youtube_id": "VID123",
@@ -225,19 +270,19 @@
       "id": 2,
       "description": "Delicious recipes for the summer.",
       "duration": 1800,
-      "title": "Summer Recipes",
+      "title": "Omegle Bars 88 (Veltri Remix)",
       "upload_date": "2022-06-15",
       "url": "https://youtube.com/watch?v=summerrecipes",
       "youtube_id": "VID456",
       "unique_content": false,
       "jellyfin_id": "JF456",
-      "channel_id": 2
+      "channel_id": 1
     },
     {
       "id": 3,
       "description": "Exploring the beautiful landscapes of Europe.",
       "duration": 5400,
-      "title": "European Adventure",
+      "title": "Wordplay Wednesday 108",
       "upload_date": "2021-09-10",
       "url": "https://youtube.com/watch?v=europeanadventure",
       "youtube_id": "VID789",
@@ -292,46 +337,24 @@
       "series_id": 3
     }
   ],
-
-
-  "AlbumTrack": [
+  "DiscTrack": [
     {
-      "album_id": 1,
+      "disc_id": 1,
       "track_id": 1,
       "track_number": 1,
       "track_number_verbose": "1 of 3"
     },
     {
-      "album_id": 1,
+      "disc_id": 1,
       "track_id": 2,
       "track_number": 2,
       "track_number_verbose": "2 of 3"
     },
     {
-      "album_id": 1,
+      "disc_id": 1,
       "track_id": 3,
       "track_number": 1,
       "track_number_verbose": "1 of 3"
-    }
-  ],
-  "AlbumVideo": [
-    {
-      "album_id": 1,
-      "video_id": 1,
-      "disc_number": 1,
-      "disc_number_verbose": "1 of 2"
-    },
-    {
-      "album_id": 1,
-      "video_id": 2,
-      "disc_number": 2,
-      "disc_number_verbose": "2 of 2"
-    },
-    {
-      "album_id": 3,
-      "video_id": 3,
-      "disc_number": 1,
-      "disc_number_verbose": "1 of 1"
     }
   ],
   "TrackBeat": [

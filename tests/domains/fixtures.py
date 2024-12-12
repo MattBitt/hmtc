@@ -4,6 +4,7 @@ from hmtc.domains.album import Album
 from hmtc.domains.artist import Artist
 from hmtc.domains.beat import Beat
 from hmtc.domains.channel import Channel
+from hmtc.domains.disc import Disc
 from hmtc.domains.section import Section
 from hmtc.domains.series import Series
 from hmtc.domains.superchat import Superchat
@@ -43,6 +44,44 @@ channel_dicts = [
     },
 ]
 
+disc_dicts = [
+    {
+        "title": "Omegle bars 34",
+        "album_id": 1,
+    },
+    {
+        "title": "Omegle bars 94",
+        "album_id": 1,
+    },
+    {
+        "title": "Oemgle bars exclusive",
+        "album_id": 1,
+    },
+    {
+        "title": "Guerrilla bars 1",
+        "album_id": 2,
+    },
+    {
+        "title": "Guerrilla bars 2",
+        "album_id": 2,
+    },
+    {
+        "title": "Guerrilla bars 3",
+        "album_id": 2,
+    },
+    {
+        "title": "Wordplay Wednesday 1",
+        "album_id": 3,
+    },
+    {
+        "title": "Wordplay Wednesday 2",
+        "album_id": 3,
+    },
+    {
+        "title": "Wordplay Wednesday 3",
+        "album_id": 3,
+    },
+]
 series_dicts = [
     {
         "title": "Guerrilla",
@@ -358,8 +397,10 @@ def track_dict3():
 
 
 @pytest.fixture(scope="function")
-def track_item(section_item):
+def track_item(section_item, disc_item):
     track_dicts[0]["section_id"] = section_item.id
+    track_dicts[0]["disc_id"] = disc_item.id
+
     return Track.create(track_dicts[0])
 
 
@@ -484,3 +525,23 @@ def artist_dict3():
 @pytest.fixture(scope="function")
 def artist_item():
     return Artist.create(artist_dicts[0])
+
+
+@pytest.fixture(scope="function")
+def disc_dict1():
+    return disc_dicts[0]
+
+
+@pytest.fixture(scope="function")
+def disc_dict2():
+    return disc_dicts[1]
+
+
+@pytest.fixture(scope="function")
+def disc_dict3():
+    return disc_dicts[2]
+
+
+@pytest.fixture(scope="function")
+def disc_item(album_item):
+    return Disc.create(disc_dicts[0])

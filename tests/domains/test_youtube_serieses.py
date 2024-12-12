@@ -2,8 +2,8 @@ import pytest
 
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
-from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 from hmtc.repos.base_repo import Repository
+from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 from tests.domains.fixtures import (
     series_item,
     youtube_series_dict1,
@@ -61,3 +61,10 @@ def test_update_youtube_seriess(youtube_series_item):
         YoutubeSeriesModel.get_by_id(youtube_series_item.id).title
         == "A whole nother title"
     )
+
+
+def test_get_youtube_series_videos():
+    youtube_series = YoutubeSeries()
+    videos = youtube_series.repo.videos()
+    assert len(list(videos)) == 0
+    # assert False

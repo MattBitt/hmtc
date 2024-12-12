@@ -152,45 +152,6 @@ class PageState:
             logger.success(f"Saved 10 random frames for {video.title}")
 
     @staticmethod
-    def create_tracks_from_sections():
-        # this is another temporary function to auto create tracks
-        # from the original sections
-        logger.error("About to create tracks from sections")
-        sections = SectionModel.select(
-            SectionModel.id, SectionModel.video_id, SectionModel.start, SectionModel.end
-        ).where(SectionModel.track_id.is_null())
-        logger.error(f"Found {len(sections)} sections with no track")
-        for sec in sections:
-            video = (
-                VideoModel.select(VideoModel, FileModel)
-                .join(FileModel)
-                .where(
-                    (VideoModel.id == sec.video_id) & (FileModel.file_type == "audio")
-                )
-                .get_or_none()
-            )
-            if video is None:
-                logger.error(f"No audio file found for {sec.video_id}")
-                continue
-            if video.album is not None:
-                album = AlbumModel.get_by_id(video.album.id)
-                album_item = AlbumItem.from_model(album)
-                track_item = album_item.create_from_section(section=sec, video=video)
-                # abc = [Path(z.path) / z.filename for z in video.files]
-                # if len(abc) > 0:
-                if video.file:
-                    input_file = Path(video.file.path) / video.file.filename
-                    output_file = track_item.write_file(input_file=input_file)
-                    FileManager.add_path_to_track(output_file, track_item, video)
-                    logger.error(f"Created track {track_item.title} for {video.title}")
-                else:
-                    logger.error(
-                        f"In write_file loop. No audio file found for {video.title}"
-                    )
-            else:
-                logger.error(f"No album found for {video.title}")
-
-    @staticmethod
     def search_for_jellyfin_ids():
         vids = VideoModel.select(VideoModel).where(
             (

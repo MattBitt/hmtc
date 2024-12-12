@@ -33,31 +33,6 @@
                   {{ section.topics?.map(({ text }) => text).join(", ") }}
                 </h4>
               </v-col>
-              <v-col cols="2">
-                <v-row>
-                  <span v-if="section.track.title == 'No Track'">
-                    <v-chip color="warning"
-                      ><v-icon>mdi-close</v-icon> Track</v-chip
-                    >
-                  </span>
-                  <span v-else>
-                    <v-chip color="success"
-                      ><v-icon>mdi-check</v-icon> Track</v-chip
-                    >
-                  </span>
-
-                  <span v-if="section.track?.files.length == 2">
-                    <v-chip color="success"
-                      ><v-icon>mdi-check</v-icon>Files</v-chip
-                    >
-                  </span>
-                  <span v-else>
-                    <v-chip color="warning"
-                      ><v-icon>mdi-close</v-icon>Files</v-chip
-                    >
-                  </span>
-                </v-row>
-              </v-col>
             </v-row>
           </v-container>
         </v-expansion-panel-header>
@@ -69,7 +44,7 @@
                 :topics="section.topics"
               ></SummaryPanel>
             </v-col>
-            <v-col cols="6">
+            <!-- <v-col cols="6">
               <div v-if="section.track.title == 'No Track'">
                 <SectionTrackForm
                   :section="section"
@@ -88,7 +63,7 @@
                   @deleteLyricsFile="deleteLyricsFile"
                 />
               </div>
-            </v-col>
+            </v-col> -->
             <v-spacer></v-spacer>
           </v-row>
 

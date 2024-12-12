@@ -86,11 +86,7 @@ def VideoInfoPanel(video):
 
     section_percentage = sum(section_durations) / video.duration * 100
 
-    num_segments = (
-        SuperchatSegmentModel.select()
-        .where(SuperchatSegmentModel.video_id == video.id)
-        .count()
-    )
+    num_segments = 0
 
     with solara.Row(justify="center"):
         solara.Text(f"{background_processing.value}")
@@ -133,7 +129,7 @@ def VideoInfoPanel(video):
                     )
 
             with solara.Row(justify="center"):
-                with solara.Link(f"/superchat-control-panel/{video.id}"):
+                with solara.Link(f"/domains/superchat-control-panel/{video.id}"):
                     solara.Button(
                         label="Search for Superchats",
                         icon_name="mdi-magnify",

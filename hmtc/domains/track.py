@@ -3,9 +3,11 @@ from typing import List
 from loguru import logger
 
 from hmtc.domains.album import Album
+from hmtc.domains.disc import Disc
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
+from hmtc.models import Disc as DiscModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
@@ -15,11 +17,15 @@ from hmtc.repos.base_repo import Repository
 class Track:
     repo = Repository(model=TrackModel(), label="Track")
     section_repo = Repository(model=SectionModel(), label="Section")
+    disc_repo = Repository(model=DiscModel(), label="Disc")
 
     @classmethod
     def create(cls, data) -> TrackModel:
         section = cls.section_repo.get(id=data["section_id"])
         data["section"] = section
+
+        disc = cls.disc_repo.get(id=data["disc_id"])
+        data["disc"] = disc
 
         return cls.repo.create_item(data=data)
 
@@ -41,6 +47,8 @@ class Track:
 
         _dict = item.my_dict()
         _dict["section"] = Section.serialize(item.section.id)
+
+        _dict["disc"] = Disc.serialize(item.disc.id)
         return _dict
 
     @classmethod

@@ -47,7 +47,4 @@ from hmtc.utils.youtube_functions import download_video_file
 @solara.component
 def NoSectionsPanel(video):
     with solara.Card(title="No Sections"):
-        if video.album_id is not None:
-            solara.Markdown(f"Album: {video.album_id}")
-        else:
-            solara.Markdown(f"## Please Create an album before adding sections")
+        solara.Markdown(f"## Please Create an album before adding sections")

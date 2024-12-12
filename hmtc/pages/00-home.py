@@ -95,8 +95,8 @@ def Page():
                 ProgressCircle()
             else:
 
-                solara.Button("Videos", classes=["button"], href="/domains/videos")
-                solara.Button("Tracks", classes=["button"], href="/domains/tracks")
+                solara.Button("Videos", classes=["button"], href="/tables/videos")
+                solara.Button("Tracks", classes=["button"], href="/tables/tracks")
 
                 solara.Button(
                     "Refresh",
@@ -128,7 +128,7 @@ def Page():
 
                     with solara.Card():
                         with solara.Column():
-                            with solara.Link(f"/domains/video-details/{vid.id}"):
+                            with solara.Link(f"/tables/video-details/{vid.id}"):
                                 solara.Markdown(f"## Video Image Goes HERE")
                                 # solara.Image(image=video_image.image)
                             solara.Markdown(f"#### {vid.title}")

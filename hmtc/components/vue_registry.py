@@ -32,17 +32,6 @@ def register_vue_components(file):
     )
 
     ipyvue.register_component_from_file(
-        "VideoFilesDialog",
-        "../../components/video/file_type_checkboxes.vue",
-        file,
-    )
-
-    ipyvue.register_component_from_file(
-        "VideoFilesInfoModal",
-        "../../components/video/VideoFilesInfoModal.vue",
-        file,
-    )
-    ipyvue.register_component_from_file(
         "SummaryPanel",
         "../../components/section/SummaryPanel.vue",
         file,

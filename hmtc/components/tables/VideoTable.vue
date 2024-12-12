@@ -234,7 +234,7 @@
         <v-icon x-large color="primary" class="mb-4" @click="action1(item)">
           {{ action1_icon }}
         </v-icon>
-        <a :href="'/superchat-control-panel/' + item.id">
+        <a :href="'/domains/superchat-control-panel/' + item.id">
           <v-icon x-large color="primary" class="mb-4"> mdi-comment </v-icon></a
         >
       </template>

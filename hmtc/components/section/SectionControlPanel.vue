@@ -2,12 +2,7 @@
   <div class="mt-4">
     <v-dialog v-model="dialog" max-width="800px" hide-overlay>
       <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          class="button"
-          v-bind="attrs"
-          v-on="on"
-          :disabled="video.album.title == 'No Album'"
-        >
+        <v-btn class="button" v-bind="attrs" v-on="on">
           <v-icon>mdi-rhombus-split</v-icon>Sections
         </v-btn>
       </template>
@@ -56,7 +51,7 @@
             </v-col></v-col
           ><v-spacer></v-spacer>
         </v-row>
-        <h1>{{ video.album_title }}</h1>
+
         <v-divider></v-divider>
       </v-card>
     </v-dialog>
