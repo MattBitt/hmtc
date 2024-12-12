@@ -181,7 +181,7 @@ def SectionsDetailsPanel(video, reactive_sections):
         logger.error(f"Deleting audio file {args}")
         try:
             track = TrackModel.select().where(TrackModel.id == args[0]).get()
-            FileManager.delete_track_file(track, "audio")
+            # FileManager.delete_track_file(track, "audio")
         except Exception as e:
             logger.error(e)
             return
@@ -202,7 +202,7 @@ def SectionsDetailsPanel(video, reactive_sections):
         logger.error(f"Deleting lyrics file {args}")
         try:
             track = TrackModel.select().where(TrackModel.id == args[0]).get()
-            FileManager.delete_track_file(track, "lyrics")
+            # FileManager.delete_track_file(track, "lyrics")
         except Exception as e:
             logger.error(e)
             return

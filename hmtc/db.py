@@ -8,12 +8,12 @@ config = init_config()
 
 TABLES = [
     Album,
-    AlbumDiscVideo,
     Artist,
     Beat,
     BeatArtist,
     Channel,
     Disc,
+    DiscVideo,
     Section,
     SectionTopic,
     Series,

@@ -139,8 +139,7 @@ class Video(BaseModel):
         return f"VideoModel({self.id} - {self.title=})"
 
 
-class AlbumDiscVideo(BaseModel):
-    album_id = ForeignKeyField(Album, backref="videos")
+class DiscVideo(BaseModel):
     video_id = ForeignKeyField(Video, backref="albums")
     disc_id = ForeignKeyField(Disc, backref="albums")
     order = IntegerField()
@@ -315,12 +314,12 @@ class Superchat(BaseModel):
 
 __all__ = [
     "Album",
-    "AlbumDiscVideo",
     "Artist",
     "Beat",
     "BeatArtist",
     "Channel",
     "Disc",
+    "DiscVideo",
     "Section",
     "SectionTopic",
     "Series",

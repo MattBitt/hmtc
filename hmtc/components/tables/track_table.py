@@ -38,7 +38,7 @@ def TrackTable(router, headers, base_query, search_fields):
         "vue_component": _TrackTable,
         "action1_path": "/domains/video-details",
         "action1_icon": "mdi-rhombus-split",
-        "action2_path": "/album-details",
+        "action2_path": "/domains/album-details",
         "action2_icon": "mdi-album",
     }
     DataTable(

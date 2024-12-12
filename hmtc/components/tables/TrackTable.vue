@@ -125,7 +125,7 @@
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <a :href="'/album-details/' + item.album_id">
+        <a :href="'/domains/album-details/' + item.album_id">
           <v-icon x-large color="primary" class="mb-4">mdi-album</v-icon>
         </a>
         <a :href="'/domains/video-details/' + item.section.video_id">

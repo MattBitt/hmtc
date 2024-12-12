@@ -17,6 +17,7 @@ from tests.domains.fixtures import (
     video_dict1,
     video_dict2,
     video_dict3,
+    video_item,
 )
 
 
@@ -58,3 +59,11 @@ def test_update_albums(album_item):
     assert album.title == album_item.title
     Album.update({"title": "A whole nother title", "id": album_item.id})
     assert AlbumModel.get_by_id(album_item.id).title == "A whole nother title"
+
+
+def test_add_video_to_album(album_item, video_item):
+    Album.add_video(album_item.id, video_item.id)
+    album = Album.load(album_item.id)
+    vids = Album.get_videos(album.id)
+    assert len(vids) == 1
+    assert vids[0].id == video_item.id

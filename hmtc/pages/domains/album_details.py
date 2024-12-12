@@ -31,12 +31,13 @@ def Page():
             solara.Markdown("No album ID found in URL.")
         return
     try:
-        album = AlbumItem.get_details_for_album_id(album_id=album_id)
+        album = AlbumItem.load(album_id)
     except Exception as e:
         with solara.Error():
             solara.Markdown(f"Error loading album with ID {album_id}.")
             solara.Markdown(f"Error: {e}")
         return
+
     with solara.Columns([6, 6]):
         with solara.Column():
             # poster = FileManager.get_file_for_album(album=album, filetype="poster")
@@ -55,6 +56,3 @@ def Page():
 
                 with solara.Link(f"/domains/video-details/{video.id}"):
                     solara.Markdown("Details")
-    with solara.Info(label="Tracks"):
-        for track in album.tracks:
-            solara.Markdown(f"{track.title}")

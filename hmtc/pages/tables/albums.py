@@ -23,7 +23,7 @@ def parse_url_args():
 
 
 def view_details(router, item):
-    router.push(f"/album-details/{item['id']}")
+    router.push(f"/domains/album-details/{item['id']}")
 
 
 @solara.component

@@ -115,7 +115,7 @@
                   </v-form>
                   <v-row justify="center" v-if="albumInfo.id > 0">
                     <span class="mr-6">Album Details: </span>
-                    <a :href="'/album-details/' + albumInfo.id">
+                    <a :href="'/domains/album-details/' + albumInfo.id">
                       <v-chip color="primary">
                         <v-icon>mdi-album</v-icon>
                         <span>
