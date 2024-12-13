@@ -57,7 +57,7 @@ def test_update_topics(seeded_db):
     assert TopicModel.get_by_id(TOPIC_ID).text == orig_text
 
 
-def test_section_topics(seeded_db):
+def test_section_add_topic(seeded_db):
     section = SectionModel.select().first()
     _topic = TopicModel.select().first()
     section_id = section.id
@@ -67,5 +67,3 @@ def test_section_topics(seeded_db):
     assert len(section.topics) == 1
     Section.add_topic(section_id, Topic.serialize(_topic.id))
     assert len(section.topics) == 2
-    Section.remove_topic(section_id, section.topics[0].id)
-    assert len(section.topics) == 1

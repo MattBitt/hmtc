@@ -14,7 +14,7 @@ from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Video as VideoModel
 from hmtc.pages.utils.settings import PageState
-from hmtc.utils.importer.seed_database import seed_database
+from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
 
 config = init_config()
@@ -65,9 +65,7 @@ def Page():
         router=solara.use_router(),
     )
 
-    channels = list(Channel().get_all())
-
-    if len(channels) == 0:
+    if Channel.count() == 0:
         empty_db = True
         last_updated = None
         can_refresh = False
@@ -118,7 +116,7 @@ def Page():
                     solara.Button(
                         f"Setup New Database...",
                         classes=["button"],
-                        on_click=seed_database,
+                        on_click=lambda: recreate_database(Channel.__meta__.database),
                     )
         else:
             with solara.ColumnsResponsive(default=12, large=4):

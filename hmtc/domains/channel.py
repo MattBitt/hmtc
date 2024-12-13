@@ -57,3 +57,7 @@ class Channel:
             yield channel
         else:
             return None
+
+    @classmethod
+    def count(cls):
+        return ChannelModel.select().count()

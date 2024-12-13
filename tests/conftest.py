@@ -74,7 +74,7 @@ def empty_db(db):
 @pytest.fixture(scope="session")
 def seeded_db(db):
 
-    seed_database_from_json()
+    seed_database_from_json(db)
     return db
 
 
