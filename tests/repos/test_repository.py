@@ -1,7 +1,6 @@
 from hmtc.models import Channel as ChannelModel
 from hmtc.repos.base_repo import Repository
 
-
 testing_channel_dict = {
     "id": 867,
     "title": "Some Test Channel Title",

@@ -11,8 +11,6 @@ from hmtc.components.tables.section_table import SectionTable
 from hmtc.domains.section import Section as SectionItem
 from hmtc.models import Section as SectionModel
 
-force_update_counter = solara.reactive(0)
-
 
 def view_details(router, item):
     router.push(f"/domains/video-details/{item['video_id']}")

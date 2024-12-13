@@ -30,10 +30,6 @@ def view_details(router, item):
     router.push(f"/domains/video-details/{item['id']}")
 
 
-def delete_video_item(item):
-    logger.debug(f"Deleting Item received from Vue: {item}")
-
-
 @solara.component
 def Page():
     router = solara.use_router()

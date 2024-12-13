@@ -39,6 +39,18 @@ class Album:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
+        from hmtc.domains.disc import Disc
+
+        # first need to remove all videos from the album's discs
+        for vid in cls.get_videos(album_id=item_id):
+            # not deleting videos, just removing it from the disc
+            vid.disc = None
+            vid.save()
+
+        discs = DiscModel.select().where(DiscModel.album_id == item_id)
+        for disc in discs:
+            Disc.delete_id(disc.id)
+
         cls.repo.delete_by_id(item_id=item_id)
 
     @classmethod

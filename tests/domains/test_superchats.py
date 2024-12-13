@@ -1,8 +1,8 @@
 import pytest
 
 from hmtc.domains.superchat import Superchat
-from hmtc.models import Video as VideoModel
 from hmtc.models import Superchat as SuperchatModel
+from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 
 testing_superchat_dict = {

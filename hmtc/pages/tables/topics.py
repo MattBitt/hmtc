@@ -13,34 +13,6 @@ from hmtc.models import SectionTopic as SectionTopicModel
 from hmtc.models import Topic as TopicModel
 from hmtc.router import parse_url_args
 
-force_update_counter = solara.reactive(0)
-
-
-def delete_topic(item):
-    logger.debug(f"Deleting Item received from Vue: {item}")
-    topic = TopicModel.get_by_id(item["id"])
-    topic.delete_instance()
-
-
-def save_topic(dict_of_items):
-    item = dict_of_items["item"]
-    edited_item = dict_of_items["editedItem"]
-    logger.debug(f"Item received from Vue: {item}")
-
-    try:
-        topic = TopicModel.get_by_id(item["id"])
-    except Exception:
-        ## this should probably check item for id instead of edited_item
-        logger.debug(f"Topic ID not found. Creating {edited_item}")
-        edited_item["id"] = None  # db should assign id
-        TopicModel.create(**edited_item)
-        return
-
-    topic.text = edited_item["text"]
-
-    topic.save()
-    force_update_counter.set(force_update_counter.value + 1)
-
 
 @solara.component
 def Page():

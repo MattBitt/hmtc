@@ -5,6 +5,7 @@ from loguru import logger
 from hmtc.domains.album import Album
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Disc as DiscModel
+from hmtc.models import Track as TrackModel
 from hmtc.repos.base_repo import Repository
 
 
@@ -41,4 +42,10 @@ class Disc:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
+        from hmtc.domains.track import Track
+
+        tracks = TrackModel.select().where(TrackModel.disc == item_id)
+
+        for track in tracks:
+            Track.delete_id(track.id)
         cls.repo.delete_by_id(item_id=item_id)

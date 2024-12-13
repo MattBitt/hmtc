@@ -18,32 +18,6 @@ force_update_counter = solara.reactive(0)
 from hmtc.router import parse_url_args
 
 
-def delete_track(item):
-    logger.debug(f"Deleting Item received from Vue: {item}")
-
-
-def save_track(dict_of_items):
-    item = dict_of_items["item"]
-    edited_item = dict_of_items["editedItem"]
-    logger.debug(f"Item received from Vue: {item}")
-
-    try:
-        track = TrackModel.get_by_id(item["id"])
-    except Exception:
-        ## this should probably check item for id instead of edited_item
-        logger.debug(f"Track ID not found. Creating {edited_item}")
-        edited_item["id"] = None  # db should assign id
-        TrackModel.create(**edited_item)
-        return
-
-    track.title = edited_item["title"]
-    track.track_number = edited_item["track_number"]
-    track.album_id = edited_item["album_id"]
-    track.video_id = edited_item["video_id"]
-    track.save()
-    force_update_counter.set(force_update_counter.value + 1)
-
-
 @solara.component
 def Page():
 

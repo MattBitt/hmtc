@@ -8,9 +8,9 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.disc_table import DiscTable
+from hmtc.models import Disc
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
-from hmtc.models import Disc
 from hmtc.router import parse_url_args
 
 

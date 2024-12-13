@@ -11,36 +11,6 @@ from hmtc.components.tables.series_table import SeriesTable
 from hmtc.domains.series import Series as SeriesItem
 from hmtc.models import Series as SeriesModel
 
-force_update_counter = solara.reactive(0)
-
-
-def delete_series(item):
-    logger.debug(f"Deleting Item received from Vue: {item}")
-    series = SeriesModel.get_by_id(item["id"])
-    series.delete_instance()
-
-
-def save_series(dict_of_items):
-    item = dict_of_items["item"]
-    edited_item = dict_of_items["editedItem"]
-    logger.debug(f"Item received from Vue: {item}")
-
-    try:
-        series = SeriesModel.get_by_id(item["id"])
-    except Exception:
-        ## this should probably check item for id instead of edited_item
-        logger.debug(f"Series ID not found. Creating {edited_item}")
-        edited_item["id"] = None  # db should assign id
-        SeriesModel.create(**edited_item)
-        return
-
-    series.title = edited_item["title"]
-    series.start_date = edited_item["start_date"]
-    series.end_date = edited_item["end_date"]
-
-    series.save()
-    force_update_counter.set(force_update_counter.value + 1)
-
 
 @solara.component
 def Page():

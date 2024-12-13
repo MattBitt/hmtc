@@ -11,31 +11,6 @@ from hmtc.models import Channel as ChannelModel
 force_update_counter = solara.reactive(0)
 
 
-def delete_channel(item):
-    logger.debug(f"Deleting Item received from Vue: {item}")
-
-
-def save_channel(dict_of_items):
-    item = dict_of_items["item"]
-    edited_item = dict_of_items["editedItem"]
-    logger.debug(f"Item received from Vue: {item}")
-
-    try:
-        channel = ChannelModel.get_by_id(item["id"])
-    except Exception:
-        ## this should probably check item for id instead of edited_item
-        logger.debug(f"Channel ID not found. Creating {edited_item}")
-        edited_item["id"] = None  # db should assign id
-        ChannelModel.create(**edited_item)
-        return
-
-    channel.title = edited_item["title"]
-    channel.url = edited_item["url"]
-    channel.youtube_id = edited_item["youtube_id"]
-    channel.save()
-    force_update_counter.set(force_update_counter.value + 1)
-
-
 @solara.component
 def Page():
     base_query = ChannelModel.select()
