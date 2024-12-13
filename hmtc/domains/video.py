@@ -8,7 +8,9 @@ from hmtc.domains.series import Series
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Channel as ChannelModel
+from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
+from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
@@ -58,4 +60,16 @@ class Video:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
+        from hmtc.domains.section import Section
+        from hmtc.domains.superchat import Superchat
+
+        sections = SectionModel.select().where(SectionModel.video_id == item_id)
+
+        for section in sections:
+            Section.delete_id(section.id)
+
+        superchats = SuperchatModel.select().where(SuperchatModel.video_id == item_id)
+        for superchat in superchats:
+            Superchat.delete_id(superchat.id)
+
         cls.repo.delete_by_id(item_id=item_id)

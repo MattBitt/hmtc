@@ -5,6 +5,7 @@ from loguru import logger
 from hmtc.domains.video import Video
 from hmtc.models import Section as SectionModel
 from hmtc.models import SectionTopic as SectionTopicModel
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Topic as TopicModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
@@ -46,6 +47,43 @@ class Section:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
+        this_section = cls.load(item_id)
+
+        if this_section.track:
+            _track = this_section.track.get()
+            cls.track_repo.delete_by_id(item_id=_track.id)
+
+        if len(this_section.topics) > 0:
+            for topic in this_section.topics:
+                cls.remove_topic(section_id=item_id, topic_id=topic.id)
+
+        if this_section.next_section:
+            # this section is not last.
+            if this_section.previous_section:
+                # this section is not first
+                # need to update the previous section to point to the next section
+                _prev = this_section.previous_section.get()
+
+                next_section = cls.load(this_section.next_section.id)
+                next_section.previous_section.id = _prev.id
+                cls.update(next_section.my_dict())
+            else:
+                # this is the first section. anything to do here?
+                pass
+
+        elif this_section.previous_section:
+            # deleting the last section
+            _prev = this_section.previous_section.get()
+            previous_section = cls.load(_prev.id)
+            previous_section.next_section = None
+            cls.update(previous_section.my_dict())
+
+        sc_segments = SuperchatSegmentModel.select().where(
+            SuperchatSegmentModel.section_id == item_id
+        )
+        for sc_segment in sc_segments:
+            SuperchatSegmentModel.delete_by_id(sc_segment.id)
+
         cls.repo.delete_by_id(item_id=item_id)
 
     @classmethod

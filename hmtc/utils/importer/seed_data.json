@@ -88,15 +88,15 @@
     {
       "id": 1,
       "title": "Harry Mack",
-      "url": "https://youtube.com/techguru",
-      "youtube_id": "TG123",
+      "url": "https://www.youtube.com/channel/@HarryMack",
+      "youtube_id": "UC59ZRYCHev_IqjUhremZ8Tg",
       "last_update_completed": "2023-10-01T12:00:00",
       "auto_update": true
     },
     {
       "id": 2,
       "title": "Harry Mack Clips",
-      "url": "https://youtube.com/cookingmaster",
+      "url": "https://www.youtube.com/@HarryMackClips",
       "youtube_id": "CM456",
       "last_update_completed": "2023-09-15T08:30:00",
       "auto_update": true
@@ -104,7 +104,7 @@
     {
       "id": 3,
       "title": "Beardyman",
-      "url": "https://youtube.com/travelexplorer",
+      "url": "https://www.youtube.com/@beardyman",
       "youtube_id": "TE789",
       "last_update_completed": "2023-08-20T14:45:00",
       "auto_update": false

@@ -2,12 +2,12 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.channel import Channel
-from hmtc.models import Channel as ChannelModel
+from hmtc.domains.disc import Disc as DiscItem
+from hmtc.models import Disc as DiscModel
 
 
-@solara.component_vue("ChannelTable.vue", vuetify=True)
-def _ChannelTable(
+@solara.component_vue("DiscTable.vue", vuetify=True)
+def _DiscTable(
     loading,
     headers,
     items,
@@ -29,18 +29,18 @@ def _ChannelTable(
 
 
 @solara.component
-def ChannelTable(router, headers, base_query, search_fields):
+def DiscTable(router, headers, base_query, search_fields):
     item_info = {
-        "model": ChannelModel,
-        "vue_component": _ChannelTable,
-        "action1_path": "channels",
-        "action1_icon": "mdi-cancel",
+        "model": DiscModel,
+        "vue_component": _DiscTable,
+        "action1_path": "",
+        "action1_icon": "",
     }
     DataTable(
         router=router,
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
-        domain_class=Channel,
+        domain_class=DiscItem,
         **item_info,
     )

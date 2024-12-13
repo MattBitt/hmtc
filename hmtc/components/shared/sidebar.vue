@@ -47,6 +47,7 @@ export default {
       { text: "Artists", icon: "mdi-account", url: "/tables/artists" },
       { text: "Beats", icon: "mdi-music", url: "/tables/beats" },
       { text: "Channels", icon: "mdi-view-list", url: "/tables/channels" },
+      { text: "Discs", icon: "mdi-disc", url: "/tables/discs" },
       { text: "Sections", icon: "mdi-youtube", url: "/tables/sections" },
       { text: "Series", icon: "mdi-shape", url: "/tables/series" },
       { text: "Superchats", icon: "mdi-account", url: "/tables/superchats" },

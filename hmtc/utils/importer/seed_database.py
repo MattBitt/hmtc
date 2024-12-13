@@ -79,7 +79,10 @@ def seed_database_from_json(db_instance):
     logger.success("Database seeded from seed_data.json")
 
 
-def recreate_database(_db):
+def recreate_database(_db=None):
+    if _db is None:
+        _db = init_db(db_null, config)
+
     logger.debug("Recreating database")
     drop_all_tables(_db)
     create_tables(_db)

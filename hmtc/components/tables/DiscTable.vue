@@ -6,7 +6,7 @@
           <v-btn icon dark @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
-          <v-toolbar-title>Edit Channel {{ currentItem.id }}</v-toolbar-title>
+          <v-toolbar-title>Edit Disc {{ currentItem.id }}</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-toolbar-items>
             <v-btn dark text :disabled="!valid" @click="saveItemToDB">
@@ -20,35 +20,7 @@
               <v-col cols="12" sm="6" md="4">
                 <v-text-field
                   v-model="currentItem.title"
-                  label="title"
-                ></v-text-field>
-              </v-col>
-              <v-col>
-                <v-checkbox
-                  v-model="currentItem.auto_update"
-                  label="Auto Update"
-                ></v-checkbox>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <v-text-field
-                  v-model="currentItem.url"
-                  label="URL"
-                ></v-text-field>
-              </v-col>
-              <v-col>
-                <v-text-field
-                  v-model="currentItem.youtube_id"
-                  label="YouTube ID"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="currentItem.last_update_completed"
-                  label="Last Updated"
+                  label="name"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -127,12 +99,18 @@
         <v-chip color="info">{{ item.last_update_completed }}</v-chip>
       </template>
       <template v-slot:item.title="{ item }">
-        <span>{{ item.title }}</span>
+        <span class="primary--text">{{ item.title }}</span>
+      </template>
+      <template v-slot:item.series="{ item }">
+        <span>{{ item.series.title }}</span>
       </template>
 
       <template v-slot:item.actions="{ item }">
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
+        </v-icon>
+        <v-icon x-large color="primary" class="mb-4" @click="action1(item)">
+          {{ action1_icon }}
         </v-icon>
       </template>
     </v-data-table>
@@ -141,7 +119,7 @@
 
 <script>
 module.exports = {
-  title: "ChannelTable",
+  name: "ChannelTable",
   props: {
     items: Array,
     headers: Array,

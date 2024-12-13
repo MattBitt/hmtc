@@ -15,7 +15,7 @@ from hmtc.db import (
 )
 from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
-
+from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
 
 
@@ -63,6 +63,8 @@ def main():
 
     create_tables(db_instance)
 
+    if config["general"]["environment"] == "development":
+        seed_database_from_json(db_instance)
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
 

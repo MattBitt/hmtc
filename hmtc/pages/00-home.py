@@ -116,7 +116,7 @@ def Page():
                     solara.Button(
                         f"Setup New Database...",
                         classes=["button"],
-                        on_click=lambda: recreate_database(Channel.__meta__.database),
+                        on_click=recreate_database,
                     )
         else:
             with solara.ColumnsResponsive(default=12, large=4):

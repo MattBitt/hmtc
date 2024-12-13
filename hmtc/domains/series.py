@@ -3,6 +3,7 @@ from typing import List
 from loguru import logger
 
 from hmtc.models import Series as SeriesModel
+from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
 
 
@@ -35,4 +36,12 @@ class Series:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
+        from hmtc.domains.youtube_series import YoutubeSeries
+
+        youtube_serieses = YoutubeSeriesModel.select().where(
+            YoutubeSeriesModel.series == item_id
+        )
+        for youtube_series in youtube_serieses:
+            YoutubeSeries.delete_id(youtube_series.id)
+
         cls.repo.delete_by_id(item_id=item_id)

@@ -3,6 +3,7 @@ from typing import List
 from loguru import logger
 
 from hmtc.models import Channel as ChannelModel
+from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 
 
@@ -33,6 +34,13 @@ class Channel:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
+        # importing here to avoid circular import
+        # probably not the best way to do it
+        from hmtc.domains.video import Video
+
+        vids = VideoModel.select().where(VideoModel.channel_id == item_id)
+        for vid in vids:
+            Video.delete_id(vid.id)
         cls.repo.delete_by_id(item_id=item_id)
 
     @staticmethod
