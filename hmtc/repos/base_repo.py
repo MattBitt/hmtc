@@ -21,6 +21,11 @@ class Repository:
         return self.model.create(**data)
 
     @myhandler
+    def load_or_create_item(self, data) -> BaseModel:
+        item = self.model.get_or_create(**data)
+        return item
+
+    @myhandler
     def update_item(self, data) -> BaseModel:
         _id = data.pop("id")
         item = self.model.get_by_id(_id)

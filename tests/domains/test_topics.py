@@ -1,5 +1,6 @@
 import pytest
 
+from hmtc.domains.section import Section
 from hmtc.domains.topic import Topic
 from hmtc.models import Section as SectionModel
 from hmtc.models import Topic as TopicModel
@@ -54,3 +55,17 @@ def test_update_topics(seeded_db):
     assert TopicModel.get_by_id(TOPIC_ID).text == "A whole nother text"
     Topic.update({"text": orig_text, "id": TOPIC_ID})
     assert TopicModel.get_by_id(TOPIC_ID).text == orig_text
+
+
+def test_section_topics(seeded_db):
+    section = SectionModel.select().first()
+    _topic = TopicModel.select().first()
+    section_id = section.id
+    topic_dict = {"id": 123, "text": "blueberry"}
+    assert len(section.topics) == 0
+    Section.add_topic(section_id, topic_dict)
+    assert len(section.topics) == 1
+    Section.add_topic(section_id, Topic.serialize(_topic.id))
+    assert len(section.topics) == 2
+    Section.remove_topic(section_id, section.topics[0].id)
+    assert len(section.topics) == 1
