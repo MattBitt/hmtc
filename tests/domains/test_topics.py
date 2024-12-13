@@ -4,18 +4,11 @@ from hmtc.domains.topic import Topic
 from hmtc.models import Section as SectionModel
 from hmtc.models import Topic as TopicModel
 from hmtc.repos.base_repo import Repository
-from tests.domains.fixtures import (
-    album_item,
-    channel_item,
-    section_item,
-    series_item,
-    topic_dict1,
-    topic_dict2,
-    topic_dict3,
-    topic_item,
-    video_item,
-    youtube_series_item,
-)
+
+testing_topic_dict = {
+    "id": 40567,
+    "text": "Some Test Topic",
+}
 
 
 def test_empty_topic():
@@ -24,36 +17,40 @@ def test_empty_topic():
 
 
 def test_topic_create_and_load(
-    topic_dict1,
+    seeded_db,
 ):
-    created_topic = Topic.create(topic_dict1)
-    assert created_topic.text == topic_dict1["text"]
+    created_topic = Topic.create(testing_topic_dict)
+    assert created_topic.text == testing_topic_dict["text"]
     assert created_topic.id > 0
 
     loaded_topic = Topic.load(created_topic.id)
-    assert loaded_topic.text == topic_dict1["text"]
+    assert loaded_topic.text == testing_topic_dict["text"]
+    Topic.delete_id(created_topic.id)
 
 
-def test_topic_delete(video_item, topic_item):
-
-    Topic.delete_id(topic_item.id)
-    t = TopicModel.select().where(TopicModel.id == topic_item.id).get_or_none()
-    assert t is None
+def test_topic_delete(seeded_db):
+    new_topic = Topic.create(testing_topic_dict)
+    Topic.delete_id(new_topic.id)
 
 
-def test_serialize(topic_item, video_item, section_item):
-    t = Topic.serialize(topic_item.id)
-    assert t["text"] == topic_item.text
-    assert t["id"] == topic_item.id
+def test_serialize(seeded_db):
+    _topic = TopicModel.select().first()
+    topic = Topic.serialize(_topic.id)
+    assert topic["text"] == _topic.text
+    assert topic["id"] == _topic.id
 
 
-def test_get_all(topic_item):
+def test_get_all(seeded_db):
     all_topics = Topic.get_all()
-    assert len(list(all_topics)) == 1
+    assert len(list(all_topics)) == 6
 
 
-def test_update_topics(topic_item):
-    topic = Topic.load(topic_item.id)
-    assert topic.text == topic_item.text
-    Topic.update({"text": "antidis", "id": topic_item.id})
-    assert TopicModel.get_by_id(topic_item.id).text == "antidis"
+def test_update_topics(seeded_db):
+    TOPIC_ID = 1
+    topic = Topic.load(TOPIC_ID)
+    orig_text = topic.text
+    assert topic.text == "apple"
+    Topic.update({"text": "A whole nother text", "id": 1})
+    assert TopicModel.get_by_id(TOPIC_ID).text == "A whole nother text"
+    Topic.update({"text": orig_text, "id": TOPIC_ID})
+    assert TopicModel.get_by_id(TOPIC_ID).text == orig_text

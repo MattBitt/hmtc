@@ -19,6 +19,7 @@ from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 from hmtc.utils.general import copy_tree, remove_tree
 from hmtc.utils.my_logging import setup_logging
+from hmtc.utils.importer.seed_database import seed_database_from_json
 
 config = init_config()
 setup_logging(config)
@@ -54,7 +55,7 @@ def copy_initial_files():
     OUTPUT_PATH.mkdir(exist_ok=True, parents=True)
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="session")
 def db():
     db_instance = init_db(db_null, config)
     try:
@@ -63,6 +64,18 @@ def db():
         logger.error(e)
     yield (db_instance, config)
     drop_all_tables(db_instance)
+
+
+@pytest.fixture(scope="session")
+def empty_db(db):
+    return db
+
+
+@pytest.fixture(scope="session")
+def seeded_db(db):
+
+    seed_database_from_json()
+    return db
 
 
 @pytest.fixture(scope="session")

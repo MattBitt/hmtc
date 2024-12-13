@@ -2,59 +2,76 @@ import pytest
 
 from hmtc.domains.section import Section
 from hmtc.models import Section as SectionModel
+from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
-from tests.domains.fixtures import (
-    album_item,
-    channel_item,
-    section_dict1,
-    section_dict2,
-    section_dict3,
-    section_item,
-    series_item,
-    video_item,
-    youtube_series_item,
-)
+
+testing_section_dict = {
+    "id": 807,
+    "start": 0,
+    "end": 100,
+    "section_type": "verse",
+}
+
+testing_video_dict = {
+    "id": 8014,
+    "title": "Some Test Video Title",
+    "desc": "Some Test Video Description",
+    "url": "https://www.youtube.com/watch?v=123456",
+    "youtube_id": "123456",
+    "duration": 100,
+    "channel_id": "1",
+}
 
 
-def test_empty_section():
+def test_empty_section(empty_db):
     c = Section()
     assert type(c.repo) == Repository
 
 
-def test_section_create_and_load(section_dict1, video_item):
-    section_dict1["video_id"] = video_item.id
-    created_section = Section.create(section_dict1)
-    assert created_section.start == section_dict1["start"]
+def test_section_create_and_load(seeded_db):
+    video = VideoModel.select().first()
+    testing_section_dict["video_id"] = video.id
+    created_section = Section.create(testing_section_dict)
+    assert created_section.start == testing_section_dict["start"]
 
     assert created_section.id > 0
 
     loaded_section = Section.load(created_section.id)
-    assert loaded_section.start == section_dict1["start"]
+    assert loaded_section.start == testing_section_dict["start"]
+    assert loaded_section.id == created_section.id
+
+    Section.delete_id(created_section.id)
 
 
-def test_section_delete(section_item):
-
-    Section.delete_id(section_item.id)
-    c = SectionModel.select().where(SectionModel.id == section_item.id).get_or_none()
+def test_section_delete(seeded_db):
+    video = VideoModel.select().first()
+    testing_section_dict["video_id"] = video.id
+    new_section = Section.create(testing_section_dict)
+    Section.delete_id(new_section.id)
+    c = SectionModel.select().where(SectionModel.id == new_section.id).get_or_none()
     assert c is None
 
 
-def test_serialize(section_item, video_item):
-    s = Section.serialize(section_item.id)
-    assert s["start"] == section_item.start
-    assert s["end"] == section_item.end
-    assert s["id"] == section_item.id
-    assert s["video"]["title"] == video_item.title
+def test_serialize(seeded_db):
+    _sect = SectionModel.select().first()
+    section = Section.serialize(_sect.id)
+    assert section["start"] == _sect.start
+    assert section["end"] == _sect.end
+    assert section["id"] == _sect.id
+    assert section["video"]["title"] == _sect.video.title
 
 
-def test_get_all(section_item):
+def test_get_all(seeded_db):
     all_sections = Section.get_all()
-    assert len(list(all_sections)) == 1
+    assert len(list(all_sections)) == 5
 
 
-def test_update_sections(section_item):
-    section = Section.load(section_item.id)
-    assert section.start == section_item.start
-    assert section.end == section_item.end
-    Section.update({"start": 15, "id": section_item.id})
-    assert SectionModel.get_by_id(section_item.id).start == 15
+def test_update_sections(seeded_db):
+    SECTION_ID = 1
+    section = Section.load(SECTION_ID)
+    orig_start = section.start
+    assert section.start == 0
+    Section.update({"start": 10, "id": 1})
+    assert SectionModel.get_by_id(SECTION_ID).start == 10
+    Section.update({"start": orig_start, "id": SECTION_ID})
+    assert SectionModel.get_by_id(SECTION_ID).start == orig_start
