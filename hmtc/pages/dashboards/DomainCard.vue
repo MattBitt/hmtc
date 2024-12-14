@@ -1,13 +1,12 @@
 <template>
   <div>
     <v-card>
+      <v-row justify="space-between" class="icon-square px-2 mx-1 py-1">
+        <v-icon size="30" color="white">{{ icon }}</v-icon>
+        <h3>{{ title }}</h3>
+      </v-row>
       <v-row>
-        <v-col class="icon-square">
-          <v-icon xlarge color="white">{{ icon }}</v-icon>
-        </v-col>
         <v-col cols="9">
-          <h3>{{ title }}</h3>
-
           <v-row justify="center">
             <h1>{{ value }}</h1>
           </v-row>
@@ -19,7 +18,7 @@
 
 <script>
 module.exports = {
-  name: "EmptyComponent",
+  name: "DomainCard",
   props: { title: String, icon: String, value: Int32Array },
   emits: [],
   data() {
@@ -35,6 +34,6 @@ module.exports = {
   justify-content: center;
   align-items: center;
   background-color: var(--primary);
-  border-radius: 10px;
+  color: white;
 }
 </style>

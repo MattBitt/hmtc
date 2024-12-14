@@ -439,18 +439,29 @@
   "SectionTopic": [
     {
       "section_id": 1,
-      "topic_id": 1,
-      "order": 1
+      "topic_id": 1
+
     },
     {
       "section_id": 1,
-      "topic_id": 2,
-      "order": 2
+      "topic_id": 2
     },
     {
-      "section_id": 1,
-      "topic_id": 3,
-      "order": 3
+      "section_id": 3,
+      "topic_id": 3
+    },
+    {
+      "section_id": 2,
+      "topic_id": 4
+
+    },
+    {
+      "section_id": 4,
+      "topic_id": 5
+    },
+    {
+      "section_id": 5,
+      "topic_id": 6
     }
   ]
 }

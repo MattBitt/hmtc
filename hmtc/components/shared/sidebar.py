@@ -34,6 +34,11 @@ def MySidebar(
         solara.Button(
             icon_name="mdi-home", on_click=lambda: router.push("/"), icon=True
         )
+        solara.Button(
+            icon_name="mdi-folder",
+            on_click=lambda: router.push("/dashboards/domains"),
+            icon=True,
+        )
         if True:  # logged_out
             solara.Button(
                 icon_name="mdi-login", on_click=lambda: router.push("/login"), icon=True

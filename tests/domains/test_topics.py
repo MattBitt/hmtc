@@ -62,8 +62,8 @@ def test_section_add_topic(seeded_db):
     _topic = TopicModel.select().first()
     section_id = section.id
     topic_dict = {"id": 123, "text": "blueberry"}
-    assert len(section.topics) == 0
+    num_topics = len(section.topics)
     Section.add_topic(section_id, topic_dict)
-    assert len(section.topics) == 1
+    assert len(section.topics) == num_topics + 1
     Section.add_topic(section_id, Topic.serialize(_topic.id))
-    assert len(section.topics) == 2
+    assert len(section.topics) == num_topics + 2

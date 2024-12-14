@@ -39,10 +39,12 @@ class Section:
 
     @classmethod
     def serialize(cls, item_id) -> dict:
+        from hmtc.domains.topic import Topic
+
         item = cls.load(item_id)
         _dict = item.my_dict()
         _dict["video"] = Video.serialize(item.video.id)
-
+        _dict["topics"] = [Topic.serialize(topic.id) for topic in item.topics]
         return _dict
 
     @classmethod
@@ -54,6 +56,9 @@ class Section:
             cls.track_repo.delete_by_id(item_id=_track.id)
 
         if len(this_section.topics) > 0:
+            logger.debug(
+                f"Deleting topics for section {item_id} {len(this_section.topics)}"
+            )
             for topic in this_section.topics:
                 cls.remove_topic(section_id=item_id, topic_id=topic.id)
 
@@ -67,7 +72,8 @@ class Section:
 
     @classmethod
     def load_for_video(cls, video_id) -> List[SectionModel]:
-        return SectionModel.select().where(SectionModel.video_id == video_id)
+        sections = SectionModel.select().where(SectionModel.video_id == video_id)
+        return [Section.load(section.id) for section in sections]
 
     @classmethod
     def add_topic(cls, section_id, topic_dict):

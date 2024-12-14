@@ -43,7 +43,9 @@ class Repository:
 
     @myhandler
     def delete_by_id(self, item_id: int) -> None:
+        logger.debug(f"Deleting {self.label}: {item_id}")
         self.model.delete_by_id(item_id)
+        logger.success(f"Deleted {self.label} {item_id} successfully")
 
     @myhandler
     def get(self, **kwargs):

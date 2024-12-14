@@ -76,6 +76,14 @@ def seed_database_from_json(db_instance):
     for user in data["User"]:
         User.create(user)
 
+    for section_topic in data["SectionTopic"]:
+        _section = Section.load(section_topic["section_id"])
+        _topic = Topic.load(section_topic["topic_id"])
+        Section.add_topic(
+            section_id=_section.id,
+            topic_dict=_topic.my_dict(),
+        )
+
     logger.success("Database seeded from seed_data.json")
 
 
