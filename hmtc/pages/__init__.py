@@ -34,11 +34,7 @@ def get_app_bar_color() -> str:
     return str(color)
 
 
-config = init_config()
-env = config["general"]["environment"]
-
-
-def setup_folders():
+def setup_folders(config):
     working_folder = Path(config["paths"]["working"])
     storage_folder = Path(config["paths"]["storage"])
     wfs = ["uploads", "downloads", "temp"]
@@ -53,8 +49,8 @@ def setup_folders():
         check_folder_exist_and_writable(path)
 
 
-def main():
-    setup_folders()
+def main(config):
+    setup_folders(config)
     setup_logging(config)
 
     db_instance = init_db(db_null, config)
@@ -65,10 +61,9 @@ def main():
 
     if config["general"]["environment"] == "development":
         seed_database_from_json(db_instance)
+
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
-
-    return db_instance
 
 
 # this is the base of the app
@@ -86,4 +81,5 @@ def Layout(children=[]):
     )
 
 
-main()
+config = init_config()
+main(config)

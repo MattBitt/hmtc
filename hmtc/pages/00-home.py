@@ -95,7 +95,9 @@ def Page():
 
                 solara.Button("Videos", classes=["button"], href="/tables/videos")
                 solara.Button("Tracks", classes=["button"], href="/tables/tracks")
-
+                solara.Button(
+                    "Dashboard", classes=["button"], href="/dashboards/domains"
+                )
                 solara.Button(
                     "Refresh",
                     classes=["button"],

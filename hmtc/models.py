@@ -166,7 +166,6 @@ class Section(BaseModel):
     end = IntegerField()
     section_type = CharField()
 
-    next_section = ForeignKeyField("self", backref="previous_section", null=True)
     video = ForeignKeyField(Video, backref="sections")
 
     def __repr__(self):

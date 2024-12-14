@@ -1,5 +1,5 @@
 from typing import List
-
+import peewee
 from loguru import logger
 
 from hmtc.domains.video import Video
@@ -57,27 +57,6 @@ class Section:
             for topic in this_section.topics:
                 cls.remove_topic(section_id=item_id, topic_id=topic.id)
 
-        if this_section.next_section:
-            # this section is not last.
-            if this_section.previous_section:
-                # this section is not first
-                # need to update the previous section to point to the next section
-                _prev = this_section.previous_section.get()
-
-                next_section = cls.load(this_section.next_section.id)
-                next_section.previous_section.id = _prev.id
-                cls.update(next_section.my_dict())
-            else:
-                # this is the first section. anything to do here?
-                pass
-
-        elif this_section.previous_section:
-            # deleting the last section
-            _prev = this_section.previous_section.get()
-            previous_section = cls.load(_prev.id)
-            previous_section.next_section = None
-            cls.update(previous_section.my_dict())
-
         sc_segments = SuperchatSegmentModel.select().where(
             SuperchatSegmentModel.section_id == item_id
         )
@@ -109,3 +88,7 @@ class Section:
         except Exception as e:
             logger.error(e)
             raise
+        # need to delete topic if its unused
+        unused_topics = TopicModel.select().join(
+            SectionTopicModel, peewee.JOIN.LEFT_OUTER
+        )

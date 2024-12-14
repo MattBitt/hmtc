@@ -73,3 +73,7 @@ class Video:
             Superchat.delete_id(superchat.id)
 
         cls.repo.delete_by_id(item_id=item_id)
+
+    @classmethod
+    def unique_count(cls) -> int:
+        return VideoModel.select().where(VideoModel.unique_content == True).count()

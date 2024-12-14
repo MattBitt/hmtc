@@ -116,7 +116,6 @@
       "start": 0,
       "end": 100000,
       "section_type": "Intro",
-      "next_section_id": 2,
       "video_id": 1
     },
     {
@@ -124,7 +123,6 @@
       "start": 101000,
       "end": 200000,
       "section_type": "Verse",
-      "next_section_id": 3,
       "video_id": 1
     },
     {
@@ -132,7 +130,6 @@
       "start": 201000,
       "end": 300000,
       "section_type": "Chorus",
-      "next_section_id": 4,
       "video_id": 1
     },
     {
@@ -140,7 +137,6 @@
       "start": 301000,
       "end": 400000,
       "section_type": "Bridge",
-      "next_section_id": 5,
       "video_id": 1
     },
     {
@@ -148,7 +144,6 @@
       "start": 401000,
       "end": 500000,
       "section_type": "Outro",
-      "next_section_id": null,
       "video_id": 1
     }
   ],

@@ -48,3 +48,7 @@ class Repository:
     @myhandler
     def get(self, **kwargs):
         return self.model.get(**kwargs)
+
+    @myhandler
+    def count(self):
+        return self.model.select().count()
