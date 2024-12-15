@@ -38,10 +38,6 @@ def register_vue_components(file):
     )
 
     ipyvue.register_component_from_file(
-        "SectionAdminPanel", "../../components/section/admin_panel.vue", file
-    )
-
-    ipyvue.register_component_from_file(
         "SectionTopicsPanel", "../../components/section/topics_panel.vue", file
     )
 

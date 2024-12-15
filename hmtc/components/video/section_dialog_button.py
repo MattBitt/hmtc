@@ -52,36 +52,16 @@ def SectionControlPanel(
 
 @solara.component
 def SectionDialogButton(video, reactive_sections):
-    sess = get_user_session()
-    if sess is None:
-        jellyfin_status_dict = solara.use_reactive({})
-    else:
-        jellyfin_status_dict = solara.use_reactive(get_user_session())
-
     def delete_all_sections(*args):
-        if len(reactive_sections.value) == 0:
-            return
+        logger.error(f"Deleting all Sections {args}")
 
-        for section in reactive_sections.value:
-            logger.debug(f"Deleting Section: {section}")
-            SectionItem.delete_id(section.id)
-
-        reactive_sections.set([])
-
-    def create_section(video, start, end, section_type="instrumental"):
-        # sm = SectionManager.from_video(video)
-        # new_sect_id = sm.create_section(start=start, end=end, section_type=section_type)
-        # new_sect = SectionModel.get_by_id(new_sect_id)
-        # reactive_sections.set(reactive_sections.value + [new_sect])
+    def create_section(*args):
+        logger.error(f"Create Section {args}")
         pass
-
-    def local_create(*args):
-        logger.debug(f"Creating Section: {args}")
-        create_section(video, args[0]["start"], args[0]["end"])
 
     SectionControlPanel(
         video=VideoItem.serialize(video),
-        jellyfin_status=jellyfin_status_dict.value,
-        event_create_section=local_create,
+        jellyfin_status={"status": "offline"},
+        event_create_section=create_section,
         event_delete_all_sections=delete_all_sections,
     )

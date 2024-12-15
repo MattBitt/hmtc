@@ -37,18 +37,13 @@ def Page():
 
     video = VideoItem.load(video_id)
     sections = Section.load_for_video(video.id)
-    reactive_sections = solara.use_reactive(sections)
 
     with solara.Column(classes=["main-container"]):
-        TopRow(
-            video=video,
-            reactive_sections=reactive_sections,
-        )
 
         VideoInfoPanel(video=video)
 
         solara.Button(
-            "View Sections",
+            f"Edit Sections ({len(sections)})",
             on_click=lambda: router.push(f"/domains/section-details/{video.id}"),
             classes=["button"],
         )

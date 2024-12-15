@@ -129,12 +129,6 @@
                   <v-card-title>Musical</v-card-title>
                   <BeatsInfo />
                   <ArtistsInfo />
-
-                  <v-divider></v-divider>
-                  <v-card-title>Admin</v-card-title>
-                  <SectionAdminPanel
-                    @deleteSection="removeSection(section.id)"
-                  />
                 </v-container>
               </v-card>
             </v-dialog>

@@ -1,4 +1,5 @@
 from typing import List
+
 import peewee
 from loguru import logger
 

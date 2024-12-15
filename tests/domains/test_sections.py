@@ -1,5 +1,6 @@
 import pytest
 from loguru import logger
+
 from hmtc.domains.section import Section
 from hmtc.models import Section as SectionModel
 from hmtc.models import Video as VideoModel
