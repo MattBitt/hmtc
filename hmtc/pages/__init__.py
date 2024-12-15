@@ -17,6 +17,7 @@ from hmtc.models import db_null
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
+from hmtc.utils.db_migrator import run_migrations
 
 
 # sets the color of the app bar based on the current dev enviorment
@@ -56,11 +57,11 @@ def main(config):
     db_instance = init_db(db_null, config)
     if config["general"]["environment"] == "development":
         drop_all_tables(db_instance)
-
-    create_tables(db_instance)
-
-    if config["general"]["environment"] == "development":
+        create_tables(db_instance)
+        run_migrations(db_instance)
         seed_database_from_json(db_instance)
+    else:
+        run_migrations(db_instance)
 
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")

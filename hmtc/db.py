@@ -43,4 +43,5 @@ def init_db(db, config):
         host=config["database"]["host"],
         port=config["database"]["port"],
     )
+
     return db

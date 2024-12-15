@@ -29,10 +29,9 @@ def test_video_create_and_load(seeded_db):
     created_video = Video.create(testing_video_dict)
     assert created_video.title == testing_video_dict["title"]
     assert created_video.id > 0
-
     loaded_video = Video.load(created_video.id)
     assert loaded_video.title == testing_video_dict["title"]
-    # ???
+
     assert loaded_video.channel.title == testing_video_dict["channel"].title
     Video.delete_id(created_video.id)
 

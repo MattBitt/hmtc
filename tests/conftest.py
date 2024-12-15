@@ -20,6 +20,7 @@ from hmtc.models import db_null
 from hmtc.utils.general import copy_tree, remove_tree
 from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
+from hmtc.utils.db_migrator import run_migrations
 
 config = init_config()
 setup_logging(config)
@@ -60,6 +61,7 @@ def db():
     db_instance = init_db(db_null, config)
     try:
         create_tables(db_instance)
+        run_migrations(db_instance)
     except Exception as e:
         logger.error(e)
     yield (db_instance, config)

@@ -1,4 +1,4 @@
-"""Peewee migrations -- 001_my_first_migration.py.
+"""Peewee migrations -- 001_initial_migration.py.
 
 Some examples (model - class or model name)::
 
@@ -35,7 +35,7 @@ with suppress(ImportError):
 
 
 def migrate(migrator: Migrator, database: pw.Database, *, fake=False):
-    migrator.add_fields(Album, rating=pw.IntegerField(default=0))
+    migrator.add_fields(Video, is_deleted=pw.BooleanField(default=False, null=True))
 
 
 def rollback(migrator: Migrator, database: pw.Database, *, fake=False):

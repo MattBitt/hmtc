@@ -41,7 +41,6 @@ def Page():
     with solara.Column(classes=["main-container"]):
 
         VideoInfoPanel(video=video)
-
         solara.Button(
             f"Edit Sections ({len(sections)})",
             on_click=lambda: router.push(f"/domains/section-details/{video.id}"),
