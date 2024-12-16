@@ -9,13 +9,11 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - .:/workspace/:cached
-      - ~/apps/data_for_development/hmtc/staging/storage:/app/hmtc/storage
-      - ~/apps/data_for_development/hmtc/staging/working:/app/hmtc/working
-      - ~/apps/data_for_development/hmtc/staging/logs:/app/hmtc/logs
+      - ~/apps/data_for_development/hmtc/staging/storage:/app/storage
+      - ~/apps/data_for_development/hmtc/staging/working:/app/working
+      - ~/apps/data_for_development/hmtc/staging/config:/app/config
     environment:
       - HMTC_ENV=staging
-      - HMTC_CONFIG_PATH=/app/hmtc/storage/config
       - UV_HTTP_TIMEOUT=120000
 
 

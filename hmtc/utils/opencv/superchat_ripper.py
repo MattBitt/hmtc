@@ -17,8 +17,8 @@ from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.opencv.image_tools import get_region_of_interest, images_are_the_same
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["WORKING"])
+STORAGE = Path(config["STORAGE"])
 MINIMUM_AREA = 10000
 MIN_WIDTH = 100
 MIN_HEIGHT = 100

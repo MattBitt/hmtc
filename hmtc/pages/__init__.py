@@ -36,17 +36,17 @@ def get_app_bar_color() -> str:
 
 
 def setup_folders(config):
-    working_folder = Path(config["paths"]["working"])
-    storage_folder = Path(config["paths"]["storage"])
-    wfs = ["uploads", "downloads", "temp"]
-    sfs = ["channels", "playlists", "series", "videos", "tracks"]
+    working_folder = Path(config["WORKING"])
+    storage_folder = Path(config["STORAGE"])
+    wfs = ["downloads"]
+    sfs = ["videos", "tracks"]
     for folder in wfs:
         path = Path(working_folder) / folder
-        path.mkdir(exist_ok=True)
+        path.mkdir(exist_ok=True, parents=True)
         check_folder_exist_and_writable(path)
     for folder in sfs:
         path = Path(storage_folder) / folder
-        path.mkdir(exist_ok=True)
+        path.mkdir(exist_ok=True, parents=True)
         check_folder_exist_and_writable(path)
 
 

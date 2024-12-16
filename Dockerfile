@@ -16,13 +16,13 @@ RUN uv venv /opt/venv && \
 FROM python:3.12-slim-bookworm as app-stage
 COPY --from=build /opt/venv /opt/venv
 RUN apt-get update && apt-get install -y libpq-dev ffmpeg
-WORKDIR /app
+WORKDIR /app/hmtc
 COPY . .
 
 ENV PATH="/opt/venv/bin:$PATH"
-ENV PYTHONPATH="${PYTHONPATH}:/app:/app/hmtc"
+ENV PYTHONPATH="${PYTHONPATH}:/app/hmtc"
 ENV FLASK_APP="hmtc/app.py"
 ENV SOLARA_APP="hmtc/pages"
 
 CMD ["flask", "run", "--host=0.0.0.0"]
-# CMD ["solara", "run", "hmtc/pages", "--host=0.0.0.0", "--port=8765"]
+

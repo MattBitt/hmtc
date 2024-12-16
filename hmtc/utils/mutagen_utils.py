@@ -18,8 +18,8 @@ from hmtc.config import init_config
 from hmtc.utils.image import convert_webp_to_png
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["WORKING"])
+STORAGE = Path(config["STORAGE"])
 
 
 def embed_image(audio_file: Path, image_file: Path):

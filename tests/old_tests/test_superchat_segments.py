@@ -11,7 +11,7 @@ from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
 
 config = init_config()
 
-WORKING = Path(config["paths"]["working"])
+WORKING = Path(config["WORKING"])
 
 TARGET_PATH = WORKING / "files_created_by_testing"
 TARGET_PATH.mkdir(exist_ok=True)

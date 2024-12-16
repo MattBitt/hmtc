@@ -12,8 +12,8 @@ from skimage.color import rgb2gray
 from hmtc.config import init_config
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["WORKING"])
+STORAGE = Path(config["STORAGE"])
 
 
 def images_are_the_same(img1, img2):

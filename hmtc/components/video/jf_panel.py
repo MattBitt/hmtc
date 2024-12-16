@@ -38,8 +38,8 @@ from hmtc.utils.jellyfin_functions import (
 from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
-WORKING = Path(config["paths"]["working"]) / "downloads"
-STORAGE = Path(config["paths"]["storage"]) / "videos"
+WORKING = Path(config["WORKING"]) / "downloads"
+STORAGE = Path(config["STORAGE"]) / "videos"
 
 
 @solara.component_vue("JellyfinControlPanel.vue")

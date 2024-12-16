@@ -10,8 +10,8 @@ from numpy.typing import NDArray
 from hmtc.config import init_config
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["WORKING"])
+STORAGE = Path(config["STORAGE"])
 
 
 def setup_output_folder():

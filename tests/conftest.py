@@ -8,7 +8,7 @@ from PIL import Image
 
 # these are needed before the app imports to set the environment variables
 os.environ["HMTC_ENV"] = "testing"
-os.environ["HMTC_CONFIG_PATH"] = "hmtc/config/"
+
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
@@ -26,16 +26,13 @@ config = init_config()
 setup_logging(config)
 
 
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
-
 # this is the actual source of files for tests
-SOURCE_FILES_PATH = STORAGE / "data_for_tests"
+SOURCE_FILES_PATH = config["STORAGE"] / "data_for_tests"
 
 # serves as the source of files for future tests to copy from
 # i think this is a good idea to keep the original files untouched
-INPUT_PATH = WORKING / "files_for_input"
-OUTPUT_PATH = WORKING / "files_created_by_testing"
+INPUT_PATH = config["WORKING"] / "files_for_input"
+OUTPUT_PATH = config["WORKING"] / "files_created_by_testing"
 
 
 def copy_initial_files():

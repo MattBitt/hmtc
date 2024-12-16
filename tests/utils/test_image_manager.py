@@ -5,8 +5,8 @@ from hmtc.utils.opencv.image_manager import ImageManager
 
 config = init_config()
 
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["WORKING"])
+STORAGE = Path(config["STORAGE"])
 
 INPUT_PATH = WORKING / "files_for_input"
 OUTPUT_PATH = WORKING / "files_created_by_testing"

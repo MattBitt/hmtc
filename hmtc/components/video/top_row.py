@@ -8,8 +8,8 @@ from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.config import init_config
 
 config = init_config()
-WORKING = Path(config["paths"]["working"]) / "downloads"
-STORAGE = Path(config["paths"]["storage"]) / "videos"
+WORKING = Path(config["WORKING"]) / "downloads"
+STORAGE = Path(config["STORAGE"]) / "videos"
 MIN_SECTION_LENGTH = 60
 MAX_SECTION_LENGTH = 1200
 AVERAGE_SECTION_LENGTH = 180

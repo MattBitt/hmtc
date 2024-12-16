@@ -7,7 +7,7 @@ from hmtc.config import init_config
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
+WORKING = Path(config["WORKING"])
 
 TARGET_PATH = WORKING / "files_created_by_testing"
 TARGET_PATH.mkdir(exist_ok=True)

@@ -11,8 +11,8 @@ from PIL import Image
 from hmtc.config import init_config
 
 config = init_config()
-WORKING = Path(config["paths"]["working"])
-STORAGE = Path(config["paths"]["storage"])
+WORKING = Path(config["WORKING"])
+STORAGE = Path(config["STORAGE"])
 
 # Font settings
 font = cv2.FONT_HERSHEY_SIMPLEX
