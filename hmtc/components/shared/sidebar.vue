@@ -68,6 +68,7 @@ export default {
     ],
     items2: [
       { text: "Stats", icon: "mdi-graph", url: "/dashboards/stats" },
+      { text: "Files Dashboard", icon: "mdi-folder", url: "/dashboards/files" },
       { text: "Recent", icon: "mdi-history", url: "/utils/recent" },
       {
         text: "Now Playing",
