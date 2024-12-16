@@ -5,8 +5,10 @@ import solara
 import solara.lab
 from loguru import logger
 
+from hmtc.utils.version_manager import get_version
+
 # program version
-VERSION = "0.0.45"
+VERSION = f"v{get_version()}"
 
 
 @solara.component_vue("./sidebar.vue")

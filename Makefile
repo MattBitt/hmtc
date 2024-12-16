@@ -11,6 +11,7 @@ staging:
 	docker-compose up --build
 
 deploy:
+	python hmtc/utils/version_manager.py
 	ruff check --config hmtc/config/ruff.toml --select I . --fix
 	black .
 	git add .
@@ -22,4 +23,3 @@ deploy:
 cleanup:
 	ruff check --config hmtc/config/ruff.toml --select I . --fix
 	black .
-
