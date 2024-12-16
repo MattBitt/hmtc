@@ -61,6 +61,7 @@ def main(config):
         run_migrations(db_instance)
         seed_database_from_json(db_instance)
     else:
+        create_tables(db_instance)
         run_migrations(db_instance)
 
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
