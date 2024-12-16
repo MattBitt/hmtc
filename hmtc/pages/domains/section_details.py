@@ -5,7 +5,6 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.video.no_sections_panel import NoSectionsPanel
 from hmtc.components.video.section_details_panel import SectionsDetailsPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
-
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.domains.section import Section

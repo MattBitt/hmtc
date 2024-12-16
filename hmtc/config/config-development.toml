@@ -12,6 +12,10 @@ items_per_page = 12
 clean_downloads = false
 minimum_section_size = 10
 
+[paths]
+storage = "/home/matt/apps/data_for_development/hmtc/development/storage"
+working = "/home/matt/apps/data_for_development/hmtc/development/working"
+
 [database]
 name = "HMTCdevelopment"
 host = "localhost"

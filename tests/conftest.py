@@ -17,10 +17,10 @@ from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
+from hmtc.utils.db_migrator import run_migrations
 from hmtc.utils.general import copy_tree, remove_tree
 from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
-from hmtc.utils.db_migrator import run_migrations
 
 config = init_config()
 setup_logging(config)

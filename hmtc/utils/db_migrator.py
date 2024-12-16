@@ -1,6 +1,7 @@
-from peewee_migrate import Router
-from peewee import PostgresqlDatabase
 from loguru import logger
+from peewee import PostgresqlDatabase
+from peewee_migrate import Router
+
 from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.models import db_null

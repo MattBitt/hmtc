@@ -1,6 +1,6 @@
-import pytest
 from pathlib import Path
 
+import pytest
 from loguru import logger
 
 from hmtc.config import init_config
