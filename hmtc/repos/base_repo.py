@@ -22,7 +22,7 @@ class Repository:
 
     @myhandler
     def load_or_create_item(self, data) -> BaseModel:
-        item = self.model.get_or_create(**data)
+        item, created = self.model.get_or_create(**data)
         return item
 
     @myhandler
@@ -54,3 +54,7 @@ class Repository:
     @myhandler
     def count(self):
         return self.model.select().count()
+
+    @myhandler
+    def get_by(self, **kwargs):
+        return self.model.get(**kwargs)

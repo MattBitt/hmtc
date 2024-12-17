@@ -21,9 +21,15 @@ class Section:
 
     @classmethod
     def create(cls, data) -> SectionModel:
-        video = cls.video_repo.get(id=data["video_id"])
+        if "_video" in data.keys():
+            video = cls.video_repo.get_by(title=data["_video"]["title"])
+            if video is None:
+                raise ValueError(f"Video {data['_video']} not found")
+            del data["_video"]
+        else:
+            # not sure if this is the best way to handle this
+            video = cls.video_repo.get(title=data["video"]["title"])
         data["video"] = video
-
         return cls.repo.create_item(data=data)
 
     @classmethod

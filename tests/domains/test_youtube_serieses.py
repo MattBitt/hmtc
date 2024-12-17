@@ -1,5 +1,5 @@
 import pytest
-
+from hmtc.domains.series import Series
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import Series as SeriesModel
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
@@ -8,7 +8,12 @@ from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 
 testing_youtube_series_dict = {
     "title": "Some Test YoutubeSeries Title",
-    "id": 57312,
+}
+
+testing_series_dict = {
+    "title": "Some Test Series Title",
+    "start_date": "2021-01-01",
+    "end_date": "2021-12-31",
 }
 
 
@@ -18,8 +23,9 @@ def test_empty_youtube_series():
 
 
 def test_youtube_series_create_and_load(seeded_db):
-    series = SeriesModel.select().first()
-    testing_youtube_series_dict["series_id"] = series.id
+    series = Series.create(testing_series_dict)
+    series.save()
+    testing_youtube_series_dict["_series"] = series.my_dict()
 
     created_youtube_series = YoutubeSeries.create(testing_youtube_series_dict)
     assert created_youtube_series.title == testing_youtube_series_dict["title"]
@@ -35,7 +41,7 @@ def test_youtube_series_create_and_load(seeded_db):
 
 def test_youtube_series_delete(seeded_db):
     series = SeriesModel.select().first()
-    testing_youtube_series_dict["series_id"] = series.id
+    testing_youtube_series_dict["_series"] = series.my_dict()
 
     new_youtube_series = YoutubeSeries.create(testing_youtube_series_dict)
     assert new_youtube_series.id > 0
@@ -57,13 +63,12 @@ def test_get_all(seeded_db):
 
 
 def test_update_youtube_seriess(seeded_db):
-    YOUTUBE_SERIES_ID = 1
-    youtube_series = YoutubeSeries.load(YOUTUBE_SERIES_ID)
+    youtube_series = YoutubeSeriesModel.select().first()
     orig_title = youtube_series.title
-    assert youtube_series.title == "Tech Talks"
+    assert youtube_series.title == "Omegle Bars"
     YoutubeSeries.update({"title": "A whole nother title", "id": 1})
     assert (
-        YoutubeSeriesModel.get_by_id(YOUTUBE_SERIES_ID).title == "A whole nother title"
+        YoutubeSeriesModel.get_by_id(youtube_series.id).title == "A whole nother title"
     )
-    YoutubeSeries.update({"title": orig_title, "id": YOUTUBE_SERIES_ID})
-    assert YoutubeSeriesModel.get_by_id(YOUTUBE_SERIES_ID).title == orig_title
+    YoutubeSeries.update({"title": orig_title, "id": youtube_series.id})
+    assert YoutubeSeriesModel.get_by_id(youtube_series.id).title == orig_title

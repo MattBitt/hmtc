@@ -15,7 +15,14 @@ class YoutubeSeries:
 
     @classmethod
     def create(cls, data) -> YoutubeSeriesModel:
-        series = cls.series_repo.get(id=data["series_id"])
+        if "_series" in data.keys():
+            series = cls.series_repo.get_by(title=data["_series"]["title"])
+            if series is None:
+                raise ValueError(f"series {data['_series']} not found")
+            del data["_series"]
+        else:
+            # not sure if this is the best way to handle this
+            series = cls.series_repo.get(title=data["series"]["title"])
         data["series"] = series
         return cls.repo.create_item(data=data)
 

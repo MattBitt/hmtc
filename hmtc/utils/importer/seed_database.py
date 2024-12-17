@@ -22,8 +22,11 @@ from hmtc.domains.user import User
 from hmtc.domains.video import Video
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import db_null
+from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 
 config = init_config()
+
+STORAGE = config["STORAGE"]
 
 
 def seed_database_from_json(db_instance):
@@ -36,8 +39,7 @@ def seed_database_from_json(db_instance):
     logger.debug("Seeding database from seed_data.json")
     with open("hmtc/utils/importer/seed_data.json", "r") as f:
         data = json.load(f)
-    for channel in data["Channel"]:
-        Channel.create(channel)
+
     for series in data["Series"]:
         Series.create(series)
 
@@ -47,42 +49,14 @@ def seed_database_from_json(db_instance):
     for yt_series in data["YoutubeSeries"]:
         YoutubeSeries.create(yt_series)
 
-    for artist in data["Artist"]:
-        Artist.create(artist)
-    for beat in data["Beat"]:
-        Beat.create(beat)
-
-    for disc in data["Disc"]:
-        Disc.create(disc)
-
-    for video in data["Video"]:
-        Video.create(video)
-
-    # reversed so the 'next' section is created before the 'previous' section
-    for section in reversed(data["Section"]):
-        Section.create(section)
-
-    for track in data["Track"]:
-        Track.create(track)
-
-    for superchat in data["Superchat"]:
-        Superchat.create(superchat)
-    for superchat_segment in reversed(data["SuperchatSegment"]):
-        SuperchatSegment.create(superchat_segment)
-
-    for topic in data["Topic"]:
-        Topic.create(topic)
-
     for user in data["User"]:
         User.create(user)
 
-    for section_topic in data["SectionTopic"]:
-        _section = Section.load(section_topic["section_id"])
-        _topic = Topic.load(section_topic["topic_id"])
-        Section.add_topic(
-            section_id=_section.id,
-            topic_dict=_topic.my_dict(),
-        )
+    for artist in data["Artist"]:
+        Artist.create(artist)
+    import_existing_video_files_to_db(
+        STORAGE / "videos", delete_premigration_superchats=True
+    )
 
     logger.success("Database seeded from seed_data.json")
 

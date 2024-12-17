@@ -16,13 +16,29 @@ from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
 
 
+class FileManager:
+    def __init__(self, model):
+        self.model = model
+
+    def add_file(self, file):
+        logger.debug(f"Adding file {file} to 'item' {self.model.title}")
+
+
 class Video:
     repo = Repository(model=VideoModel(), label="Video")
     channel_repo = Repository(model=ChannelModel(), label="Channel")
+    file_manager = FileManager(model=VideoModel())
 
     @classmethod
     def create(cls, data) -> VideoModel:
-        channel = cls.channel_repo.get(id=data["channel_id"])
+        if "_channel" in data.keys():
+            channel = cls.channel_repo.load_or_create_item(data["_channel"])
+            if channel is None:
+                raise ValueError(f"channel {data['_channel']} not found")
+            del data["_channel"]
+        else:
+            # not sure if this is the best way to handle this
+            channel = cls.channel_repo.get(title=data["channel"]["title"])
         data["channel"] = channel
 
         return cls.repo.create_item(data=data)
@@ -77,3 +93,12 @@ class Video:
     @classmethod
     def unique_count(cls) -> int:
         return VideoModel.select().where(VideoModel.unique_content == True).count()
+
+    @classmethod
+    def youtube_id_exists(cls, youtube_id) -> bool:
+        return VideoModel.select().where(VideoModel.youtube_id == youtube_id).exists()
+
+    @classmethod
+    def add_file_to_video(cls, video: VideoModel, file_path: str) -> None:
+        logger.debug(f"Adding file {file_path} to video {video.title}")
+        cls.file_manager.add_file(file_path)

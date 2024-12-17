@@ -16,7 +16,14 @@ class SuperchatSegment:
 
     @classmethod
     def create(cls, data) -> SuperchatSegmentModel:
-        section = cls.section_repo.get(id=data["section_id"])
+        if "_section" in data.keys():
+            section = cls.section_repo.get_by(title=data["_section"]["title"])
+            if section is None:
+                raise ValueError(f"section {data['_section']} not found")
+            del data["_section"]
+        else:
+            # not sure if this is the best way to handle this
+            section = cls.section_repo.get(title=data["section"]["title"])
         data["section"] = section
 
         return cls.repo.create_item(data=data)

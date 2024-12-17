@@ -6,20 +6,18 @@ from hmtc.models import Album as AlbumModel
 from hmtc.repos.base_repo import Repository
 
 testing_video_dict = {
-    "id": 101,
     "description": "This is only for testing. If you see this on the website, something is wrong.",
     "duration": 400,
     "title": "Some Test Titile that i just made up",
     "unique_content": True,
     "upload_date": "2021-01-01",
     "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
-    "youtube_id": "1234adfaewr",
+    "youtube_id": "inalbumstesting1234adfaewr",
     "episode": 1,
-    "channel_id": "1",
+    "channel": {"title": "Harry Mack"},
 }
 
 testing_album_dict = {
-    "id": 102,
     "title": "Some Test Album Title",
     "release_date": "2021-01-01",
 }
@@ -60,22 +58,12 @@ def test_get_all(seeded_db):
 
 
 def test_update_albums(seeded_db):
-    ALBUM_ID = 1
-    album = Album.load(ALBUM_ID)
+    ALBUM_TITLE = "Omegle Bars"
+    album = Album.repo.get_by(title=ALBUM_TITLE)
+    album_id = album.id
     orig_title = album.title
-    assert album.title == "Omegle Bars"
-    Album.update({"title": "A whole nother title", "id": 1})
-    assert AlbumModel.get_by_id(ALBUM_ID).title == "A whole nother title"
-    Album.update({"title": orig_title, "id": ALBUM_ID})
-    assert AlbumModel.get_by_id(ALBUM_ID).title == orig_title
-
-
-def test_add_video_to_album(seeded_db):
-    new_vid = Video.create(testing_video_dict)
-    Album.add_video(1, new_vid.id, 1)
-    album = Album.load(1)
-    vids = Album.get_videos(album.id)
-    assert len(vids) == 5
-    assert new_vid.id in [vid.id for vid in vids]
-    # need to clean up
-    Video.delete_id(new_vid.id)
+    assert album.title == ALBUM_TITLE
+    Album.update({"title": "A whole nother title", "id": album_id})
+    assert AlbumModel.get_by_id(album_id).title == "A whole nother title"
+    Album.update({"title": orig_title, "id": album_id})
+    assert AlbumModel.get_by_id(album_id).title == orig_title

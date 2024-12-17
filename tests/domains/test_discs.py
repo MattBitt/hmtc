@@ -1,3 +1,4 @@
+from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Disc as DiscModel
@@ -8,6 +9,11 @@ testing_disc_dict = {
     "title": "Some Test Disc Title",
 }
 
+testing_album_dict = {
+    "title": "Some Test Album Title",
+    "release_date": "2021-01-01",
+}
+
 
 def test_empty_disc():
     c = Disc()
@@ -15,8 +21,8 @@ def test_empty_disc():
 
 
 def test_disc_create_and_load(seeded_db):
-    album = AlbumModel.select().first()
-    testing_disc_dict["album_id"] = album.id
+    album = Album.create(testing_album_dict)
+    testing_disc_dict["_album"] = album.my_dict()
     created_disc = Disc.create(testing_disc_dict)
     assert created_disc.title == testing_disc_dict["title"]
 
@@ -25,34 +31,42 @@ def test_disc_create_and_load(seeded_db):
     assert loaded_disc.title == testing_disc_dict["title"]
     assert loaded_disc.album.title == album.title
     Disc.delete_id(created_disc.id)
+    Album.delete_id(album.id)
 
 
 def test_disc_delete(seeded_db):
-    album = AlbumModel.select().first()
-    testing_disc_dict["album_id"] = album.id
+    album = Album.create(testing_album_dict)
+    testing_disc_dict["_album"] = album.my_dict()
     new_disc = Disc.create(testing_disc_dict)
     Disc.delete_id(new_disc.id)
     c = DiscModel.select().where(DiscModel.id == new_disc.id).get_or_none()
     assert c is None
+    Disc.delete_id(new_disc.id)
+    Album.delete_id(album.id)
 
 
 def test_serialize(seeded_db):
-    _disc = DiscModel.select().first()
+    album = Album.create(testing_album_dict)
+    testing_disc_dict["_album"] = album.my_dict()
+    new_disc = Disc.create(testing_disc_dict)
 
-    disc = Disc.serialize(_disc)
-    assert disc["title"] == _disc.title
+    disc = Disc.serialize(new_disc)
+    assert disc["title"] == new_disc.title
+    Disc.delete_id(new_disc.id)
+    Album.delete_id(album.id)
 
 
 def test_get_all(seeded_db):
     all_discs = Disc.get_all()
-    assert len(list(all_discs)) == 7
+    assert len(list(all_discs)) == 0
 
 
 def test_update_discs(seeded_db):
-    album = AlbumModel.select().first()
-    testing_disc_dict["album_id"] = album.id
-    new_disc = Disc.create(testing_disc_dict)
-    disc = Disc.load(new_disc.id)
+    album = Album.create(testing_album_dict)
+    testing_disc_dict["_album"] = album.my_dict()
+    disc = Disc.create(testing_disc_dict)
     assert disc.title == testing_disc_dict["title"]
-    Disc.update({"title": "A whole nother title", "id": new_disc.id})
-    assert DiscModel.get_by_id(new_disc.id).title == "A whole nother title"
+    Disc.update({"title": "A whole nother title", "id": disc.id})
+    assert DiscModel.get_by_id(disc.id).title == "A whole nother title"
+    Disc.delete_id(disc.id)
+    Album.delete_id(album.id)

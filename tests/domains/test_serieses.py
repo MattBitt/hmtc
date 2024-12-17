@@ -50,11 +50,12 @@ def test_get_all(seeded_db):
 
 
 def test_update_seriess(seeded_db):
-    SERIES_ID = 1
-    series = Series.load(SERIES_ID)
+
+    series = SeriesModel.select().first()
+
     orig_title = series.title
-    assert series.title == "On the Hiking Trail"
+    assert series.title == "Livestreams"
     Series.update({"title": "A whole nother title", "id": 1})
-    assert SeriesModel.get_by_id(SERIES_ID).title == "A whole nother title"
-    Series.update({"title": orig_title, "id": SERIES_ID})
-    assert SeriesModel.get_by_id(SERIES_ID).title == orig_title
+    assert SeriesModel.get_by_id(series.id).title == "A whole nother title"
+    Series.update({"title": orig_title, "id": series.id})
+    assert SeriesModel.get_by_id(series.id).title == orig_title

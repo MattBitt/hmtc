@@ -1,13 +1,9 @@
 import os
 import subprocess
 from pathlib import Path
-
+import json
 import yt_dlp
 from loguru import logger
-
-# this is here only to run this file from the command line
-
-# from hmtc.utils.general import is_disk_full
 
 
 def is_disk_full(folder):
@@ -216,34 +212,27 @@ def download_video_file(
         return ydl.sanitize_info(info), files
 
 
-def download_video_info_from_id(
-    id, download_path, thumbnail=True, subtitle=True, info=True
-):
-    logger.error("🔴🔴🔴🔴🔴🔴🔴🔴")
-    video = get_video_info(id, download_path, thumbnail, subtitle, info)
-    files = []
-    for f in Path(download_path).glob(f"*{id}*"):
-        files.append(f)
-    if "error" in video.keys():
-        return {
-            "youtube_id": id,
-            "title": "",
-            "episode": "",
-            "upload_date": "",
-            "private": False,
-            "error": True,
-            "error_info": video["error_info"],
-        }, ["errrrrrorrrr"]
+def parse_youtube_info_file(file: Path):
+    with open(file, "r") as f:
+        all_data = f.read()
+    data = json.loads(all_data)
+    channel = {
+        "title": data["channel"],
+        "url": data["channel_url"],
+        "youtube_id": data["channel_id"],
+    }
+    video = {
+        "title": data["title"],
+        "url": data["webpage_url"],
+        "youtube_id": data["id"],
+        "description": data["description"],
+        "duration": data["duration"],
+        "upload_date": data["upload_date"],
+        "_channel": channel,
+    }
+    return video
 
-    else:
-        return {
-            "youtube_id": video["id"],
-            "title": video["title"],
-            "upload_date": video["upload_date"],
-            "duration": video["duration"],
-            "description": video["description"],
-            "url": video["webpage_url"],
-            "private": False,
-            "error": False,
-            "error_info": "",
-        }, files
+
+if __name__ == "__main__":
+    data = parse_youtube_info_file(Path("hmtc/utils/yt.info.json"))
+    logger.debug(data)

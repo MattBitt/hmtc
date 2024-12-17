@@ -1,5 +1,6 @@
 import pytest
 
+from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
 from hmtc.models import Channel as ChannelModel
 from hmtc.models import Video as VideoModel
@@ -23,8 +24,13 @@ def test_empty_video():
 
 
 def test_video_create_and_load(seeded_db):
-    channel = ChannelModel.select().first()
-    testing_video_dict["channel_id"] = channel.id
+    channel = ChannelModel(
+        title="Test Channel",
+        youtube_id="1234q2w43asdf",
+        url="https://www.youtube.com/channel/1234",
+    )
+    channel.save()
+    testing_video_dict["_channel"] = channel.my_dict()
 
     created_video = Video.create(testing_video_dict)
     assert created_video.title == testing_video_dict["title"]
@@ -34,15 +40,22 @@ def test_video_create_and_load(seeded_db):
 
     assert loaded_video.channel.title == testing_video_dict["channel"].title
     Video.delete_id(created_video.id)
+    Channel.delete_id(channel.id)
 
 
 def test_video_delete(seeded_db):
-    channel = ChannelModel.select().first()
-    testing_video_dict["channel_id"] = channel.id
+    channel = ChannelModel(
+        title="Test Channel",
+        youtube_id="123545gfdsg4",
+        url="https://www.youtube.com/channel/1234",
+    )
+    channel.save()
+    testing_video_dict["_channel"] = channel.my_dict()
 
     new_video = Video.create(testing_video_dict)
 
     Video.delete_id(new_video.id)
+    Channel.delete_id(channel.id)
 
 
 def test_serialize(seeded_db):
@@ -61,9 +74,9 @@ def test_get_all(seeded_db):
 
 def test_update_videos(seeded_db):
     VIDEO_ID = 1
-    video = Video.load(VIDEO_ID)
+    video = VideoModel.select().first()
     orig_title = video.title
-    assert video.title == "Omegle Bars 88"
+    assert video.title == "Metamorphosis | Harry Mack EXCLUSIVE Omegle Bars"
     Video.update({"title": "A whole nother title", "id": 1})
     assert VideoModel.get_by_id(VIDEO_ID).title == "A whole nother title"
     Video.update({"title": orig_title, "id": VIDEO_ID})

@@ -36,23 +36,24 @@ def test_beat_delete(seeded_db):
 
 
 def test_serialize(seeded_db):
-    _beat = BeatModel.select().first()
+    _beat = Beat.create(testing_beat_dict)
     beat = Beat.serialize(_beat.id)
     assert beat["id"] == _beat.id
     assert beat["title"] == _beat.title
+    Beat.delete_id(_beat.id)
 
 
 def test_get_all(seeded_db):
     all_beats = Beat.get_all()
-    assert len(list(all_beats)) == 3
+    assert len(list(all_beats)) == 0
 
 
 def test_update_beats(seeded_db):
-    BEAT_ID = 1
-    beat = Beat.load(BEAT_ID)
+    beat = Beat.create(testing_beat_dict)
+
     orig_title = beat.title
-    assert beat.title == "Beat One"
-    Beat.update({"title": "A whole nother title", "id": 1})
-    assert BeatModel.get_by_id(BEAT_ID).title == "A whole nother title"
-    Beat.update({"title": orig_title, "id": BEAT_ID})
-    assert BeatModel.get_by_id(BEAT_ID).title == orig_title
+
+    Beat.update({"title": "A whole nother title", "id": beat.id})
+    assert BeatModel.get_by_id(beat.id).title == "A whole nother title"
+    Beat.update({"title": orig_title, "id": beat.id})
+    assert BeatModel.get_by_id(beat).title == orig_title

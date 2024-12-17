@@ -40,16 +40,17 @@ def test_artist_delete(seeded_db):
 
 
 def test_serialize(seeded_db):
-    art = ArtistModel.select().first()
+    art = Artist.create(testing_artist_dict)
     artist = Artist.serialize(art.id)
     assert artist["id"] == art.id
     assert artist["name"] == art.name
     assert artist["url"] == art.url
+    Artist.delete_id(art.id)
 
 
 def test_get_all(seeded_db):
     all_artists = Artist.get_all()
-    assert len(list(all_artists)) == 3
+    assert len(list(all_artists)) == 2
 
 
 def test_update_artists(seeded_db):
@@ -58,6 +59,6 @@ def test_update_artists(seeded_db):
 
     artist = Artist.load(ARTIST_ID)
     assert artist.name == ARTIST_NAME
-    Artist.update({"name": "Beardyman", "id": ARTIST_ID})
-    assert ArtistModel.get_by_id(ARTIST_ID).name == "Beardyman"
+    Artist.update({"name": "MizzleBizzle", "id": ARTIST_ID})
+    assert ArtistModel.get_by_id(ARTIST_ID).name == "MizzleBizzle"
     Artist.update({"name": ARTIST_NAME, "id": ARTIST_ID})
