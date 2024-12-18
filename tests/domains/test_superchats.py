@@ -1,7 +1,8 @@
 import pytest
+
 from hmtc.domains.channel import Channel
-from hmtc.domains.video import Video
 from hmtc.domains.superchat import Superchat
+from hmtc.domains.video import Video
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository

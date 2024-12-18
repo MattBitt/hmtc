@@ -1,4 +1,5 @@
 import pytest
+
 from hmtc.domains.series import Series
 from hmtc.domains.youtube_series import YoutubeSeries
 from hmtc.models import Series as SeriesModel

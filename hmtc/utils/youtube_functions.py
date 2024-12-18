@@ -1,7 +1,8 @@
+import json
 import os
 import subprocess
 from pathlib import Path
-import json
+
 import yt_dlp
 from loguru import logger
 

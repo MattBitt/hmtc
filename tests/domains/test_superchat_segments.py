@@ -1,8 +1,9 @@
 import pytest
-from hmtc.domains.video import Video
+
 from hmtc.domains.channel import Channel
 from hmtc.domains.section import Section
 from hmtc.domains.superchat_segment import SuperchatSegment
+from hmtc.domains.video import Video
 from hmtc.models import Section as SectionModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.repos.base_repo import Repository

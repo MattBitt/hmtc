@@ -1,5 +1,6 @@
 import pytest
 from loguru import logger
+
 from hmtc.domains.channel import Channel
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video

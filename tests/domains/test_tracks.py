@@ -1,10 +1,11 @@
 import pytest
+
 from hmtc.domains.album import Album
+from hmtc.domains.channel import Channel
 from hmtc.domains.disc import Disc
 from hmtc.domains.section import Section
-from hmtc.domains.channel import Channel
-from hmtc.domains.video import Video
 from hmtc.domains.track import Track
+from hmtc.domains.video import Video
 from hmtc.models import Disc as DiscModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
