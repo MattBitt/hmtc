@@ -44,13 +44,9 @@ def create_video_from_folder(path: Path) -> None:
         # create the video and channel (if it doesn't exist)
         vid = Video.create(data)
 
-        # add the rest of the files to the video
+        # add the files to the db
         for file in files:
-            if (
-                file != info_file[0]
-                and file.is_file()
-                and "Zone.Identifier" not in file.name
-            ):
+            if file.is_file() and "Zone.Identifier" not in file.name:
                 Video.add_file(vid, file)
 
         logger.success(f"Created video {vid.title}")
@@ -85,8 +81,13 @@ def import_existing_video_files_to_db(
     replace_files=False,
     delete_premigration_superchats=False,
 ):
+    to_process = 30
+    circuit_breaker = 0
 
     for item in path.glob("*"):
+
+        if circuit_breaker > to_process:
+            break
         if item.is_dir():
             if is_valid_youtube_id(item.stem):
                 if youtube_id_in_db(item.stem):
@@ -107,8 +108,8 @@ def import_existing_video_files_to_db(
                     files = get_files_in_folder(item)
                     logger.debug(f"Found {len(files)} files for {item.stem}")
                     create_video_from_folder(item)
+                    circuit_breaker += 1
 
-                    logger.debug(f"Skipping existing youtube id {item.stem}")
             else:
                 logger.debug(f"Skipping invalid youtube id {item.stem}")
         elif item.is_file():

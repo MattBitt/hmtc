@@ -47,3 +47,6 @@ class FileManager:
 
         if file_string.endswith(tuple(posters)):
             return "poster"
+
+    def count_all(self):
+        return self.model.select().count()
