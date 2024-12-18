@@ -10,8 +10,8 @@ from hmtc.models import Album as AlbumModel
 from hmtc.models import Disc as DiscModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
-from hmtc.models import Video as VideoModel
 from hmtc.models import TrackFile as TrackFileModel
+from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
 

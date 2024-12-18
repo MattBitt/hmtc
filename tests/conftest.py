@@ -12,7 +12,7 @@ os.environ["HMTC_ENV"] = "testing"
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains.superchat import Superchat as SuperchatItem
+from hmtc.domains import *
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
@@ -24,74 +24,6 @@ from hmtc.utils.my_logging import setup_logging
 
 config = init_config()
 setup_logging(config)
-
-
-@pytest.fixture(scope="session")
-def video_dict() -> dict:
-    return {
-        "description": "This is only for testing.in the files tab.",
-        "duration": 400,
-        "title": "Another quirky title to stand out.",
-        "unique_content": True,
-        "upload_date": "2021-01-01",
-        "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
-        "youtube_id": "vjhfadsklfhew",
-    }
-
-
-@pytest.fixture(scope="function")
-def text_file(tmp_path):
-    file = tmp_path / "test.txt"
-    file.write_text("This is a test file. blah")
-    yield file
-    file.unlink()
-
-
-@pytest.fixture(scope="function")
-def video_item(seeded_db):
-    channel = ChannelModel(
-        title="Test Channel",
-        youtube_id="1234q2w43asdf",
-        url="https://www.youtube.com/channel/1234",
-    )
-    channel.save()
-    testing_video_dict["_channel"] = channel.my_dict()
-
-    created_video = Video.create(testing_video_dict)
-    yield Video.load(created_video.id)
-    Video.delete_id(created_video.id)
-    Channel.delete_id(channel.id)
-
-
-### starting refactor on 12/18/24
-### fixtures above are the ones i want to keep
-### the ones below need to be refactored or deleted
-
-# this is the actual source of files for tests
-SOURCE_FILES_PATH = config["STORAGE"] / "data_for_tests"
-
-# serves as the source of files for future tests to copy from
-# i think this is a good idea to keep the original files untouched
-INPUT_PATH = config["WORKING"] / "files_for_input"
-OUTPUT_PATH = config["WORKING"] / "files_created_by_testing"
-
-
-def copy_initial_files():
-    for files in SOURCE_FILES_PATH.rglob("*Zone.Identifier*"):
-        files.unlink()
-
-    if INPUT_PATH.exists():
-        remove_tree(INPUT_PATH)
-
-    if OUTPUT_PATH.exists():
-        remove_tree(OUTPUT_PATH)
-
-    initial_files = SOURCE_FILES_PATH
-    assert initial_files.exists()
-    assert len(list(initial_files.rglob("*"))) > 0
-
-    copy_tree(SOURCE_FILES_PATH, INPUT_PATH)
-    OUTPUT_PATH.mkdir(exist_ok=True, parents=True)
 
 
 @pytest.fixture(scope="session")
@@ -118,10 +50,187 @@ def seeded_db(db):
     return db
 
 
+@pytest.fixture(scope="function")
+def text_file(tmp_path):
+    file = tmp_path / "test.txt"
+    file.write_text("This is a test file. blah")
+    yield file
+    file.unlink()
+
+
+@pytest.fixture(scope="function")
+def artist_dict() -> dict:
+    return {
+        "name": "Some Test Artist",
+        "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
+    }
+
+
+@pytest.fixture(scope="function")
+def beat_dict() -> dict:
+    return {
+        "title": "Some Test Beat Title",
+    }
+
+
 @pytest.fixture(scope="session")
-def test_files():
-    copy_initial_files()
-    return INPUT_PATH
+def video_dict() -> dict:
+    return {
+        "description": "This is only for testing.in the files tab.",
+        "duration": 400,
+        "title": "Another quirky title to stand out.",
+        "unique_content": True,
+        "upload_date": "2021-01-01",
+        "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
+        "youtube_id": "vjhfadsklfhew",
+    }
+
+
+@pytest.fixture(scope="session")
+def album_dict() -> dict:
+    return {
+        "title": "Some Test Album Title",
+        "release_date": "2021-01-01",
+    }
+
+
+@pytest.fixture(scope="function")
+def youtube_series_dict() -> dict:
+    return {
+        "title": "Some Test YoutubeSeries Title",
+    }
+
+
+@pytest.fixture(scope="function")
+def series_dict() -> dict:
+    return {
+        "title": "Some Test Series Title",
+        "start_date": "2021-01-01",
+        "end_date": "2021-12-31",
+    }
+
+
+@pytest.fixture(scope="function")
+def user_dict() -> dict:
+    return {
+        "id": 101,
+        "username": "testuser",
+        "email": "asdf@jkqwer.com",
+        "hashed_password": "1234",
+        "jellyfin_id": "1234",
+    }
+
+
+@pytest.fixture(scope="function")
+def track_dict() -> dict:
+    return {
+        "title": "Random Track Title",
+        "length": 1000,
+        "track_number": 1,
+        "track_number_verbose": "001",
+    }
+
+
+@pytest.fixture(scope="function")
+def section_dict() -> dict:
+    return {
+        "start": 0,
+        "end": 100,
+        "section_type": "verse",
+    }
+
+
+@pytest.fixture(scope="function")
+def channel_dict() -> dict:
+    return {
+        "title": "Marmalade Channel",
+        "url": "https://www.youtube.com/channel/1234vzcxvadsf",
+        "youtube_id": "hkjfaesdl",
+        "auto_update": True,
+        "last_update_completed": "2021-01-01 00:00:00",
+    }
+
+
+@pytest.fixture(scope="function")
+def disc_dict() -> dict:
+    return {
+        "title": "Another Random Disc in Testing",
+    }
+
+
+@pytest.fixture(scope="function")
+def superchat_dict() -> dict:
+    return {
+        "frame": 15,
+    }
+
+
+@pytest.fixture(scope="function")
+def superchat_segment_dict() -> dict:
+    return {
+        "start_time_ms": 0,
+        "end_time_ms": 10,
+    }
+
+
+@pytest.fixture(scope="function")
+def topic_dict() -> dict:
+    return {
+        "text": "apple",
+    }
+
+
+@pytest.fixture(scope="function")
+def track_item(
+    channel_dict, video_dict, album_dict, disc_dict, track_dict, section_dict
+):
+    channel = Channel.create(channel_dict)
+    video_dict["_channel"] = channel.my_dict()
+    video = Video.create(video_dict)
+    section_dict["_video"] = video.my_dict()
+    section = Section.create(section_dict)
+
+    album = Album.create(album_dict)
+    disc_dict["_album"] = album.my_dict()
+    disc = Disc.create(disc_dict)
+    assert disc.title == disc_dict["title"]
+
+    track_dict["section"] = section.my_dict()
+    track_dict["disc"] = disc.my_dict()
+
+    new_track = Track.create(track_dict)
+    yield new_track
+    Track.delete_id(new_track.id)
+    Disc.delete_id(disc.id)
+    Album.delete_id(album.id)
+    Section.delete_id(section.id)
+    Video.delete_id(video.id)
+    Channel.delete_id(channel.id)
+
+
+@pytest.fixture(scope="function")
+def video_item(seeded_db, video_dict, channel_dict):
+    channel = Channel.create(channel_dict)
+    video_dict["_channel"] = channel.my_dict()
+
+    created_video = Video.create(video_dict)
+    yield Video.load(created_video.id)
+    Video.delete_id(created_video.id)
+    Channel.delete_id(channel.id)
+
+
+### starting refactor on 12/18/24
+### fixtures above are the ones i want to keep
+### the following are still in use but need to be refactored
+
+
+# # this is the actual source of files for tests
+SOURCE_FILES_PATH = config["STORAGE"] / "data_for_tests"
+
+# # serves as the source of files for future tests to copy from
+# # i think this is a good idea to keep the original files untouched
+INPUT_PATH = config["WORKING"] / "files_for_input"
+OUTPUT_PATH = config["WORKING"] / "files_created_by_testing"
 
 
 @pytest.fixture(scope="function")
@@ -133,10 +242,33 @@ def test_image_filename(test_files):
 
 
 @pytest.fixture(scope="function")
-def test_video_filename(test_files):
-    vid_file = [x for x in test_files.glob("*") if x.suffix in [".mp4", ".mkv"]][0]
+def test_ww_video_file(test_files):
+    video_file = [x for x in test_files.glob("*") if x.stem == "ww100_clip_1_min"][0]
+    return INPUT_PATH / video_file.name
 
-    return INPUT_PATH / vid_file.name
+
+def copy_initial_files():
+    for files in SOURCE_FILES_PATH.rglob("*Zone.Identifier*"):
+        files.unlink()
+
+    if INPUT_PATH.exists():
+        remove_tree(INPUT_PATH)
+
+    if OUTPUT_PATH.exists():
+        remove_tree(OUTPUT_PATH)
+
+    initial_files = SOURCE_FILES_PATH
+    assert initial_files.exists()
+    assert len(list(initial_files.rglob("*"))) > 0
+
+    copy_tree(SOURCE_FILES_PATH, INPUT_PATH)
+    OUTPUT_PATH.mkdir(exist_ok=True, parents=True)
+
+
+@pytest.fixture(scope="session")
+def test_files():
+    copy_initial_files()
+    return INPUT_PATH
 
 
 @pytest.fixture(scope="function")
@@ -144,101 +276,3 @@ def test_audio_filename(test_files):
     audio_file = [x for x in test_files.glob("*") if x.suffix in [".mp3"]][0]
 
     return INPUT_PATH / audio_file.name
-
-
-@pytest.fixture(scope="function")
-def test_ww_video_file(test_files):
-    video_file = [x for x in test_files.glob("*") if x.stem == "ww100_clip_1_min"][0]
-    return INPUT_PATH / video_file.name
-
-
-@pytest.fixture(scope="function")
-def test_ww_video_file2(test_files):
-    video_file = [x for x in test_files.glob("*") if x.stem == "ww100_clip_1_min2"][0]
-    return INPUT_PATH / video_file.name
-
-
-@pytest.fixture(scope="function")
-def test_ww116_images(test_files):
-    ww116_folder = test_files / "ww_screenshots" / "ww116"
-    assert ww116_folder.exists()
-    has_superchats = [x for x in (ww116_folder / "has_superchat").glob("*")]
-    no_superchats = [x for x in (ww116_folder / "no_superchat").glob("*")]
-    return has_superchats, no_superchats
-
-
-@pytest.fixture(scope="function")
-def video():
-    return VideoModel.create(
-        youtube_id="asbsdrjgkdlsa;",
-        title="test",
-        episode="",
-        upload_date="2020-01-01",
-        duration=8531,
-        description="this is a test",
-        enabled=True,
-        private=False,
-    )
-
-
-@pytest.fixture(scope="function")
-def video_with_file(test_ww_video_file):
-    vid = VideoModel.create(
-        youtube_id="asbsdrjgkdlsa;",
-        title="test",
-        episode="",
-        upload_date="2020-01-01",
-        duration=8531,
-        description="this is a test",
-        enabled=True,
-        private=False,
-    )
-    # FileManager.add_path_to_video(path=test_ww_video_file, video=vid)
-    return vid
-
-
-@pytest.fixture(scope="function")
-def superchat(video_with_file) -> SuperchatModel:
-    sc = SuperchatModel(
-        frame=15,
-        video_id=video_with_file.id,
-    )
-    sc.save()
-    return sc
-
-
-@pytest.fixture(scope="function")
-def superchat_image_file(test_files) -> Path:
-    sc_file = [x for x in test_files.glob("*.jpg") if x.stem == "superchat"][0]
-    return sc_file
-
-
-@pytest.fixture(scope="function")
-def superchat_image_array() -> np.ndarray:
-    img = Image.new("RGB", (100, 100), color="red")
-    img = np.array(img)
-    return img
-
-
-@pytest.fixture(scope="function")
-def superchat_with_file(video_with_file, superchat_image_file) -> SuperchatItem:
-    sc_file = superchat_image_file
-    sc = SuperchatModel.create(
-        frame=0,
-        video_id=video_with_file.id,
-    )
-    sci = SuperchatItem.from_model(sc)
-    sci.add_image(sc_file)
-    return sc
-
-
-@pytest.fixture(scope="function")
-def superchat_segment1(video) -> SuperchatSegmentModel:
-    ss = SuperchatSegmentModel.create(start_time=0, end_time=10, video=video)
-    return ss
-
-
-@pytest.fixture(scope="function")
-def superchat_segment2(video) -> SuperchatSegmentModel:
-    ss = SuperchatSegmentModel.create(start_time=18, end_time=30, video=video)
-    return ss

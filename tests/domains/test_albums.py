@@ -5,42 +5,25 @@ from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.repos.base_repo import Repository
 
-testing_video_dict = {
-    "description": "This is only for testing. If you see this on the website, something is wrong.",
-    "duration": 400,
-    "title": "Some Test Titile that i just made up",
-    "unique_content": True,
-    "upload_date": "2021-01-01",
-    "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
-    "youtube_id": "inalbumstesting1234adfaewr",
-    "episode": 1,
-    "channel": {"title": "Harry Mack"},
-}
-
-testing_album_dict = {
-    "title": "Some Test Album Title",
-    "release_date": "2021-01-01",
-}
-
 
 def test_empty_album(empty_db):
     c = Album()
     assert type(c.repo) == Repository
 
 
-def test_album_create_and_load(empty_db):
-    created_album = Album.create(testing_album_dict)
-    assert created_album.title == testing_album_dict["title"]
+def test_album_create_and_load(empty_db, album_dict):
+    created_album = Album.create(album_dict)
+    assert created_album.title == album_dict["title"]
     assert created_album.id > 0
 
     loaded_album = Album.load(created_album.id)
-    assert loaded_album.title == testing_album_dict["title"]
+    assert loaded_album.title == album_dict["title"]
 
     Album.delete_id(created_album.id)
 
 
-def test_album_delete(seeded_db):
-    new_album = Album.create(testing_album_dict)
+def test_album_delete(seeded_db, album_dict):
+    new_album = Album.create(album_dict)
     assert new_album.id > 0
     Album.delete_id(new_album.id)
 

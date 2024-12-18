@@ -7,44 +7,34 @@ from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
 from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 
-testing_youtube_series_dict = {
-    "title": "Some Test YoutubeSeries Title",
-}
-
-testing_series_dict = {
-    "title": "Some Test Series Title",
-    "start_date": "2021-01-01",
-    "end_date": "2021-12-31",
-}
-
 
 def test_empty_youtube_series():
     c = YoutubeSeries()
     assert type(c.repo) == YoutubeSeriesRepo
 
 
-def test_youtube_series_create_and_load(seeded_db):
-    series = Series.create(testing_series_dict)
+def test_youtube_series_create_and_load(seeded_db, series_dict, youtube_series_dict):
+    series = Series.create(series_dict)
     series.save()
-    testing_youtube_series_dict["_series"] = series.my_dict()
+    youtube_series_dict["_series"] = series.my_dict()
 
-    created_youtube_series = YoutubeSeries.create(testing_youtube_series_dict)
-    assert created_youtube_series.title == testing_youtube_series_dict["title"]
+    created_youtube_series = YoutubeSeries.create(youtube_series_dict)
+    assert created_youtube_series.title == youtube_series_dict["title"]
 
     assert created_youtube_series.id > 0
 
     loaded_youtube_series = YoutubeSeries.load(created_youtube_series.id)
-    assert loaded_youtube_series.title == testing_youtube_series_dict["title"]
+    assert loaded_youtube_series.title == youtube_series_dict["title"]
     assert loaded_youtube_series.id == created_youtube_series.id
     assert loaded_youtube_series.series.title == series.title
     YoutubeSeriesModel.delete_by_id(created_youtube_series.id)
 
 
-def test_youtube_series_delete(seeded_db):
+def test_youtube_series_delete(seeded_db, youtube_series_dict):
     series = SeriesModel.select().first()
-    testing_youtube_series_dict["_series"] = series.my_dict()
+    youtube_series_dict["_series"] = series.my_dict()
 
-    new_youtube_series = YoutubeSeries.create(testing_youtube_series_dict)
+    new_youtube_series = YoutubeSeries.create(youtube_series_dict)
     assert new_youtube_series.id > 0
     YoutubeSeries.delete_id(new_youtube_series.id)
 

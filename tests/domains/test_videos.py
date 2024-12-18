@@ -6,53 +6,42 @@ from hmtc.models import Channel as ChannelModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 
-testing_video_dict = {
-    "id": 984256,
-    "description": "This is only for testing. If you see this on the website, something is wrong.",
-    "duration": 400,
-    "title": "Some Test Titile that i just made up",
-    "unique_content": True,
-    "upload_date": "2021-01-01",
-    "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
-    "youtube_id": "uyt5676",
-}
-
 
 def test_empty_video():
     c = Video()
     assert type(c.repo) == Repository
 
 
-def test_video_create_and_load(seeded_db):
+def test_video_create_and_load(seeded_db, video_dict):
     channel = ChannelModel(
         title="Test Channel",
         youtube_id="1234q2w43asdf",
         url="https://www.youtube.com/channel/1234",
     )
     channel.save()
-    testing_video_dict["_channel"] = channel.my_dict()
+    video_dict["_channel"] = channel.my_dict()
 
-    created_video = Video.create(testing_video_dict)
-    assert created_video.title == testing_video_dict["title"]
+    created_video = Video.create(video_dict)
+    assert created_video.title == video_dict["title"]
     assert created_video.id > 0
     loaded_video = Video.load(created_video.id)
-    assert loaded_video.title == testing_video_dict["title"]
+    assert loaded_video.title == video_dict["title"]
 
-    assert loaded_video.channel.title == testing_video_dict["channel"].title
+    assert loaded_video.channel.title == video_dict["channel"].title
     Video.delete_id(created_video.id)
     Channel.delete_id(channel.id)
 
 
-def test_video_delete(seeded_db):
+def test_video_delete(seeded_db, video_dict):
     channel = ChannelModel(
         title="Test Channel",
         youtube_id="123545gfdsg4",
         url="https://www.youtube.com/channel/1234",
     )
     channel.save()
-    testing_video_dict["_channel"] = channel.my_dict()
+    video_dict["_channel"] = channel.my_dict()
 
-    new_video = Video.create(testing_video_dict)
+    new_video = Video.create(video_dict)
 
     Video.delete_id(new_video.id)
     Channel.delete_id(channel.id)
