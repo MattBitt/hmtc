@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 from loguru import logger
@@ -21,7 +22,8 @@ from hmtc.utils.file_manager import FileManager
 class Video:
     repo = Repository(model=VideoModel(), label="Video")
     channel_repo = Repository(model=ChannelModel(), label="Channel")
-    file_manager = FileManager(model=VideoFileModel)
+    filetypes = ["poster", "thumbnail", "video", "audio", "info", "subtitles"]
+    file_manager = FileManager(model=VideoFileModel, filetypes=filetypes)
 
     @classmethod
     def create(cls, data) -> VideoModel:
@@ -93,6 +95,6 @@ class Video:
         return VideoModel.select().where(VideoModel.youtube_id == youtube_id).exists()
 
     @classmethod
-    def add_file(cls, video: VideoModel, file_path: str) -> None:
-        logger.debug(f"Adding file {file_path} to video {video.title}")
-        cls.file_manager.add_file(video, file_path)
+    def add_file(cls, video: VideoModel, file: Path) -> None:
+        logger.debug(f"Adding file {file} to video {video.title}")
+        cls.file_manager.add_file(video, file)

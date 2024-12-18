@@ -19,6 +19,7 @@ TABLES = [
     Topic,
     Track,
     TrackBeat,
+    TrackFile,
     User,
     Video,
     VideoFile,

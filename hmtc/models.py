@@ -339,6 +339,16 @@ class AlbumFile(File):
         return f"AlbumFile({self.id} - {self.name=})"
 
 
+class TrackFile(File):
+    item = ForeignKeyField(Track, backref="files")
+
+    def __repr__(self):
+        return f"TrackFile({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"TrackFile({self.id} - {self.name=})"
+
+
 __all__ = [
     "Album",
     "AlbumFile",
@@ -355,6 +365,7 @@ __all__ = [
     "SuperchatSegment",
     "Topic",
     "Track",
+    "TrackFile",
     "TrackBeat",
     "User",
     "Video",

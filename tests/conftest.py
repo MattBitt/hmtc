@@ -26,6 +26,47 @@ config = init_config()
 setup_logging(config)
 
 
+@pytest.fixture(scope="session")
+def video_dict() -> dict:
+    return {
+        "description": "This is only for testing.in the files tab.",
+        "duration": 400,
+        "title": "Another quirky title to stand out.",
+        "unique_content": True,
+        "upload_date": "2021-01-01",
+        "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
+        "youtube_id": "vjhfadsklfhew",
+    }
+
+
+@pytest.fixture(scope="function")
+def text_file(tmp_path):
+    file = tmp_path / "test.txt"
+    file.write_text("This is a test file. blah")
+    yield file
+    file.unlink()
+
+
+@pytest.fixture(scope="function")
+def video_item(seeded_db):
+    channel = ChannelModel(
+        title="Test Channel",
+        youtube_id="1234q2w43asdf",
+        url="https://www.youtube.com/channel/1234",
+    )
+    channel.save()
+    testing_video_dict["_channel"] = channel.my_dict()
+
+    created_video = Video.create(testing_video_dict)
+    yield Video.load(created_video.id)
+    Video.delete_id(created_video.id)
+    Channel.delete_id(channel.id)
+
+
+### starting refactor on 12/18/24
+### fixtures above are the ones i want to keep
+### the ones below need to be refactored or deleted
+
 # this is the actual source of files for tests
 SOURCE_FILES_PATH = config["STORAGE"] / "data_for_tests"
 

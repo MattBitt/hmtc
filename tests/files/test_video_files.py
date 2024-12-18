@@ -8,44 +8,10 @@ from hmtc.models import Channel as ChannelModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFile as VideoFileModel
 
-testing_video_dict = {
-    "description": "This is only for testing.in the files tab.",
-    "duration": 400,
-    "title": "Another quirky title to stand out.",
-    "unique_content": True,
-    "upload_date": "2021-01-01",
-    "url": "https://www.youtube.com/watch?v=1234vzcxvadsf",
-    "youtube_id": "vjhfadsklfhew",
-}
 
-
-@pytest.fixture(scope="function")
-def text_file(tmp_path):
-    file = tmp_path / "test.txt"
-    file.write_text("This is a test file. blah")
-    yield file
-    file.unlink()
-
-
-@pytest.fixture(scope="function")
-def video_item(seeded_db):
-    channel = ChannelModel(
-        title="Test Channel",
-        youtube_id="1234q2w43asdf",
-        url="https://www.youtube.com/channel/1234",
-    )
-    channel.save()
-    testing_video_dict["_channel"] = channel.my_dict()
-
-    created_video = Video.create(testing_video_dict)
-    yield Video.load(created_video.id)
-    Video.delete_id(created_video.id)
-    Channel.delete_id(channel.id)
-
-
-def test_create_video_file(video_item):
+def test_create_video_file(video_item, video_dict):
     assert video_item.id > 0
-    assert video_item.title == testing_video_dict["title"]
+    assert video_item.title == video_dict["title"]
     video_file = VideoFileModel.create(
         name="test.txt", size=1000, filetype="a text", item_id=video_item.id
     )
@@ -54,14 +20,13 @@ def test_create_video_file(video_item):
 
 
 def test_video_add_file(video_item, text_file):
-    example_file = dict(
-        name=text_file.name, size=text_file.stat().st_size, filetype="txt"
-    )
-    Video.add_file(video_item, example_file)
+
+    Video.add_file(video_item, text_file)
     _vid = Video.load(video_item.id)
     assert len(_vid.files) == 1
-    assert _vid.files[0].name == str(example_file["name"])
+    assert _vid.files[0].name == str(text_file.name)
     assert _vid.files[0].size == 25  # based on the text file content above
+    assert _vid.files[0].filetype == "info"
     _vid.files[0].delete_instance()
 
 

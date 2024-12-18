@@ -15,7 +15,8 @@ class Album:
     repo = Repository(model=AlbumModel(), label="Album")
     disc_repo = Repository(model=DiscModel(), label="Disc")
     video_repo = Repository(model=VideoModel(), label="Video")
-    # file_manager = FileManager(model=AlbumFileModel())
+    filetypes = ["poster", "thumbnail", "info"]
+    file_manager = FileManager(model=AlbumFileModel, filetypes=filetypes)
 
     @classmethod
     def create(cls, data) -> AlbumModel:

@@ -10,6 +10,7 @@ from hmtc.domains.channel import Channel
 from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
 
+
 config = init_config()
 db_instance = init_db(db_null, config)
 STORAGE = config["STORAGE"]
@@ -33,7 +34,7 @@ def is_valid_youtube_id(youtube_id: str) -> bool:
 def create_video_from_folder(path: Path) -> None:
     # check for an info file. if there is one, use it to create the video
     # if there isn't one, skip it
-    files = path.glob("*")
+    files = list(path.glob("*"))
     info_file = [x for x in files if x.name.endswith(".info.json")]
     if info_file:
         logger.debug(f"Creating video {path.stem}")
@@ -46,7 +47,11 @@ def create_video_from_folder(path: Path) -> None:
 
         # add the rest of the files to the video
         for file in files:
-            if file != info_file[0]:
+            if (
+                file != info_file[0]
+                and file.is_file()
+                and "Zone.Identifier" not in file.name
+            ):
                 Video.add_file(vid, file)
 
         logger.success(f"Created video {vid.title}")
@@ -117,6 +122,9 @@ def import_existing_video_files_to_db(
 
 
 if __name__ == "__main__":
+    from hmtc.utils.importer.seed_database import recreate_database
+
+    recreate_database()
     import_existing_video_files_to_db(
         STORAGE / "videos", delete_premigration_superchats=True
     )

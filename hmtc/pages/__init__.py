@@ -36,16 +36,20 @@ def get_app_bar_color() -> str:
 
 
 def setup_folders(config):
-    working_folder = Path(config["WORKING"])
-    storage_folder = Path(config["STORAGE"])
-    wfs = ["downloads"]
-    sfs = ["videos", "tracks"]
-    for folder in wfs:
-        path = Path(working_folder) / folder
+    WORKING = Path(config["WORKING"])
+    STORAGE = Path(config["STORAGE"])
+
+    working_folders = ["downloads"]
+
+    storage_folders = ["videos", "tracks"]
+
+    for folder in working_folders:
+        path = WORKING / folder
         path.mkdir(exist_ok=True, parents=True)
         check_folder_exist_and_writable(path)
-    for folder in sfs:
-        path = Path(storage_folder) / folder
+
+    for folder in storage_folders:
+        path = STORAGE / folder
         path.mkdir(exist_ok=True, parents=True)
         check_folder_exist_and_writable(path)
 
@@ -55,6 +59,7 @@ def main(config):
     setup_logging(config)
 
     db_instance = init_db(db_null, config)
+
     if config["general"]["environment"] == "development":
         drop_all_tables(db_instance)
         create_tables(db_instance)

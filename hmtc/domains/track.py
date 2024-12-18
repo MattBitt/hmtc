@@ -11,13 +11,17 @@ from hmtc.models import Disc as DiscModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
+from hmtc.models import TrackFile as TrackFileModel
 from hmtc.repos.base_repo import Repository
+from hmtc.utils.file_manager import FileManager
 
 
 class Track:
     repo = Repository(model=TrackModel(), label="Track")
     section_repo = Repository(model=SectionModel(), label="Section")
     disc_repo = Repository(model=DiscModel(), label="Disc")
+    filetypes = ["poster", "thumbnail", "info"]
+    file_manager = FileManager(model=TrackFileModel, filetypes=filetypes)
 
     @classmethod
     def create(cls, data) -> TrackModel:
