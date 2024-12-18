@@ -20,6 +20,14 @@ testing_video_dict = {
 
 
 @pytest.fixture(scope="function")
+def text_file(tmp_path):
+    file = tmp_path / "test.txt"
+    file.write_text("This is a test file. blah")
+    yield file
+    file.unlink()
+
+
+@pytest.fixture(scope="function")
 def video_item(seeded_db):
     channel = ChannelModel(
         title="Test Channel",
@@ -45,10 +53,17 @@ def test_create_video_file(video_item):
     video_file.delete_instance()
 
 
-def test_video_add_file(video_item):
-    example_file = dict(name=Path("test.txt"), size=1000, filetype="a text")
+def test_video_add_file(video_item, text_file):
+    example_file = dict(
+        name=text_file.name, size=text_file.stat().st_size, filetype="txt"
+    )
     Video.add_file(video_item, example_file)
     _vid = Video.load(video_item.id)
     assert len(_vid.files) == 1
     assert _vid.files[0].name == str(example_file["name"])
+    assert _vid.files[0].size == 25  # based on the text file content above
     _vid.files[0].delete_instance()
+
+
+# start here for testing with tmp_path
+# https://pytest-with-eric.com/pytest-best-practices/pytest-tmp-path/
