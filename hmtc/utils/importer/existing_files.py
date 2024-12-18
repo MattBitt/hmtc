@@ -47,7 +47,7 @@ def create_video_from_folder(path: Path) -> None:
         # add the rest of the files to the video
         for file in files:
             if file != info_file[0]:
-                Video.add_file_to_video(vid, file)
+                Video.add_file(vid, file)
 
         logger.success(f"Created video {vid.title}")
     else:

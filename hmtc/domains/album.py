@@ -1,17 +1,21 @@
+from pathlib import Path
 from typing import List
 
 from loguru import logger
 
 from hmtc.models import Album as AlbumModel
+from hmtc.models import AlbumFile as AlbumFileModel
 from hmtc.models import Disc as DiscModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
+from hmtc.utils.file_manager import FileManager
 
 
 class Album:
     repo = Repository(model=AlbumModel(), label="Album")
     disc_repo = Repository(model=DiscModel(), label="Disc")
     video_repo = Repository(model=VideoModel(), label="Video")
+    # file_manager = FileManager(model=AlbumFileModel())
 
     @classmethod
     def create(cls, data) -> AlbumModel:
@@ -69,3 +73,8 @@ class Album:
         album = cls.load(album_id)
         discs = DiscModel.select().where(DiscModel.album_id == album.id)
         return list(VideoModel.select().where(VideoModel.disc_id.in_(discs)))
+
+    @classmethod
+    def add_file(cls, album: AlbumModel, file_path: Path) -> None:
+        logger.debug(f"Adding file {file_path} to video {album.title}")
+        cls.file_manager.add_file(album, file_path)

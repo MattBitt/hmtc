@@ -12,22 +12,16 @@ from hmtc.models import Section as SectionModel
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import Video as VideoModel
+from hmtc.models import VideoFile as VideoFileModel
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
-
-
-class FileManager:
-    def __init__(self, model):
-        self.model = model
-
-    def add_file(self, file):
-        logger.debug(f"Adding file {file} to 'item' {self.model.title}")
+from hmtc.utils.file_manager import FileManager
 
 
 class Video:
     repo = Repository(model=VideoModel(), label="Video")
     channel_repo = Repository(model=ChannelModel(), label="Channel")
-    file_manager = FileManager(model=VideoModel())
+    file_manager = FileManager(model=VideoFileModel)
 
     @classmethod
     def create(cls, data) -> VideoModel:
@@ -38,7 +32,7 @@ class Video:
             del data["_channel"]
         else:
             # not sure if this is the best way to handle this
-            channel = cls.channel_repo.get(title=data["channel"]["title"])
+            channel = cls.channel_repo.get_by(title=data["channel"]["title"])
         data["channel"] = channel
 
         return cls.repo.create_item(data=data)
@@ -99,6 +93,6 @@ class Video:
         return VideoModel.select().where(VideoModel.youtube_id == youtube_id).exists()
 
     @classmethod
-    def add_file_to_video(cls, video: VideoModel, file_path: str) -> None:
+    def add_file(cls, video: VideoModel, file_path: str) -> None:
         logger.debug(f"Adding file {file_path} to video {video.title}")
-        cls.file_manager.add_file(file_path)
+        cls.file_manager.add_file(video, file_path)

@@ -23,10 +23,6 @@ from peewee import (
     fn,
 )
 
-from hmtc.config import init_config
-from hmtc.utils.general import clean_filename
-from hmtc.utils.youtube_functions import fetch_ids_from
-
 # i think this is here so i can 'export' the database
 db_null = PostgresqlDatabase(None)
 
@@ -311,8 +307,41 @@ class Superchat(BaseModel):
         indexes = ((("frame", "video"), True),)
 
 
+class File(BaseModel):
+    name = CharField(unique=True)
+    size = IntegerField()
+    filetype = CharField()
+
+    def __repr__(self):
+        return f"File({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"File({self.id} - {self.name=})"
+
+
+class VideoFile(File):
+    item = ForeignKeyField(Video, backref="files")
+
+    def __repr__(self):
+        return f"VideoFile({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"VideoFile({self.id} - {self.name=})"
+
+
+class AlbumFile(File):
+    item = ForeignKeyField(Album, backref="files")
+
+    def __repr__(self):
+        return f"AlbumFile({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"AlbumFile({self.id} - {self.name=})"
+
+
 __all__ = [
     "Album",
+    "AlbumFile",
     "Artist",
     "Beat",
     "BeatArtist",
@@ -329,6 +358,7 @@ __all__ = [
     "TrackBeat",
     "User",
     "Video",
+    "VideoFile",
     "YoutubeSeries",
     "YoutubeSeriesVideo",
 ]

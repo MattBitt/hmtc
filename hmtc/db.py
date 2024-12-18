@@ -4,6 +4,7 @@ from hmtc.models import *
 
 TABLES = [
     Album,
+    AlbumFile,
     Artist,
     Beat,
     BeatArtist,
@@ -20,6 +21,7 @@ TABLES = [
     TrackBeat,
     User,
     Video,
+    VideoFile,
     YoutubeSeries,
     YoutubeSeriesVideo,
 ]
