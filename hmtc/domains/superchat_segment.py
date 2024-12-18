@@ -23,7 +23,11 @@ class SuperchatSegment:
             del data["_section"]
         else:
             # not sure if this is the best way to handle this
-            section = cls.section_repo.get(title=data["section"]["title"])
+            section = cls.section_repo.get_by(
+                start=data["section"]["start"],
+                end=data["section"]["end"],
+                video_id=data["section"]["video_id"],
+            )
         data["section"] = section
 
         return cls.repo.create_item(data=data)

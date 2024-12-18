@@ -8,18 +8,16 @@ from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 
 testing_section_dict = {
-    "id": 807,
     "start": 0,
     "end": 100,
     "section_type": "verse",
 }
 
 testing_video_dict = {
-    "id": 8014,
     "title": "Some Test Video Title",
     "description": "Some Test Video Description",
     "url": "https://www.youtube.com/watch?v=123456",
-    "youtube_id": "123456",
+    "youtube_id": "12345678910",
     "duration": 100,
     "upload_date": "2021-01-01",
 }
@@ -107,3 +105,6 @@ def test_update_sections(seeded_db):
     assert SectionModel.get_by_id(_sect).start == 10
     Section.update({"start": orig_start, "id": _sect})
     assert SectionModel.get_by_id(_sect).start == orig_start
+
+    Video.delete_id(video.id)
+    Channel.delete_id(channel.id)

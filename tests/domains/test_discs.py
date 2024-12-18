@@ -5,7 +5,6 @@ from hmtc.models import Disc as DiscModel
 from hmtc.repos.base_repo import Repository
 
 testing_disc_dict = {
-    "id": 101,
     "title": "Some Test Disc Title",
 }
 

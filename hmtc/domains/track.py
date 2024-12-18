@@ -21,10 +21,14 @@ class Track:
 
     @classmethod
     def create(cls, data) -> TrackModel:
-        section = cls.section_repo.get(id=data["section_id"])
+        section = cls.section_repo.get_by(
+            start=data["section"]["start"],
+            end=data["section"]["end"],
+            video_id=data["section"]["video_id"],
+        )
         data["section"] = section
 
-        disc = cls.disc_repo.get(id=data["disc_id"])
+        disc = cls.disc_repo.get_by(id=data["disc"]["id"])
         data["disc"] = disc
 
         return cls.repo.create_item(data=data)

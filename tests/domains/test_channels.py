@@ -6,7 +6,7 @@ testing_channel_dict = {
     "id": 101,
     "title": "Some Test Channel Title",
     "url": "https://www.youtube.com/channel/1234vzcxvadsf",
-    "youtube_id": "1234adfaewr",
+    "youtube_id": "1234adhjgfhjfaewr",
     "auto_update": True,
     "last_update_completed": "2021-01-01 00:00:00",
 }

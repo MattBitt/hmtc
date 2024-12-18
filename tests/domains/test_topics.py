@@ -39,6 +39,8 @@ def test_serialize(seeded_db):
     assert topic["text"] == _topic.text
     assert topic["id"] == _topic.id
 
+    Topic.delete_id(_topic.id)
+
 
 def test_get_all(seeded_db):
     all_topics = Topic.get_all()
@@ -49,7 +51,7 @@ def test_update_topics(seeded_db):
     topic = Topic.create(testing_topic_dict)
     orig_text = topic.text
     assert topic.text == "apple"
-    Topic.update({"text": "A whole nother text", "id": 1})
+    Topic.update({"text": "A whole nother text", "id": topic.id})
     assert TopicModel.get_by_id(topic.id).text == "A whole nother text"
     Topic.update({"text": orig_text, "id": topic.id})
     assert TopicModel.get_by_id(topic.id).text == orig_text
