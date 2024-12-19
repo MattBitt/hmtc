@@ -46,8 +46,13 @@ def create_video_from_folder(path: Path) -> None:
 
         # add the files to the db
         for file in files:
-            if file.is_file() and "Zone.Identifier" not in file.name:
-                Video.add_file(vid, file)
+            if file.name == "album.nfo":
+                file.unlink()
+                continue
+            if not file.is_file() or "Zone.Identifier" in file.name:
+                logger.debug(f"Skipping {file.name}")
+                continue
+            Video.add_file(vid, file)
 
         logger.success(f"Created video {vid.title}")
     else:
