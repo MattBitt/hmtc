@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 from loguru import logger
@@ -16,8 +17,15 @@ class FileManager:
         if filetype not in self.filetypes:
             raise ValueError(f"Invalid filetype {filetype}")
         if not "storage" in str(file):
-            logger.error(f"File {file} is not in the correct directory. Need to Move")
-            _file = file.rename(self.path / file.name)
+            logger.debug(f"Moving file {file} to storage")
+            try:
+                _file = file.rename(self.path / file.name)
+            except OSError as e:
+                logger.error(f"Error moving file {file} to storage: {e}")
+                if e.errno == 18:  # Invalid cross-device link
+                    shutil.move(file, self.path / file.name)
+                else:
+                    raise
         else:
             _file = file
 
