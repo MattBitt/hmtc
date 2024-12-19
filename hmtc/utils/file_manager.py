@@ -24,6 +24,7 @@ class FileManager:
                 logger.error(f"Error moving file {file} to storage: {e}")
                 if e.errno == 18:  # Invalid cross-device link
                     shutil.move(file, self.path / file.name)
+                    _file = self.path / file.name
                 else:
                     raise
         else:
