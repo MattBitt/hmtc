@@ -78,7 +78,9 @@ export default {
       { text: "Settings", icon: "mdi-settings", url: "/utils/settings" },
     ],
 
-    other_items: [{ text: "Sandbox", icon: "mdi-shovel", url: "/sandbox" }],
+    other_items: [
+      { text: "Sandbox", icon: "mdi-shovel", url: "/sandbox/sandbox" },
+    ],
     version: "-0.0.0",
   }),
 };

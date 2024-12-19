@@ -18,7 +18,7 @@ class Disc:
         # _album is a dict that contains the album data, but hasn't been
         # put in the db yet. Fields still need to be evalutated
         if "_album" in data.keys():
-            album = cls.album_repo.load_or_create_item(data=data["_album"])
+            album, created = cls.album_repo.load_or_create_item(data=data["_album"])
             del data["_album"]
         else:
             # not sure if this is the best way to handle this

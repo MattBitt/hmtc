@@ -30,12 +30,6 @@ STORAGE = config["STORAGE"]
 
 
 def seed_database_from_json(db_instance):
-    logger.debug("Checking if database is empty")
-    num_channels = Channel.count()
-    if num_channels > 2:
-        logger.debug("Database is not empty, skipping seeding")
-        return
-
     logger.debug("Seeding database from seed_data.json")
     with open("hmtc/utils/importer/seed_data.json", "r") as f:
         data = json.load(f)
@@ -54,6 +48,7 @@ def seed_database_from_json(db_instance):
 
     for artist in data["Artist"]:
         Artist.create(artist)
+
     import_existing_video_files_to_db(
         STORAGE / "videos", delete_premigration_superchats=True
     )

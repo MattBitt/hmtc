@@ -13,30 +13,6 @@ def clean_filename(dirty):
     return re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", dirty)
 
 
-def clear_screen():
-    os.system("cls" if os.name == "nt" else "clear")
-
-
-def parse_video_filename(file):
-    # this is for finding existing information
-    # about files already downloaded.
-    # dont want to redownload 200+ GB, again.
-    pattern = r"(\d{4}-\d{2}-\d{2})_([a-z-]+)_([a-z0-9_.-]+)_([a-zA-Z0-9_.-]{11})_(\d{3,4}p-[a-z0-9-]+)"
-
-    match = re.match(pattern, file.stem)
-    video_info = {}
-    if match:
-        video_info["upload_date"] = match.group(1)
-        video_info["name"] = match.group(2)
-        video_info["title"] = match.group(3)
-        video_info["youtube_id"] = match.group(4)
-        video_info["quality"] = match.group(5)
-        return video_info
-    else:
-        logger.debug(f"No match found for file: {file}")
-        return None
-
-
 def csv_to_dict(filename):
     info = []
     with open(filename, "r", encoding="utf-8-sig") as f:
@@ -90,12 +66,6 @@ def my_move_file(source, target):
     shutil.copy(s, t)
     s.unlink()
     return t
-
-
-def save_file_to_disk(source, target):
-    with open(target, "wb") as f:
-        f.write(source)
-    return target
 
 
 def get_youtube_id(filename):

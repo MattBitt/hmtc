@@ -3,6 +3,7 @@ from typing import List
 
 from loguru import logger
 
+from hmtc.config import init_config
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
@@ -18,19 +19,24 @@ from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
 
+config = init_config()
+STORAGE = Path(config["STORAGE"]) / "videos"
+
 
 class Video:
     repo = Repository(model=VideoModel(), label="Video")
     channel_repo = Repository(model=ChannelModel(), label="Channel")
     filetypes = ["poster", "thumbnail", "video", "audio", "info", "subtitles", "lyrics"]
-    file_manager = FileManager(model=VideoFileModel, filetypes=filetypes)
+    file_manager = FileManager(model=VideoFileModel, filetypes=filetypes, path=STORAGE)
+
+    def __init__(self, video_id):
+        self.video_id = video_id
+        self.instance = self.load(video_id)
 
     @classmethod
     def create(cls, data) -> VideoModel:
         if "_channel" in data.keys():
-            channel = cls.channel_repo.load_or_create_item(data["_channel"])
-            if channel is None:
-                raise ValueError(f"channel {data['_channel']} not found")
+            channel = Channel.create(data["_channel"])
             del data["_channel"]
         else:
             # not sure if this is the best way to handle this
@@ -38,6 +44,10 @@ class Video:
         data["channel"] = channel
 
         return cls.repo.create_item(data=data)
+
+    @classmethod
+    def get_by(cls, **kwargs) -> "Video":
+        return cls(cls.repo.get_by(**kwargs))
 
     @classmethod
     def load(cls, item_id) -> VideoModel:
@@ -96,5 +106,9 @@ class Video:
 
     @classmethod
     def add_file(cls, video: VideoModel, file: Path) -> None:
-        logger.debug(f"Adding file {file} to video {video.title}")
+        cls.file_manager.path = cls.file_manager.path / video.youtube_id
         cls.file_manager.add_file(video, file)
+
+    @property
+    def poster(self) -> Path:
+        return self.file_manager.get_file(self.instance.id, "poster").name

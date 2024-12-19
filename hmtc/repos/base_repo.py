@@ -23,7 +23,7 @@ class Repository:
     @myhandler
     def load_or_create_item(self, data) -> BaseModel:
         item, created = self.model.get_or_create(**data)
-        return item
+        return item, created
 
     @myhandler
     def update_item(self, data) -> BaseModel:

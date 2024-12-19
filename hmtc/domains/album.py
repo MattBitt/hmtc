@@ -3,6 +3,7 @@ from typing import List
 
 from loguru import logger
 
+from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import AlbumFile as AlbumFileModel
 from hmtc.models import Disc as DiscModel
@@ -10,13 +11,16 @@ from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
 
+config = init_config()
+STORAGE = Path(config["STORAGE"]) / "tracks"
+
 
 class Album:
     repo = Repository(model=AlbumModel(), label="Album")
     disc_repo = Repository(model=DiscModel(), label="Disc")
     video_repo = Repository(model=VideoModel(), label="Video")
     filetypes = ["poster", "thumbnail", "info"]
-    file_manager = FileManager(model=AlbumFileModel, filetypes=filetypes)
+    file_manager = FileManager(model=AlbumFileModel, filetypes=filetypes, path=STORAGE)
 
     @classmethod
     def create(cls, data) -> AlbumModel:
@@ -77,5 +81,4 @@ class Album:
 
     @classmethod
     def add_file(cls, album: AlbumModel, file_path: Path) -> None:
-        logger.debug(f"Adding file {file_path} to video {album.title}")
         cls.file_manager.add_file(album, file_path)

@@ -349,6 +349,16 @@ class TrackFile(File):
         return f"TrackFile({self.id} - {self.name=})"
 
 
+class ChannelFile(File):
+    item = ForeignKeyField(Channel, backref="files")
+
+    def __repr__(self):
+        return f"ChannelFile({self.id} - {self.name=})"
+
+    def __str__(self):
+        return f"ChannelFile({self.id} - {self.name=})"
+
+
 __all__ = [
     "Album",
     "AlbumFile",
@@ -356,6 +366,7 @@ __all__ = [
     "Beat",
     "BeatArtist",
     "Channel",
+    "ChannelFile",
     "Disc",
     "DiscVideo",
     "Section",

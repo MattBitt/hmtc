@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import List
 
 from loguru import logger
 
+from hmtc.config import init_config
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.domains.section import Section
@@ -15,13 +17,16 @@ from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
 
+config = init_config()
+STORAGE = Path(config["STORAGE"]) / "tracks"
+
 
 class Track:
     repo = Repository(model=TrackModel(), label="Track")
     section_repo = Repository(model=SectionModel(), label="Section")
     disc_repo = Repository(model=DiscModel(), label="Disc")
     filetypes = ["poster", "thumbnail", "info"]
-    file_manager = FileManager(model=TrackFileModel, filetypes=filetypes)
+    file_manager = FileManager(model=TrackFileModel, filetypes=filetypes, path=STORAGE)
 
     @classmethod
     def create(cls, data) -> TrackModel:

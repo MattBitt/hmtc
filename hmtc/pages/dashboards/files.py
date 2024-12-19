@@ -4,30 +4,57 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains import *
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
+from hmtc.utils.youtube_functions import download_channel_files
 
 config = init_config()
 STORAGE = config["STORAGE"]
 
 
 @solara.component_vue("./FileCard.vue", vuetify=True)
-def FileCard(title: str = "File Card", icon: str = "mdi-account", value: str = "123"):
+def FileCard(
+    title: str = "File Card",
+    icon: str = "mdi-account",
+    value: str = "123",
+    button_caption="",
+    event_button_click=None,
+):
     pass
 
 
-def import_files():
+def import_video_files(*args, **kwargs):
     import_existing_video_files_to_db(
         STORAGE / "videos", delete_premigration_superchats=True
     )
 
 
+def download_channel_files_from_youtube(*args, **kwargs):
+    for channel in Channel.repo.get_all():
+        _channel = Channel(channel)
+        files = download_channel_files(channel.youtube_id, channel.url)
+
+        for file in files:
+            _channel.add_file(file)
+
+
 @solara.component
 def FilesInDatabaseDashboard():
-    with solara.Columns([4, 4, 4]):
+    solara.Markdown(f"## Files in Database")
+    with solara.Columns([6, 6]):
         FileCard(
-            title="Videos", icon="mdi-view-list", value=Video.file_manager.count_all()
+            title="Videos",
+            icon="mdi-view-list",
+            value=Video.file_manager.count_all(),
+            button_caption="Import Video Files",
+            event_button_click=import_video_files,
         )
-        solara.Button(f"Import Videos", on_click=import_files)
         FileCard(title="Albums", icon="mdi-shape", value=Album.file_manager.count_all())
+    with solara.Columns([6, 6]):
+        FileCard(
+            title="Channels",
+            icon="mdi-youtube",
+            value=Channel.file_manager.count_all(),
+            event_button_click=download_channel_files_from_youtube,
+        )
         FileCard(
             title="Tracks", icon="mdi-youtube", value=Track.file_manager.count_all()
         )
@@ -35,6 +62,7 @@ def FilesInDatabaseDashboard():
 
 @solara.component
 def FolderFilesDashboard():
+    solara.Markdown(f"## Files in the Storage Folder")
     num_files = solara.use_reactive(0)
 
     def count_files():
@@ -43,7 +71,7 @@ def FolderFilesDashboard():
 
     with solara.Columns([4, 4, 4]):
 
-        FileCard(title="Number of Files", icon="mdi-music", value=num_files.value)
+        FileCard(title="# of Files", icon="mdi-music", value=num_files.value)
         solara.Button("Count Files", on_click=count_files)
         FileCard(title="Artists", icon="mdi-account", value=Artist.repo.count())
         FileCard(title="Users", icon="mdi-account", value=User.repo.count())

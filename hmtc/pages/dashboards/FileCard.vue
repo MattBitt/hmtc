@@ -5,10 +5,14 @@
         <v-icon size="30" color="white">{{ icon }}</v-icon>
         <h3>{{ title }}</h3>
       </v-row>
-      <v-row>
+      <v-row justify="center">
         <v-col cols="9">
           <v-row justify="center">
-            <h1>{{ value }}</h1>
+            <h1>{{ value }}</h1> </v-row
+          ><v-row justify="center">
+            <v-btn color="primary" @click="button_click()">{{
+              this.button_caption
+            }}</v-btn>
           </v-row>
         </v-col>
       </v-row>

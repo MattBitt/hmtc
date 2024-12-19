@@ -70,7 +70,7 @@ def Page():
         can_refresh = False
     else:
         empty_db = False
-        last_updated = Channel().last_update_completed()
+        last_updated = Channel.last_update_completed()
 
         if last_updated is None:
             can_refresh = True

@@ -6,6 +6,11 @@ from pathlib import Path
 import yt_dlp
 from loguru import logger
 
+from hmtc.config import init_config
+
+config = init_config()
+WORKING = Path(config["WORKING"]) / "downloads"
+
 
 def is_disk_full(folder):
     return False
@@ -234,6 +239,32 @@ def parse_youtube_info_file(file: Path):
     return video
 
 
+def download_channel_files(channel_id, url) -> Path:
+    output_filename = WORKING / "%(channel_id)s.%(ext)s"
+    ret = subprocess.call(
+        [
+            "yt-dlp",
+            "--playlist-items",
+            "0",
+            "--write-info-json",
+            "--write-thumbnail",
+            url,
+            "-o",
+            output_filename,
+        ]
+    )
+    if ret:
+        raise Exception(f"Error downloading channel files for {channel_id}")
+    else:
+        logger.debug(f"Channel files downloaded for {channel_id}")
+        new_files = [Path(f) for f in WORKING.glob(f"*{channel_id}*")]
+        return new_files
+
+
 if __name__ == "__main__":
-    data = parse_youtube_info_file(Path("hmtc/utils/yt.info.json"))
-    logger.debug(data)
+    # data = parse_youtube_info_file(Path("hmtc/utils/yt.info.json"))
+    # logger.debug(data)
+    files = download_channel_files(
+        "UC59ZRYCHev_IqjUhremZ8Tg", "https://www.youtube.com/@HarryMack"
+    )
+    print(files)

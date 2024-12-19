@@ -8,7 +8,7 @@ from hmtc.repos.base_repo import Repository
 
 
 def test_empty_video():
-    c = Video()
+    c = Video
     assert type(c.repo) == Repository
 
 

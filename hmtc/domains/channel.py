@@ -1,19 +1,57 @@
+from pathlib import Path
 from typing import List
 
 from loguru import logger
 
+from hmtc.config import init_config
 from hmtc.models import Channel as ChannelModel
+from hmtc.models import ChannelFile as ChannelFileModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
+from hmtc.utils.file_manager import FileManager
+from hmtc.utils.youtube_functions import download_channel_files
+
+config = init_config()
+STORAGE = Path(config["STORAGE"]) / "channels"
 
 
 class Channel:
     model = ChannelModel()
     repo = Repository(model=model, label="Channel")
+    filetypes = ["poster", "thumbnail", "info"]
+    file_manager = FileManager(
+        model=ChannelFileModel, filetypes=filetypes, path=STORAGE
+    )
+
+    def __init__(self, channel_id):
+        self.channel_id = channel_id
+        self.instance = self.load(channel_id)
 
     @classmethod
     def create(cls, data) -> ChannelModel:
-        return cls.repo.create_item(data=data)
+        _channel = (
+            ChannelModel.select()
+            .where(ChannelModel.youtube_id == data["youtube_id"])
+            .get_or_none()
+        )
+        if _channel is not None:
+            return _channel
+
+        try:
+            channel = cls.repo.create_item(data=data)
+        except Exception as e:
+            logger.error(f"Error creating channel {data['title']}: {e}")
+
+        return channel
+
+    def download_files(self):
+        files = download_channel_files(self.instance.youtube_id, self.instance.url)
+        for file in files:
+            self.add_file(self.instance, file)
+
+    @classmethod
+    def get_by(cls, **kwargs) -> "Channel":
+        return cls(cls.repo.get_by(**kwargs))
 
     @classmethod
     def load(cls, item_id) -> ChannelModel:
@@ -69,3 +107,10 @@ class Channel:
     @classmethod
     def count(cls):
         return ChannelModel.select().count()
+
+    def add_file(self, file: Path) -> None:
+        self.file_manager.add_file(self.instance, file)
+
+    @property
+    def poster(self) -> Path:
+        return self.file_manager.get_file(self.instance.id, "poster").name

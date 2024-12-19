@@ -4,19 +4,25 @@ from loguru import logger
 
 
 class FileManager:
-    def __init__(self, model, filetypes):
+    def __init__(self, model, filetypes, path):
         self.model = model
         self.filetypes = filetypes
+        self.path = path
 
     def add_file(self, item, file: Path):
-        logger.debug(f"Adding file {file} to 'item' {item}")
-        file_dict = dict()
+        # logger.debug(f"Adding file {file} to 'item' {item}")
+
         filetype = self.get_filetype(file.name)
         if filetype not in self.filetypes:
             raise ValueError(f"Invalid filetype {filetype}")
-        file_dict["name"] = file.name
-        file_dict["size"] = file.stat().st_size
-        file_dict["filetype"] = filetype
+        if not "storage" in str(file):
+            logger.error(f"File {file} is not in the correct directory. Need to Move")
+            _file = file.rename(self.path / file.name)
+        else:
+            _file = file
+
+        file_dict = dict(name=str(_file), size=_file.stat().st_size, filetype=filetype)
+
         self.model.create(**file_dict, item_id=item.id)
         # this is where i would create the file in the db
         # and actually put the file where it goes
@@ -50,3 +56,10 @@ class FileManager:
 
     def count_all(self):
         return self.model.select().count()
+
+    def get_file(self, item_id, filetype):
+        return (
+            self.model.select()
+            .where(self.model.item_id == item_id, self.model.filetype == filetype)
+            .get()
+        )

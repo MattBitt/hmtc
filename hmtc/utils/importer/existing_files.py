@@ -30,6 +30,24 @@ def is_valid_youtube_id(youtube_id: str) -> bool:
     return True
 
 
+def check_for_sections(description: str) -> None:
+
+    logger.debug("Checking for sections")
+    lines = description.split("\n")
+    section_line = 0
+    for index, line in enumerate(lines):
+        if line.lower().startswith("instrumentals"):
+            logger.debug(f"Found Instrumental at {index}")
+            section_line = index + 1
+            break
+    if section_line > 0:
+        for line in lines[section_line:]:
+            if line == "":
+                break
+            logger.warning(f"Found a new section {line}")
+            # add the line to the instrumental section
+
+
 def create_video_from_folder(path: Path) -> None:
     # check for an info file. if there is one, use it to create the video
     # if there isn't one, skip it
@@ -53,8 +71,13 @@ def create_video_from_folder(path: Path) -> None:
                 logger.debug(f"Skipping {file.name}")
                 continue
             Video.add_file(vid, file)
-
         logger.success(f"Created video {vid.title}")
+        # if "omegle" in vid.title.lower():
+        #     # FUTURE ...
+        #     sections = check_for_sections(vid.description) or []
+        #     for section in sections:
+        #         # Section.create(vid, section)
+        #         pass
     else:
         logger.debug(f"Skipping video {path.stem}")
 
@@ -100,18 +123,17 @@ def import_existing_video_files_to_db(
                     if update_existing_records:
                         logger.debug(f"Updating existing youtube id {item.stem}")
                         update_existing_video_from_existing_files(item)
+
                     if replace_files:
                         logger.debug(f"Replacing existing youtube id {item.stem}")
                         replace_files_for_existing_video(item)
                     else:
-                        logger.debug(f"Skipping existing youtube id {item.stem}")
+                        logger.error(f"Skipping existing youtube id {item.stem}")
                 else:
                     # this is what will be used to get the database up and running
                     if delete_premigration_superchats:
                         delete_superchats_if_exist(item)
 
-                    files = get_files_in_folder(item)
-                    logger.debug(f"Found {len(files)} files for {item.stem}")
                     create_video_from_folder(item)
                     circuit_breaker += 1
 
@@ -122,8 +144,6 @@ def import_existing_video_files_to_db(
                 f"Shouldn't be any files in the 'root' folder. Skipping {item}"
             )
     logger.success("Finished importing files to the database.")
-    # logger.debug(f"Found {found} new files.")
-    # logger.debug(f"There were {unfound} files found with no associated video")
 
 
 if __name__ == "__main__":
