@@ -22,7 +22,7 @@ from hmtc.utils.file_manager import FileManager
 class Video:
     repo = Repository(model=VideoModel(), label="Video")
     channel_repo = Repository(model=ChannelModel(), label="Channel")
-    filetypes = ["poster", "thumbnail", "video", "audio", "info", "subtitles"]
+    filetypes = ["poster", "thumbnail", "video", "audio", "info", "subtitles", "lyrics"]
     file_manager = FileManager(model=VideoFileModel, filetypes=filetypes)
 
     @classmethod
