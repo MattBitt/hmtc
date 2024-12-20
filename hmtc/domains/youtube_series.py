@@ -22,7 +22,7 @@ class YoutubeSeries:
             del data["_series"]
         else:
             # not sure if this is the best way to handle this
-            series = cls.series_repo.get(title=data["series"]["title"])
+            series = cls.series_repo.get_by(title=data["series"]["title"])
         data["series"] = series
         return cls.repo.create_item(data=data)
 
@@ -36,7 +36,7 @@ class YoutubeSeries:
 
     @classmethod
     def get_all(cls) -> List[YoutubeSeriesModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:

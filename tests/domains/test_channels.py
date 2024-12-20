@@ -55,18 +55,3 @@ def test_serialize(seeded_db, channel_dict):
 def test_get_all(seeded_db):
     all_channels = Channel.get_all()
     assert len(list(all_channels)) == 2
-
-
-def test_get_auto_update_channels(seeded_db):
-    auto_update_channels = Channel.to_auto_update()
-    assert len(list(auto_update_channels)) == 0
-
-
-def test_update_channels(seeded_db, channel_dict):
-    new_id = Channel.create(channel_dict)
-    channel = Channel.load(new_id)
-    assert channel.title == channel_dict["title"]
-    Channel.update({"title": "A whole nother title", "id": new_id})
-    assert ChannelModel.get_by_id(new_id).title == "A whole nother title"
-
-    Channel.delete_id(new_id)

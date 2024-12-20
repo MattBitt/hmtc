@@ -28,7 +28,7 @@ class Topic:
 
     @classmethod
     def get_all(cls) -> List[TopicModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:

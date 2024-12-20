@@ -25,7 +25,7 @@ class User:
 
     @classmethod
     def get_all(cls) -> List[UserModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:

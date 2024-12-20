@@ -36,7 +36,7 @@ class Album:
 
     @classmethod
     def get_all(cls) -> List[AlbumModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:
@@ -65,9 +65,9 @@ class Album:
     @classmethod
     def add_video(cls, album_id, video_id, disc_id=None) -> None:
         album = cls.load(album_id)
-        video = cls.video_repo.get(id=video_id)
+        video = cls.video_repo.get_by(id=video_id)
         if disc_id is not None:
-            disc = cls.disc_repo.get(id=disc_id)
+            disc = cls.disc_repo.get_by(id=disc_id)
         else:
             disc = DiscModel.create(title="Disc 1", album=album)
         video.disc = disc

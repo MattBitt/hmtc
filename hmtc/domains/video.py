@@ -35,15 +35,13 @@ class Video:
 
     @classmethod
     def create(cls, data) -> VideoModel:
-        if "_channel" in data.keys():
-            channel = Channel.create(data["_channel"])
-            del data["_channel"]
-        else:
-            # not sure if this is the best way to handle this
-            channel = cls.channel_repo.get_by(title=data["channel"]["title"])
-        data["channel"] = channel
+        channel = cls.channel_repo.get_by(title=data["channel"]["title"])
+        if channel is None:
+            channel = Channel.create(data["channel"])
 
-        return cls.repo.create_item(data=data)
+        data["channel"] = channel.serialize()
+        new_video = cls.repo.create_item(data=data)
+        return new_video
 
     @classmethod
     def get_by(cls, **kwargs) -> "Video":
@@ -59,7 +57,7 @@ class Video:
 
     @classmethod
     def get_all(cls) -> List[VideoModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:

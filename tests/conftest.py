@@ -38,14 +38,13 @@ def db():
     drop_all_tables(db_instance)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True, scope="session")
 def empty_db(db):
     return db
 
 
 @pytest.fixture(scope="session")
 def seeded_db(db):
-
     seed_database_from_json(db)
     return db
 
@@ -141,14 +140,30 @@ def section_dict() -> dict:
 
 
 @pytest.fixture(scope="function")
-def channel_dict() -> dict:
-    return {
-        "title": "Marmalade Channel",
-        "url": "https://www.youtube.com/channel/1234vzcxvadsf",
-        "youtube_id": "hkjfaesdl",
-        "auto_update": True,
-        "last_update_completed": "2021-01-01 00:00:00",
-    }
+def channel_dicts() -> list:
+    return [
+        {
+            "title": "Marmalade Channel",
+            "url": "https://www.youtube.com/channel/1234vz7654363cxvadsf",
+            "youtube_id": "hkjfaesdl",
+            "auto_update": True,
+            "last_update_completed": "2021-01-01 00:00:00",
+        },
+        {
+            "title": "Peanut Butter Channel",
+            "url": "https://www.youtube.com/channel/12sgbbvfsdgfd34vzcxvadsf",
+            "youtube_id": "vcxzrtfd",
+            "auto_update": True,
+            "last_update_completed": "2021-01-01 00:00:00",
+        },
+        {
+            "title": "Jelly Channel",
+            "url": "https://www.youtube.com/channel/1234fdsag546xvadsf",
+            "youtube_id": "trrewtghf",
+            "auto_update": True,
+            "last_update_completed": "2021-01-01 00:00:00",
+        },
+    ]
 
 
 @pytest.fixture(scope="function")

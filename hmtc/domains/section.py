@@ -28,7 +28,7 @@ class Section:
             del data["_video"]
         else:
             # not sure if this is the best way to handle this
-            video = cls.video_repo.get(title=data["video"]["title"])
+            video = cls.video_repo.get_by(title=data["video"]["title"])
         data["video"] = video
         return cls.repo.create_item(data=data)
 
@@ -42,7 +42,7 @@ class Section:
 
     @classmethod
     def get_all(cls) -> List[SectionModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:

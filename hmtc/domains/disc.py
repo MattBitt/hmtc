@@ -22,7 +22,7 @@ class Disc:
             del data["_album"]
         else:
             # not sure if this is the best way to handle this
-            album = cls.album_repo.get(title=data["album"]["title"])
+            album = cls.album_repo.get_by(title=data["album"]["title"])
         data["album"] = album
 
         return cls.repo.create_item(data=data)
@@ -37,7 +37,7 @@ class Disc:
 
     @classmethod
     def get_all(cls) -> List[DiscModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:

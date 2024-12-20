@@ -16,7 +16,7 @@ class Repository:
     def load_item(self, item_id: int) -> BaseModel:
         return self.model.get_by_id(item_id)
 
-    @myhandler
+    # @myhandler
     def create_item(self, data) -> BaseModel:
         return self.model.create(**data)
 
@@ -37,24 +37,20 @@ class Repository:
         return item
 
     @myhandler
-    def get_all(self):
-        for item in self.model.select():
-            yield item
-
-    @myhandler
     def delete_by_id(self, item_id: int) -> None:
         logger.debug(f"Deleting {self.label}: {item_id}")
         self.model.delete_by_id(item_id)
         logger.success(f"Deleted {self.label} {item_id} successfully")
 
     @myhandler
-    def get(self, **kwargs):
-        return self.model.get(**kwargs)
-
-    @myhandler
     def count(self):
         return self.model.select().count()
 
     @myhandler
-    def get_by(self, **kwargs):
-        return self.model.get(**kwargs)
+    def get_by(self, **kwargs) -> BaseModel | None:
+        return self.model.get_or_none(**kwargs)
+
+    @myhandler
+    def all(self):
+        for item in self.model.select():
+            yield item

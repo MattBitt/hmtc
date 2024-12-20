@@ -234,7 +234,7 @@ def parse_youtube_info_file(file: Path):
         "description": data["description"],
         "duration": data["duration"],
         "upload_date": data["upload_date"],
-        "_channel": channel,
+        "channel": channel,
     }
     return video
 

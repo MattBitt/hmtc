@@ -52,7 +52,7 @@ class Track:
 
     @classmethod
     def get_all(cls) -> List[TrackModel]:
-        return list(cls.repo.get_all())
+        return list(cls.repo.all())
 
     @classmethod
     def serialize(cls, item_id) -> dict:
