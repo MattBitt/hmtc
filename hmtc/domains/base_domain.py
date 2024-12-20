@@ -1,6 +1,8 @@
-from typing import List, Protocol
+from abc import ABC, abstractmethod
+from typing import List
 from pathlib import Path
 from peewee import ModelSelect
+from loguru import logger
 from hmtc.utils.file_manager import FileManager
 from hmtc.repos.base_repo import Repository
 from hmtc.config import init_config
@@ -9,29 +11,42 @@ config = init_config()
 STORAGE = Path(config["STORAGE"])
 
 
-class Domain(Protocol):
-    def __init__(
-        self,
-        model: type,
-        repo: Repository,
-        filetypes: List[str],
-        file_manager: FileManager,
-        instance: type,
-    ):
+class Domain(ABC):
+
+    def __init__(self, model, label, filetypes, item_id=None):
         self.model = model
-        self.repo = repo
-        self.filetypes = filetypes
-        self.file_manager = file_manager
-        self.instance = instance
+        self.repo = Repository(model, label)
+        self.filetypes = ["poster", "thumbnail", "info"]
+        self.file_manager = FileManager(model=model, filetypes=filetypes, path=STORAGE)
+        if item_id:
+            self.instance = self.repo.load_item(item_id=item_id)
+        else:
+            logger.debug(f"Creating new {label} instance")
+            self.instance = model()
 
-    def create(self, data) -> "Domain": ...
+    @abstractmethod
+    def create(data) -> "Domain":
+        pass
 
-    def get_by(self, **kwargs) -> ModelSelect | None: ...
+    @abstractmethod
+    def update(self) -> "Domain":
+        pass
 
-    def download_files(self) -> List[Path] | None: ...
+    @abstractmethod
+    def delete_me(self) -> None:
+        pass
 
-    def delete_me(self) -> None: ...
+    @abstractmethod
+    def get_by(self, **kwargs) -> ModelSelect | None:
+        pass
 
-    def update(self, data) -> "Domain": ...
+    @abstractmethod
+    def download_files(self) -> List[Path] | None:
+        pass
 
-    def all(self) -> List[ModelSelect]: ...
+    @abstractmethod
+    def all(self) -> List[ModelSelect]:
+        pass
+
+    def serialize(self) -> dict:
+        return self.instance.my_dict()
