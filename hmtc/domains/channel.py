@@ -10,31 +10,44 @@ from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
 from hmtc.utils.youtube_functions import download_channel_files
-from hmtc.domains.base_domain import Domain
+
 from hmtc.domains import *
 
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "channels"
 
 
-class Channel(Domain):
-    def __init__(self, item_id=None) -> "Channel":
-        super().__init__(
-            model=ChannelModel,
-            label="Channels",
-            filetypes=["poster", "thumbnail", "info"],
-            item_id=item_id,
-        )
+class Channel:
+    model = ChannelModel
+    repo = Repository(model, "Channels")
+    instance = None
+    filetypes = ["poster", "thumbnail", "info"]
+    file_manager = FileManager(model=model, filetypes=filetypes, path=STORAGE)
 
-    @staticmethod
-    def create(data) -> "Channel":
-        repo = Repository(ChannelModel, "Channels")
-        try:
-            channel = repo.create_item(data=data)
-        except Exception as e:
-            logger.error(f"Error creating channel {data['title']}: {e}")
-            raise e
-        return Channel(channel.id)
+    def __init__(self, item_id=None):
+        if item_id:
+            self.instance = self.repo.load_item(item_id=item_id)
+        else:
+            logger.debug("Creating new Channel instance")
+            self.instance = ChannelModel()
+
+    @classmethod
+    def create(cls, data) -> "Channel":
+        channel = cls.repo.create_item(data=data)
+        return Channel.get_by(id=channel.id)
+
+    @classmethod
+    def get_by(cls, **kwargs) -> "Channel":
+        return Channel(cls.repo.get_by(**kwargs).id)
+
+    @classmethod
+    def select_where(cls, **kwargs) -> ModelSelect:
+        query = cls.model.select()
+        for key, value in kwargs.items():
+            if key not in cls.model._meta.fields:
+                raise ValueError(f"Field {key} not found in {cls.model.__name__}")
+            query = query.where(getattr(cls.model, key) == value)
+        return query
 
     def update(self, data) -> "Channel":
         new_dict = {"id": self.instance.id, **data}
@@ -46,6 +59,9 @@ class Channel(Domain):
         for vid in vids:
             Video.delete_id(vid.id)
         self.repo.delete_by_id(item_id=self.instance.id)
+
+    def serialize(self) -> dict:
+        return self.instance.my_dict()
 
     @property
     def poster(self) -> Path:
@@ -63,12 +79,3 @@ class Channel(Domain):
     @staticmethod
     def all() -> ModelSelect:
         return ChannelModel.select()
-
-    @staticmethod
-    def get_by(**kwargs) -> "Channel":
-        repo = Repository(ChannelModel, "Channels")
-        return Channel(repo.get_by(**kwargs).id)
-
-    @staticmethod
-    def select_where(**kwargs) -> ModelSelect:
-        return ChannelModel.select().where(**kwargs)

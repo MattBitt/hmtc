@@ -16,7 +16,7 @@ class Repository:
     def load_item(self, item_id: int) -> BaseModel:
         return self.model.get_by_id(item_id)
 
-    # @myhandler
+    @myhandler
     def create_item(self, data) -> BaseModel:
         return self.model.create(**data)
 
