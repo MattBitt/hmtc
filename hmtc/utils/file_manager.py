@@ -21,7 +21,7 @@ class FileManager:
             try:
                 _file = file.rename(self.path / file.name)
             except OSError as e:
-                logger.error(f"Error moving file {file} to storage: {e}")
+                logger.debug(f"Error moving file {file} to storage: {e}")
                 if e.errno == 18:  # Invalid cross-device link
                     shutil.move(file, self.path / file.name)
                     _file = self.path / file.name
@@ -33,8 +33,6 @@ class FileManager:
         file_dict = dict(name=str(_file), size=_file.stat().st_size, filetype=filetype)
 
         self.model.create(**file_dict, item_id=item.id)
-        # this is where i would create the file in the db
-        # and actually put the file where it goes
 
     def get_filetype(self, file):
         file_string = str(file)

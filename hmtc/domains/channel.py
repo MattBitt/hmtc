@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List
-
+from peewee import ModelSelect
 from loguru import logger
 
 from hmtc.config import init_config
@@ -10,59 +10,49 @@ from hmtc.models import Video as VideoModel
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
 from hmtc.utils.youtube_functions import download_channel_files
+from hmtc.domains.domain import Domain
+from hmtc.domains import *
 
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "channels"
 
 
-class Channel:
-    model = ChannelModel()
-    repo = Repository(model=model, label="Channel")
-    filetypes = ["poster", "thumbnail", "info"]
-    file_manager = FileManager(
-        model=ChannelFileModel, filetypes=filetypes, path=STORAGE
-    )
-
-    def __init__(self, channel_id):
-        self.channel_id = channel_id
-        self.instance = self.load(channel_id)
-
-    @classmethod
-    def create(cls, data) -> ChannelModel:
-        _channel = (
-            ChannelModel.select()
-            .where(ChannelModel.youtube_id == data["youtube_id"])
-            .get_or_none()
+class Channel(Domain):
+    def __init__(self, item_id=None) -> "Channel":
+        super().__init__(
+            model=ChannelModel,
+            label="Channels",
+            filetypes=["poster", "thumbnail", "info"],
+            item_id=item_id,
         )
-        if _channel is not None:
-            return _channel
-
-        try:
-            channel = cls.repo.create_item(data=data)
-        except Exception as e:
-            logger.error(f"Error creating channel {data['title']}: {e}")
-
-        return channel
 
     def download_files(self):
         files = download_channel_files(self.instance.youtube_id, self.instance.url)
         for file in files:
-            self.add_file(self.instance, file)
+            self.file_manager.add_file(self.instance, file)
+
+    @classmethod
+    def create(self, data) -> "Channel":
+        try:
+            channel = self.repo.create_item(data=data)
+        except Exception as e:
+            logger.error(f"Error creating channel {data['title']}: {e}")
+
+        return Channel(channel.id)
+
+    def delete_me(self):
+        self.delete_id(self.instance.id)
 
     @classmethod
     def get_by(cls, **kwargs) -> "Channel":
         return cls(cls.repo.get_by(**kwargs))
 
     @classmethod
-    def load(cls, item_id) -> ChannelModel:
-        return cls.repo.load_item(item_id=item_id)
-
-    @classmethod
     def update(cls, data) -> ChannelModel:
         return cls.repo.update_item(data=data)
 
     @classmethod
-    def get_all(cls) -> List[ChannelModel]:
+    def get_all(cls) -> List[ModelSelect]:
         return list(cls.repo.get_all())
 
     @classmethod
@@ -72,10 +62,6 @@ class Channel:
 
     @classmethod
     def delete_id(cls, item_id) -> None:
-        # importing here to avoid circular import
-        # probably not the best way to do it
-        from hmtc.domains.video import Video
-
         vids = VideoModel.select().where(VideoModel.channel_id == item_id)
         for vid in vids:
             Video.delete_id(vid.id)
@@ -108,9 +94,9 @@ class Channel:
     def count(cls):
         return ChannelModel.select().count()
 
-    def add_file(self, file: Path) -> None:
-        self.file_manager.add_file(self.instance, file)
-
     @property
     def poster(self) -> Path:
         return self.file_manager.get_file(self.instance.id, "poster").name
+
+    def all(self):
+        pass
