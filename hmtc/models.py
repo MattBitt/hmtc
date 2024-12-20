@@ -48,6 +48,28 @@ class BaseModel(Model):
         cols = self._meta.columns
         return {col: getattr(self, col) for col in cols}
 
+    @classmethod
+    def query_from_kwargs(cls, query=None, **kwargs):
+        if query is None:
+            query = cls.select()
+
+        for key, value in kwargs.items():
+            if key not in cls._meta.fields:
+                raise ValueError(f"Field {key} not found in {cls.__name__}")
+            query = query.where(getattr(cls, key) == value)
+        return query
+
+    @classmethod
+    def order_by_kwargs(cls, query=None, **kwargs):
+        if query is None:
+            query = cls.select()
+
+        for key, value in kwargs.items():
+            if key not in cls._meta.fields:
+                raise ValueError(f"Field {key} not found in {cls.__name__}")
+            query = query.order_by(getattr(cls, key))
+        return query
+
     class Meta:
         database = db_null
 

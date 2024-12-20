@@ -1,8 +1,22 @@
 from unittest.mock import patch
+from pathlib import Path
 from peewee import IntegrityError
 from hmtc.domains import *
 from hmtc.models import Channel as ChannelModel
 from hmtc.repos.base_repo import Repository
+
+
+def test_new_channel_instance():
+    channel = Channel()
+    assert channel.instance is not None
+    assert channel.instance.id is None
+    channel.instance.title = "Test Title"
+    channel.instance.url = "https://www.youtube.com/channel/1234vzcxvadsf"
+    channel.instance.youtube_id = "1234adfvcxzadsr"
+    channel.instance.auto_update = True
+    channel.instance.save()
+    assert channel.instance.id > 0
+    channel.delete_me()
 
 
 def test_channel_create_and_load(channel_dicts):
@@ -56,22 +70,27 @@ def test_get_by_title(channel_dicts):
 
 
 def test_select_where(channel_dicts):
-    cd = channel_dicts[1]
+    # setup
+    cd1 = channel_dicts[1]
     cd2 = channel_dicts[2]
-    created_channel = Channel.create(cd)
-    Channel.create(cd2)
-    channels = Channel.select_where(
-        title=created_channel.instance.title, url=created_channel.instance.url
+    channel1 = Channel.create(cd1)
+    channel2 = Channel.create(cd2)
+
+    # tests
+    channels_query = Channel.select_where(
+        title=channel1.instance.title, url=channel1.instance.url
     )
-    assert len(channels) == 1
-    channel_item = Channel(channels[0].id)
-    assert channel_item.instance.title == cd["title"]
-    loaded_channel = channels[0]
-    assert loaded_channel.title == cd["title"]
-    assert loaded_channel.url == cd["url"]
-    assert loaded_channel.youtube_id == cd["youtube_id"]
-    assert loaded_channel.auto_update == cd["auto_update"]
-    created_channel.delete_me()
+    assert len(channels_query) == 1
+    channel_item = Channel(channels_query[0].id)
+    assert channel_item.instance.title == cd1["title"]
+    loaded_channel = channels_query[0]
+    assert loaded_channel.title == cd1["title"]
+    assert loaded_channel.url == cd1["url"]
+    assert loaded_channel.youtube_id == cd1["youtube_id"]
+    assert loaded_channel.auto_update == cd1["auto_update"]
+    # teardown
+    channel1.delete_me()
+    channel2.delete_me()
 
 
 def test_update_channel(channel_dicts):
@@ -139,3 +158,30 @@ def test_count(channel_dicts):
         channel.delete_me()
 
     assert Channel.count() == 0
+
+
+def test_file_count_no_files(channel_dicts):
+    # setup
+    cd = channel_dicts[0]
+    channel = Channel.create(cd)
+
+    # tests
+    assert channel.file_count() == 0
+
+    # teardown
+    channel.delete_me()
+
+
+def test_file_count_with_files(channel_dicts):
+    # setup
+    cd = channel_dicts[0]
+    channel = Channel.create(cd)
+    info_file = Path("info.json")
+    with info_file.open("w") as f:
+        f.write("test")
+
+    channel.add_file(info_file)
+    # tests
+    assert channel.file_count() == 1
+    # teardown
+    channel.delete_me()

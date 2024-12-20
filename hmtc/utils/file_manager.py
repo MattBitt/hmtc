@@ -5,14 +5,17 @@ from loguru import logger
 
 
 class FileManager:
-    def __init__(self, model, filetypes, path):
+    def __init__(self, model, filetypes, path: Path):
         self.model = model
         self.filetypes = filetypes
+        if not path.exists():
+            raise FileNotFoundError(f"Path {path} not found")
         self.path = path
 
     def add_file(self, item, file: Path):
         # logger.debug(f"Adding file {file} to 'item' {item}")
-
+        if not file.exists():
+            raise FileNotFoundError(f"File {file} not found")
         filetype = self.get_filetype(file.name)
         if filetype not in self.filetypes:
             raise ValueError(f"Invalid filetype {filetype}")
@@ -33,6 +36,12 @@ class FileManager:
         file_dict = dict(name=str(_file), size=_file.stat().st_size, filetype=filetype)
 
         self.model.create(**file_dict, item_id=item.id)
+
+    def delete_files(self, item_id):
+        files = list(self.model.select().where(self.model.item_id == item_id))
+        for file in files:
+            Path(file.name).unlink()
+            file.delete_instance()
 
     def get_filetype(self, file):
         file_string = str(file)

@@ -19,14 +19,18 @@ STORAGE = Path(config["STORAGE"]) / "channels"
 
 class Channel:
     model = ChannelModel
-    repo = Repository(model, "Channels")
-    instance = None
-    filetypes = ["poster", "thumbnail", "info"]
-    file_manager = FileManager(model=model, filetypes=filetypes, path=STORAGE)
+    file_model = ChannelFileModel
+    repo = Repository(
+        model,
+        file_model,
+        "Channels",
+        filetypes=["poster", "thumbnail", "info"],
+        path=STORAGE,
+    )
 
     def __init__(self, item_id=None):
         if item_id:
-            self.instance = self.repo.load_item(item_id=item_id)
+            self.instance = self.repo.get_by_id(item_id=item_id)
         else:
             logger.debug("Creating new Channel instance")
             self.instance = ChannelModel()
@@ -42,12 +46,19 @@ class Channel:
 
     @classmethod
     def select_where(cls, **kwargs) -> ModelSelect:
-        query = cls.model.select()
-        for key, value in kwargs.items():
-            if key not in cls.model._meta.fields:
-                raise ValueError(f"Field {key} not found in {cls.model.__name__}")
-            query = query.where(getattr(cls.model, key) == value)
-        return query
+        return cls.model.query_from_kwargs(**kwargs)
+
+    @classmethod
+    def order_by(cls, **kwargs) -> ModelSelect:
+        return cls.model.order_by_kwargs(**kwargs)
+
+    @classmethod
+    def count(cls) -> int:
+        return cls.repo.count()
+
+    @classmethod
+    def all(cls) -> ModelSelect:
+        return cls.repo.all()
 
     def update(self, data) -> "Channel":
         new_dict = {"id": self.instance.id, **data}
@@ -58,24 +69,24 @@ class Channel:
         vids = VideoModel.select().where(VideoModel.channel_id == self.instance.id)
         for vid in vids:
             Video.delete_id(vid.id)
+
+        self.repo.delete_files(self.instance.id)
         self.repo.delete_by_id(item_id=self.instance.id)
 
     def serialize(self) -> dict:
         return self.instance.my_dict()
 
+    def file_count(self) -> dict:
+        return self.repo.file_manager.count_all()
+
     @property
     def poster(self) -> Path:
-        return self.file_manager.get_file(self.instance.id, "poster").name
+        return self.repo.file_manager.get_file(self.instance.id, "poster").name
+
+    def add_file(self, file: Path):
+        self.repo.file_manager.add_file(self.instance, file)
 
     def download_files(self):
         files = download_channel_files(self.instance.youtube_id, self.instance.url)
         for file in files:
-            self.file_manager.add_file(self.instance, file)
-
-    @staticmethod
-    def count() -> int:
-        return ChannelModel.select().count()
-
-    @staticmethod
-    def all() -> ModelSelect:
-        return ChannelModel.select()
+            self.repo.file_manager.add_file(self.instance, file)

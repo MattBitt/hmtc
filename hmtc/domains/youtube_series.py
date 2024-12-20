@@ -28,7 +28,7 @@ class YoutubeSeries:
 
     @classmethod
     def load(cls, item_id) -> YoutubeSeriesModel:
-        return cls.repo.load_item(item_id=item_id)
+        return cls.repo.get_by_id(item_id=item_id)
 
     @classmethod
     def update(cls, data) -> YoutubeSeriesModel:
