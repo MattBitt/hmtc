@@ -5,8 +5,6 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import init_db
-
-
 from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
 

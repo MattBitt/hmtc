@@ -2,7 +2,6 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-
 from hmtc.models import Album as AlbumModel
 
 

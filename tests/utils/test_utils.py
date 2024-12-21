@@ -1,5 +1,6 @@
-from hmtc.utils.mutagen_utils import read_id3_tags, write_id3_tags
 import pytest
+
+from hmtc.utils.mutagen_utils import read_id3_tags, write_id3_tags
 
 
 @pytest.mark.skip(reason="Need to rework the video fixture")

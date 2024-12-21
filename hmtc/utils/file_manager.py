@@ -70,7 +70,7 @@ class FileManager:
         if file_string.endswith(tuple(posters)):
             return "poster"
 
-    def count_all(self):
+    def count(self):
         return self.model.select().count()
 
     def get_file(self, item_id, filetype):
@@ -79,3 +79,9 @@ class FileManager:
             .where(self.model.item_id == item_id, self.model.filetype == filetype)
             .get()
         )
+
+    def files(self, item_id):
+        return self.model.select().where(self.model.item_id == item_id)
+
+    def poster(self, item_id) -> Path:
+        return self.get_file(item_id, "poster")

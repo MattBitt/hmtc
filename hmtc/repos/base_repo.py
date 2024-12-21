@@ -1,5 +1,8 @@
-from loguru import logger
 from pathlib import Path
+from typing import Any
+
+from loguru import logger
+
 from hmtc.config import init_config
 from hmtc.decorators import myhandler
 from hmtc.models import BaseModel
@@ -12,17 +15,10 @@ class Repository:
     def __init__(
         self,
         model: BaseModel,
-        file_model: BaseModel = None,
         label: str = "",
-        filetypes: list[str] = None,
-        path: Path = None,
     ):
         self.model = model
         self.label = label
-        if file_model is not None:
-            self.file_manager = FileManager(
-                model=file_model, filetypes=filetypes, path=path
-            )
 
     def get_by_id(self, item_id: int) -> BaseModel:
         return self.model.get_by_id(item_id)
@@ -30,7 +26,7 @@ class Repository:
     def create_item(self, data) -> BaseModel:
         return self.model.create(**data)
 
-    def load_or_create_item(self, data) -> BaseModel:
+    def load_or_create_item(self, data) -> Any:
         item, created = self.model.get_or_create(**data)
         return item, created
 

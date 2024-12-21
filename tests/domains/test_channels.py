@@ -1,6 +1,8 @@
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
+
 from peewee import IntegrityError
+
 from hmtc.domains.channel import Channel
 from hmtc.models import Channel as ChannelModel
 from hmtc.repos.base_repo import Repository
@@ -153,7 +155,7 @@ def test_file_count_no_files(channel_dicts):
     channel = Channel.create(cd)
 
     # tests
-    assert channel.file_count() == 0
+    assert channel.fm.count() == 0
 
     # teardown
     channel.delete()
@@ -169,6 +171,23 @@ def test_file_count_with_files(channel_dicts):
 
     channel.add_file(info_file)
     # tests
-    assert channel.file_count() == 1
+    assert channel.fm.count() == 1
     # teardown
-    channel.delete()
+    channel.delete_me()
+
+
+def test_channel_files(channel_dicts):
+    # setup
+    cd = channel_dicts[0]
+    channel = Channel.create(cd)
+    info_file = Path("info.json")
+    with info_file.open("w") as f:
+        f.write("test")
+
+    channel.add_file(info_file)
+    # tests
+    files = channel.fm.files(channel.instance.id)
+    assert len(files) == 1
+    assert "info.json" in files[0].name
+    # teardown
+    channel.delete_me()

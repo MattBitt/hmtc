@@ -1,10 +1,12 @@
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
-from hmtc.models import Channel as ChannelModel, ChannelFile
+
+import pytest
+
+from hmtc.models import Channel as ChannelModel
+from hmtc.models import ChannelFile
 from hmtc.repos.base_repo import Repository
 from hmtc.utils.file_manager import FileManager
-
 
 # these were ai generated tests. i like the style, but confused if
 # they are actually testing anything
@@ -29,9 +31,15 @@ def temp_path(tmp_path):
 def repo(mock_model, mock_file_model, temp_path):
     return Repository(
         model=mock_model,
-        file_model=mock_file_model,
         label="TestChannelRepo",
-        filetypes=["info", "poster"],
+    )
+
+
+@pytest.fixture
+def file_manager(mock_file_model, temp_path):
+    return FileManager(
+        model=mock_file_model,
+        filetypes=["poster", "thumbnail", "info"],
         path=temp_path,
     )
 
@@ -48,9 +56,9 @@ def test_delete_item(repo, mock_model):
     mock_model.delete_by_id.assert_called_once_with(item_id)
 
 
-def test_add_file(repo, mock_file_model, temp_path):
+def test_add_file(repo, file_manager, mock_file_model, temp_path):
     item = MagicMock()
     file_path = temp_path / "test.txt"
     file_path.touch()
-    repo.file_manager.add_file(item, file_path)
+    file_manager.add_file(item, file_path)
     mock_file_model.create.assert_called_once()

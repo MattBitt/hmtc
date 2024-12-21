@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import pytest
+
 from hmtc.config import init_config
 from hmtc.utils.opencv.image_manager import ImageManager
 
