@@ -12,7 +12,7 @@ os.environ["HMTC_ENV"] = "testing"
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains import *
+from hmtc.domains.channel import Channel
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
@@ -193,101 +193,3 @@ def topic_dict() -> dict:
     return {
         "text": "apple",
     }
-
-
-@pytest.fixture(scope="function")
-def track_item(
-    channel_dict, video_dict, album_dict, disc_dict, track_dict, section_dict
-):
-    channel = Channel.create(channel_dict)
-    video_dict["_channel"] = channel.my_dict()
-    video = Video.create(video_dict)
-    section_dict["_video"] = video.my_dict()
-    section = Section.create(section_dict)
-
-    album = Album.create(album_dict)
-    disc_dict["_album"] = album.my_dict()
-    disc = Disc.create(disc_dict)
-    assert disc.title == disc_dict["title"]
-
-    track_dict["section"] = section.my_dict()
-    track_dict["disc"] = disc.my_dict()
-
-    new_track = Track.create(track_dict)
-    yield new_track
-    Track.delete_id(new_track.id)
-    Disc.delete_id(disc.id)
-    Album.delete_id(album.id)
-    Section.delete_id(section.id)
-    Video.delete_id(video.id)
-    Channel.delete_id(channel.id)
-
-
-@pytest.fixture(scope="function")
-def video_item(seeded_db, video_dict, channel_dict):
-    channel = Channel.create(channel_dict)
-    video_dict["_channel"] = channel.my_dict()
-
-    created_video = Video.create(video_dict)
-    yield Video.load(created_video.id)
-    Video.delete_id(created_video.id)
-    Channel.delete_id(channel.id)
-
-
-### starting refactor on 12/18/24
-### fixtures above are the ones i want to keep
-### the following are still in use but need to be refactored
-
-
-# # this is the actual source of files for tests
-SOURCE_FILES_PATH = config["STORAGE"] / "data_for_tests"
-
-# # serves as the source of files for future tests to copy from
-# # i think this is a good idea to keep the original files untouched
-INPUT_PATH = config["WORKING"] / "files_for_input"
-OUTPUT_PATH = config["WORKING"] / "files_created_by_testing"
-
-
-@pytest.fixture(scope="function")
-def test_image_filename(test_files):
-    img = [x for x in test_files.glob("*") if x.suffix in [".png", ".jpg", ".jpeg"]]
-    if len(img) == 0:
-        raise FileNotFoundError("No image files found")
-    return INPUT_PATH / img[0].name
-
-
-@pytest.fixture(scope="function")
-def test_ww_video_file(test_files):
-    video_file = [x for x in test_files.glob("*") if x.stem == "ww100_clip_1_min"][0]
-    return INPUT_PATH / video_file.name
-
-
-def copy_initial_files():
-    for files in SOURCE_FILES_PATH.rglob("*Zone.Identifier*"):
-        files.unlink()
-
-    if INPUT_PATH.exists():
-        remove_tree(INPUT_PATH)
-
-    if OUTPUT_PATH.exists():
-        remove_tree(OUTPUT_PATH)
-
-    initial_files = SOURCE_FILES_PATH
-    assert initial_files.exists()
-    assert len(list(initial_files.rglob("*"))) > 0
-
-    copy_tree(SOURCE_FILES_PATH, INPUT_PATH)
-    OUTPUT_PATH.mkdir(exist_ok=True, parents=True)
-
-
-@pytest.fixture(scope="session")
-def test_files():
-    copy_initial_files()
-    return INPUT_PATH
-
-
-@pytest.fixture(scope="function")
-def test_audio_filename(test_files):
-    audio_file = [x for x in test_files.glob("*") if x.suffix in [".mp3"]][0]
-
-    return INPUT_PATH / audio_file.name

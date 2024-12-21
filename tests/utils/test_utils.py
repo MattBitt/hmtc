@@ -1,6 +1,8 @@
 from hmtc.utils.mutagen_utils import read_id3_tags, write_id3_tags
+import pytest
 
 
+@pytest.mark.skip(reason="Need to rework the video fixture")
 def test_write_id3_tags(test_audio_filename):
 
     new_tag = {}

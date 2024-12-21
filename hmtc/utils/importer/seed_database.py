@@ -7,20 +7,8 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains.album import Album
-from hmtc.domains.artist import Artist
-from hmtc.domains.beat import Beat
 from hmtc.domains.channel import Channel
-from hmtc.domains.disc import Disc
-from hmtc.domains.section import Section
-from hmtc.domains.series import Series
-from hmtc.domains.superchat import Superchat
-from hmtc.domains.superchat_segment import SuperchatSegment
-from hmtc.domains.topic import Topic
-from hmtc.domains.track import Track
-from hmtc.domains.user import User
-from hmtc.domains.video import Video
-from hmtc.domains.youtube_series import YoutubeSeries
+
 from hmtc.models import db_null
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 
@@ -31,27 +19,27 @@ STORAGE = config["STORAGE"]
 
 def seed_database_from_json(db_instance):
     logger.debug("Seeding database from seed_data.json")
-    with open("hmtc/utils/importer/seed_data.json", "r") as f:
-        data = json.load(f)
+    # with open("hmtc/utils/importer/seed_data.json", "r") as f:
+    #     data = json.load(f)
 
-    for series in data["Series"]:
-        Series.create(series)
+    # for series in data["Series"]:
+    #     Series.create(series)
 
-    for album in data["Album"]:
-        Album.create(album)
+    # for album in data["Album"]:
+    #     Album.create(album)
 
-    for yt_series in data["YoutubeSeries"]:
-        YoutubeSeries.create(yt_series)
+    # for yt_series in data["YoutubeSeries"]:
+    #     YoutubeSeries.create(yt_series)
 
-    for user in data["User"]:
-        User.create(user)
+    # for user in data["User"]:
+    #     User.create(user)
 
-    for artist in data["Artist"]:
-        Artist.create(artist)
+    # for artist in data["Artist"]:
+    #     Artist.create(artist)
 
-    import_existing_video_files_to_db(
-        STORAGE / "videos", delete_premigration_superchats=True
-    )
+    # import_existing_video_files_to_db(
+    #     STORAGE / "videos", delete_premigration_superchats=True
+    # )
 
     logger.success("Database seeded from seed_data.json")
 
@@ -63,7 +51,7 @@ def recreate_database(_db=None):
     logger.debug("Recreating database")
     drop_all_tables(_db)
     create_tables(_db)
-    seed_database_from_json(_db)
+    # seed_database_from_json(_db)
     logger.success("Database recreated")
 
 

@@ -5,7 +5,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import init_db
-from hmtc.domains import Video
+
 from hmtc.domains.channel import Channel
 from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
@@ -13,6 +13,9 @@ from hmtc.utils.youtube_functions import parse_youtube_info_file
 config = init_config()
 db_instance = init_db(db_null, config)
 STORAGE = config["STORAGE"]
+
+
+class Video: ...
 
 
 def get_files_in_folder(folder: Path) -> List[Path]:

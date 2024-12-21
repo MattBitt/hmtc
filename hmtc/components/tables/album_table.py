@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.album import Album as AlbumItem
+
 from hmtc.models import Album as AlbumModel
 
 
@@ -41,6 +41,6 @@ def AlbumTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
-        domain_class=AlbumItem,
+        domain_class=None,
         **item_info,
     )

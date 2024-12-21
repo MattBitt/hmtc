@@ -68,7 +68,8 @@ class Channel:
     def delete_me(self) -> None:
         vids = VideoModel.select().where(VideoModel.channel_id == self.instance.id)
         for vid in vids:
-            Video.delete_id(vid.id)
+            pass
+            # Video.delete_id(vid.id)
 
         self.repo.delete_files(self.instance.id)
         self.repo.delete_by_id(item_id=self.instance.id)
