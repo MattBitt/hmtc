@@ -12,7 +12,7 @@ os.environ["HMTC_ENV"] = "testing"
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains.channel import Channel
+
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
@@ -101,12 +101,24 @@ def youtube_series_dict() -> dict:
 
 
 @pytest.fixture(scope="function")
-def series_dict() -> dict:
-    return {
-        "title": "Some Test Series Title",
-        "start_date": "2021-01-01",
-        "end_date": "2021-12-31",
-    }
+def series_dicts() -> list:
+    return [
+        {
+            "title": "Some Test Series Title",
+            "start_date": "2021-01-01",
+            "end_date": "2021-12-31",
+        },
+        {
+            "title": "Another Test Series Title",
+            "start_date": "2021-01-01",
+            "end_date": "2021-12-31",
+        },
+        {
+            "title": "Yet Another Test Series Title",
+            "start_date": "2021-01-01",
+            "end_date": "2021-12-31",
+        },
+    ]
 
 
 @pytest.fixture(scope="function")

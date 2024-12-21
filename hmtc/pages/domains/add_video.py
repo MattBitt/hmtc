@@ -3,7 +3,7 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.domains.channel import Channel as ChannelItem
-from hmtc.domains.video import Video as VideoItem
+
 from hmtc.models import Video as VideoModel
 
 status = solara.reactive("Waiting for video URL")

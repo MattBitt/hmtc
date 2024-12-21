@@ -1,22 +1,9 @@
 from unittest.mock import patch
 from pathlib import Path
 from peewee import IntegrityError
-from hmtc.domains import *
+from hmtc.domains.channel import Channel
 from hmtc.models import Channel as ChannelModel
 from hmtc.repos.base_repo import Repository
-
-
-def test_new_channel_instance():
-    channel = Channel()
-    assert channel.instance is not None
-    assert channel.instance.id is None
-    channel.instance.title = "Test Title"
-    channel.instance.url = "https://www.youtube.com/channel/1234vzcxvadsf"
-    channel.instance.youtube_id = "1234adfvcxzadsr"
-    channel.instance.auto_update = True
-    channel.instance.save()
-    assert channel.instance.id > 0
-    channel.delete_me()
 
 
 def test_channel_create_and_load(channel_dicts):
@@ -28,12 +15,12 @@ def test_channel_create_and_load(channel_dicts):
     assert created_channel.instance.auto_update == cd["auto_update"]
     assert created_channel.instance.id > 0
 
-    loaded_channel = Channel(created_channel.instance.id)
+    loaded_channel = Channel.load(created_channel.instance.id)
     assert loaded_channel.instance.title == cd["title"]
     assert loaded_channel.instance.url == cd["url"]
     assert loaded_channel.instance.youtube_id == cd["youtube_id"]
     assert loaded_channel.instance.auto_update == cd["auto_update"]
-    created_channel.delete_me()
+    created_channel.delete()
 
 
 def test_channel_create_no_title(channel_dicts):
@@ -55,7 +42,7 @@ def test_get_by_id(channel_dicts):
     assert loaded_channel.instance.url == cd["url"]
     assert loaded_channel.instance.youtube_id == cd["youtube_id"]
     assert loaded_channel.instance.auto_update == cd["auto_update"]
-    created_channel.delete_me()
+    created_channel.delete()
 
 
 def test_get_by_title(channel_dicts):
@@ -66,7 +53,7 @@ def test_get_by_title(channel_dicts):
     assert loaded_channel.instance.url == cd["url"]
     assert loaded_channel.instance.youtube_id == cd["youtube_id"]
     assert loaded_channel.instance.auto_update == cd["auto_update"]
-    created_channel.delete_me()
+    created_channel.delete()
 
 
 def test_select_where(channel_dicts):
@@ -81,16 +68,16 @@ def test_select_where(channel_dicts):
         title=channel1.instance.title, url=channel1.instance.url
     )
     assert len(channels_query) == 1
-    channel_item = Channel(channels_query[0].id)
+    channel_item = Channel(channels_query[0].instance.id)
     assert channel_item.instance.title == cd1["title"]
     loaded_channel = channels_query[0]
-    assert loaded_channel.title == cd1["title"]
-    assert loaded_channel.url == cd1["url"]
-    assert loaded_channel.youtube_id == cd1["youtube_id"]
-    assert loaded_channel.auto_update == cd1["auto_update"]
+    assert loaded_channel.instance.title == cd1["title"]
+    assert loaded_channel.instance.url == cd1["url"]
+    assert loaded_channel.instance.youtube_id == cd1["youtube_id"]
+    assert loaded_channel.instance.auto_update == cd1["auto_update"]
     # teardown
-    channel1.delete_me()
-    channel2.delete_me()
+    channel1.delete()
+    channel2.delete()
 
 
 def test_update_channel(channel_dicts):
@@ -109,13 +96,13 @@ def test_update_channel(channel_dicts):
     assert channel_from_db.title == "New Title"
 
     # teardown
-    channel.delete_me()
+    channel.delete()
 
 
 def test_channel_delete(channel_dicts):
     cd = channel_dicts[1]
     created_channel = Channel.create(cd)
-    created_channel.delete_me()
+    created_channel.delete()
     c = (
         ChannelModel.select()
         .where(ChannelModel.id == created_channel.instance.id)
@@ -136,7 +123,7 @@ def test_serialize(channel_dicts):
     assert s["auto_update"] == cd["auto_update"]
     assert str(s["last_update_completed"]) == cd["last_update_completed"]
     # teardown
-    channel.delete_me()
+    channel.delete()
 
 
 def test_count(channel_dicts):
@@ -155,7 +142,7 @@ def test_count(channel_dicts):
     # teardown
     for channel_dict in channel_dicts:
         channel = Channel.get_by(title=channel_dict["title"])
-        channel.delete_me()
+        channel.delete()
 
     assert Channel.count() == 0
 
@@ -169,7 +156,7 @@ def test_file_count_no_files(channel_dicts):
     assert channel.file_count() == 0
 
     # teardown
-    channel.delete_me()
+    channel.delete()
 
 
 def test_file_count_with_files(channel_dicts):
@@ -184,4 +171,4 @@ def test_file_count_with_files(channel_dicts):
     # tests
     assert channel.file_count() == 1
     # teardown
-    channel.delete_me()
+    channel.delete()

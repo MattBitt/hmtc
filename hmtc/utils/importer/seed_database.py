@@ -7,7 +7,7 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains.channel import Channel
+
 
 from hmtc.models import db_null
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
