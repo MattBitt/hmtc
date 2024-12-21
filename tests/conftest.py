@@ -42,12 +42,6 @@ def empty_db(db):
     return db
 
 
-@pytest.fixture(scope="session")
-def seeded_db(db):
-    seed_database_from_json(db)
-    return db
-
-
 @pytest.fixture(scope="function")
 def text_file(tmp_path):
     file = tmp_path / "test.txt"
@@ -71,7 +65,7 @@ def beat_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def video_dict() -> dict:
     return {
         "description": "This is only for testing.in the files tab.",
@@ -84,7 +78,7 @@ def video_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def album_dict() -> dict:
     return {
         "title": "Some Test Album Title",
@@ -93,10 +87,30 @@ def album_dict() -> dict:
 
 
 @pytest.fixture(scope="function")
-def youtube_series_dict() -> dict:
-    return {
-        "title": "Some Test YoutubeSeries Title",
-    }
+def youtube_series_dicts():
+    return [
+        {
+            "title": "Episodic Series 137",
+            "url": "http://example.com/series1",
+            "youtube_id": "series1_id",
+            "auto_update": True,
+            "last_update_completed": "2023-01-01",
+        },
+        {
+            "title": "Chimpanzee Bars 112",
+            "url": "http://example.com/series2",
+            "youtube_id": "series2_id",
+            "auto_update": False,
+            "last_update_completed": "2023-01-02",
+        },
+        {
+            "title": "Mack Saves Christmas 3",
+            "url": "http://example.com/series3",
+            "youtube_id": "series3_id",
+            "auto_update": True,
+            "last_update_completed": "2023-01-03",
+        },
+    ]
 
 
 @pytest.fixture(scope="function")

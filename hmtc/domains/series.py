@@ -1,12 +1,13 @@
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Series as SeriesModel
 from hmtc.repos.series_repo import SeriesRepo
+from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
 
 
 class Series(BaseDomain):
     model = SeriesModel
     repo = SeriesRepo()
+    youtube_series_repo = YoutubeSeriesRepo()
 
-    def __init__(self, item_id):
-        self.instance = self.repo.get_by_id(item_id)
-        super().__init__(self.instance)
+    def youtube_serieses(self):
+        return self.youtube_series_repo.get_by(series_id=self.instance.id)

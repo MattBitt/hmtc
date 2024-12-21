@@ -18,21 +18,14 @@ STORAGE = Path(config["STORAGE"]) / "channels"
 
 class Channel(BaseDomain):
     model = ChannelModel
-    repo: ChannelRepo = ChannelRepo()
+    repo = ChannelRepo()
     fm = FileManager(
         model=ChannelFileModel, filetypes=["poster", "thumbnail", "info"], path=STORAGE
     )
 
-    def __init__(self, item_id):
-
-        super().__init__(item_id)
-
     def delete_me(self) -> None:
         self.fm.delete_files(self.instance.id)
         self.repo.delete_by_id(item_id=self.instance.id)
-
-    def add_file(self, file: Path):
-        self.fm.add_file(self.instance, file)
 
     def download_files(self):
         files = download_channel_files(self.instance.youtube_id, self.instance.url)
