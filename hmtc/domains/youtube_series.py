@@ -2,6 +2,7 @@ from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.series_repo import SeriesRepo
 from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
+from typing import Dict, Any
 
 
 class YoutubeSeries(BaseDomain):
@@ -9,7 +10,7 @@ class YoutubeSeries(BaseDomain):
     repo = YoutubeSeriesRepo()
     series_repo = SeriesRepo()
 
-    def serialize(self):
+    def serialize(self) -> Dict[str, Any]:
         series = self.series_repo.get_by_id(self.instance.series_id).my_dict()
         return {
             "id": self.instance.id,
