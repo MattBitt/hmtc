@@ -31,3 +31,18 @@ class Channel(BaseDomain):
         files = download_channel_files(self.instance.youtube_id, self.instance.url)
         for file in files:
             self.fm.add_file(self.instance, file)
+
+    def serialize(self):
+        file_dict = {}
+        for file in self.fm.files(self.instance.id):
+            file_dict[file.filetype] = file.name
+        return {
+            "id": self.instance.id,
+            "title": self.instance.title,
+            "youtube_id": self.instance.youtube_id,
+            "url": self.instance.url,
+            "files": self.fm.files(self.instance.id),
+            "auto_update": self.instance.auto_update,
+            "last_update_completed": self.instance.last_update_completed,
+            "files": file_dict,
+        }

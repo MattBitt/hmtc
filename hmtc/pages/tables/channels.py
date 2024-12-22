@@ -21,6 +21,8 @@ def Page():
         {"text": "Title", "value": "title"},
         {"text": "Youtube ID", "value": "youtube_id"},
         {"text": "Last Update Completed", "value": "last_update_completed"},
+        {"text": "Auto Update", "value": "auto_update"},
+        {"text": "Files", "value": "files"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
 

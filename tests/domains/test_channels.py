@@ -189,6 +189,9 @@ def test_channel_files(channel_dicts):
     files = channel.fm.files(channel.instance.id)
     assert len(files) == 1
     assert "info.json" in files[0].name
+    serialized = channel.serialize()
+    assert len(serialized["files"]) == 1
+    assert "info" in serialized["files"]
     # teardown
     channel.delete_me()
 

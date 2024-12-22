@@ -129,6 +129,9 @@
       <template v-slot:item.title="{ item }">
         <span>{{ item.title }}</span>
       </template>
+      <template v-slot:item.files="{ item }">
+        <span>{{ item.files.count() }}</span>
+      </template>
 
       <template v-slot:item.actions="{ item }">
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
