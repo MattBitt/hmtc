@@ -168,7 +168,7 @@ def test_file_count_with_files(channel_dicts):
     info_file = Path("info.json")
     with info_file.open("w") as f:
         f.write("test")
-    channel.fm.add_file(channel.instance, info_file)
+    channel.fm.add_file(channel, info_file)
 
     # tests
     assert channel.fm.count() == 1
@@ -184,7 +184,7 @@ def test_channel_files(channel_dicts):
     with info_file.open("w") as f:
         f.write("test")
 
-    channel.fm.add_file(channel.instance, info_file)
+    channel.fm.add_file(channel, info_file)
     # tests
     files = channel.fm.files(channel.instance.id)
     assert len(files) == 1

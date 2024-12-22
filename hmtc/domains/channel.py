@@ -30,7 +30,7 @@ class Channel(BaseDomain):
     def download_files(self):
         files = download_channel_files(self.instance.youtube_id, self.instance.url)
         for file in files:
-            self.fm.add_file(self.instance, file)
+            self.fm.add_file(self, file)
 
     def serialize(self):
         file_dict = {}
@@ -46,3 +46,12 @@ class Channel(BaseDomain):
             "last_update_completed": self.instance.last_update_completed,
             "files": file_dict,
         }
+
+    @classmethod
+    def last_update_completed_at(cls):
+        return (
+            cls.repo.model.select()
+            .order_by(cls.repo.model.last_update_completed.desc())
+            .first()
+            .last_update_completed
+        )

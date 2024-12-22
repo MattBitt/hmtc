@@ -11,49 +11,33 @@ from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains.channel import Channel
-from hmtc.models import Video as VideoModel
+from hmtc.domains.series import Series
+from hmtc.domains.video import Video
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
+from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 
 config = init_config()
-
+STORAGE = Path(config["STORAGE"])
 title = " "
 busy_downloading = solara.reactive(False)
 
 
 def refresh_from_youtube():
     busy_downloading.set(True)
-    existing_ids = [
-        v.youtube_id
-        for v in VideoModel.select(VideoModel.youtube_id).where(
-            VideoModel.youtube_id.is_null(False)
-        )
-    ]
-    channels = Channel().to_auto_update()
-
-    num_new_vids = 0
-
-    for c in channels:
-        logger.debug(f"Checking channel {c.channel.title}")
-        yt_ids = c.grab_ids()
-        ids_to_update = [id for id in yt_ids if id not in existing_ids]
-        num_new_vids += len(ids_to_update)
-        c.last_update_completed = datetime.now()
-        c.save()
-        for id in ids_to_update[:5]:
-            logger.debug(f"Downloading video {id}")
-
-    if num_new_vids == 0:
-        logger.debug("No new videos found")
-    else:
-        logger.debug(f"Found {num_new_vids} new videos")
 
     busy_downloading.set(False)
 
 
-@solara.component_vue("../../components/shared/progress_circle.vue", vuetify=True)
+def scan_local_storage():
+
+    import_existing_video_files_to_db(
+        STORAGE / "videos", delete_premigration_superchats=True
+    )
+
+
 def ProgressCircle():
-    pass
+    solara.Markdown("## Refreshing from YouTube...")
 
 
 @solara.component
@@ -63,27 +47,9 @@ def Page():
         router=solara.use_router(),
     )
 
-    if Channel.count() == 0:
-        empty_db = True
-        last_updated = None
-        can_refresh = False
-    else:
-        empty_db = False
-        last_updated = Channel.last_update_completed()
-
-        if last_updated is None:
-            can_refresh = True
-        else:
-            # how_long_ago_refreshed = datetime.now() - last_updated
-            # can_refresh = how_long_ago_refreshed > timedelta(hours=1)
-            can_refresh = True
-
-        latest_vids = (
-            VideoModel.select()
-            .where(VideoModel.unique_content == True)
-            .order_by(VideoModel.upload_date.desc())
-            .limit(3)
-        )
+    empty_db = Series.count() == 0
+    vids_imported = Video.count() > 0
+    latest_videos = Video.latest(3)
 
     with solara.Column(classes=["main-container"]):
         with solara.Row(justify="center", style={"background-color": Colors.SURFACE}):
@@ -91,16 +57,23 @@ def Page():
                 ProgressCircle()
             else:
 
-                solara.Button("Videos", classes=["button"], href="/tables/videos")
-                solara.Button("Tracks", classes=["button"], href="/tables/tracks")
-                solara.Button(
-                    "Dashboard", classes=["button"], href="/dashboards/domains"
-                )
+                with solara.Link("/tables/videos/"):
+                    solara.Button("Videos", classes=["button"])
+                with solara.Link("/tables/tracks/"):
+                    solara.Button("Tracks", classes=["button"])
+                with solara.Link("/dashboards/domains/"):
+                    solara.Button(
+                        "Domains", classes=["button"], href="/dashboards/domains"
+                    )
+                with solara.Link("/dashboards/files/"):
+                    solara.Button(
+                        "Files", classes=["button"], href="/dashboards/domains"
+                    )
                 solara.Button(
                     "Refresh",
                     classes=["button"],
                     on_click=refresh_from_youtube,
-                    disabled=not can_refresh,
+                    disabled=True,
                 )
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
@@ -110,7 +83,7 @@ def Page():
             with solara.Row(justify="center"):
                 with solara.Column():
                     solara.Text(
-                        f"#### No channels found in the database. Hope this is a fresh install.",
+                        f"#### No Series found in the database. Hope this is a fresh install.",
                         classes=["primary--text"],
                     )
                     solara.Button(
@@ -118,9 +91,35 @@ def Page():
                         classes=["button"],
                         on_click=recreate_database,
                     )
+        if not vids_imported:
+            with solara.Row(justify="center"):
+
+                with solara.Columns([6, 6]):
+                    with solara.Card():
+                        solara.Text(
+                            f"#### No Videos found in the database. Scan the local storage for videos.",
+                            classes=["primary--text"],
+                        )
+                        solara.Button(
+                            f"Scan Local Storage...",
+                            classes=["button"],
+                            on_click=scan_local_storage,
+                        )
+                    with solara.Card():
+                        solara.Text(
+                            f"#### No Videos found in the database. Please refresh from YouTube.",
+                            classes=["primary--text"],
+                        )
+
+                        solara.Button(
+                            f"Refresh from YouTube...",
+                            classes=["button"],
+                            on_click=refresh_from_youtube,
+                        )
+
         else:
             with solara.ColumnsResponsive(default=12, large=4):
-                for vid in latest_vids:
+                for vid in latest_videos:
                     # poster = FileManager.get_file_for_video(vid, "poster")
                     # video_image = ImageManager(poster)
 

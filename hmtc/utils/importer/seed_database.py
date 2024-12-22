@@ -7,9 +7,9 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains import Album, Series, YoutubeSeries
+from hmtc.domains import Album, Series, YoutubeSeries, User
 from hmtc.models import db_null
-from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
+
 
 config = init_config()
 
@@ -32,15 +32,11 @@ def seed_database_from_json(db_instance):
         yt_series["series_id"] = series.instance.id
         YoutubeSeries.create(yt_series)
 
-    # for user in data["User"]:
-    #     User.create(user)
+    for user in data["User"]:
+        User.create(user)
 
     # for artist in data["Artist"]:
     #     Artist.create(artist)
-
-    # import_existing_video_files_to_db(
-    #     STORAGE / "videos", delete_premigration_superchats=True
-    # )
 
     logger.success("Database seeded from seed_data.json")
 
@@ -52,7 +48,7 @@ def recreate_database(_db=None):
     logger.debug("Recreating database")
     drop_all_tables(_db)
     create_tables(_db)
-    # seed_database_from_json(_db)
+    seed_database_from_json(_db)
     logger.success("Database recreated")
 
 

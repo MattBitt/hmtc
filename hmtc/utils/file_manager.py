@@ -14,28 +14,30 @@ class FileManager:
             raise FileNotFoundError(f"Path {path} not found")
         self.path = path
 
-    def add_file(self, item: BaseDomain, file: Path):
-        # logger.debug(f"Adding file {file} to 'item' {item}")
+    def add_file(self, item: BaseDomain, file: Path, to_move=False):
+
         if not file.exists():
             raise FileNotFoundError(f"File {file} not found")
+
         filetype = self.get_filetype(file.name)
-        if filetype not in self.filetypes:
-            raise ValueError(f"Invalid filetype {filetype}")
-        if not "storage" in str(file):
+
+        if to_move:
             logger.debug(f"Moving file {file} to storage")
             try:
-                _file = file.rename(self.path / file.name)
+                final_file = file.rename(self.path / file.name)
             except OSError as e:
                 logger.debug(f"Error moving file {file} to storage: {e}")
                 if e.errno == 18:  # Invalid cross-device link
                     shutil.move(file, self.path / file.name)
-                    _file = self.path / file.name
+                    final_file = self.path / file.name
                 else:
-                    raise
+                    raise Exception(f"Error moving file {file} to storage: {e}")
         else:
-            _file = file
+            final_file = file
 
-        file_dict = dict(name=str(_file), size=_file.stat().st_size, filetype=filetype)
+        file_dict = dict(
+            name=str(final_file), size=final_file.stat().st_size, filetype=filetype
+        )
 
         self.model.create(**file_dict, item_id=item.instance.id)
 
@@ -45,7 +47,7 @@ class FileManager:
             Path(file.name).unlink()
             file.delete_instance()
 
-    def get_filetype(self, file):
+    def get_filetype(self, file: Path):
         file_string = str(file)
         videos = [".mkv", ".mp4", ".webm"]
         audios = [".mp3", ".wav"]
@@ -71,6 +73,8 @@ class FileManager:
 
         if file_string.endswith(tuple(posters)):
             return "poster"
+
+        raise ValueError(f"Invalid filetype for {file_string}")
 
     def count(self):
         return self.model.select().count()

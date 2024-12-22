@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
-
+from peewee import ModelSelect
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Video as VideoModel
@@ -37,3 +37,11 @@ class Video(BaseDomain):
             "disc_id": self.instance.disc_id,
             "file_count": len(self.fm.files(self.instance.id)),
         }
+
+    @classmethod
+    def latest(cls, limit: int) -> ModelSelect:
+        return (
+            cls.repo.model.select()
+            .order_by(cls.repo.model.upload_date.desc())
+            .limit(limit)
+        )
