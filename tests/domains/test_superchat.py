@@ -50,6 +50,7 @@ def test_select_where(superchat_item):
 
 
 def test_update_superchat(superchat_item):
+    # setup
     superchat = superchat_item
     new_superchat = superchat.update({"frame": 100})
     assert new_superchat.instance.frame == 100
