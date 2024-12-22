@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Any, Dict
+
 from peewee import ModelSelect
+
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Video as VideoModel

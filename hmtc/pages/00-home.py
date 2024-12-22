@@ -13,9 +13,9 @@ from hmtc.config import init_config
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
 from hmtc.domains.video import Video
+from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
-from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])

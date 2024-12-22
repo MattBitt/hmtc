@@ -7,9 +7,8 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-from hmtc.domains import Album, Series, YoutubeSeries, User
+from hmtc.domains import Album, Series, User, YoutubeSeries
 from hmtc.models import db_null
-
 
 config = init_config()
 
