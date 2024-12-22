@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import Section as SectionModel
 from hmtc.domains.section import Section
+from hmtc.models import Section as SectionModel
 
 
 @solara.component_vue("SectionTable.vue", vuetify=True)

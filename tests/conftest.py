@@ -12,7 +12,6 @@ os.environ["HMTC_ENV"] = "testing"
 
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
-
 from hmtc.domains import (
     Album,
     Artist,
@@ -28,8 +27,6 @@ from hmtc.domains import (
     User,
     Video,
 )
-
-
 from hmtc.models import db_null
 from hmtc.utils.db_migrator import run_migrations
 from hmtc.utils.general import copy_tree, remove_tree

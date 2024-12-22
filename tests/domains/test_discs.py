@@ -1,7 +1,8 @@
 import pytest
+
+from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.models import Disc as DiscModel
-from hmtc.domains.album import Album
 
 
 def test_disc_create_and_load(disc_dicts, album_dicts):

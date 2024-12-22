@@ -10,7 +10,6 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.beat_table import BeatTable
-
 from hmtc.models import Beat as BeatModel
 
 

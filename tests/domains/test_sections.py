@@ -1,8 +1,9 @@
 import pytest
-from hmtc.domains.section import Section
-from hmtc.models import Section as SectionModel
-from hmtc.domains.video import Video
+
 from hmtc.domains.channel import Channel
+from hmtc.domains.section import Section
+from hmtc.domains.video import Video
+from hmtc.models import Section as SectionModel
 
 
 def test_section_create_and_load(section_dicts, video_item):

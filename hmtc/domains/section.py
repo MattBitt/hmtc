@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Section as SectionModel
 from hmtc.repos.section_repo import SectionRepo
-from typing import Dict, Any
 
 
 class Section(BaseDomain):

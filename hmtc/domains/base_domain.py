@@ -1,5 +1,6 @@
+from typing import Any, Dict, List, Optional, Type, TypeVar
+
 from peewee import DoesNotExist, Model
-from typing import Type, TypeVar, Optional, List, Dict, Any
 
 T = TypeVar("T", bound="BaseDomain")
 

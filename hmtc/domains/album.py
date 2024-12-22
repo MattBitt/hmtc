@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Album as AlbumModel
 from hmtc.repos.album_repo import AlbumRepo
-from typing import Dict, Any
 
 
 class Album(BaseDomain):

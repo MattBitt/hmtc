@@ -1,4 +1,5 @@
 import pytest
+
 from hmtc.domains.beat import Beat
 from hmtc.models import Beat as BeatModel
 

@@ -1,4 +1,5 @@
 import pytest
+
 from hmtc.domains.album import Album
 from hmtc.models import Album as AlbumModel
 

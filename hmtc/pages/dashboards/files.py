@@ -2,7 +2,7 @@ import solara
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.domains import Channel, Video, Album, Track, Artist, User
+from hmtc.domains import Album, Artist, Channel, Track, User, Video
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 from hmtc.utils.youtube_functions import download_channel_files
 

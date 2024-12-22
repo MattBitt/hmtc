@@ -1,4 +1,5 @@
 import pytest
+
 from hmtc.domains.topic import Topic
 from hmtc.models import Topic as TopicModel
 

@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.repos.superchat_segment_repo import SuperchatSegmentRepo
-from typing import Dict, Any
 
 
 class SuperchatSegment(BaseDomain):

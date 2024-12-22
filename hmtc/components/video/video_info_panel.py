@@ -10,11 +10,8 @@ from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
-
-
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
-
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
 

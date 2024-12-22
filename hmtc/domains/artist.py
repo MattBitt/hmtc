@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Artist as ArtistModel
 from hmtc.repos.artist_repo import ArtistRepo
-from typing import Dict, Any
 
 
 class Artist(BaseDomain):

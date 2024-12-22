@@ -1,7 +1,8 @@
 import pytest
+
+from hmtc.domains.disc import Disc
 from hmtc.domains.track import Track
 from hmtc.models import Track as TrackModel
-from hmtc.domains.disc import Disc
 
 
 def test_track_create_and_load(track_dicts, disc_item, section_item):

@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Track as TrackModel
 from hmtc.repos.track_repo import TrackRepo
-from typing import Dict, Any
 
 
 class Track(BaseDomain):

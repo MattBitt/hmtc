@@ -1,7 +1,8 @@
 import pytest
+
 from hmtc.domains.superchat import Superchat
-from hmtc.models import Superchat as SuperchatModel
 from hmtc.domains.video import Video
+from hmtc.models import Superchat as SuperchatModel
 
 
 def test_superchat_create_and_load(superchat_dicts, video_item):

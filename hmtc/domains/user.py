@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import User as UserModel
 from hmtc.repos.user_repo import UserRepo
-from typing import Dict, Any
 
 
 class User(BaseDomain):

@@ -1,4 +1,5 @@
 import pytest
+
 from hmtc.domains.user import User
 from hmtc.models import User as UserModel
 

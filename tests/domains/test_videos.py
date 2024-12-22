@@ -1,7 +1,8 @@
 import pytest
+
+from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
 from hmtc.models import Video as VideoModel
-from hmtc.domains.channel import Channel
 
 
 @pytest.fixture

@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.repos.superchat_repo import SuperchatRepo
-from typing import Dict, Any
 
 
 class Superchat(BaseDomain):

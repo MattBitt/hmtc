@@ -1,8 +1,9 @@
+from typing import List
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Series as SeriesModel
 from hmtc.repos.series_repo import SeriesRepo
 from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
-from typing import List
 
 
 class Series(BaseDomain):

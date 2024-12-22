@@ -1,7 +1,8 @@
 import pytest
+
+from hmtc.domains.section import Section
 from hmtc.domains.superchat_segment import SuperchatSegment
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
-from hmtc.domains.section import Section
 
 
 def test_superchatsegment_create_and_load(superchat_segment_dicts, section_item):

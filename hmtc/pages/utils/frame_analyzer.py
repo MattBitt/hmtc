@@ -3,7 +3,6 @@ from pathlib import Path
 import solara
 
 from hmtc.components.shared.sidebar import MySidebar
-
 from hmtc.models import Video as VideoModel
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper

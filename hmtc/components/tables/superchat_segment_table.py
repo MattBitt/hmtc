@@ -2,8 +2,8 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.domains.superchat_segment import SuperchatSegment
+from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 
 
 @solara.component_vue("SuperchatSegmentTable.vue", vuetify=True)

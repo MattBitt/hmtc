@@ -1,4 +1,5 @@
 import pytest
+
 from hmtc.domains.artist import Artist
 from hmtc.models import Artist as ArtistModel
 

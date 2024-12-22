@@ -1,8 +1,9 @@
+from typing import Any, Dict
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import YoutubeSeries as YoutubeSeriesModel
 from hmtc.repos.series_repo import SeriesRepo
 from hmtc.repos.youtube_series_repo import YoutubeSeriesRepo
-from typing import Dict, Any
 
 
 class YoutubeSeries(BaseDomain):

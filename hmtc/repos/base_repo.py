@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional, Generator
+from typing import Any, Generator, Optional
 
 from loguru import logger
 

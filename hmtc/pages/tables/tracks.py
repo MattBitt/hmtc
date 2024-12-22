@@ -8,7 +8,6 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.track_table import TrackTable
-
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Track as TrackModel
 
