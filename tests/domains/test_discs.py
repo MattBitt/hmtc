@@ -4,41 +4,6 @@ from hmtc.models import Disc as DiscModel
 from hmtc.domains.album import Album
 
 
-@pytest.fixture
-def album_dicts():
-    return [
-        {"title": "Album 1", "release_date": "2023-01-01"},
-        {"title": "Album 2", "release_date": "2023-01-02"},
-        {"title": "Album 3", "release_date": "2023-01-03"},
-    ]
-
-
-@pytest.fixture
-def disc_dicts():
-
-    return [
-        {"title": "Disc 1"},
-        {"title": "Disc 2"},
-        {"title": "Disc 3"},
-    ]
-
-
-@pytest.fixture
-def album_item(album_dicts):
-    album = Album.create(album_dicts[0])
-    yield album
-    album.delete()
-
-
-@pytest.fixture
-def disc_item(disc_dicts, album_item):
-    dd = disc_dicts[0]
-    dd["album_id"] = album_item.instance.id
-    created_disc = Disc.create(dd)
-    yield created_disc
-    created_disc.delete()
-
-
 def test_disc_create_and_load(disc_dicts, album_dicts):
     # setup
     album = Album.create(album_dicts[0])

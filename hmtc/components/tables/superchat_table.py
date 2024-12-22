@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-
+from hmtc.domains.superchat import Superchat
 from hmtc.models import Superchat as SuperchatModel
 
 
@@ -41,6 +41,6 @@ def SuperchatTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
-        domain_class=SuperchatItem,
+        domain_class=Superchat,
         **item_info,
     )

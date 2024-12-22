@@ -2,6 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
+from hmtc.domains.user import User
 from hmtc.models import User as UserModel
 
 
@@ -40,6 +41,6 @@ def UserTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
-        domain_class=UserItem,
+        domain_class=User,
         **item_info,
     )

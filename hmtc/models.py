@@ -47,12 +47,14 @@ class BaseModel(Model):
     def my_dict(self):
         cols = self._meta.columns
         result = {}
-        for col, value in cols.items():
-            val = getattr(self, col)
-            if isinstance(value, DateField) or isinstance(value, DateTimeField):
-                result[col] = val.isoformat()
+        for col, column_type in cols.items():
+            value = getattr(self, col)
+            if isinstance(column_type, DateField) or isinstance(
+                column_type, DateTimeField
+            ):
+                result[col] = value.isoformat()
             else:
-                result[col] = val
+                result[col] = value
         return result
 
     @classmethod

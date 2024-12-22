@@ -3,15 +3,6 @@ from hmtc.domains.album import Album
 from hmtc.models import Album as AlbumModel
 
 
-@pytest.fixture
-def album_dicts():
-    return [
-        {"title": "Album 1", "release_date": "2023-01-01"},
-        {"title": "Album 2", "release_date": "2023-01-02"},
-        {"title": "Album 3", "release_date": "2023-01-03"},
-    ]
-
-
 def test_album_create_and_load(album_dicts):
     ad = album_dicts[0]
     created_album = Album.create(ad)

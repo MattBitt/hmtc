@@ -3,6 +3,7 @@ from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
+from hmtc.domains.superchat_segment import SuperchatSegment
 
 
 @solara.component_vue("SuperchatSegmentTable.vue", vuetify=True)
@@ -40,6 +41,6 @@ def SuperchatSegmentTable(router, headers, base_query, search_fields):
         base_query=base_query,
         headers=headers,
         search_fields=search_fields,
-        domain_class=SuperchatSegmentItem,
+        domain_class=SuperchatSegment,
         **item_info,
     )
