@@ -7,7 +7,7 @@ T = TypeVar("T", bound="BaseDomain")
 class BaseDomain:
     model = None
     repo = None
-    fm = None
+    fm = NotImplementedError("FileManager not implemented")
 
     def __init__(self, item_id: Optional[int] = None):
         if item_id and self.repo is not None:

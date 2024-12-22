@@ -2,7 +2,7 @@ import solara
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-
+from hmtc.domains import Channel, Video, Album, Track, Artist, User
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 from hmtc.utils.youtube_functions import download_channel_files
 
@@ -40,24 +40,22 @@ def download_channel_files_from_youtube(*args, **kwargs):
 def FilesInDatabaseDashboard():
     solara.Markdown(f"## Files in Database")
     with solara.Columns([6, 6]):
-        FileCard(
-            title="Videos",
-            icon="mdi-view-list",
-            value=Video.file_manager.count_all(),
-            button_caption="Import Video Files",
-            event_button_click=import_video_files,
-        )
-        FileCard(title="Albums", icon="mdi-shape", value=Album.file_manager.count_all())
+        # FileCard(
+        #     title="Videos",
+        #     icon="mdi-view-list",
+        #     value=Video.fm.count_all(),
+        #     button_caption="Import Video Files",
+        #     event_button_click=import_video_files,
+        # )
+        FileCard(title="Albums", icon="mdi-shape", value=Album.fm.count())
     with solara.Columns([6, 6]):
         FileCard(
             title="Channels",
             icon="mdi-youtube",
-            value=Channel.file_manager.count_all(),
+            value=Channel.fm.count(),
             event_button_click=download_channel_files_from_youtube,
         )
-        FileCard(
-            title="Tracks", icon="mdi-youtube", value=Track.file_manager.count_all()
-        )
+        # FileCard(title="Tracks", icon="mdi-youtube", value=Track.fm.count_all())
 
 
 @solara.component
