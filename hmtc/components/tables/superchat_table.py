@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.superchat import Superchat as SuperchatItem
+
 from hmtc.models import Superchat as SuperchatModel
 
 

@@ -14,9 +14,7 @@ from hmtc.components.shared.check_and_x.check_x import (
 )
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.domains.section import Section as SectionItem
-from hmtc.domains.superchat_segment import SuperchatSegment as SuperchatSegmentItem
-from hmtc.domains.video import Video as VideoItem
+
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel
@@ -59,7 +57,7 @@ def parse_url_args():
             router.push("/")
 
 
-def merge_with_previous(segment: SuperchatSegmentItem, refresh_trigger):
+def merge_with_previous(segment, refresh_trigger):
     _prev = segment.previous_segment.get_or_none()
     prev = SuperchatSegmentItem.from_model(_prev)
     logger.error(f"About to add {len(segment.superchats)} superchats to {prev.id}")
@@ -77,7 +75,7 @@ def merge_with_previous(segment: SuperchatSegmentItem, refresh_trigger):
     refresh_trigger.set(refresh_trigger.value + 1)
 
 
-def merge_with_next(segment: SuperchatSegmentItem, refresh_trigger):
+def merge_with_next(segment, refresh_trigger):
     _prev = segment.previous_segment.get_or_none()
     next = SuperchatSegmentItem.from_model(segment.next_segment)
     logger.error(f"About to add {len(segment.superchats)} superchats to {next.id}")
@@ -94,14 +92,14 @@ def merge_with_next(segment: SuperchatSegmentItem, refresh_trigger):
     refresh_trigger.set(refresh_trigger.value + 1)
 
 
-def delete_segment(segment: SuperchatSegmentItem, refresh_trigger):
+def delete_segment(segment, refresh_trigger):
     segment.delete_me()
     refresh_trigger.set(refresh_trigger.value + 1)
 
 
 @solara.component
 def SuperchatSegmentCard(
-    segment: SuperchatSegmentItem,
+    segment,
     long_enough,
     router,
     refresh_trigger,

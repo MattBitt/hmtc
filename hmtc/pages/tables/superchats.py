@@ -10,7 +10,7 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.superchat_table import SuperchatTable
-from hmtc.domains.superchat import Superchat
+
 from hmtc.models import Superchat as SuperchatModel
 
 

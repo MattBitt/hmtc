@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.beat import Beat as BeatItem
+
 from hmtc.models import Beat as BeatModel
 
 

@@ -11,9 +11,9 @@ class YoutubeSeries(BaseDomain):
     series_repo = SeriesRepo()
 
     def serialize(self) -> Dict[str, Any]:
-        series = self.series_repo.get_by_id(self.instance.series_id).my_dict()
+        series = self.series_repo.get_by_id(self.instance.series_id)
         return {
             "id": self.instance.id,
             "title": self.instance.title,
-            "series": series,
+            "series": series.my_dict(),
         }

@@ -4,7 +4,7 @@ from loguru import logger
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.domains.channel import Channel
-from hmtc.domains.video import Video
+
 from hmtc.models import ChannelFile as ChannelFileModel
 
 

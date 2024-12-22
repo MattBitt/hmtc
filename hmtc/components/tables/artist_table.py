@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.artist import Artist as ArtistItem
+
 from hmtc.models import Artist as ArtistModel
 
 

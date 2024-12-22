@@ -7,8 +7,6 @@ from hmtc.components.video.section_details_panel import SectionsDetailsPanel
 from hmtc.components.video.top_row import TopRow
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
-from hmtc.domains.section import Section
-from hmtc.domains.video import Video as VideoItem
 
 
 def parse_url_args():

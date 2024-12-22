@@ -12,5 +12,5 @@ class Album(BaseDomain):
         return {
             "id": self.instance.id,
             "title": self.instance.title,
-            "release_date": self.instance.release_date,
+            "release_date": str(self.instance.release_date),
         }

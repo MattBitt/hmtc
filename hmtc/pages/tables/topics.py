@@ -8,8 +8,7 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.topic_table import TopicTable
-from hmtc.domains.topic import Topic as TopicItem
-from hmtc.models import SectionTopic as SectionTopicModel
+
 from hmtc.models import Topic as TopicModel
 from hmtc.router import parse_url_args
 

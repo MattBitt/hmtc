@@ -10,7 +10,6 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.artist_table import ArtistTable
-from hmtc.domains.artist import Artist
 from hmtc.models import Artist as ArtistModel
 
 

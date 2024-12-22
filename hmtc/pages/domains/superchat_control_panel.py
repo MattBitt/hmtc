@@ -9,9 +9,6 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.domains.superchat import Superchat as SuperchatItem
-from hmtc.domains.superchat_segment import SuperchatSegment as SuperchatSegmentItem
-from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Superchat as SuperchatModel
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
 from hmtc.models import Video as VideoModel

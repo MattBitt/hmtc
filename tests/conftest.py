@@ -172,21 +172,21 @@ def channel_dicts() -> list:
             "url": "https://www.youtube.com/channel/1234vz7654363cxvadsf",
             "youtube_id": "hkjfaesdl",
             "auto_update": True,
-            "last_update_completed": "2021-01-01 00:00:00",
+            "last_update_completed": "2021-01-01T00:00:00",
         },
         {
             "title": "Peanut Butter Channel",
             "url": "https://www.youtube.com/channel/12sgbbvfsdgfd34vzcxvadsf",
             "youtube_id": "vcxzrtfd",
             "auto_update": True,
-            "last_update_completed": "2021-01-01 00:00:00",
+            "last_update_completed": "2021-01-01T00:00:00",
         },
         {
             "title": "Jelly Channel",
             "url": "https://www.youtube.com/channel/1234fdsag546xvadsf",
             "youtube_id": "trrewtghf",
             "auto_update": True,
-            "last_update_completed": "2021-01-01 00:00:00",
+            "last_update_completed": "2021-01-01T00:00:00",
         },
     ]
 

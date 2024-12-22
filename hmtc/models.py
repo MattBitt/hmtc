@@ -46,7 +46,14 @@ class BaseModel(Model):
 
     def my_dict(self):
         cols = self._meta.columns
-        return {col: getattr(self, col) for col in cols}
+        result = {}
+        for col, value in cols.items():
+            val = getattr(self, col)
+            if isinstance(value, DateField) or isinstance(value, DateTimeField):
+                result[col] = val.isoformat()
+            else:
+                result[col] = val
+        return result
 
     @classmethod
     def query_from_kwargs(cls, query=None, **kwargs):

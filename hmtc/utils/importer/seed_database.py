@@ -9,6 +9,7 @@ from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
 from hmtc.models import db_null
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
+from hmtc.domains import Series, Album, YoutubeSeries
 
 config = init_config()
 
@@ -17,17 +18,19 @@ STORAGE = config["STORAGE"]
 
 def seed_database_from_json(db_instance):
     logger.debug("Seeding database from seed_data.json")
-    # with open("hmtc/utils/importer/seed_data.json", "r") as f:
-    #     data = json.load(f)
+    with open("hmtc/utils/importer/seed_data.json", "r") as f:
+        data = json.load(f)
 
-    # for series in data["Series"]:
-    #     Series.create(series)
+    for series in data["Series"]:
+        Series.create(series)
 
-    # for album in data["Album"]:
-    #     Album.create(album)
+    for album in data["Album"]:
+        Album.create(album)
 
-    # for yt_series in data["YoutubeSeries"]:
-    #     YoutubeSeries.create(yt_series)
+    for yt_series in data["YoutubeSeries"]:
+        series = Series.get_by(title=yt_series["series"]["title"])
+        yt_series["series_id"] = series.instance.id
+        YoutubeSeries.create(yt_series)
 
     # for user in data["User"]:
     #     User.create(user)

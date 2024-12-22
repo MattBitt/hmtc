@@ -10,7 +10,8 @@ from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.user_table import UserTable
-from hmtc.domains.user import User
+
+
 from hmtc.models import User as UserModel
 
 

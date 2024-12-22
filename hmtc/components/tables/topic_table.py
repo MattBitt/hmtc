@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.topic import Topic
+
 from hmtc.models import Topic as TopicModel
 
 

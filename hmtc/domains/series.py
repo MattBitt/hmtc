@@ -10,5 +10,13 @@ class Series(BaseDomain):
     repo = SeriesRepo()
     youtube_series_repo = YoutubeSeriesRepo()
 
+    def serialize(self) -> dict:
+        return {
+            "id": self.instance.id,
+            "title": self.instance.title,
+            "start_date": str(self.instance.start_date),
+            "end_date": str(self.instance.end_date),
+        }
+
     def youtube_serieses(self) -> List[BaseDomain]:
         return self.youtube_series_repo.get_by(series_id=self.instance.id)

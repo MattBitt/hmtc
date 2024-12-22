@@ -2,7 +2,6 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.user import User as UserItem
 from hmtc.models import User as UserModel
 
 

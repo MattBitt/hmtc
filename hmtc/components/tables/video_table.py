@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.video import Video as VideoItem
+
 from hmtc.models import Video as VideoModel
 
 

@@ -86,7 +86,7 @@ def DataTable(
     num_items = base_query.count()
     base_query = base_query.paginate(current_page.value, per_page.value)
 
-    items = [domain_class.serialize(item.id) for item in base_query]
+    items = [domain_class(item.id).serialize() for item in base_query]
 
     vue_component(
         loading=loading.value,

@@ -2,8 +2,6 @@ import solara
 from loguru import logger
 
 from hmtc.components.tables.data_table import DataTable
-from hmtc.domains.section import Section
-from hmtc.domains.section import Section as _SectionItem
 from hmtc.models import Section as SectionModel
 
 

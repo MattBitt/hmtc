@@ -10,8 +10,6 @@ from loguru import logger
 
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
-from hmtc.domains.superchat import Superchat as SuperchatItem
-from hmtc.domains.video import Video as VideoItem
 from hmtc.models import Video as VideoModel
 from hmtc.utils.image import hex_to_rgb
 from hmtc.utils.opencv.image_extractor import ImageExtractor

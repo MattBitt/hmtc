@@ -10,40 +10,11 @@ from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
-from hmtc.domains.album import Album as AlbumItem
-from hmtc.domains.section import Section as SectionItem
-from hmtc.domains.series import Series as SeriesItem
-from hmtc.domains.track import Track as TrackItem
-from hmtc.domains.video import Video
-from hmtc.domains.youtube_series import YoutubeSeries as YoutubeSeriesItem
+
+
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
-from hmtc.models import (
-    SectionTopic as SectionTopicsModel,
-)
-from hmtc.models import (
-    Series as SeriesModel,
-)
-from hmtc.models import Superchat as SuperchatModel
-from hmtc.models import SuperchatSegment as SuperchatSegmentModel
-from hmtc.models import (
-    Topic as TopicModel,
-)
-from hmtc.models import (
-    Track as TrackModel,
-)
-from hmtc.models import (
-    Video as VideoModel,
-)
-from hmtc.models import (
-    YoutubeSeries as YoutubeSeriesModel,
-)
-from hmtc.utils.jellyfin_functions import (
-    can_ping_server,
-    get_user_favorites,
-    get_user_session,
-)
-from hmtc.utils.opencv.image_manager import ImageManager
+
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
 
