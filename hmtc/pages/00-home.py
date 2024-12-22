@@ -41,7 +41,7 @@ def refresh_from_youtube():
         c.last_update_completed = datetime.now()
         c.save()
         for id in ids_to_update[:5]:
-            VideoItem.create_from_youtube_id(id)
+            logger.debug(f"Downloading video {id}")
 
     if num_new_vids == 0:
         logger.debug("No new videos found")

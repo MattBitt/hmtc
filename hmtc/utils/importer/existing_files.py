@@ -7,13 +7,12 @@ from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
+from hmtc.domains.video import Video
+from hmtc.domains.channel import Channel
 
 config = init_config()
 db_instance = init_db(db_null, config)
 STORAGE = config["STORAGE"]
-
-
-class Video: ...
 
 
 def get_files_in_folder(folder: Path) -> List[Path]:
@@ -21,7 +20,11 @@ def get_files_in_folder(folder: Path) -> List[Path]:
 
 
 def youtube_id_in_db(youtube_id: str) -> bool:
-    return Video.youtube_id_exists(youtube_id)
+    return (
+        Video.repo.model.select()
+        .where(Video.repo.model.youtube_id == youtube_id)
+        .exists()
+    )
 
 
 def is_valid_youtube_id(youtube_id: str) -> bool:
@@ -59,8 +62,11 @@ def create_video_from_folder(path: Path) -> None:
 
         # read the data
         data = parse_youtube_info_file(info_file[0])
-
-        # create the video and channel (if it doesn't exist)
+        _channel = data.pop("channel")
+        channel = Channel.get_by(youtube_id=_channel["youtube_id"])
+        if channel is None:
+            channel = Channel.create(_channel)
+        data["channel_id"] = channel.instance.id
         vid = Video.create(data)
 
         # add the files to the db
@@ -71,8 +77,8 @@ def create_video_from_folder(path: Path) -> None:
             if not file.is_file() or "Zone.Identifier" in file.name:
                 logger.debug(f"Skipping {file.name}")
                 continue
-            Video.add_file(vid, file)
-        logger.success(f"Created video {vid.title}")
+            Video.fm.add_file(vid, file)
+        logger.success(f"Created video {vid.instance.title}")
         # if "omegle" in vid.title.lower():
         #     # FUTURE ...
         #     sections = check_for_sections(vid.description) or []

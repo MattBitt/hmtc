@@ -41,6 +41,7 @@ def Page():
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Title", "value": "title", "width": "30%"},
         {"text": "Duration", "value": "duration", "sortable": True},
+        {"text": "Files", "value": "file_count", "sortable": False},
         {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]

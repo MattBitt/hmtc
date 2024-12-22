@@ -9,4 +9,26 @@
     "python.REPL.enableREPLSmartSend": false,
     "editor.find.autoFindInSelection": "multiline",
     "editor.foldingStrategy": "indentation",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "cronus (docker)",
+            "database": "HMTCdevelopment",
+            "username": "postgres",
+            "password": "postgres"
+        },
+        {
+            "previewLimit": 50,
+            "server": "192.168.0.202",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "atlas (production)",
+            "database": "HMTC",
+            "username": "postgres",
+            "password": "mblfjkrk81"
+        }
+    ],
 }

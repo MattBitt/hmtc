@@ -28,26 +28,26 @@ def import_video_files(*args, **kwargs):
 
 
 def download_channel_files_from_youtube(*args, **kwargs):
-    for channel in Channel.repo.get_all():
+    for channel in Channel.repo.all():
         _channel = Channel(channel)
         files = download_channel_files(channel.youtube_id, channel.url)
 
         for file in files:
-            _channel.add_file(file)
+            Channel.fm.add_file(_channel, file)
 
 
 @solara.component
 def FilesInDatabaseDashboard():
     solara.Markdown(f"## Files in Database")
     with solara.Columns([6, 6]):
-        # FileCard(
-        #     title="Videos",
-        #     icon="mdi-view-list",
-        #     value=Video.fm.count_all(),
-        #     button_caption="Import Video Files",
-        #     event_button_click=import_video_files,
-        # )
-        FileCard(title="Albums", icon="mdi-shape", value=Album.fm.count())
+        FileCard(
+            title="Videos",
+            icon="mdi-view-list",
+            value=Video.fm.count(),
+            button_caption="Import Video Files",
+            event_button_click=import_video_files,
+        )
+        # FileCard(title="Albums", icon="mdi-shape", value=Album.fm.count())
     with solara.Columns([6, 6]):
         FileCard(
             title="Channels",

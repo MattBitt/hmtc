@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-
+from hmtc.domains.base_domain import BaseDomain
 from loguru import logger
 
 
@@ -12,7 +12,7 @@ class FileManager:
             raise FileNotFoundError(f"Path {path} not found")
         self.path = path
 
-    def add_file(self, item, file: Path):
+    def add_file(self, item: BaseDomain, file: Path):
         # logger.debug(f"Adding file {file} to 'item' {item}")
         if not file.exists():
             raise FileNotFoundError(f"File {file} not found")
@@ -35,7 +35,7 @@ class FileManager:
 
         file_dict = dict(name=str(_file), size=_file.stat().st_size, filetype=filetype)
 
-        self.model.create(**file_dict, item_id=item.id)
+        self.model.create(**file_dict, item_id=item.instance.id)
 
     def delete_files(self, item_id):
         files = list(self.model.select().where(self.model.item_id == item_id))

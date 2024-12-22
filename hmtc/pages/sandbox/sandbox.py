@@ -4,7 +4,7 @@ from loguru import logger
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.domains.channel import Channel
-
+from hmtc.domains.video import Video
 from hmtc.models import ChannelFile as ChannelFileModel
 
 
@@ -27,6 +27,6 @@ def Page():
         )
 
         # solara.Image(image=video.poster, width="300px")
-        for channel in Channel.repo.get_all():
+        for channel in Channel.repo.all():
             _channel = Channel(channel)
             solara.Image(image=_channel.poster, width="300px")

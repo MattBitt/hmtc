@@ -156,17 +156,7 @@
         <v-chip color="primary">{{ item.section_info.section_count }}</v-chip>
       </template>
       <template v-slot:item.file_count="{ item }">
-        <span v-if="item.file_count == 6">
-          <v-chip color="success">
-            <v-icon>mdi-check</v-icon>
-          </v-chip>
-        </span>
-        <span v-else-if="item.file_count == 0">
-          <v-chip color="error">
-            <v-icon>mdi-close</v-icon>
-          </v-chip>
-        </span>
-        <span v-else>
+        <span>
           <v-chip color="warning">
             {{ item.file_count }}
           </v-chip>

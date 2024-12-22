@@ -130,7 +130,7 @@
         <span>{{ item.title }}</span>
       </template>
       <template v-slot:item.files="{ item }">
-        <span>{{ item.files.count() }}</span>
+        <span>{{ item.files }}</span>
       </template>
 
       <template v-slot:item.actions="{ item }">
