@@ -36,7 +36,9 @@ class FileManager:
             final_file = file
 
         file_dict = dict(
-            name=str(final_file), size=final_file.stat().st_size, filetype=filetype
+            name=str(final_file),
+            size=final_file.stat().st_size / 1000000,
+            filetype=filetype,
         )
 
         self.model.create(**file_dict, item_id=item.instance.id)
