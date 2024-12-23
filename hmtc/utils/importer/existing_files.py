@@ -116,7 +116,7 @@ def import_existing_video_files_to_db(
     replace_files=False,
     delete_premigration_superchats=False,
 ):
-    to_process = 30
+    to_process = 300
     circuit_breaker = 0
 
     for item in path.glob("*"):

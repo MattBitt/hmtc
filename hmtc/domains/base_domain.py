@@ -32,7 +32,7 @@ class BaseDomain:
     def update(self, data: Dict[str, Any]) -> "BaseDomain":
         for key, value in data.items():
             setattr(self.instance, key, value)
-        self.save()
+        self.instance.save()
         return self
 
     def serialize(self) -> Dict[str, Any]:

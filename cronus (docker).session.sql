@@ -1,1 +1,2 @@
-SELECT * FROM series;
+SELECT *
+FROM video;
