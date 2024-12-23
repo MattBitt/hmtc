@@ -1,4 +1,6 @@
-select *
+select id,
+    name,
+    size
 from videofile
-ORDER BY duration DESC
-LIMIT 10;
+ORDER by created_at DESC
+LIMIT 100;
