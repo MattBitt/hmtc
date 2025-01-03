@@ -2,12 +2,15 @@ from typing import Any, Dict
 
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Track as TrackModel
+from hmtc.models import TrackFiles
+from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.track_repo import TrackRepo
 
 
 class Track(BaseDomain):
     model = TrackModel
     repo = TrackRepo()
+    file_repo = FileRepo(TrackFiles)
 
     def serialize(self) -> Dict[str, Any]:
         return {

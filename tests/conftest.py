@@ -6,6 +6,8 @@ import pytest
 from loguru import logger
 from PIL import Image
 
+from hmtc.models import *
+
 # these are needed before the app imports to set the environment variables
 os.environ["HMTC_ENV"] = "testing"
 
@@ -378,3 +380,87 @@ def topic_item(topic_dicts):
     topic = Topic.create(topic_dicts[0])
     yield topic
     topic.delete()
+
+
+@pytest.fixture
+def poster_file_dicts():
+    return [
+        {
+            "path": "/path/to/poster1.jpg",
+            "file_size": 1024000,
+            "modified_date": "2023-01-01 00:00:00",
+            "mime_type": "image/jpeg",
+            "hash": "poster123",
+            "height": 1080,
+            "width": 1920,
+            "colorspace": "RGB",
+        },
+        {
+            "path": "/path/to/poster2.jpg",
+            "file_size": 2048000,
+            "modified_date": "2023-01-02 00:00:00",
+            "mime_type": "image/jpeg",
+            "hash": "poster456",
+            "height": 720,
+            "width": 1280,
+            "colorspace": "RGB",
+        },
+    ]
+
+
+@pytest.fixture
+def audio_file_dicts():
+    return [
+        {
+            "path": "/path/to/audio1.mp3",
+            "file_size": 5120000,
+            "modified_date": "2023-01-01 00:00:00",
+            "mime_type": "audio/mpeg",
+            "hash": "audio123",
+            "bitrate": 320,
+            "sample_rate": 44100,
+            "channels": 2,
+            "duration": 180,
+        },
+        {
+            "path": "/path/to/audio2.mp3",
+            "file_size": 7680000,
+            "modified_date": "2023-01-02 00:00:00",
+            "mime_type": "audio/mpeg",
+            "hash": "audio456",
+            "bitrate": 192,
+            "sample_rate": 48000,
+            "channels": 2,
+            "duration": 240,
+        },
+    ]
+
+
+@pytest.fixture
+def video_file_dicts():
+    return [
+        {
+            "path": "/path/to/video1.mp4",
+            "file_size": 102400000,
+            "modified_date": "2023-01-01 00:00:00",
+            "mime_type": "video/mp4",
+            "hash": "video123",
+            "duration": 300,
+            "frame_rate": 29.97,
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+        },
+        {
+            "path": "/path/to/video2.mp4",
+            "file_size": 204800000,
+            "modified_date": "2023-01-02 00:00:00",
+            "mime_type": "video/mp4",
+            "hash": "video456",
+            "duration": 600,
+            "frame_rate": 60,
+            "width": 3840,
+            "height": 2160,
+            "codec": "h265",
+        },
+    ]
