@@ -4,12 +4,16 @@ from hmtc.models import *
 
 TABLES = [
     Album,
+    AlbumFiles,
     Artist,
+    AudioFile,
     Beat,
     BeatArtist,
     Channel,
     Disc,
     DiscVideo,
+    InfoFile,
+    PosterFile,
     Section,
     SectionTopic,
     Series,
@@ -18,9 +22,11 @@ TABLES = [
     Topic,
     Track,
     TrackBeat,
+    TrackFiles,
     User,
     Video,
     VideoFile,
+    VideoFiles,
     YoutubeSeries,
     YoutubeSeriesVideo,
 ]
