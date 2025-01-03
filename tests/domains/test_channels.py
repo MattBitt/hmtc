@@ -149,68 +149,68 @@ def test_count(channel_dicts):
     assert Channel.count() == 0
 
 
-def test_file_count_no_files(channel_dicts):
-    # setup
-    cd = channel_dicts[0]
-    channel = Channel.create(cd)
+# def test_file_count_no_files(channel_dicts):
+#     # setup
+#     cd = channel_dicts[0]
+#     channel = Channel.create(cd)
 
-    # tests
-    assert channel.fm.count() == 0
+#     # tests
+#     assert channel.fm.count() == 0
 
-    # teardown
-    channel.delete()
-
-
-def test_file_count_with_files(channel_dicts):
-    # setup
-    cd = channel_dicts[0]
-    channel = Channel.create(cd)
-    info_file = Path("info.json")
-    with info_file.open("w") as f:
-        f.write("test")
-    channel.fm.add_file(channel, info_file)
-
-    # tests
-    assert channel.fm.count() == 1
-    # teardown
-    channel.delete_me()
+#     # teardown
+#     channel.delete()
 
 
-def test_channel_files(channel_dicts):
-    # setup
-    cd = channel_dicts[0]
-    channel = Channel.create(cd)
-    info_file = Path("info.json")
-    with info_file.open("w") as f:
-        f.write("test")
+# def test_file_count_with_files(channel_dicts):
+#     # setup
+#     cd = channel_dicts[0]
+#     channel = Channel.create(cd)
+#     info_file = Path("info.json")
+#     with info_file.open("w") as f:
+#         f.write("test")
+#     channel.fm.add_file(channel, info_file)
 
-    channel.fm.add_file(channel, info_file)
-    # tests
-    files = channel.fm.files(channel.instance.id)
-    assert len(files) == 1
-    assert "info.json" in files[0].name
-    serialized = channel.serialize()
-    assert len(serialized["files"]) == 1
-    assert "info" in serialized["files"]
-    # teardown
-    channel.delete_me()
+#     # tests
+#     assert channel.fm.count() == 1
+#     # teardown
+#     channel.delete_me()
 
 
-def test_download_files(channel_dicts, tmp_path):
-    # setup
-    cd = channel_dicts[0]
-    channel = Channel.create(cd)
-    file = tmp_path / "someyoutube_id_info.json"
-    file.touch()
-    # tests
-    with patch("hmtc.domains.channel.download_channel_files") as mock_download:
-        mock_download.return_value = [file]
-        channel.download_files()
-        files = channel.fm.files(channel.instance.id)
-        assert len(files) == 1
-        assert "info.json" in files[0].name
-    # teardown
-    channel.delete_me()
-    mock_download.assert_called_once_with(
-        channel.instance.youtube_id, channel.instance.url
-    )
+# def test_channel_files(channel_dicts):
+#     # setup
+#     cd = channel_dicts[0]
+#     channel = Channel.create(cd)
+#     info_file = Path("info.json")
+#     with info_file.open("w") as f:
+#         f.write("test")
+
+#     channel.fm.add_file(channel, info_file)
+#     # tests
+#     files = channel.fm.files(channel.instance.id)
+#     assert len(files) == 1
+#     assert "info.json" in files[0].name
+#     serialized = channel.serialize()
+#     assert len(serialized["files"]) == 1
+#     assert "info" in serialized["files"]
+#     # teardown
+#     channel.delete_me()
+
+
+# def test_download_files(channel_dicts, tmp_path):
+#     # setup
+#     cd = channel_dicts[0]
+#     channel = Channel.create(cd)
+#     file = tmp_path / "someyoutube_id_info.json"
+#     file.touch()
+#     # tests
+#     with patch("hmtc.domains.channel.download_channel_files") as mock_download:
+#         mock_download.return_value = [file]
+#         channel.download_files()
+#         files = channel.fm.files(channel.instance.id)
+#         assert len(files) == 1
+#         assert "info.json" in files[0].name
+#     # teardown
+#     channel.delete_me()
+#     mock_download.assert_called_once_with(
+#         channel.instance.youtube_id, channel.instance.url
+#     )

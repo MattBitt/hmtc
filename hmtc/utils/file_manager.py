@@ -6,6 +6,8 @@ from loguru import logger
 from hmtc.domains.base_domain import BaseDomain
 
 
+# this needs to be reconfigured to remove the database portion
+# the file repo should handle that
 class FileManager:
     def __init__(self, model, filetypes, path: Path):
         self.model = model

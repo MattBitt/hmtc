@@ -18,11 +18,11 @@ STORAGE = Path(config["STORAGE"]) / "videos"
 class Video(BaseDomain):
     model = VideoModel
     repo = VideoRepo()
-    fm = FileManager(
-        model=VideoFileModel,
-        filetypes=["poster", "thumbnail", "info", "audio", "video", "subtitles"],
-        path=STORAGE,
-    )
+    # fm = FileManager(
+    #     model=VideoFileModel,
+    #     filetypes=["poster", "thumbnail", "info", "audio", "video", "subtitles"],
+    #     path=STORAGE,
+    # )
 
     def serialize(self) -> Dict[str, Any]:
         return {
@@ -37,7 +37,7 @@ class Video(BaseDomain):
             "jellyfin_id": self.instance.jellyfin_id,
             "channel_id": self.instance.channel_id,
             "disc_id": self.instance.disc_id,
-            "file_count": len(self.fm.files(self.instance.id)),
+            # "file_count": len(self.fm.files(self.instance.id)),
         }
 
     @classmethod

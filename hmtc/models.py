@@ -15,6 +15,7 @@ from peewee import (
     DateField,
     DateTimeField,
     DeferredForeignKey,
+    FloatField,
     ForeignKeyField,
     IntegerField,
     Model,
@@ -339,65 +340,106 @@ class Superchat(BaseModel):
 
 
 class File(BaseModel):
-    name = CharField(unique=True)
-    size = IntegerField()
-    filetype = CharField()
+    path = CharField()
+    file_size = IntegerField()  # typically in bytes
+    modified_date = DateTimeField()
+    mime_type = CharField(null=True)  # for generic file info
+    hash = CharField(null=True)  # could be useful for file verification
 
     def __repr__(self):
-        return f"File({self.id} - {self.name=})"
+        return f"FileModel({self.id} - {self.path=})"
 
     def __str__(self):
-        return f"File({self.id} - {self.name=})"
+        return f"FileModel({self.id} - {self.path=})"
 
 
+class PosterFile(File):
+    height = IntegerField()
+    width = IntegerField()
+    colorspace = CharField(null=True)  # e.g., RGB, CMYK, etc.
+
+    def __repr__(self):
+        return f"PosterFileModel({self.id} - {self.path=})"
+
+    def __str__(self):
+        return f"PosterFileModel({self.id} - {self.path=})"
+
+
+class InfoFile(File):
+    # Since this appears to be a basic info file, we might not need additional fields
+    # The base File fields should be sufficient, but we'll keep the class for type distinction
+
+    def __repr__(self):
+        return f"InfoFileModel({self.id} - {self.path=})"
+
+    def __str__(self):
+        return f"InfoFileModel({self.id} - {self.path=})"
+
+
+class AudioFile(File):
+    bitrate = IntegerField()  # typically in kbps
+    sample_rate = IntegerField()  # typically in Hz
+    channels = IntegerField(default=2)  # mono=1, stereo=2, etc.
+    duration = IntegerField()  # typically in seconds or milliseconds
+
+    def __repr__(self):
+        return f"AudioFileModel({self.id} - {self.path=})"
+
+    def __str__(self):
+        return f"AudioFileModel({self.id} - {self.path=})"
+
+
+# moving pictures, not the entity
 class VideoFile(File):
-    item = ForeignKeyField(Video, backref="files")
+    duration = IntegerField()  # in seconds or milliseconds
+    frame_rate = FloatField()  # e.g., 23.976, 29.97, 60
+    width = IntegerField()
+    height = IntegerField()
+    codec = CharField(null=True)
 
     def __repr__(self):
-        return f"VideoFile({self.id} - {self.name=})"
+        return f"VideoFileModel({self.id} - {self.path=})"
 
     def __str__(self):
-        return f"VideoFile({self.id} - {self.name=})"
+        return f"VideoFileModel({self.id} - {self.path=})"
 
 
-class AlbumFile(File):
-    item = ForeignKeyField(Album, backref="files")
-
-    def __repr__(self):
-        return f"AlbumFile({self.id} - {self.name=})"
-
-    def __str__(self):
-        return f"AlbumFile({self.id} - {self.name=})"
+class AlbumFiles(BaseModel):
+    item_id = ForeignKeyField(Album, backref="files")
+    info_file = ForeignKeyField(InfoFile, null=True)
+    poster_file = ForeignKeyField(PosterFile, null=True)
 
 
-class TrackFile(File):
-    item = ForeignKeyField(Track, backref="files")
+# Entity Video not moving pictures
+class VideoFiles(BaseModel):
+    item_id = ForeignKeyField(Video, backref="files")
+    info_file = ForeignKeyField(InfoFile, null=True)
+    poster_file = ForeignKeyField(PosterFile, null=True)
+    video_file = ForeignKeyField(VideoFile, null=True)
+    audio_file = ForeignKeyField(AudioFile, null=True)
 
-    def __repr__(self):
-        return f"TrackFile({self.id} - {self.name=})"
 
-    def __str__(self):
-        return f"TrackFile({self.id} - {self.name=})"
-
-
-class ChannelFile(File):
-    item = ForeignKeyField(Channel, backref="files")
-
-    def __repr__(self):
-        return f"ChannelFile({self.id} - {self.name=})"
-
-    def __str__(self):
-        return f"ChannelFile({self.id} - {self.name=})"
+class TrackFiles(BaseModel):
+    item_id = ForeignKeyField(Track, backref="files")
+    info_file = ForeignKeyField(InfoFile, null=True)
+    audio_file = ForeignKeyField(AudioFile, null=True)
 
 
 __all__ = [
+    # ... existing entries ...
+    "File",
+    "PosterFile",
+    "InfoFile",
+    "AudioFile",
+    "VideoFile",
     "Album",
-    "AlbumFile",
+    "AlbumFiles",
+    "TrackFiles",
+    "VideoFiles",
     "Artist",
     "Beat",
     "BeatArtist",
     "Channel",
-    "ChannelFile",
     "Disc",
     "DiscVideo",
     "Section",
@@ -407,11 +449,14 @@ __all__ = [
     "SuperchatSegment",
     "Topic",
     "Track",
-    "TrackFile",
     "TrackBeat",
     "User",
     "Video",
-    "VideoFile",
     "YoutubeSeries",
     "YoutubeSeriesVideo",
+    "File",
+    "PosterFile",
+    "InfoFile",
+    "AudioFile",
+    "VideoFile",
 ]

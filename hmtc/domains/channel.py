@@ -7,7 +7,6 @@ from peewee import ModelSelect
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Channel as ChannelModel
-from hmtc.models import ChannelFile as ChannelFileModel
 from hmtc.repos.channel_repo import ChannelRepo
 from hmtc.utils.file_manager import FileManager
 from hmtc.utils.youtube_functions import download_channel_files
@@ -19,9 +18,9 @@ STORAGE = Path(config["STORAGE"]) / "channels"
 class Channel(BaseDomain):
     model = ChannelModel
     repo = ChannelRepo()
-    fm = FileManager(
-        model=ChannelFileModel, filetypes=["poster", "thumbnail", "info"], path=STORAGE
-    )
+    # fm = FileManager(
+    #     model=ChannelFileModel, filetypes=["poster", "thumbnail", "info"], path=STORAGE
+    # )
 
     def delete_me(self) -> None:
         self.fm.delete_files(self.instance.id)
@@ -34,14 +33,15 @@ class Channel(BaseDomain):
 
     def serialize(self):
         file_dict = {}
-        for file in self.fm.files(self.instance.id):
-            file_dict[file.filetype] = file.name
+        # for file in self.fm.files(self.instance.id):
+        #     file_dict[file.filetype] = file.name
+
         return {
             "id": self.instance.id,
             "title": self.instance.title,
             "youtube_id": self.instance.youtube_id,
             "url": self.instance.url,
-            "files": self.fm.files(self.instance.id),
+            # "files": self.fm.files(self.instance.id),
             "auto_update": self.instance.auto_update,
             "last_update_completed": self.instance.last_update_completed,
             "files": file_dict,
