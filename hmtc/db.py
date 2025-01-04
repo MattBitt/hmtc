@@ -13,7 +13,7 @@ TABLES = [
     Disc,
     DiscVideo,
     InfoFile,
-    PosterFile,
+    ImageFile,
     Section,
     SectionTopic,
     Series,

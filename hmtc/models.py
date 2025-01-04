@@ -353,7 +353,7 @@ class File(BaseModel):
         return f"FileModel({self.id} - {self.path=})"
 
 
-class PosterFile(File):
+class ImageFile(File):
     height = IntegerField()
     width = IntegerField()
     colorspace = CharField(null=True)  # e.g., RGB, CMYK, etc.
@@ -404,31 +404,35 @@ class VideoFile(File):
         return f"VideoFileModel({self.id} - {self.path=})"
 
 
+class TrackFiles(BaseModel):
+    FILETYPES = ["info", "audio"]
+    item = ForeignKeyField(Track, backref="files")
+    info = ForeignKeyField(InfoFile, null=True)
+    audio = ForeignKeyField(AudioFile, null=True)
+
+
+# not really implemented yet
+# working to get TrackFiles working
+# and then roll changes the others
 class AlbumFiles(BaseModel):
-    item_id = ForeignKeyField(Album, backref="files")
-    info_file = ForeignKeyField(InfoFile, null=True)
-    poster_file = ForeignKeyField(PosterFile, null=True)
+    item = ForeignKeyField(Album, backref="files")
+    info = ForeignKeyField(InfoFile, null=True)
+    poster = ForeignKeyField(ImageFile, null=True)
 
 
 # Entity Video not moving pictures
 class VideoFiles(BaseModel):
-    item_id = ForeignKeyField(Video, backref="files")
-    info_file = ForeignKeyField(InfoFile, null=True)
-    poster_file = ForeignKeyField(PosterFile, null=True)
-    video_file = ForeignKeyField(VideoFile, null=True)
-    audio_file = ForeignKeyField(AudioFile, null=True)
-
-
-class TrackFiles(BaseModel):
-    item_id = ForeignKeyField(Track, backref="files")
-    info_file = ForeignKeyField(InfoFile, null=True)
-    audio_file = ForeignKeyField(AudioFile, null=True)
+    item = ForeignKeyField(Video, backref="files")
+    info = ForeignKeyField(InfoFile, null=True)
+    poster = ForeignKeyField(ImageFile, null=True)
+    video = ForeignKeyField(VideoFile, null=True)
+    audio = ForeignKeyField(AudioFile, null=True)
 
 
 __all__ = [
     # ... existing entries ...
     "File",
-    "PosterFile",
+    "ImageFile",
     "InfoFile",
     "AudioFile",
     "VideoFile",
@@ -455,7 +459,7 @@ __all__ = [
     "YoutubeSeries",
     "YoutubeSeriesVideo",
     "File",
-    "PosterFile",
+    "ImageFile",
     "InfoFile",
     "AudioFile",
     "VideoFile",

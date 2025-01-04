@@ -1,45 +1,130 @@
+import shutil
+from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
-from enum import Enum
-from hmtc.models import BaseModel
 
-class FileTypeNotSupportedError(Exception):
-    pass
+from loguru import logger
+
+from hmtc.config import init_config
+from hmtc.models import AudioFile, BaseModel, ImageFile, InfoFile, VideoFile
+
+config = init_config()
+STORAGE = Path(config["STORAGE"])
+
+
+class MyImage: ...
+
+
+def MOVE_FILE(source: Path, target: Path):
+    try:
+        # need to do this better....
+        final_file = source.rename(target)
+    except OSError as e:
+        logger.debug(f"Error moving file {source} to storage: {e}")
+        if e.errno == 18:  # Invalid cross-device link
+            shutil.move(source, target)
+            final_file = target
+        else:
+            raise Exception(f"Error moving file {source} to storage: {e}")
+    if target != final_file:
+        logger.error(f"Something fishy is happening")
+
+    return final_file
+
+
+def get_filetype(file: Path):
+    file_string = str(file)
+    videos = [".mkv", ".mp4", ".webm"]
+    audios = [".mp3", ".wav"]
+    lyrics = [".lrc"]
+    subtitles = [".srt", ".en.vtt"]
+    infos = [".nfo", ".info.json", ".json", ".txt"]
+    posters = [".jpg", ".jpeg", ".png", ".webp"]
+
+    if file_string.endswith(tuple(videos)):
+        return "video"
+
+    if file_string.endswith(tuple(audios)):
+        return "audio"
+
+    if file_string.endswith(tuple(infos)):
+        return "info"
+
+    if file_string.endswith(tuple(lyrics)):
+        return "lyrics"
+
+    if file_string.endswith(tuple(subtitles)):
+        return "subtitles"
+
+    if file_string.endswith(tuple(posters)):
+        return "poster"
+
+    raise ValueError(f"Invalid filetype for {file_string}")
+
+
+def process_file(filetype, file):
+    match filetype:
+        case "audio":
+            return {"mp3_details": file}
+        case "video":
+            return {"mkv_details": file}
+        case "info":
+            return {"info": file}
+        case "lyrics":
+            return {"parse_lyrics": file}
+
+
+def table_from_string(filetype) -> BaseModel:
+    match filetype:
+        case "audio":
+            return AudioFile
+        case "video":
+            return VideoFile
+        case "info":
+            return InfoFile
+        case "poster":  # probably need to rethink this
+            return ImageFile
+        case "lyrics":
+            return "LyricFile"
+        case "subtitles":
+            return "SubtitleFile"
+
 
 class FileRepo:
-    # Map filetypes to their respective table/model classes
-    FILETYPE_MAP = {
-        "poster": "ImageTable",
-        "audio": "AudioTable",
-        "video": "VideoTable"
-    }
 
-    def __init__(self, model: BaseModel, item_id: int = 0):
+    def __init__(self, model: BaseModel):
         self.model = model
-        self.item_id = item_id
-        self.files = self.load_files() if item_id != 0 else []
 
-    def get(self, filetype: Optional[str] = None) -> Union[List[BaseModel], BaseModel]:
-        """
-        Retrieve files, optionally filtered by filetype.
-        Lazy loads files if not already loaded.
-        """
-        if not self.files:
-            self.files = self.load_files()
+    def add(self, item_id: int, file: Path) -> None:
+        filetype = get_filetype(file)
+        if filetype in self.model.FILETYPES:
+            target_path = None  # TBD
+            need_to_move = False  # TBD
 
-        if filetype:
-            # Filter files by type using getattr to dynamically access properties
-            return next((f for f in self.files if getattr(f, f"{filetype}_id", None)), None)
+            if need_to_move:
+                MOVE_FILE(file, target_path)
+            try:
+                new_file_dict = process_file(filetype, file)
+            except Exception as e:
+                logger.error(f"Error adding a file {file} to item {item_id}")
+                raise e
+            self.model.create(item_id=item_id, **new_file_dict)
+        else:
+            raise ValueError(f"Filetype not found while ADDING {file}")
 
-        return self.files
+    def get(self, item_id: int, filetype: str) -> Path:
+        if filetype in self.model.FILETYPES:
+            tbl = table_from_string(filetype) #AudioFile table
+            res1 = self.model.select().where((self.model.item_id == item_id)).get_or_none()
+            if res1 is not None:
+                res2 = tbl.get(res1.item_id)
+            return res2.get_or_none()
+        else:
+            raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
 
-    def load_files(self) -> List[BaseModel]:
-        """Load all files associated with the item_id"""
-        return list(self.model.select().where(self.model.item_id == self.item_id))
-
-    # def poster(self) -> 'MyImage':
-    #     """Get poster image file"""
-    #     return MyImage(self.get("poster"))
+    def poster(self) -> "MyImage":
+        """Get poster image file"""
+        return MyImage(self.get("poster"))
 
     def mp3(self) -> Path:
         """Get audio file path"""
@@ -48,26 +133,3 @@ class FileRepo:
     def mkv(self) -> Path:
         """Get video file path"""
         return Path(self.get("video"))
-
-    def add(self, file: Path) -> None:
-        """
-        Add a new file to the repository
-        Args:
-            file: Path to the file
-            existing: Strategy for handling existing files ('overwrite' or 'append')
-        """
-        filetype = self._get_filetype(file)
-        FileTable = self._convert_filetype_to_filetable(filetype)
-
-        if not FileTable:
-            raise FileTypeNotSupportedError(f"Filetype '{filetype}' is not supported")
-
-        file_data = self._prepare_file_data(file)
-
-
-        # Create new file entry
-        FileTable.create(**file_data, item_id=self.item_id)
-        
-        # Refresh files list
-        self.files = self.load_files()
-

@@ -7,7 +7,7 @@ from hmtc.models import *
 
 
 def test_create_poster_file(poster_file_dicts):
-    poster = PosterFile.create(**poster_file_dicts[0])
+    poster = ImageFile.create(**poster_file_dicts[0])
     assert poster.height == poster_file_dicts[0]["height"]
     assert poster.width == poster_file_dicts[0]["width"]
     assert poster.colorspace == poster_file_dicts[0]["colorspace"]
@@ -32,14 +32,9 @@ def test_create_video_file(video_file_dicts):
 
 def test_track_audio_file(track_item, audio_file_dicts):
     audio = AudioFile.create(**audio_file_dicts[0])
-    track_item.file_repo.add(audio)
-    _aud = track_item.file_repo.get("audio")
-    assert _aud is not None
-
-
-def test_allowed_filetypes(track_item):
-    track_files = track_item.file_repo.ALLOWED_FILETYPES()
-    assert 'audio' in track_files
-    assert 'info' in track_files
-    assert 'video' not in track_files
-
+    track_item.add_file(audio.path)
+    _audio_file = track_item.get_file("audio")
+    assert _audio_file is not None
+    track_item.delete_file("audio")
+    _audio_file2 = track_item.get_file("audio")
+    assert _audio_file2 is None

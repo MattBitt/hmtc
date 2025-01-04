@@ -5,4 +5,3 @@ import pytest
 
 from hmtc.models import Channel as ChannelModel
 from hmtc.repos.base_repo import Repository
-from hmtc.utils.file_manager import FileManager

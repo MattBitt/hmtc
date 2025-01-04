@@ -8,7 +8,6 @@ from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Channel as ChannelModel
 from hmtc.repos.channel_repo import ChannelRepo
-from hmtc.utils.file_manager import FileManager
 from hmtc.utils.youtube_functions import download_channel_files
 
 config = init_config()

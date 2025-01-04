@@ -8,7 +8,6 @@ from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFile as VideoFileModel
 from hmtc.repos.video_repo import VideoRepo
-from hmtc.utils.file_manager import FileManager
 
 config = init_config()
 
