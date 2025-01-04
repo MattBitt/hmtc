@@ -12,6 +12,14 @@ config = init_config()
 STORAGE = Path(config["STORAGE"])
 
 
+VIDEOS = [".mkv", ".mp4", ".webm"]
+AUDIOS = [".mp3", ".wav"]
+LYRICS = [".lrc"]
+SUBTITLES = [".srt", ".en.vtt"]
+INFOS = [".nfo", ".info.json", ".json", ".txt"]
+POSTERS = [".jpg", ".jpeg", ".png", ".webp"]
+
+
 class MyImage: ...
 
 
@@ -34,29 +42,23 @@ def MOVE_FILE(source: Path, target: Path):
 
 def get_filetype(file: Path):
     file_string = str(file)
-    videos = [".mkv", ".mp4", ".webm"]
-    audios = [".mp3", ".wav"]
-    lyrics = [".lrc"]
-    subtitles = [".srt", ".en.vtt"]
-    infos = [".nfo", ".info.json", ".json", ".txt"]
-    posters = [".jpg", ".jpeg", ".png", ".webp"]
 
-    if file_string.endswith(tuple(videos)):
+    if file_string.endswith(tuple(VIDEOS)):
         return "video"
 
-    if file_string.endswith(tuple(audios)):
+    if file_string.endswith(tuple(AUDIOS)):
         return "audio"
 
-    if file_string.endswith(tuple(infos)):
+    if file_string.endswith(tuple(INFOS)):
         return "info"
 
-    if file_string.endswith(tuple(lyrics)):
+    if file_string.endswith(tuple(LYRICS)):
         return "lyrics"
 
-    if file_string.endswith(tuple(subtitles)):
+    if file_string.endswith(tuple(SUBTITLES)):
         return "subtitles"
 
-    if file_string.endswith(tuple(posters)):
+    if file_string.endswith(tuple(POSTERS)):
         return "poster"
 
     raise ValueError(f"Invalid filetype for {file_string}")
@@ -114,8 +116,10 @@ class FileRepo:
 
     def get(self, item_id: int, filetype: str) -> Path:
         if filetype in self.model.FILETYPES:
-            tbl = table_from_string(filetype) #AudioFile table
-            res1 = self.model.select().where((self.model.item_id == item_id)).get_or_none()
+            tbl = table_from_string(filetype)  # AudioFile table
+            res1 = (
+                self.model.select().where((self.model.item_id == item_id)).get_or_none()
+            )
             if res1 is not None:
                 res2 = tbl.get(res1.item_id)
             return res2.get_or_none()
