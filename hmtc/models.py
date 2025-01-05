@@ -341,9 +341,8 @@ class Superchat(BaseModel):
 
 class File(BaseModel):
     path = CharField()
-    file_size = IntegerField()  # typically in bytes
-    modified_date = DateTimeField()
-    mime_type = CharField(null=True)  # for generic file info
+    file_size = IntegerField()  # stored in kbytes
+    modified_datetime = DateTimeField()
     hash = CharField(null=True)  # could be useful for file verification
 
     def __repr__(self):

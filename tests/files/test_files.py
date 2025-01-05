@@ -29,12 +29,12 @@ def test_create_video_file(video_file_dicts):
     assert video.height == video_file_dicts[0]["height"]
     assert video.codec == video_file_dicts[0]["codec"]
 
+def test_track_info_file(track_item, tmp_path):
+    info_file = tmp_path / 'test.info.json'
+    with open(info_file, 'w') as f:
+        for i in range(1000):
+            f.write("some title and info\n")
+    assert info_file.exists()
+    track_item.add_file(info_file)
+    info_file.unlink()
 
-def test_track_audio_file(track_item, audio_file_dicts):
-    audio = AudioFile.create(**audio_file_dicts[0])
-    track_item.add_file(audio.path)
-    _audio_file = track_item.get_file("audio")
-    assert _audio_file is not None
-    track_item.delete_file("audio")
-    _audio_file2 = track_item.get_file("audio")
-    assert _audio_file2 is None

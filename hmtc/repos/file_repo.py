@@ -1,4 +1,5 @@
 import shutil
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
@@ -65,15 +66,28 @@ def get_filetype(file: Path):
 
 
 def process_file(filetype, file):
+    # there are certain properties that each file will need
+    file_dict = dict(
+    file_size = round(file.stat().st_size / 1024), # kbytes
+    modified_datetime = datetime.fromtimestamp(file.stat().st_mtime),
+    path = '/somepath', # TBD
+    hash = None, # TBD
+    )
+    # this function should create the file in the 
+    # appropriate table
     match filetype:
         case "audio":
-            return {"mp3_details": file}
+            raise
         case "video":
-            return {"mkv_details": file}
+            raise
         case "info":
-            return {"info": file}
+            # no extra fields for info file
+            # so create it in the info table
+            new_file = InfoFile.create(**file_dict)
+            return {"info": new_file}
+        
         case "lyrics":
-            return {"parse_lyrics": file}
+            raise
 
 
 def table_from_string(filetype) -> BaseModel:
@@ -101,10 +115,7 @@ class FileRepo:
         filetype = get_filetype(file)
         if filetype in self.model.FILETYPES:
             target_path = None  # TBD
-            need_to_move = False  # TBD
 
-            if need_to_move:
-                MOVE_FILE(file, target_path)
             try:
                 new_file_dict = process_file(filetype, file)
             except Exception as e:
