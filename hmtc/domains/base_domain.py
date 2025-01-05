@@ -29,7 +29,7 @@ class BaseDomain:
     
     def delete(self) -> None:
         try:
-            self.file_repo.delete_files()
+            self.file_repo.delete_files(self.instance.id)
         except Exception as e:
             logger.error("Probably fine..")
             

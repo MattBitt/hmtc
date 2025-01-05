@@ -141,10 +141,16 @@ class FileRepo:
         else:
             raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
 
-    def delete_files(self):
-        _item = 0
-        files = self.model.select().where((self.model.item_id == _item)).get_or_none()
-
+    def delete_files(self, item_id):
+        
+        files = self.model.select().where((self.model.id == item_id)).get_or_none()
+        if files is None:
+            logger.debug(f"No files found. Nothing to do!")
+            return
+        
+        for file in files:
+            logger.error(f"Deleting file {file}")
+            
     def poster(self) -> "MyImage":
         """Get poster image file"""
         return MyImage(self.get("poster"))
