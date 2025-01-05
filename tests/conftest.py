@@ -64,7 +64,7 @@ def text_file(tmp_path):
     file.unlink()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def album_dicts():
     return [
         {"title": "Album 1", "release_date": "2023-01-01"},
@@ -100,7 +100,7 @@ def channel_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def disc_dicts():
 
     return [
@@ -110,7 +110,7 @@ def disc_dicts():
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def section_dicts():
     return [
         {"start": 0, "end": 100, "section_type": "intro"},
@@ -140,7 +140,7 @@ def series_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def superchat_dicts() -> list:
     return [
         {"frame": 0},
@@ -149,7 +149,7 @@ def superchat_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def superchat_segment_dicts() -> list:
     return [
         {"start_time_ms": 0, "end_time_ms": 100},
@@ -158,7 +158,7 @@ def superchat_segment_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def track_dicts():
     return [
         {"title": "Track 1", "track_number": 1, "length": 100},
@@ -167,7 +167,7 @@ def track_dicts():
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def video_dicts():
     return [
         {
@@ -224,21 +224,21 @@ def youtube_series_dicts():
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def album_item(album_dicts):
     album = Album.create(album_dicts[0])
     yield album
     album.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def channel_item(channel_dicts):
     channel = Channel.create(channel_dicts[0])
     yield channel
     channel.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def disc_item(disc_dicts, album_item):
     dd = disc_dicts[0]
     dd["album_id"] = album_item.instance.id
@@ -247,7 +247,7 @@ def disc_item(disc_dicts, album_item):
     created_disc.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def section_item(section_dicts, video_item):
     sd = section_dicts[0]
     sd["video_id"] = video_item.instance.id
@@ -256,14 +256,14 @@ def section_item(section_dicts, video_item):
     created_section.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def series_item(series_dicts):
     series = Series.create(series_dicts[0])
     yield series
     series.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def superchat_item(superchat_dicts, video_item):
     sd = superchat_dicts[0]
     sd["video_id"] = video_item.instance.id
@@ -272,7 +272,7 @@ def superchat_item(superchat_dicts, video_item):
     superchat.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def superchat_segment_item(superchat_segment_dicts, section_item):
     ssd = superchat_segment_dicts[0]
     ssd["section_id"] = section_item.instance.id
@@ -281,7 +281,7 @@ def superchat_segment_item(superchat_segment_dicts, section_item):
     created_superchat_segment.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def track_item(track_dicts, disc_item, section_item):
     td = track_dicts[0]
     td["disc_id"] = disc_item.instance.id
@@ -291,7 +291,7 @@ def track_item(track_dicts, disc_item, section_item):
     created_track.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def video_item(video_dicts, channel_item):
     video_dicts[0]["channel_id"] = channel_item.instance.id
     video = Video.create(video_dicts[0])
@@ -299,30 +299,30 @@ def video_item(video_dicts, channel_item):
     video.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def youtube_series_item(youtube_series_dicts):
     series = Series.create(youtube_series_dicts[0])
     yield series
     series.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def artist_dicts() -> list:
     return [
         {"name": "Artist 1", "url": "http://example.com/artist1"},
-        {"name": "Artist 2", "url": "http://example.com/artist2"},
-        {"name": "Artist 3", "url": "http://example.com/artist3"},
+        {"name": "Another Artist", "url": "http://example.com/artist2"},
+        {"name": "Artist 3 and iasdf", "url": "http://example.com/artist3"},
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def artist_item(artist_dicts):
     artist = Artist.create(artist_dicts[0])
     yield artist
     artist.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def beat_dicts() -> list:
     return [
         {"title": "Beat 1"},
@@ -331,14 +331,14 @@ def beat_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def beat_item(beat_dicts):
     beat = Beat.create(beat_dicts[0])
     yield beat
     beat.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def user_dicts() -> list:
     return [
         {
@@ -359,14 +359,14 @@ def user_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def user_item(user_dicts):
     user = User.create(user_dicts[0])
     yield user
     user.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def topic_dicts() -> list:
     return [
         {"text": "Topic 1"},
@@ -375,14 +375,14 @@ def topic_dicts() -> list:
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def topic_item(topic_dicts):
     topic = Topic.create(topic_dicts[0])
     yield topic
     topic.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def poster_file_dicts():
     return [
         {
@@ -408,7 +408,7 @@ def poster_file_dicts():
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def audio_file_dicts():
     return [
         {
@@ -436,7 +436,7 @@ def audio_file_dicts():
     ]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def video_file_dicts():
     return [
         {

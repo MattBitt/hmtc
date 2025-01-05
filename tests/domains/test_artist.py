@@ -13,7 +13,7 @@ def test_artist_create_and_load(artist_dicts):
 
     loaded_artist = Artist.load(created_artist.instance.id)
     assert loaded_artist.instance.name == ad["name"]
-    created_artist.delete()
+    loaded_artist.delete()
 
 
 def test_artist_create_no_name(artist_dicts):

@@ -405,6 +405,7 @@ class VideoFile(File):
 
 class TrackFiles(BaseModel):
     FILETYPES = ["info", "audio"]
+   
     item = ForeignKeyField(Track, backref="files")
     info = ForeignKeyField(InfoFile, null=True)
     audio = ForeignKeyField(AudioFile, null=True)
@@ -414,6 +415,7 @@ class TrackFiles(BaseModel):
 # working to get TrackFiles working
 # and then roll changes the others
 class AlbumFiles(BaseModel):
+    FILETYPES = ["info", "poster"]
     item = ForeignKeyField(Album, backref="files")
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)

@@ -26,13 +26,6 @@ class Track(BaseDomain):
             "disc": self.instance.disc,
         }
 
-    def add_file(self, file: Path):
-        self.file_repo.add(item_id=self.instance.id, file=file)
-
-    def get_file(self, filetype) -> Path | None:
-        _file = self.file_repo.get(item_id=self.instance.id, filetype=filetype)
-        return Path(_file) if _file else None
-
     def delete_file(self, filetype):
         _file = self.get_file(filetype)
         pass

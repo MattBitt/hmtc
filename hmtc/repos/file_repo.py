@@ -65,29 +65,30 @@ def get_filetype(file: Path):
     raise ValueError(f"Invalid filetype for {file_string}")
 
 
-def process_file(filetype, file):
-    # there are certain properties that each file will need
+def process_file(file, target_path):
+    # for the path
     file_dict = dict(
-    file_size = round(file.stat().st_size / 1024), # kbytes
-    modified_datetime = datetime.fromtimestamp(file.stat().st_mtime),
-    path = '/somepath', # TBD
-    hash = None, # TBD
+        file_size=round(file.stat().st_size / 1024),  # kbytes
+        modified_datetime=datetime.fromtimestamp(file.stat().st_mtime),
+        path=str(file),  # TBD
+        hash=None,  # TBD
     )
-    # this function should create the file in the 
-    # appropriate table
+
+    filetype = get_filetype(file)
     match filetype:
         case "audio":
             raise
         case "video":
             raise
         case "info":
-            # no extra fields for info file
-            # so create it in the info table
+            
+            
             new_file = InfoFile.create(**file_dict)
-            return {"info": new_file}
-        
         case "lyrics":
             raise
+        case _:
+            raise Exception(f"Filetype {filetype}")
+    return {filetype: new_file}
 
 
 def table_from_string(filetype) -> BaseModel:
@@ -98,7 +99,10 @@ def table_from_string(filetype) -> BaseModel:
             return VideoFile
         case "info":
             return InfoFile
-        case "poster":  # probably need to rethink this
+        # probably need to rethink this
+        # (poster vs image)
+        # and this whole function...
+        case "poster":
             return ImageFile
         case "lyrics":
             return "LyricFile"
@@ -117,7 +121,7 @@ class FileRepo:
             target_path = None  # TBD
 
             try:
-                new_file_dict = process_file(filetype, file)
+                new_file_dict = process_file(file, target_path)
             except Exception as e:
                 logger.error(f"Error adding a file {file} to item {item_id}")
                 raise e
@@ -136,6 +140,10 @@ class FileRepo:
             return res2.get_or_none()
         else:
             raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
+
+    def delete_files(self):
+        _item = 0
+        files = self.model.select().where((self.model.item_id == _item)).get_or_none()
 
     def poster(self) -> "MyImage":
         """Get poster image file"""

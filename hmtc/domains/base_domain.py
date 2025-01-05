@@ -1,5 +1,6 @@
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type, TypeVar
-
+from loguru import logger
 from peewee import DoesNotExist, Model
 
 T = TypeVar("T", bound="BaseDomain")
@@ -8,7 +9,7 @@ T = TypeVar("T", bound="BaseDomain")
 class BaseDomain:
     model = None
     repo = None
-    fm = NotImplementedError("FileManager not implemented")
+    file_repo = NotImplementedError("file_repo not implemented")
 
     def __init__(self, item_id: Optional[int] = None):
         if item_id and self.repo is not None:
@@ -25,7 +26,14 @@ class BaseDomain:
         if self.instance:
             self.instance.save()
 
+    
     def delete(self) -> None:
+        try:
+            self.file_repo.delete_files()
+        except Exception as e:
+            logger.error("Probably fine..")
+            
+            
         if self.instance:
             self.instance.delete_instance()
 
@@ -62,3 +70,11 @@ class BaseDomain:
     @classmethod
     def count(cls) -> int:
         return cls.model.select().count()
+
+    # the methods for the domains that include files
+    def add_file(self, file: Path):
+        self.file_repo.add(item_id=self.instance.id, file=file)
+
+    def get_file(self, filetype) -> Path | None:
+        _file = self.file_repo.get(item_id=self.instance.id, filetype=filetype)
+        return Path(_file.path) if _file else None
