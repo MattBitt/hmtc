@@ -142,14 +142,23 @@ class FileRepo:
             raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
 
     def delete_files(self, item_id):
+        item_file_row = (
+                self.model.select().where((self.model.item_id == item_id)).get_or_none()
+            ) #AlbumFiles
         
-        files = self.model.select().where((self.model.id == item_id)).get_or_none()
-        if files is None:
-            logger.debug(f"No files found. Nothing to do!")
-            return
-        
-        for file in files:
-            logger.error(f"Deleting file {file}")
+        for filetype in self.model.FILETYPES:
+            tbl = table_from_string(filetype)  # AudioFile table
+            if filetype == "info":
+                info_file = Path(item_file_row.info.path)
+                info_file.unlink()
+                
+                logger.debug(f"Found {filetype} file. Deleting")
+                
+                res2 = InfoFile.select().where(InfoFile.id == item_id)
+                logger.debug(f"res2 {res2}")
+            # return res2.get_or_none()
+
+
             
     def poster(self) -> "MyImage":
         """Get poster image file"""

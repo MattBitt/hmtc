@@ -44,9 +44,9 @@ def test_track_info_file(track_item, tmp_path):
     with open(loaded_file, "r") as f:
         line1 = f.readline()
         assert line1 == "some title and info\n"
-
+    track_item.delete
     # cleanup
-    info_file.unlink()
+    # info_file.unlink() # should be deleted by its owner
     assert not info_file.exists()
 
 
