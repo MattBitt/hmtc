@@ -81,8 +81,7 @@ def process_file(file, target_path):
         case "video":
             raise
         case "info":
-            
-            
+
             new_file = InfoFile.create(**file_dict)
         case "lyrics":
             raise
@@ -143,23 +142,26 @@ class FileRepo:
 
     def delete_files(self, item_id):
         item_file_row = (
-                self.model.select().where((self.model.item_id == item_id)).get_or_none()
-            ) #AlbumFiles
-        
+            self.model.select().where((self.model.item_id == item_id)).get_or_none()
+        )  # AlbumFiles
+
         for filetype in self.model.FILETYPES:
-            tbl = table_from_string(filetype)  # AudioFile table
+
             if filetype == "info":
                 info_file = Path(item_file_row.info.path)
                 info_file.unlink()
-                
+                file_id = item_file_row.info.id
+                item_file_row.info = None
+                item_file_row.save()
+
                 logger.debug(f"Found {filetype} file. Deleting")
-                
-                res2 = InfoFile.select().where(InfoFile.id == item_id)
-                logger.debug(f"res2 {res2}")
-            # return res2.get_or_none()
 
+                res2 = InfoFile.select().where(InfoFile.id == file_id).get()
+                res2.delete_instance()
+        item_file_row.delete_instance()
 
-            
+        # return res2.get_or_none()
+
     def poster(self) -> "MyImage":
         """Get poster image file"""
         return MyImage(self.get("poster"))

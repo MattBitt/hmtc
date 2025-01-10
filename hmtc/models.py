@@ -405,7 +405,7 @@ class VideoFile(File):
 
 class TrackFiles(BaseModel):
     FILETYPES = ["info", "audio"]
-   
+
     item = ForeignKeyField(Track, backref="files")
     info = ForeignKeyField(InfoFile, null=True)
     audio = ForeignKeyField(AudioFile, null=True)

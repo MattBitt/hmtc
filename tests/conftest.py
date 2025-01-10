@@ -289,7 +289,6 @@ def track_item(track_dicts, disc_item, section_item):
     created_track = Track.create(td)
     yield created_track
     created_track.delete()
-    
 
 
 @pytest.fixture(scope="function")

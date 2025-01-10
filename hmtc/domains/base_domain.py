@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type, TypeVar
+
 from loguru import logger
 from peewee import DoesNotExist, Model
 
@@ -26,14 +27,12 @@ class BaseDomain:
         if self.instance:
             self.instance.save()
 
-    
     def delete(self) -> None:
         try:
             self.file_repo.delete_files(self.instance.id)
         except Exception as e:
             logger.error("Error Deleting Files {e}")
-            
-            
+
         if self.instance:
             self.instance.delete_instance()
 
