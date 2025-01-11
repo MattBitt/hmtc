@@ -389,6 +389,8 @@ class AudioFile(File):
 
 
 # moving pictures, not the entity
+# ie mkv, avi files instead of a 'Video'
+# from Youtube
 class VideoFile(File):
     duration = IntegerField()  # in seconds or milliseconds
     frame_rate = FloatField()  # e.g., 23.976, 29.97, 60
@@ -411,9 +413,6 @@ class TrackFiles(BaseModel):
     audio = ForeignKeyField(AudioFile, null=True)
 
 
-# not really implemented yet
-# working to get TrackFiles working
-# and then roll changes the others
 class AlbumFiles(BaseModel):
     FILETYPES = ["info", "poster"]
     item = ForeignKeyField(Album, backref="files")
@@ -428,6 +427,13 @@ class VideoFiles(BaseModel):
     poster = ForeignKeyField(ImageFile, null=True)
     video = ForeignKeyField(VideoFile, null=True)
     audio = ForeignKeyField(AudioFile, null=True)
+
+
+class ChannelFiles(BaseModel):
+    FILETYPES = ["info", "poster"]
+    item = ForeignKeyField(Channel, backref="files")
+    info = ForeignKeyField(InfoFile, null=True)
+    poster = ForeignKeyField(ImageFile, null=True)
 
 
 __all__ = [
@@ -445,6 +451,7 @@ __all__ = [
     "Beat",
     "BeatArtist",
     "Channel",
+    "ChannelFiles",
     "Disc",
     "DiscVideo",
     "Section",

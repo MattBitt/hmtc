@@ -10,6 +10,7 @@ TABLES = [
     Beat,
     BeatArtist,
     Channel,
+    ChannelFiles,
     Disc,
     DiscVideo,
     InfoFile,
