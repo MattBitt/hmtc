@@ -9,10 +9,6 @@ from loguru import logger
 from hmtc.config import init_config
 from hmtc.models import AudioFile, BaseModel, ImageFile, InfoFile, VideoFile
 
-config = init_config()
-STORAGE = Path(config["STORAGE"])
-
-
 VIDEOS = [".mkv", ".mp4", ".webm"]
 AUDIOS = [".mp3", ".wav"]
 LYRICS = [".lrc"]
@@ -25,6 +21,8 @@ class MyImage: ...
 
 
 def MOVE_FILE(source: Path, target: Path):
+    if not target.parent.exists():
+        target.parent.mkdir(parents=True)
     try:
         # need to do this better....
         final_file = source.rename(target)
@@ -53,11 +51,11 @@ def get_filetype(file: Path):
     if file_string.endswith(tuple(INFOS)):
         return "info"
 
-    if file_string.endswith(tuple(LYRICS)):
-        return "lyrics"
-
     if file_string.endswith(tuple(SUBTITLES)):
         return "subtitles"
+
+    if file_string.endswith(tuple(LYRICS)):
+        return "lyrics"
 
     if file_string.endswith(tuple(POSTERS)):
         return "poster"
@@ -65,26 +63,53 @@ def get_filetype(file: Path):
     raise ValueError(f"Invalid filetype for {file_string}")
 
 
-def process_file(file, target_path):
-    # for the path
+def process_file(file, target_path, final_name):
+    _x = Path(target_path) / final_name
+
     file_dict = dict(
         file_size=round(file.stat().st_size / 1024),  # kbytes
         modified_datetime=datetime.fromtimestamp(file.stat().st_mtime),
-        path=str(file),  # TBD
+        path=_x,
         hash=None,  # TBD
     )
 
     filetype = get_filetype(file)
     match filetype:
-        case "audio":
-            raise
-        case "video":
-            raise
-        case "info":
 
+        case "audio":
+            # going to use a better format
+            # will rerip or redownload if needed in production
+            if str(file).endswith(".mp3"):
+                file.unlink()
+                logger.error(f"Removed MP3 file {file}")
+                new_file = None
+            else:
+                _path = Path(target_path) / final_name
+                MOVE_FILE(file, _path)
+                file_dict["bitrate"] = 345
+                file_dict["sample_rate"] = 38
+                file_dict["channels"] = 2
+                file_dict["duration"] = 19831
+                AudioFile.create(**file_dict)
+
+        case "video":
+            _path = Path(target_path) / final_name
+            MOVE_FILE(file, _path)
+            file_dict["duration"] = 100
+            file_dict["frame_rate"] = 19.1
+            file_dict["width"] = 1000
+            file_dict["height"] = 1000
+            file_dict["codec"] = "who knows"
+
+            new_file = VideoFile.create(**file_dict)
+
+        case "info":
+            MOVE_FILE(file, _x)
             new_file = InfoFile.create(**file_dict)
         case "lyrics":
-            raise
+            raise NotImplemented("Lyrics - process file")
+        case "subtitles":
+            raise NotImplemented("Subittles - process file")
         case _:
             raise Exception(f"Filetype {filetype}")
     return {filetype: new_file}
@@ -105,7 +130,7 @@ def table_from_string(filetype) -> BaseModel:
             return ImageFile
         case "lyrics":
             return "LyricFile"
-        case "subtitles":
+        case "subtitle":
             return "SubtitleFile"
 
 
@@ -114,17 +139,18 @@ class FileRepo:
     def __init__(self, model: BaseModel):
         self.model = model
 
-    def add(self, item_id: int, file: Path) -> None:
+    def add(self, item: BaseModel, file: Path) -> None:
         filetype = get_filetype(file)
         if filetype in self.model.FILETYPES:
-            target_path = None  # TBD
-
+            target_path = self.model.PATH / item.youtube_id
+            final_name = item.youtube_id + ".info.json"
             try:
-                new_file_dict = process_file(file, target_path)
+                # move the file to its final destination
+                new_file_dict = process_file(file, target_path, final_name)
             except Exception as e:
-                logger.error(f"Error adding a file {file} to item {item_id}")
+                logger.error(f"Error adding a file {file} to item {item.id}")
                 raise e
-            self.model.create(item_id=item_id, **new_file_dict)
+            self.model.create(item_id=item.id, **new_file_dict)
         else:
             raise ValueError(f"Filetype not found while ADDING {file}")
 
@@ -135,8 +161,8 @@ class FileRepo:
                 self.model.select().where((self.model.item_id == item_id)).get_or_none()
             )
             if res1 is not None:
-                res2 = tbl.get(res1.item_id)
-            return res2.get_or_none()
+                res2 = tbl.get_or_none(res1.item_id)
+            return res2
         else:
             raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
 

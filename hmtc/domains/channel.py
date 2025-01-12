@@ -21,7 +21,6 @@ class Channel(BaseDomain):
     repo = ChannelRepo()
     file_repo = FileRepo(ChannelFiles)
 
-
     def serialize(self):
         file_dict = {}
         # for file in self.fm.files(self.instance.id):

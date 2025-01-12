@@ -6,22 +6,17 @@ from peewee import ModelSelect
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Video as VideoModel
-from hmtc.models import VideoFile as VideoFileModel
+from hmtc.models import VideoFiles
+from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.video_repo import VideoRepo
 
 config = init_config()
-
-STORAGE = Path(config["STORAGE"]) / "videos"
 
 
 class Video(BaseDomain):
     model = VideoModel
     repo = VideoRepo()
-    # fm = FileManager(
-    #     model=VideoFileModel,
-    #     filetypes=["poster", "thumbnail", "info", "audio", "video", "subtitles"],
-    #     path=STORAGE,
-    # )
+    file_repo = FileRepo(VideoFiles)
 
     def serialize(self) -> Dict[str, Any]:
         return {

@@ -24,8 +24,11 @@ from peewee import (
     fn,
 )
 
-# i think this is here so i can 'export' the database
+from hmtc.config import init_config
+
 db_null = PostgresqlDatabase(None)
+config = init_config()
+STORAGE = Path(config["STORAGE"])
 
 
 class BaseModel(Model):
@@ -375,6 +378,22 @@ class InfoFile(File):
         return f"InfoFileModel({self.id} - {self.path=})"
 
 
+class SubtitleFile(File):
+    def __repr__(self):
+        return f"SubtitleFile({self.id} - {self.path=})"
+
+    def __str__(self):
+        return f"SubtitleFile({self.id} - {self.path=})"
+
+
+class LyricFile(File):
+    def __repr__(self):
+        return f"LyricFile({self.id} - {self.path=})"
+
+    def __str__(self):
+        return f"LyricFile({self.id} - {self.path=})"
+
+
 class AudioFile(File):
     bitrate = IntegerField()  # typically in kbps
     sample_rate = IntegerField()  # typically in Hz
@@ -422,6 +441,9 @@ class AlbumFiles(BaseModel):
 
 # Entity Video not moving pictures
 class VideoFiles(BaseModel):
+    FILETYPES = ["info", "poster", "subtitle", "video", "audio"]
+    PATH = STORAGE / "videos"
+
     item = ForeignKeyField(Video, backref="files")
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)
@@ -431,6 +453,7 @@ class VideoFiles(BaseModel):
 
 class ChannelFiles(BaseModel):
     FILETYPES = ["info", "poster"]
+    PATH = STORAGE / "channels"
     item = ForeignKeyField(Channel, backref="files")
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)
@@ -471,4 +494,6 @@ __all__ = [
     "InfoFile",
     "AudioFile",
     "VideoFile",
+    "SubtitleFile",
+    "LyricFile",
 ]

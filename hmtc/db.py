@@ -18,6 +18,8 @@ TABLES = [
     Section,
     SectionTopic,
     Series,
+    SubtitleFile,
+    LyricFile,
     Superchat,
     SuperchatSegment,
     Topic,

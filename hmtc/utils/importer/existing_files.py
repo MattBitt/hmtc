@@ -77,7 +77,7 @@ def create_video_from_folder(path: Path) -> None:
             if not file.is_file() or "Zone.Identifier" in file.name:
                 logger.debug(f"Skipping {file.name}")
                 continue
-            Video.fm.add_file(vid, file)
+            Video.add_file(vid, file)
         logger.success(f"Created video {vid.instance.title}")
         # if "omegle" in vid.title.lower():
         #     # FUTURE ...
@@ -116,7 +116,7 @@ def import_existing_video_files_to_db(
     replace_files=False,
     delete_premigration_superchats=False,
 ):
-    to_process = 300
+    to_process = 30
     circuit_breaker = 0
 
     for item in path.glob("*"):

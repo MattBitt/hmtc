@@ -29,6 +29,16 @@
             "database": "HMTC",
             "username": "postgres",
             "password": "mblfjkrk81"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "cronus (testing)",
+            "database": "HMTCtesting",
+            "username": "postgres",
+            "password": "postgres"
         }
     ],
 }
