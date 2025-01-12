@@ -66,10 +66,15 @@ def test_channel_info_file(channel_dicts, tmp_path):
 
     # testing
     channel.add_file(info_file)
-    # should have been moved to its final location
+    # file should have been moved to its final location
+    # initial location shouldn't exist
     assert not info_file.exists()
+
+    # load the file path from the db
     new_file = channel.get_file("info")
     assert new_file is not None
     assert new_file.exists()
+
+    # cleanup
     channel.delete()
     assert not new_file.exists()

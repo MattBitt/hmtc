@@ -25,7 +25,6 @@ from hmtc.domains import (
     User,
     Video,
 )
-from hmtc.models import *
 from hmtc.models import db_null
 from hmtc.utils.db_migrator import run_migrations
 from hmtc.utils.general import copy_tree, remove_tree

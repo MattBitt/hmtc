@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from peewee import ModelSelect
+from PIL import Image
 
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
@@ -11,6 +12,7 @@ from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.video_repo import VideoRepo
 
 config = init_config()
+STORAGE = Path(config["STORAGE"]) / "videos"
 
 
 class Video(BaseDomain):
@@ -41,3 +43,22 @@ class Video(BaseDomain):
             .order_by(cls.repo.model.upload_date.desc())
             .limit(limit)
         )
+
+    def add_file(self, file: Path):
+
+        # does it already have one of these types?
+        #     delete it
+
+        year = self.instance.upload_date.strftime("%Y")
+        target_path = STORAGE / year / self.instance.youtube_id
+        new_name = self.instance.youtube_id
+
+        self.file_repo.add(
+            item=self.instance, source=file, target_path=target_path, stem=new_name
+        )
+
+    def poster(self):
+        _poster = self.file_repo.get(self.instance.id, "poster")
+        if _poster is None:
+            return "Placeholder Image"
+        return Image.open(_poster.path)

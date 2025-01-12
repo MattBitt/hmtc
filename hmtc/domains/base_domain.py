@@ -72,7 +72,7 @@ class BaseDomain:
 
     # the methods for the domains that include files
     def add_file(self, file: Path):
-        self.file_repo.add(item=self.instance, file=file)
+        raise NotImplemented
 
     def get_file(self, filetype) -> Path | None:
         _file = self.file_repo.get(item_id=self.instance.id, filetype=filetype)

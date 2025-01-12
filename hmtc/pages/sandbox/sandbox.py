@@ -21,11 +21,10 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         OkCancel(message="Are you sure?", func_ok=func1, func_cancel=func2)
-        video = Video.get_by(
-            title="Strangers Fall In Love With Harry Mack's Freestyles On Omegle | Omegle Bars Ep. 1"
-        )
-
-        # solara.Image(image=video.poster, width="300px")
-        for channel in Channel.repo.all():
-            _channel = Channel(channel)
-            solara.Image(image=_channel.poster, width="300px")
+        videos = Video.repo.all()
+        for video in videos:
+            vid = Video(video)
+            solara.Image(image=vid.poster(), width="300px")
+            for channel in Channel.repo.all():
+                _channel = Channel(channel)
+                solara.Markdown(f"{_channel.instance.title}")

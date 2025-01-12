@@ -45,3 +45,13 @@ class Channel(BaseDomain):
             .first()
             .last_update_completed
         )
+
+    # the methods for the domains that include files
+    def add_file(self, file: Path):
+
+        target_path = STORAGE / self.instance.youtube_id
+        new_name = self.instance.youtube_id
+
+        self.file_repo.add(
+            item=self.instance, source=file, target_path=target_path, stem=new_name
+        )

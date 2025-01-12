@@ -427,14 +427,14 @@ class VideoFile(File):
 class TrackFiles(BaseModel):
     FILETYPES = ["info", "audio"]
 
-    item = ForeignKeyField(Track, backref="files")
+    item = ForeignKeyField(Track, backref="files", unique=True)
     info = ForeignKeyField(InfoFile, null=True)
     audio = ForeignKeyField(AudioFile, null=True)
 
 
 class AlbumFiles(BaseModel):
     FILETYPES = ["info", "poster"]
-    item = ForeignKeyField(Album, backref="files")
+    item = ForeignKeyField(Album, backref="files", unique=True)
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)
 
@@ -444,17 +444,18 @@ class VideoFiles(BaseModel):
     FILETYPES = ["info", "poster", "subtitle", "video", "audio"]
     PATH = STORAGE / "videos"
 
-    item = ForeignKeyField(Video, backref="files")
+    item = ForeignKeyField(Video, backref="files", unique=True)
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)
     video = ForeignKeyField(VideoFile, null=True)
     audio = ForeignKeyField(AudioFile, null=True)
+    subtitle = ForeignKeyField(SubtitleFile, null=True)
 
 
 class ChannelFiles(BaseModel):
     FILETYPES = ["info", "poster"]
     PATH = STORAGE / "channels"
-    item = ForeignKeyField(Channel, backref="files")
+    item = ForeignKeyField(Channel, backref="files", unique=True)
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)
 
