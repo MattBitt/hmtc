@@ -121,11 +121,9 @@ def Page():
             with solara.ColumnsResponsive(default=12, large=4):
                 for vid in latest_videos:
                     # poster = FileManager.get_file_for_video(vid, "poster")
-                    # video_image = ImageManager(poster)
 
                     with solara.Card():
                         with solara.Column():
                             with solara.Link(f"/tables/video-details/{vid.id}"):
-                                solara.Markdown(f"## Video Image Goes HERE")
-                                # solara.Image(image=video_image.image)
+                                solara.Image(image=Video(vid).poster(), width="300px")
                             solara.Markdown(f"#### {vid.title}")

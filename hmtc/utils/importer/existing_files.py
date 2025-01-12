@@ -74,7 +74,7 @@ def create_video_from_folder(path: Path) -> None:
             if file.name == "album.nfo":
                 file.unlink()
                 continue
-            if not file.is_file() or "Zone.Identifier" in file.name:
+            if "Zone.Identifier" in file.name:
                 logger.debug(f"Skipping {file.name}")
                 continue
             Video.add_file(vid, file)
@@ -116,9 +116,12 @@ def import_existing_video_files_to_db(
     replace_files=False,
     delete_premigration_superchats=False,
 ):
-    to_process = 30
+    # set to_process as the iterations desired
+    to_process = 10
     circuit_breaker = 0
-
+    # this will search the 'root' videos path for
+    # existing files and then move them to the
+    # /yyyy/youtube_id folder as needed
     for item in path.glob("*"):
 
         if circuit_breaker > to_process:
@@ -126,20 +129,22 @@ def import_existing_video_files_to_db(
         if item.is_dir():
             if is_valid_youtube_id(item.stem):
                 if youtube_id_in_db(item.stem):
+                    raise NotImplemented
                     # this is what will be used once the database is stood up
-                    if update_existing_records:
-                        logger.debug(f"Updating existing youtube id {item.stem}")
-                        update_existing_video_from_existing_files(item)
+                    # if update_existing_records:
+                    #     logger.debug(f"Updating existing youtube id {item.stem}")
+                    #     update_existing_video_from_existing_files(item)
 
-                    if replace_files:
-                        logger.debug(f"Replacing existing youtube id {item.stem}")
-                        replace_files_for_existing_video(item)
-                    else:
-                        logger.error(f"Skipping existing youtube id {item.stem}")
+                    # if replace_files:
+                    #     logger.debug(f"Replacing existing youtube id {item.stem}")
+                    #     replace_files_for_existing_video(item)
+                    # else:
+                    #     logger.error(f"Skipping existing youtube id {item.stem}")
                 else:
                     # this is what will be used to get the database up and running
                     if delete_premigration_superchats:
-                        delete_superchats_if_exist(item)
+                        # delete_superchats_if_exist(item)
+                        pass
 
                     create_video_from_folder(item)
                     circuit_breaker += 1

@@ -89,6 +89,8 @@ def process_file(file, target, stem):
             final_path = file_dict["path"].with_suffix(".webp")
             if file.parent != target.parent:
                 MOVE_FILE(file, final_path)
+            file_dict["path"] = final_path
+
             file_dict["height"] = 19831
             file_dict["width"] = 19831
             file_dict["colorspace"] = "RGB"
@@ -96,6 +98,11 @@ def process_file(file, target, stem):
             new_file = ImageFile.create(**file_dict)
 
         case "audio":
+            final_path = file_dict["path"].with_suffix(file.suffix)
+            if file.parent != target.parent:
+                MOVE_FILE(file, final_path)
+            file_dict["path"] = final_path
+
             file_dict["bitrate"] = 345
             file_dict["sample_rate"] = 38
             file_dict["channels"] = 2
@@ -103,6 +110,10 @@ def process_file(file, target, stem):
             new_file = AudioFile.create(**file_dict)
 
         case "video":
+            final_path = file_dict["path"].with_suffix(file.suffix)
+            if file.parent != target.parent:
+                MOVE_FILE(file, final_path)
+            file_dict["path"] = final_path
 
             file_dict["duration"] = 100
             file_dict["frame_rate"] = 19.1
@@ -113,12 +124,21 @@ def process_file(file, target, stem):
             new_file = VideoFile.create(**file_dict)
 
         case "info":
-            file_dict["path"] = file_dict["path"].with_suffix(".info.json")
+            final_path = file_dict["path"].with_suffix(".info.json")
+            if file.parent != target.parent:
+                MOVE_FILE(file, final_path)
+            file_dict["path"] = final_path
+
             new_file = InfoFile.create(**file_dict)
+
         case "lyrics":
             raise NotImplemented("Lyrics - process file")
+
         case "subtitle":
-            file_dict["path"] = file_dict["path"].with_suffix(".en.vtt")
+            final_path = file_dict["path"].with_suffix(".en.vtt")
+            if file.parent != target.parent:
+                MOVE_FILE(file, final_path)
+            file_dict["path"] = final_path
             new_file = SubtitleFile.create(**file_dict)
         case _:
             raise Exception(f"Filetype {filetype}")
