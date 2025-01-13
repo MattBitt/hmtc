@@ -7,7 +7,8 @@ from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
-from hmtc.models import db_null
+from hmtc.models import BaseModel, db_null
+from hmtc.models import Video as VideoModel
 from hmtc.utils.youtube_functions import parse_youtube_info_file
 
 config = init_config()
@@ -72,12 +73,14 @@ def create_video_from_folder(path: Path) -> None:
         # add the files to the db
         for file in files:
             if file.name == "album.nfo":
-                file.unlink()
+                file.unlink()  # cleaning up old stuff 1-12-25
                 continue
             if "Zone.Identifier" in file.name:
-                logger.debug(f"Skipping {file.name}")
+                logger.debug(f"Deleting {file.name}")
+                file.unlink()
                 continue
             Video.add_file(vid, file)
+
         logger.success(f"Created video {vid.instance.title}")
         # if "omegle" in vid.title.lower():
         #     # FUTURE ...
@@ -110,25 +113,63 @@ def replace_files_for_existing_video(path: Path) -> None:
     logger.debug(f"Replacing files for {path.stem}")
 
 
-def import_existing_video_files_to_db(
-    path,
-    update_existing_records=False,
-    replace_files=False,
-    delete_premigration_superchats=False,
-):
+def verify_files(item: BaseModel, path: Path):
+    # for file in item.files()
+    #   is file in the folder?
+    #   files_not_in_folder.append()
+
+    # for file in path.files()
+    #   is file in the db?
+    #   files_not_in_db.append()
+
+    logger.debug(f"Verifying Files for {item} and path {path}")
+    logger.debug(f"DB: {item.num_files()}")
+    num_files = [f for f in path.iterdir() if f.is_file()]
+    logger.debug(f"Folder: {num_files}")
+
+
+def import_existing_video_files_to_db(path):
     # set to_process as the iterations desired
     to_process = 10
     circuit_breaker = 0
-    # this will search the 'root' videos path for
-    # existing files and then move them to the
-    # /yyyy/youtube_id folder as needed
+
     for item in path.glob("*"):
 
         if circuit_breaker > to_process:
             break
+
         if item.is_dir():
-            if is_valid_youtube_id(item.stem):
-                if youtube_id_in_db(item.stem):
+            if len(str(item.stem)) == 4 and str(item.stem).isnumeric():
+                # files are likely their final resting place already
+                # need to check each subfolder to for files in the database
+                logger.debug(
+                    f"Found folder {item} on the disk. Need to loop through to check files"
+                )
+                for subfolder in item.glob("*"):
+                    if is_valid_youtube_id(subfolder.stem):
+                        # found a folder for an existing video
+                        # probably nothing to do here, but
+                        # should check the files in the folder
+                        # match whats in the database
+                        vid = (
+                            VideoModel.select()
+                            .where(VideoModel.youtube_id == subfolder.stem)
+                            .get_or_none()
+                        )
+                        if vid is None:
+                            create_video_from_folder(subfolder)
+                        else:
+                            verify_files(Video(vid), subfolder)
+
+            elif is_valid_youtube_id(item.stem):
+                # this will search the 'root' videos path for
+                # existing files and then move them to the
+                # /yyyy/youtube_id folder as needed
+                # it should then remove the folder if its empty
+
+                if not any(item.iterdir()):
+                    item.rmdir()  # remove empty folders
+                elif youtube_id_in_db(item.stem):
                     raise NotImplemented
                     # this is what will be used once the database is stood up
                     # if update_existing_records:
@@ -140,13 +181,13 @@ def import_existing_video_files_to_db(
                     #     replace_files_for_existing_video(item)
                     # else:
                     #     logger.error(f"Skipping existing youtube id {item.stem}")
-                else:
-                    # this is what will be used to get the database up and running
-                    if delete_premigration_superchats:
-                        # delete_superchats_if_exist(item)
-                        pass
 
+                else:
                     create_video_from_folder(item)
+                    for bad_file in item.glob("*Zone.Indentifier*"):
+                        bad_file.unlink()
+                    if not any(item.iterdir()):
+                        item.rmdir()  # remove empty folders
                     circuit_breaker += 1
 
             else:
@@ -162,6 +203,4 @@ if __name__ == "__main__":
     from hmtc.utils.importer.seed_database import recreate_database
 
     recreate_database()
-    import_existing_video_files_to_db(
-        STORAGE / "videos", delete_premigration_superchats=True
-    )
+    import_existing_video_files_to_db(STORAGE / "videos")

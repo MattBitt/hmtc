@@ -31,9 +31,7 @@ def refresh_from_youtube():
 
 def scan_local_storage():
 
-    import_existing_video_files_to_db(
-        STORAGE / "videos", delete_premigration_superchats=True
-    )
+    import_existing_video_files_to_db(STORAGE / "videos")
 
 
 def ProgressCircle():

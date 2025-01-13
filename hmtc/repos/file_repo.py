@@ -202,7 +202,7 @@ class FileRepo:
     def delete_files(self, item_id):
         item_file_row = (
             self.model.select().where((self.model.item_id == item_id)).get_or_none()
-        )  # AlbumFiles
+        )
 
         for filetype in self.model.FILETYPES:
 
@@ -218,8 +218,6 @@ class FileRepo:
                 res2 = InfoFile.select().where(InfoFile.id == file_id).get()
                 res2.delete_instance()
         item_file_row.delete_instance()
-
-        # return res2.get_or_none()
 
     def mp3(self) -> Path:
         """Get audio file path"""
