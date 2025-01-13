@@ -128,9 +128,10 @@ def verify_files(item: BaseDomain, path: Path):
     files_in_folder = [f for f in path.iterdir() if f.is_file()]
     num_files_in_folder = len(files_in_folder)
     if num_files_in_db == num_files_in_folder:
-        logger.debug(
-            f"Number of Files equal {num_files_in_db}. Not checking more in depth"
-        )
+        # logger.debug(
+        #     f"Number of Files equal {num_files_in_db}. Not checking more in depth"
+        # )
+        pass
     else:
         logger.warning(f"File mismatch for {item}")
         logger.warning(f"DB: {num_files_in_db}\tFolder: {num_files_in_folder}")
@@ -150,9 +151,7 @@ def import_existing_video_files_to_db(path):
             if len(str(item.stem)) == 4 and str(item.stem).isnumeric():
                 # files are likely their final resting place already
                 # need to check each subfolder to for files in the database
-                logger.debug(
-                    f"Found folder {item} on the disk. Need to loop through to check files"
-                )
+
                 for subfolder in item.glob("*"):
                     if is_valid_youtube_id(subfolder.stem):
                         # found a folder for an existing video

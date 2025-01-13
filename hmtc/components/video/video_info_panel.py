@@ -14,7 +14,7 @@ from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
-
+from hmtc.domains.video import Video
 IMG_WIDTH = "300px"
 
 
@@ -32,7 +32,7 @@ def ProcessingCard():
 
 @solara.component
 def VideoInfoPanel(video):
-
+    vidDomain = Video(video)
     # poster = FileManager.get_file_for_video(video, "poster")
     # image = ImageManager(poster).image
     background_processing = solara.use_reactive(0)
@@ -41,12 +41,13 @@ def VideoInfoPanel(video):
     ).where(SectionModel.video_id == video.id)
 
     def auto_create_tracks(*args):
-        for section in sections:
-            if section.track_id is None:
-                album = AlbumModel.get_by_id(video.album_id)
-                album_item = AlbumItem.from_model(album)
-                track = album_item.create_from_section(section=section, video=video)
-                section.save()
+        pass
+        # for section in sections:
+        #     if section.track_id is None:
+        #         album = AlbumModel.get_by_id(video.album_id)
+        #         album_item = AlbumItem.from_model(album)
+        #         track = album_item.create_from_section(section=section, video=video)
+        #         section.save()
 
     section_durations = [
         (x.end - x.start) / 1000 for x in sections
@@ -65,8 +66,8 @@ def VideoInfoPanel(video):
     with solara.Columns([6, 6]):
         with solara.Column():
             with solara.Row(justify="center"):
-                solara.Markdown(f"Image Belongs Here")
-                # solara.Image(image, width=IMG_WIDTH)
+                #solara.Markdown(f"Image Belongs Here")
+                solara.Image(vidDomain.poster(), width=IMG_WIDTH)
             with solara.Row(justify="center"):
                 solara.Text(
                     f"Uploaded: {time_ago_string(video.upload_date)}",

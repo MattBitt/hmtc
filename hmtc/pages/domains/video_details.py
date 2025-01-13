@@ -7,7 +7,7 @@ from hmtc.components.video.section_details_panel import SectionsDetailsPanel
 from hmtc.components.video.top_row import TopRow
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
-
+from hmtc.domains.video import Video
 
 def parse_url_args():
     router = solara.use_router()
@@ -33,14 +33,17 @@ def Page():
             solara.Markdown(f"No Video Found {video_id}")
         return
 
-    video = VideoItem.load(video_id)
-    sections = Section.load_for_video(video.id)
+    video = Video(video_id)
+    sections = []
 
     with solara.Column(classes=["main-container"]):
 
-        VideoInfoPanel(video=video)
+        VideoInfoPanel(video=video.instance)
         solara.Button(
             f"Edit Sections ({len(sections)})",
-            on_click=lambda: router.push(f"/domains/section-details/{video.id}"),
+            on_click=lambda: router.push(f"/domains/section-details/{video.instance.id}"),
             classes=["button"],
         )
+        solara.Markdown(f"## Files")
+        for file in video.file_repo.my_files(video.instance.id):
+            solara.Markdown(f"### {file}")

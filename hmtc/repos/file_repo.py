@@ -240,13 +240,25 @@ class FileRepo:
         )
         if item is None:
             return 0
+        
         _counter = 0
+        
         for filetype in self.model.FILETYPES:
             col = getattr(item, filetype)
             if col is not None:
-                logger.debug(f"Found a {filetype}")
                 _counter += 1
-            else:
-                logger.debug(f"{filetype} is None for this video")
 
         return _counter
+
+    def my_files(self, item_id):
+        item = (
+            self.model.select()
+            .where(self.model.item_id == item_id)
+            .get_or_none()
+        )
+        if item is None:
+            return []
+        _files = []
+        for filetype in self.model.FILETYPES:
+            _files.append(self.get(item_id, filetype))
+        return _files
