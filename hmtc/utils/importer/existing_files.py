@@ -5,10 +5,11 @@ from loguru import logger
 
 from hmtc.config import init_config
 from hmtc.db import init_db
+from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
-from hmtc.models import BaseModel, db_null
 from hmtc.models import Video as VideoModel
+from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
 
 config = init_config()
@@ -113,7 +114,8 @@ def replace_files_for_existing_video(path: Path) -> None:
     logger.debug(f"Replacing files for {path.stem}")
 
 
-def verify_files(item: BaseModel, path: Path):
+def verify_files(item: BaseDomain, path: Path):
+    logger.debug(f"Verifying Files for {item} and path {path}")
     # for file in item.files()
     #   is file in the folder?
     #   files_not_in_folder.append()
@@ -121,11 +123,15 @@ def verify_files(item: BaseModel, path: Path):
     # for file in path.files()
     #   is file in the db?
     #   files_not_in_db.append()
+    num_files_in_db = item.file_repo.num_files(item.instance.id)
 
-    logger.debug(f"Verifying Files for {item} and path {path}")
-    logger.debug(f"DB: {item.num_files()}")
-    num_files = [f for f in path.iterdir() if f.is_file()]
-    logger.debug(f"Folder: {num_files}")
+    files_in_folder = [f for f in path.iterdir() if f.is_file()]
+    num_files_in_folder = len(files_in_folder)
+    if num_files_in_db == num_files_in_folder:
+        logger.debug("Number of Files equal. Not checking more in depth")
+    else:
+        logger.warning(f"File mismatch for {item}")
+        logger.warning(f"DB: {num_files_in_db}\tFolder: {num_files_in_folder}")
 
 
 def import_existing_video_files_to_db(path):

@@ -226,3 +226,22 @@ class FileRepo:
     def mkv(self) -> Path:
         """Get video file path"""
         return Path(self.get("video"))
+
+    def num_files(self, another_item_id):
+        item = (
+            self.model.select()
+            .where(self.model.item_id == another_item_id)
+            .get_or_none()
+        )
+        if item is None:
+            return 0
+        _counter = 0
+        for filetype in self.model.FILETYPES:
+            col = getattr(item, filetype)
+            if col is not None:
+                logger.debug(f"Found a {filetype}")
+                _counter += 1
+            else:
+                logger.debug(f"{filetype} is None for this video")
+
+        return _counter

@@ -63,22 +63,3 @@ class Video(BaseDomain):
         if _poster is None:
             return "Placeholder Image"
         return Image.open(_poster.path)
-
-    def num_files(self):
-        item = (
-            VideoFiles.select()
-            .where(VideoFiles.item_id == self.instance.id)
-            .get_or_none()
-        )
-        if item is None:
-            return 0
-        _counter = 0
-        for filetype in VideoFiles.FILETYPES:
-            col = getattr(item, filetype)
-            if col is not None:
-                logger.debug(f"Found a {filetype}")
-                _counter += 1
-            else:
-                logger.debug(f"{filetype} is None for this video")
-
-        return _counter
