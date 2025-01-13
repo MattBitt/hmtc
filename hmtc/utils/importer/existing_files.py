@@ -178,17 +178,11 @@ def import_existing_video_files_to_db(path):
                 if not any(item.iterdir()):
                     item.rmdir()  # remove empty folders
                 elif youtube_id_in_db(item.stem):
+                    # this doesn't work since vid isn't defined
+                    # need to rework the functions above for their
+                    # ergonomics.
                     verify_files(Video(vid), item)
-                    # this is what will be used once the database is stood up
-                    # if update_existing_records:
-                    #     logger.debug(f"Updating existing youtube id {item.stem}")
-                    #     update_existing_video_from_existing_files(item)
-
-                    # if replace_files:
-                    #     logger.debug(f"Replacing existing youtube id {item.stem}")
-                    #     replace_files_for_existing_video(item)
-                    # else:
-                    #     logger.error(f"Skipping existing youtube id {item.stem}")
+                    
 
                 else:
                     create_video_from_folder(item)
