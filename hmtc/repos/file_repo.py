@@ -132,7 +132,12 @@ def process_file(file, target, stem):
             new_file = InfoFile.create(**file_dict)
 
         case "lyrics":
-            raise NotImplemented("Lyrics - process file")
+            final_path = file_dict["path"].with_suffix(".lrc")
+            if file.parent != target.parent:
+                MOVE_FILE(file, final_path)
+            file_dict["path"] = final_path
+
+            new_file = LyricFile.create(**file_dict)
 
         case "subtitle":
             final_path = file_dict["path"].with_suffix(".en.vtt")
