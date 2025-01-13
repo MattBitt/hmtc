@@ -160,7 +160,7 @@ def table_from_string(filetype) -> BaseModel:
         case "poster":
             return ImageFile
         case "lyrics":
-            return "LyricFile"
+            return LyricFile
         case "subtitle":
             return SubtitleFile
 

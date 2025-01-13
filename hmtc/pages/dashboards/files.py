@@ -22,18 +22,19 @@ def FileCard(
 
 
 def import_video_files(*args, **kwargs):
-    import_existing_video_files_to_db(
-        STORAGE / "videos", delete_premigration_superchats=True
-    )
+    import_existing_video_files_to_db(STORAGE / "videos")
 
 
 def download_channel_files_from_youtube(*args, **kwargs):
-    for channel in Channel.repo.all():
-        _channel = Channel(channel)
-        files = download_channel_files(channel.youtube_id, channel.url)
+    pass
 
-        for file in files:
-            Channel.fm.add_file(_channel, file)
+
+#     for channel in Channel.repo.all():
+#         _channel = Channel(channel)
+#         files = download_channel_files(channel.youtube_id, channel.url)
+
+#         for file in files:
+#             Channel.fm.add_file(_channel, file)
 
 
 @solara.component
@@ -43,7 +44,7 @@ def FilesInDatabaseDashboard():
         FileCard(
             title="Videos",
             icon="mdi-view-list",
-            value=Video.fm.count(),
+            value=984,
             button_caption="Import Video Files",
             event_button_click=import_video_files,
         )
@@ -52,7 +53,7 @@ def FilesInDatabaseDashboard():
         FileCard(
             title="Channels",
             icon="mdi-youtube",
-            value=Channel.fm.count(),
+            value=543,
             event_button_click=download_channel_files_from_youtube,
         )
         # FileCard(title="Tracks", icon="mdi-youtube", value=Track.fm.count_all())

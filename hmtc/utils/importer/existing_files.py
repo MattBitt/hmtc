@@ -128,7 +128,9 @@ def verify_files(item: BaseDomain, path: Path):
     files_in_folder = [f for f in path.iterdir() if f.is_file()]
     num_files_in_folder = len(files_in_folder)
     if num_files_in_db == num_files_in_folder:
-        logger.debug("Number of Files equal. Not checking more in depth")
+        logger.debug(
+            f"Number of Files equal {num_files_in_db}. Not checking more in depth"
+        )
     else:
         logger.warning(f"File mismatch for {item}")
         logger.warning(f"DB: {num_files_in_db}\tFolder: {num_files_in_folder}")

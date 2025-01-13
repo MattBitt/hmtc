@@ -34,7 +34,7 @@ class Video(BaseDomain):
             "jellyfin_id": self.instance.jellyfin_id,
             "channel_id": self.instance.channel_id,
             "disc_id": self.instance.disc_id,
-            # "file_count": len(self.fm.files(self.instance.id)),
+            "file_count": self.file_repo.num_files(self.instance.id),
         }
 
     @classmethod
