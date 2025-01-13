@@ -178,7 +178,7 @@ def import_existing_video_files_to_db(path):
                 if not any(item.iterdir()):
                     item.rmdir()  # remove empty folders
                 elif youtube_id_in_db(item.stem):
-                    raise NotImplemented
+                    verify_files(Video(vid), item)
                     # this is what will be used once the database is stood up
                     # if update_existing_records:
                     #     logger.debug(f"Updating existing youtube id {item.stem}")
