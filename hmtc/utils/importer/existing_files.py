@@ -177,27 +177,22 @@ def import_existing_video_files_to_db(path):
 
                 if not any(item.iterdir()):
                     item.rmdir()  # remove empty folders
-                elif youtube_id_in_db(item.stem):
-                    # this doesn't work since vid isn't defined
-                    # need to rework the functions above for their
-                    # ergonomics.
-                    verify_files(Video(vid), item)
-                    
+                    continue
 
-                else:
+                vid = (
+                    VideoModel.select()
+                    .where(VideoModel.youtube_id == item.stem)
+                    .get_or_none()
+                )
+                if vid is None:
                     create_video_from_folder(item)
-                    for bad_file in item.glob("*Zone.Indentifier*"):
-                        bad_file.unlink()
-                    if not any(item.iterdir()):
-                        item.rmdir()  # remove empty folders
-                    circuit_breaker += 1
+                else:
+                    verify_files(Video(vid), item)
 
             else:
                 logger.debug(f"Skipping invalid youtube id {item.stem}")
-        elif item.is_file():
-            logger.error(
-                f"Shouldn't be any files in the 'root' folder. Skipping {item}"
-            )
+        circuit_breaker += 1
+
     logger.success("Finished importing files to the database.")
 
 
