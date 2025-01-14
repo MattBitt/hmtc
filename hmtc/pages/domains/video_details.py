@@ -9,6 +9,7 @@ from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.domains.video import Video
 
+
 def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
@@ -41,7 +42,9 @@ def Page():
         VideoInfoPanel(video=video.instance)
         solara.Button(
             f"Edit Sections ({len(sections)})",
-            on_click=lambda: router.push(f"/domains/section-details/{video.instance.id}"),
+            on_click=lambda: router.push(
+                f"/domains/section-details/{video.instance.id}"
+            ),
             classes=["button"],
         )
         solara.Markdown(f"## Files")

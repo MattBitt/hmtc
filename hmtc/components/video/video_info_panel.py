@@ -10,11 +10,12 @@ from hmtc.components.shared.my_spinner import MySpinner
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
+from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 from hmtc.utils.youtube_functions import download_video_file
-from hmtc.domains.video import Video
+
 IMG_WIDTH = "300px"
 
 
@@ -66,7 +67,7 @@ def VideoInfoPanel(video):
     with solara.Columns([6, 6]):
         with solara.Column():
             with solara.Row(justify="center"):
-                #solara.Markdown(f"Image Belongs Here")
+                # solara.Markdown(f"Image Belongs Here")
                 solara.Image(vidDomain.poster(), width=IMG_WIDTH)
             with solara.Row(justify="center"):
                 solara.Text(

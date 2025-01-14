@@ -4,7 +4,9 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
 
+import ffmpeg
 from loguru import logger
+from PIL import Image
 
 from hmtc.config import init_config
 from hmtc.models import (
@@ -24,9 +26,6 @@ LYRICS = [".lrc"]
 SUBTITLES = [".en.vtt"]
 INFOS = [".nfo", ".info.json", ".json", ".txt"]
 POSTERS = [".jpg", ".jpeg", ".png", ".webp"]
-
-
-class MyImage: ...
 
 
 def MOVE_FILE(source: Path, target: Path):
@@ -72,6 +71,57 @@ def get_filetype(file: Path):
     raise ValueError(f"Invalid filetype for {file_string}")
 
 
+def get_image_properties(image):
+    with Image.open(image) as img:
+        width, height = img.size
+        colorspace = img.mode
+    return width, height, colorspace
+
+
+def get_audio_properties(audio):
+    # Replace 'your_audio_file.mp3' with the path to your audio file
+    probe = ffmpeg.probe(audio)
+
+    # Access audio stream information
+    audio_stream = next(
+        (stream for stream in probe["streams"] if stream["codec_type"] == "audio"), None
+    )
+
+    if audio_stream:
+        codec = audio_stream["codec_name"]
+        bitrate = audio_stream["bit_rate"]
+        channels = audio_stream["channels"]
+        sample_rate = audio_stream["sample_rate"]
+        duration = round(float(probe["format"]["duration"]))
+        return codec, bitrate, channels, sample_rate, duration
+    else:
+        raise Exception(f"Error getting audio stream from {audio}")
+
+
+def get_video_properties(filename):
+    try:
+        probe = ffmpeg.probe(filename)
+        video_stream = next(
+            (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+            None,
+        )
+        if video_stream is None:
+            print("No video stream found.")
+            return
+
+        width = int(video_stream["width"])
+        height = int(video_stream["height"])
+        duration = round(float(probe["format"]["duration"]))
+        codec = video_stream["codec_name"]
+
+        fps = float(video_stream["nb_frames"]) / float(video_stream["duration"])
+
+        return width, height, duration, codec, fps
+
+    except ffmpeg.Error as e:
+        print(f"Error probing file: {e.stderr}")
+
+
 def process_file(file, target, stem):
 
     file_dict = dict(
@@ -91,10 +141,11 @@ def process_file(file, target, stem):
                 MOVE_FILE(file, final_path)
             file_dict["path"] = final_path
 
-            file_dict["height"] = 19831
-            file_dict["width"] = 19831
-            file_dict["colorspace"] = "RGB"
-            file_dict["path"] = final_path
+            height, width, colorspace = get_image_properties(final_path)
+            file_dict["height"] = height
+            file_dict["width"] = width
+            file_dict["colorspace"] = colorspace
+
             new_file = ImageFile.create(**file_dict)
 
         case "audio":
@@ -102,11 +153,14 @@ def process_file(file, target, stem):
             if file.parent != target.parent:
                 MOVE_FILE(file, final_path)
             file_dict["path"] = final_path
-
-            file_dict["bitrate"] = 345
-            file_dict["sample_rate"] = 38
-            file_dict["channels"] = 2
-            file_dict["duration"] = 19831
+            codec, bitrate, channels, sample_rate, duration = get_audio_properties(
+                final_path
+            )
+            file_dict["codec"] = codec
+            file_dict["bitrate"] = bitrate
+            file_dict["sample_rate"] = sample_rate
+            file_dict["channels"] = channels
+            file_dict["duration"] = duration
             new_file = AudioFile.create(**file_dict)
 
         case "video":
@@ -115,11 +169,12 @@ def process_file(file, target, stem):
                 MOVE_FILE(file, final_path)
             file_dict["path"] = final_path
 
-            file_dict["duration"] = 100
-            file_dict["frame_rate"] = 19.1
-            file_dict["width"] = 1000
-            file_dict["height"] = 1000
-            file_dict["codec"] = "who knows"
+            width, height, duration, codec, fps = get_video_properties(final_path)
+            file_dict["duration"] = duration
+            file_dict["fps"] = fps
+            file_dict["width"] = width
+            file_dict["height"] = height
+            file_dict["codec"] = codec
 
             new_file = VideoFile.create(**file_dict)
 
@@ -240,9 +295,9 @@ class FileRepo:
         )
         if item is None:
             return 0
-        
+
         _counter = 0
-        
+
         for filetype in self.model.FILETYPES:
             col = getattr(item, filetype)
             if col is not None:
@@ -251,11 +306,7 @@ class FileRepo:
         return _counter
 
     def my_files(self, item_id):
-        item = (
-            self.model.select()
-            .where(self.model.item_id == item_id)
-            .get_or_none()
-        )
+        item = self.model.select().where(self.model.item_id == item_id).get_or_none()
         if item is None:
             return []
         _files = []

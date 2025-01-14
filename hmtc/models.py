@@ -412,7 +412,7 @@ class AudioFile(File):
 # from Youtube
 class VideoFile(File):
     duration = IntegerField()  # in seconds or milliseconds
-    frame_rate = FloatField()  # e.g., 23.976, 29.97, 60
+    fps = FloatField()  # e.g., 23.976, 29.97, 60
     width = IntegerField()
     height = IntegerField()
     codec = CharField(null=True)
