@@ -113,8 +113,18 @@ def get_video_properties(filename):
         height = int(video_stream["height"])
         duration = round(float(probe["format"]["duration"]))
         codec = video_stream["codec_name"]
-
-        fps = float(video_stream["nb_frames"]) / float(video_stream["duration"])
+        if "nb_frames" in video_stream.keys():
+            fps = float(video_stream["nb_frames"]) / float(video_stream["duration"])
+        else:
+            # not sure what determines if nb_frames is used or not...
+            if "r_frame_rate" in video_stream.keys():
+                r = video_stream["r_frame_rate"]
+                if len(r) == 4:
+                    fps = int(r[:2])
+                else:
+                    fps = -20
+            else:
+                fps = -1
 
         return width, height, duration, codec, fps
 

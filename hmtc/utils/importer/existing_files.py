@@ -139,7 +139,7 @@ def verify_files(item: BaseDomain, path: Path):
 
 def import_existing_video_files_to_db(path):
     # set to_process as the iterations desired
-    to_process = 10
+    to_process = 100
     circuit_breaker = 0
 
     for item in path.glob("*"):
