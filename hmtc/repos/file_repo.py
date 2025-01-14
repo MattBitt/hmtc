@@ -289,14 +289,6 @@ class FileRepo:
                 res2.delete_instance()
         item_file_row.delete_instance()
 
-    def mp3(self) -> Path:
-        """Get audio file path"""
-        return Path(self.get("audio"))
-
-    def mkv(self) -> Path:
-        """Get video file path"""
-        return Path(self.get("video"))
-
     def num_files(self, another_item_id):
         item = (
             self.model.select()

@@ -165,31 +165,10 @@ def import_existing_video_files_to_db(path):
                         )
                         if vid is None:
                             create_video_from_folder(subfolder)
-                        else:
-                            verify_files(Video(vid), subfolder)
-
-            elif is_valid_youtube_id(item.stem):
-                # this will search the 'root' videos path for
-                # existing files and then move them to the
-                # /yyyy/youtube_id folder as needed
-                # it should then remove the folder if its empty
-
-                if not any(item.iterdir()):
-                    item.rmdir()  # remove empty folders
-                    continue
-
-                vid = (
-                    VideoModel.select()
-                    .where(VideoModel.youtube_id == item.stem)
-                    .get_or_none()
-                )
-                if vid is None:
-                    create_video_from_folder(item)
-                else:
-                    verify_files(Video(vid), item)
 
             else:
                 logger.debug(f"Skipping invalid youtube id {item.stem}")
+
         circuit_breaker += 1
 
     logger.success("Finished importing files to the database.")
