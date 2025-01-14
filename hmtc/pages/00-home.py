@@ -13,18 +13,43 @@ from hmtc.config import init_config
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
 from hmtc.domains.video import Video
-from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
+from hmtc.utils.importer.existing_files import (
+    create_video_from_folder,
+    import_existing_video_files_to_db,
+)
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
+from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
+WORKING = Path(config["WORKING"])
+
 title = " "
 busy_downloading = solara.reactive(False)
 
 
 def refresh_from_youtube():
     busy_downloading.set(True)
+    for channel in Channel.to_auto_update():
+        logger.debug(f"Checking channel {channel}")
+        not_in_db = []
+        ids = fetch_ids_from(channel)
+        for youtube_id in ids:
+            vid = Video.get_by(youtube_id=youtube_id)
+            if vid is None:
+                not_in_db.append(youtube_id)
+
+        logger.debug(f"Found {len(ids)} videos at {channel}")
+        logger.debug(f"{len(not_in_db)} of them need to be added.")
+        if config["general"]["environment"] == "development":
+            items = not_in_db[:5]
+        else:
+            items = not_in_db
+        for youtube_id in items:
+            get_video_info(youtube_id, WORKING / youtube_id)
+
+            create_video_from_folder(WORKING / youtube_id)
 
     busy_downloading.set(False)
 
@@ -71,7 +96,7 @@ def Page():
                     "Refresh",
                     classes=["button"],
                     on_click=refresh_from_youtube,
-                    disabled=True,
+                    disabled=False,
                 )
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
@@ -122,6 +147,6 @@ def Page():
 
                     with solara.Card():
                         with solara.Column():
-                            with solara.Link(f"/tables/video-details/{vid.id}"):
+                            with solara.Link(f"/domains/video-details/{vid.id}"):
                                 solara.Image(image=Video(vid).poster(), width="300px")
                             solara.Markdown(f"#### {vid.title}")

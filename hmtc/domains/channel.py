@@ -55,3 +55,10 @@ class Channel(BaseDomain):
         self.file_repo.add(
             item=self.instance, source=file, target_path=target_path, stem=new_name
         )
+
+    @classmethod
+    def to_auto_update(cls):
+        channels = ChannelModel.select().where(
+            ChannelModel.title.contains("Harry Mack")
+        )
+        return [c.url for c in channels]

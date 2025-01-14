@@ -264,7 +264,9 @@ def download_channel_files(channel_id, url) -> Path:
 if __name__ == "__main__":
     # data = parse_youtube_info_file(Path("hmtc/utils/yt.info.json"))
     # logger.debug(data)
-    files = download_channel_files(
-        "UC59ZRYCHev_IqjUhremZ8Tg", "https://www.youtube.com/@HarryMack"
-    )
-    print(files)
+    # files = download_channel_files(
+    #    "UC59ZRYCHev_IqjUhremZ8Tg", "https://www.youtube.com/@HarryMack"
+    # )
+    # print(files)
+
+    print(fetch_ids_from("https://www.youtube.com/channel/UC59ZRYCHev_IqjUhremZ8Tg"))

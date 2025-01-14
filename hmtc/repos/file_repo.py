@@ -270,6 +270,9 @@ class FileRepo:
             raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
 
     def delete_files(self, item_id):
+        # this function is incomplete (at best)
+        # only mentioned info files, but don't think i tested
+        # it much...
         item_file_row = (
             self.model.select().where((self.model.item_id == item_id)).get_or_none()
         )
@@ -287,6 +290,7 @@ class FileRepo:
 
                 res2 = InfoFile.select().where(InfoFile.id == file_id).get()
                 res2.delete_instance()
+
         item_file_row.delete_instance()
 
     def num_files(self, another_item_id):

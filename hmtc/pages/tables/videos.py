@@ -38,10 +38,10 @@ def Page():
     base_query = VideoModel.select()
     headers = [
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+        {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
         {"text": "Title", "value": "title", "width": "30%"},
         {"text": "Duration", "value": "duration", "sortable": True},
         {"text": "Files", "value": "file_count", "sortable": False},
-        {"text": "Jellyfin ID", "value": "jellyfin_id", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
     search_fields = [VideoModel.youtube_id, VideoModel.title]
