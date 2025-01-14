@@ -409,7 +409,7 @@ class AudioFile(File):
 
 # moving pictures, not the entity
 # ie mkv, avi files instead of a 'Video'
-# from Youtube
+
 class VideoFile(File):
     duration = IntegerField()  # in seconds or milliseconds
     fps = FloatField()  # e.g., 23.976, 29.97, 60
