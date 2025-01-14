@@ -33,8 +33,12 @@ def Page():
         with solara.Error():
             solara.Markdown(f"No Video Found {video_id}")
         return
-
-    video = Video(video_id)
+    try:
+        video = Video(video_id)
+    except Exception as e:
+        logger.error(f"Exception {e}")
+        router.push('/')
+        return
     sections = []
 
     with solara.Column(classes=["main-container"]):
@@ -49,4 +53,4 @@ def Page():
         )
         solara.Markdown(f"## Files")
         for file in video.file_repo.my_files(video.instance.id):
-            solara.Markdown(f"### {file}")
+            solara.Markdown(f"### {file['file']}")

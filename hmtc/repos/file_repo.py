@@ -35,7 +35,6 @@ def MOVE_FILE(source: Path, target: Path):
         # need to do this better....
         final_file = source.rename(target)
     except OSError as e:
-        logger.debug(f"Error moving file {source} to storage: {e}")
         if e.errno == 18:  # Invalid cross-device link
             shutil.move(source, target)
             final_file = target
@@ -257,17 +256,11 @@ class FileRepo:
         else:
             raise ValueError(f"Filetype not found while ADDING {source}")
 
-    def get(self, item_id: int, filetype: str) -> Path:
-        if filetype in self.model.FILETYPES:
-            tbl = table_from_string(filetype)  # AudioFile table
-            res1 = (
-                self.model.select().where((self.model.item_id == item_id)).get_or_none()
-            )
-            if res1 is not None:
-                res2 = tbl.get_or_none(res1.item_id)
-            return res2
-        else:
-            raise ValueError(f"{filetype} file not found WHILE GETTING item {item_id}")
+    def get(self, item_id: int, filetype: str):
+        files = self.my_files(item_id)
+        for file in files:
+            if file['filetype'] == filetype:
+                return file['file']
 
     def delete_files(self, item_id):
         # this function is incomplete (at best)
@@ -317,5 +310,8 @@ class FileRepo:
             return []
         _files = []
         for filetype in self.model.FILETYPES:
-            _files.append(self.get(item_id, filetype))
+            this_file = getattr(item, filetype)
+            if this_file is not None:
+                _files.append({"filetype": filetype, "file": this_file})
         return _files
+

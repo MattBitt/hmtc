@@ -44,12 +44,15 @@ class MyLogger:
         pass
 
     def error(self, msg):
-        print(msg)
+        # print(msg)
+        pass
 
 
-# this seems to work for playlists and channels
-# if you send a channel it will grab all of the playlists
-# if you send a playlist it will grab all of the videos
+
+# as of 1/14/25 this is correct. not sure if the 
+# last message was an error or something else 
+# changed.
+# if url is channel it will grab all of the videos
 def fetch_ids_from(url, download_path="."):
     # couldn't figure out how to get this list without saving it to disk first ...
     downloaded_file = Path(download_path) / "ids.txt"
@@ -65,10 +68,10 @@ def fetch_ids_from(url, download_path="."):
         ids = f.read().splitlines()
     os.remove(downloaded_file)
     if ids == []:
-        logger.info(f"No playlists found for playlist: {url}")
+        # logger.info(f"No playlists found for playlist: {url}")
         return []
     else:
-        logger.debug(f"List of {len(ids)} IDS captured from url {url}")
+        #logger.debug(f"List of {len(ids)} IDS captured from url {url}")
         return ids
 
 
@@ -86,7 +89,7 @@ def get_video_info(
     if not folder.exists():
         folder.mkdir(parents=True)
     else:
-        logger.error(f"Cleaning out {folder}")
+        # logger.error(f"Cleaning out {folder}")
         for file in folder.glob("*"):
             logger.debug(f"Removing {file}")
             file.unlink()
