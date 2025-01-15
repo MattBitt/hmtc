@@ -22,7 +22,7 @@
 
 <script>
 module.exports = {
-  name: "DomainCard",
+  name: "FileCard",
   props: { title: String, icon: String, value: Int32Array },
   emits: [],
   data() {

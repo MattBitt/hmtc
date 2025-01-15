@@ -37,7 +37,7 @@ def Page():
         video = Video(video_id)
     except Exception as e:
         logger.error(f"Exception {e}")
-        router.push('/')
+        router.push("/")
         return
     sections = []
 

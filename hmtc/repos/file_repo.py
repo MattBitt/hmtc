@@ -259,8 +259,8 @@ class FileRepo:
     def get(self, item_id: int, filetype: str):
         files = self.my_files(item_id)
         for file in files:
-            if file['filetype'] == filetype:
-                return file['file']
+            if file["filetype"] == filetype:
+                return file["file"]
 
     def delete_files(self, item_id):
         # this function is incomplete (at best)
@@ -314,4 +314,3 @@ class FileRepo:
             if this_file is not None:
                 _files.append({"filetype": filetype, "file": this_file})
         return _files
-

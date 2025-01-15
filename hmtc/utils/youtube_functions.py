@@ -48,9 +48,8 @@ class MyLogger:
         pass
 
 
-
-# as of 1/14/25 this is correct. not sure if the 
-# last message was an error or something else 
+# as of 1/14/25 this is correct. not sure if the
+# last message was an error or something else
 # changed.
 # if url is channel it will grab all of the videos
 def fetch_ids_from(url, download_path="."):
@@ -71,7 +70,7 @@ def fetch_ids_from(url, download_path="."):
         # logger.info(f"No playlists found for playlist: {url}")
         return []
     else:
-        #logger.debug(f"List of {len(ids)} IDS captured from url {url}")
+        # logger.debug(f"List of {len(ids)} IDS captured from url {url}")
         return ids
 
 
