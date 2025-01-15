@@ -21,10 +21,8 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         OkCancel(message="Are you sure?", func_ok=func1, func_cancel=func2)
-        videos = Video.repo.all()
-        for video in videos:
-            vid = Video(video)
-            solara.Image(image=vid.poster(), width="300px")
-            for channel in Channel.repo.all():
-                _channel = Channel(channel)
-                solara.Markdown(f"{_channel.instance.title}")
+
+        for channel in Channel.repo.all():
+            _channel = Channel(channel)
+            solara.Image(_channel.poster(), width="300px")
+            solara.Markdown(f"{_channel.instance.title}")

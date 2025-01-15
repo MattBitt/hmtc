@@ -3,6 +3,7 @@ from typing import List
 
 from loguru import logger
 from peewee import ModelSelect
+from PIL import Image
 
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
@@ -62,3 +63,9 @@ class Channel(BaseDomain):
             ChannelModel.title.contains("Harry Mack")
         )
         return [c.url for c in channels]
+
+    def poster(self):
+        _poster = self.file_repo.get(self.instance.id, "poster")
+        if _poster is None:
+            return "Placeholder Image"
+        return Image.open(_poster.path)
