@@ -208,6 +208,26 @@ class Section(BaseModel):
         return f"SectionModel({self.id} - {self.section_type})"
 
 
+class ImportedSection(BaseModel):
+    # this is used to store the raw values
+    episode = IntegerField()
+    clip_number = IntegerField()
+    youtube_id = CharField()
+    start = IntegerField()
+    end = IntegerField()
+    topics = CharField()
+
+    video = ForeignKeyField(Video, backref="imported_sections", null=True)
+
+    def __repr__(self):
+        return (
+            f"SectionModel({self.id} - {self.start}:{self.end} - {self.section_type})"
+        )
+
+    def __str__(self):
+        return f"SectionModel({self.id} - {self.section_type})"
+
+
 class Topic(BaseModel):
     text = CharField()
 
@@ -498,4 +518,5 @@ __all__ = [
     "VideoFile",
     "SubtitleFile",
     "LyricFile",
+    "ImportedSection",
 ]

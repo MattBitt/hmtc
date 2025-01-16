@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from loguru import logger
-from peewee import ModelSelect
+from peewee import ModelSelect, fn
 from PIL import Image
 
 from hmtc.config import init_config
@@ -63,3 +63,11 @@ class Video(BaseDomain):
         if _poster is None:
             return "Placeholder Image"
         return Image.open(_poster.path)
+
+    @classmethod
+    def unique_count(cls):
+        return (
+            VideoModel.select(fn.COUNT(VideoModel.unique_content))
+            .where(VideoModel.unique_content == True)
+            .scalar()
+        )

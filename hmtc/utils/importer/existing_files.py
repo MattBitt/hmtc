@@ -1,3 +1,4 @@
+import csv
 from pathlib import Path
 from typing import List
 
@@ -8,6 +9,7 @@ from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
+from hmtc.models import ImportedSection as ImportedSectionModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
@@ -172,6 +174,37 @@ def import_existing_video_files_to_db(path):
         circuit_breaker += 1
 
     logger.success("Finished importing files to the database.")
+
+
+def import_sections():
+    logger.debug(f"About to import sections to the db")
+    existing = ImportedSectionModel.get_or_none()
+    if existing is not None:
+        # for now, going to purge the table no questions asked
+        logger.debug(f"Records found in the table. Deleting")
+        ImportedSectionModel.drop_table()
+        ImportedSectionModel.create_table()
+    logger.debug(f"Opening csv")
+    section_file = "hmtc/utils/importer/omegle_sections.csv"
+
+    with open(section_file, "r", encoding="utf-8-sig") as f:
+        csv_file = csv.DictReader(f)
+        sections = []
+        for row in csv_file:
+            sections.append(
+                dict(
+                    episode=row["episode"],
+                    clip_number=row["clip_number"],
+                    youtube_id=row["youtube_id"],
+                    start=row["start"],
+                    end=row["end"],
+                    topics=row["topics"],
+                )
+            )
+
+    for section in sections:
+        ImportedSectionModel.create(**section)
+    logger.success(f"Finished Importing {len(sections)} sections")
 
 
 if __name__ == "__main__":

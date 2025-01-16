@@ -4,6 +4,7 @@ from hmtc.models import *
 
 TABLES = [
     Album,
+    ImportedSection,
     AlbumFiles,
     Artist,
     AudioFile,
