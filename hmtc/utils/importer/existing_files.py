@@ -9,7 +9,8 @@ from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
-from hmtc.models import ImportedSection as ImportedSectionModel
+from hmtc.models import OmegleSection as OmegleSectionModel
+from hmtc.models import Section as SectionModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 from hmtc.utils.youtube_functions import parse_youtube_info_file
@@ -178,12 +179,12 @@ def import_existing_video_files_to_db(path):
 
 def import_sections():
     logger.debug(f"About to import sections to the db")
-    existing = ImportedSectionModel.get_or_none()
+    existing = OmegleSectionModel.get_or_none()
     if existing is not None:
         # for now, going to purge the table no questions asked
         logger.debug(f"Records found in the table. Deleting")
-        ImportedSectionModel.drop_table()
-        ImportedSectionModel.create_table()
+        OmegleSectionModel.drop_table()
+        OmegleSectionModel.create_table()
     logger.debug(f"Opening csv")
     section_file = "hmtc/utils/importer/omegle_sections.csv"
 
@@ -203,8 +204,41 @@ def import_sections():
             )
 
     for section in sections:
-        ImportedSectionModel.create(**section)
+        OmegleSectionModel.create(**section)
     logger.success(f"Finished Importing {len(sections)} sections")
+
+
+def create_omegle_sections():
+    default_sections = OmegleSectionModel.select()
+    counter = 0
+    logger.debug(f"About to create {len(default_sections)} sections")
+    for section in default_sections:
+        vid = Video.get_by(youtube_id=section.youtube_id)
+        if vid is None:
+            # logger.error(f"Video not in DB. Skipping")
+            pass
+        else:
+            if vid.instance.sections.count() > 0:
+                existing_sections = [s.clip_number for s in vid.instance.sections]
+                if section.clip_number in existing_sections:
+                    logger.debug(
+                        f"{vid} already has section {section.clip_number}. Not creating the default"
+                    )
+                    continue
+
+            new_section = dict(
+                start=section.start * 1000,
+                end=section.end * 1000,
+                clip_number=section.clip_number,
+                section_type=(
+                    "instrumental" if section.clip_number != 99 else "advertisement"
+                ),
+                video=vid.instance,
+            )
+            SectionModel.create(**new_section)
+            logger.debug(f"Updating {vid} with section information")
+            counter += 1
+    logger.success(f"Finished creating {counter} sections!")
 
 
 if __name__ == "__main__":

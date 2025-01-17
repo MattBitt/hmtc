@@ -195,6 +195,7 @@ class YoutubeSeriesVideo(BaseModel):
 class Section(BaseModel):
     start = IntegerField()
     end = IntegerField()
+    clip_number = IntegerField()
     section_type = CharField()
 
     video = ForeignKeyField(Video, backref="sections")
@@ -208,7 +209,7 @@ class Section(BaseModel):
         return f"SectionModel({self.id} - {self.section_type})"
 
 
-class ImportedSection(BaseModel):
+class OmegleSection(BaseModel):
     # this is used to store the raw values
     episode = IntegerField()
     clip_number = IntegerField()
@@ -518,5 +519,5 @@ __all__ = [
     "VideoFile",
     "SubtitleFile",
     "LyricFile",
-    "ImportedSection",
+    "OmegleSection",
 ]

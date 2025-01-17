@@ -5,8 +5,9 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.video.no_sections_panel import NoSectionsPanel
 from hmtc.components.video.section_details_panel import SectionsDetailsPanel
 from hmtc.components.video.section_dialog_button import SectionDialogButton
-from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
+from hmtc.domains.section import Section
+from hmtc.domains.video import Video
 
 
 def parse_url_args():
@@ -33,13 +34,18 @@ def Page():
             solara.Markdown(f"No Video Found {video_id}")
         return
 
-    video = VideoItem.load(video_id)
-    sections = Section.load_for_video(video.id)
+    try:
+        video = Video(video_id)
+        sections = Section.get_for_video(video.instance.id)
+    except Exception as e:
+        logger.error(f"{e}")
+        router.push("/")
+        return
 
     with solara.Column(classes=["main-container"]):
         with solara.Row():
-            solara.Markdown(f"Video: {video.title}")
-            solara.Markdown(f"Duration: {video.duration}")
+            solara.Markdown(f"Video: {video.instance.title}")
+            solara.Markdown(f"Duration: {video.instance.duration}")
         with solara.Row(justify="center"):
             SectionDialogButton(
                 video=video,

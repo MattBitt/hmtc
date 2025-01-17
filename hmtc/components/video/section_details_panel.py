@@ -63,7 +63,7 @@ def SectionSelector(
 
 def delete_section(*args, **kwargs):
     logger.debug(f"Deleting Section: {args}")
-    SectionItem.delete_id(args[0]["section_id"])
+    # SectionItem.delete_id(args[0]["section_id"])
     logger.success(f"Deleted Section {args[0]['section_id']} successfully")
 
 
@@ -82,7 +82,8 @@ def update_section_times(*args):
 
 
 def create_track(*args):
-    TrackItem.create(track_data=args[0], album_id=video.album_id)
+    # .create(track_data=args[0], album_id=video.album_id)
+    pass
 
 
 def remove_track(section_id):
@@ -147,8 +148,8 @@ def create_audio_file(*args):
     logger.debug(f"Creating audio file {args}")
     try:
         tm = TrackModel.get_by_id(args[0]["track_id"])
-        track = TrackItem.from_model(tm)
-        track.create_audio_file(video=video)
+        # track = TrackItem.from_model(tm)
+        # track.create_audio_file(video=video)
     except Exception as e:
         logger.error(e)
         return
@@ -171,8 +172,8 @@ def create_lyrics_file(*args):
     logger.debug(f"Creating audio file {args}")
     try:
         tm = TrackModel.get_by_id(args[0]["track_id"])
-        track = TrackItem.from_model(tm)
-        track.create_lyrics_file(video=video)
+        # track = TrackItem.from_model(tm)
+        # track.create_lyrics_file(video=video)
     except Exception as e:
         logger.error(e)
         return
@@ -193,12 +194,12 @@ def delete_lyrics_file(*args):
 @solara.component
 def SectionsDetailsPanel(video, sections):
 
-    _sections = [SectionItem.serialize(s) for s in sections]
+    _sections = [s.serialize() for s in sections]
 
     if _sections != []:
         SectionSelector(
             sectionItems=_sections,
-            video_duration=video.duration,
+            video_duration=video.instance.duration,
             event_add_item=add_topic,
             event_remove_item=remove_topic,
             event_delete_section=delete_section,

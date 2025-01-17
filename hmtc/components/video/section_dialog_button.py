@@ -24,7 +24,7 @@ def SectionDialogButton(video, reactive_sections):
         pass
 
     SectionControlPanel(
-        video=VideoItem.serialize(video),
+        video=video.serialize(),
         jellyfin_status={"status": "offline"},
         event_create_section=create_section,
         event_delete_all_sections=delete_all_sections,

@@ -15,5 +15,13 @@ class Section(BaseDomain):
             "start": self.instance.start,
             "end": self.instance.end,
             "section_type": self.instance.section_type,
+            "clip_number": self.instance.clip_number,
             "video_id": self.instance.video_id,
         }
+
+    @classmethod
+    def get_for_video(cls, video_id):
+        return [
+            cls(s)
+            for s in SectionModel.select().where(SectionModel.video_id == video_id)
+        ]
