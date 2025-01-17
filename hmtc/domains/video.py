@@ -46,10 +46,6 @@ class Video(BaseDomain):
         )
 
     def add_file(self, file: Path):
-
-        # does it already have one of these types?
-        #     delete it
-
         year = self.instance.upload_date.strftime("%Y")
         target_path = STORAGE / year / self.instance.youtube_id
         new_name = self.instance.youtube_id

@@ -78,9 +78,6 @@ def get_video_info(
     youtube_id,
     output_folder,
     progress_hook=None,
-    thumbnail=True,
-    subtitle=True,
-    info=True,
 ):
     url = f"https://www.youtube.com/watch?v={youtube_id}"
     logger.error("🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢")
@@ -92,6 +89,7 @@ def get_video_info(
         for file in folder.glob("*"):
             logger.debug(f"Removing {file}")
             file.unlink()
+    
     if progress_hook:
         hook = progress_hook
     else:
@@ -100,18 +98,21 @@ def get_video_info(
     ydl_opts = {
         # "logger": logger,
         "progress_hooks": [hook],
-        "writethumbnail": thumbnail,
+        "writethumbnail": True,
         "skip_download": True,
-        "writeinfojson": info,
-        "writeautomaticsub": subtitle,
+        "writeinfojson": True,
+        "writeautomaticsub": True,
         "subtitlesformat": "vtt",
         "subtitleslangs": ["en"],
+        
+        # "cookiefile": ("\\\\wsl.localhost\\Ubuntu-22.04\\home\\matt\\programming\\hmtc\\hmtc\\utils\\cookies.txt"),
         "outtmpl": str(folder / "%(upload_date)s___%(id)s.%(ext)s"),
     }
 
     info = {}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
+            
             info = ydl.extract_info(url)
 
         except Exception as e:

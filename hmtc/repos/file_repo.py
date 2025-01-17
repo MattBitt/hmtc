@@ -178,9 +178,7 @@ def process_file(file, target, stem):
                 logger.error(f"Integrity Error.....")
                 return
             
-            existing_thumbnail = list(final_path.parent.glob('*thumbnail*'))
-            if existing_thumbnail == []:
-                create_thumnail(Path(new_file.path), new_file.id)
+            create_thumnail(Path(new_file.path), new_file.id)
 
         case "audio":
             final_path = file_dict["path"].with_suffix(file.suffix)

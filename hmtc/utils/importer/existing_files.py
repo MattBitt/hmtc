@@ -84,8 +84,9 @@ def create_video_from_folder(path: Path) -> None:
                 file.unlink()
                 continue
             if 'thumbnail' in file.name:
+                logger.debug(f"Deleting existing thumbnail")
                 file.unlink() # recreate the thumbnail
-                continue
+
             Video.add_file(vid, file)
 
         logger.success(f"Created video {vid.instance.title}")
