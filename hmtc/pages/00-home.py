@@ -148,5 +148,8 @@ def Page():
                     with solara.Card():
                         with solara.Column():
                             with solara.Link(f"/domains/video-details/{vid.id}"):
-                                solara.Image(image=Video(vid).poster(), width="300px")
+                                solara.Image(
+                                    image=Video(vid).poster(thumbnail=False),
+                                    width="300px",
+                                )
                             solara.Markdown(f"#### {vid.title}")

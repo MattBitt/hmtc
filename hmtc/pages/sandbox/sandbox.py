@@ -21,8 +21,9 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         OkCancel(message="Are you sure?", func_ok=func1, func_cancel=func2)
-
-        for channel in Channel.repo.all():
-            _channel = Channel(channel)
-            solara.Image(_channel.poster(), width="300px")
-            solara.Markdown(f"{_channel.instance.title}")
+        with solara.ColumnsResponsive():
+            for channel in Channel.repo.all():
+                _channel = Channel(channel)
+                with solara.Card():
+                    solara.Image(_channel.poster(thumbnail=True), width="100px")
+                    solara.Markdown(f"{_channel.instance.title}")

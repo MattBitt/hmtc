@@ -54,12 +54,6 @@ class Video(BaseDomain):
             item=self.instance, source=file, target_path=target_path, stem=new_name
         )
 
-    def poster(self):
-        _poster = self.file_repo.get(self.instance.id, "poster")
-        if _poster is None:
-            return "Placeholder Image"
-        return Image.open(_poster.path)
-
     @classmethod
     def unique_count(cls):
         return (

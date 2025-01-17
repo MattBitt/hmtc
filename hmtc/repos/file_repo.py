@@ -3,9 +3,9 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
-import peewee
 
 import ffmpeg
+import peewee
 from loguru import logger
 from PIL import Image
 
@@ -132,10 +132,11 @@ def get_video_properties(filename):
     except ffmpeg.Error as e:
         print(f"Error probing file: {e.stderr}")
 
+
 def create_thumnail(image, parent_id):
-    
+
     size = 128, 128
-    if 'thumbnail' in image.stem:
+    if "thumbnail" in image.stem:
         logger.error("This is a thumbnail already.")
         return
     outfile = image.parent / (image.stem + ".thumbnail.jpg")
@@ -143,7 +144,7 @@ def create_thumnail(image, parent_id):
     if outfile.exists():
         if existing:
             logger.error(f"Do {outfile} and {existing} point to the same thing?")
-        
+
     if existing:
         logger.debug(f"Thumbnail already exists in DB. Skipping")
     else:
@@ -183,7 +184,7 @@ def process_file(file, target, stem):
             except peewee.IntegrityError:
                 logger.error(f"Integrity Error.....")
                 return
-            
+
             create_thumnail(Path(new_file.path), new_file.id)
 
         case "audio":

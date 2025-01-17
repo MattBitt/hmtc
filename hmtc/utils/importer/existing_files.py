@@ -83,13 +83,13 @@ def create_video_from_folder(path: Path) -> None:
                 logger.debug(f"Deleting {file.name}")
                 file.unlink()
                 continue
-            if 'thumbnail' in file.name:
+            if "thumbnail" in file.name:
                 # not sure what to do here
                 # stuck between importing existing folders
                 # when some of them will have a thumbnail already
                 # and new folders that don't
                 pass
-                
+
             else:
                 Video.add_file(vid, file)
 

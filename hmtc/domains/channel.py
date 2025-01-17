@@ -63,9 +63,3 @@ class Channel(BaseDomain):
             ChannelModel.title.contains("Harry Mack")
         )
         return [c.url for c in channels]
-
-    def poster(self):
-        _poster = self.file_repo.get(self.instance.id, "poster")
-        if _poster is None:
-            return "Placeholder Image"
-        return Image.open(_poster.path)

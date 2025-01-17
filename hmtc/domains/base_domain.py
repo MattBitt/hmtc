@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from loguru import logger
 from peewee import DoesNotExist, Model
+from PIL import Image
 
 T = TypeVar("T", bound="BaseDomain")
 
@@ -77,3 +78,12 @@ class BaseDomain:
     def get_file(self, filetype) -> Path | None:
         _file = self.file_repo.get(item_id=self.instance.id, filetype=filetype)
         return Path(_file.path) if _file else None
+
+    def poster(self, thumbnail=False):
+        _poster = self.file_repo.get(self.instance.id, "poster")
+        if _poster is None:
+            return "Placeholder Image"
+        if thumbnail:
+            return Image.open(_poster.thumbnail.get().path)
+        else:
+            return Image.open(_poster.path)

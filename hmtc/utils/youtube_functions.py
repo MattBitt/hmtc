@@ -89,7 +89,7 @@ def get_video_info(
         for file in folder.glob("*"):
             logger.debug(f"Removing {file}")
             file.unlink()
-    
+
     if progress_hook:
         hook = progress_hook
     else:
@@ -104,7 +104,6 @@ def get_video_info(
         "writeautomaticsub": True,
         "subtitlesformat": "vtt",
         "subtitleslangs": ["en"],
-        
         # "cookiefile": ("\\\\wsl.localhost\\Ubuntu-22.04\\home\\matt\\programming\\hmtc\\hmtc\\utils\\cookies.txt"),
         "outtmpl": str(folder / "%(upload_date)s___%(id)s.%(ext)s"),
     }
@@ -112,7 +111,7 @@ def get_video_info(
     info = {}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
-            
+
             info = ydl.extract_info(url)
 
         except Exception as e:

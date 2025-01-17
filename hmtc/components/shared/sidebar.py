@@ -34,25 +34,22 @@ def MySidebar(
 
     with solara.AppBar():
         with solara.Link(f"/"):
-            solara.Button(
-            icon_name="mdi-home",  icon=True
-        )
+            solara.Button(icon_name="mdi-home", icon=True)
         with solara.Link(f"/dashboards/domains"):
             solara.Button(
-            icon_name="mdi-google-circles-extended",
-            icon=True,
-        )
+                icon_name="mdi-google-circles-extended",
+                icon=True,
+            )
         with solara.Link(f"/dashboards/files"):
             solara.Button(
-            icon_name="mdi-folder",
-            icon=True,
-        )
+                icon_name="mdi-folder",
+                icon=True,
+            )
         with solara.Link(f"/utils/settings"):
             solara.Button(
-            icon_name="mdi-cogs",
-            
-            icon=True,
-        )
+                icon_name="mdi-cogs",
+                icon=True,
+            )
         if True:  # logged_out
             solara.Button(
                 icon_name="mdi-login", on_click=lambda: router.push("/login"), icon=True
