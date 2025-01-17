@@ -4,7 +4,7 @@ from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains import Album, Artist, Channel, Track, User, Video
-from hmtc.models import ChannelFiles, VideoFiles
+from hmtc.models import ChannelFiles, VideoFiles, Thumbnail
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 from hmtc.utils.youtube_functions import download_channel_files
 
@@ -75,15 +75,23 @@ def VideoFilesCard():
         .where(VideoFiles.subtitle_id.is_null(False))
         .scalar()
     )
+    thumbnail_files = (
+        Thumbnail.select(fn.COUNT(Thumbnail.id))
+        .where(Thumbnail.id.is_null(False))
+        .scalar()
+    )
 
-    total_files = info_files + poster_files + video_files + audio_files + subtitle_files
+    total_files = info_files + poster_files + video_files + audio_files + subtitle_files + thumbnail_files
     with solara.Card(title=f"Videos ({num_videos})"):
 
         with solara.Row(justify="center"):
             solara.Markdown(f"## Database")
         with solara.Row(justify="center"):
             solara.Text(f"infos {info_files}", classes=["mx-6"])
-            solara.Text(f"posters {poster_files}", classes=["mx-6"])
+            with solara.Column():
+                solara.Text(f"posters: {poster_files}", classes=["mx-6"])
+                solara.Text(f"thumbs: {thumbnail_files}", classes=["mx-6"])
+                
             solara.Text(f"subtitle {subtitle_files}", classes=["mx-6"])
             solara.Text(f"videos {video_files}", classes=["mx-6"])
             solara.Text(f"audios Files {audio_files}", classes=["mx-6"])

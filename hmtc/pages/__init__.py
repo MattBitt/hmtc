@@ -73,7 +73,7 @@ def main(config):
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
 
 
-# this is the base of the app
+# # this is the base of the app
 @solara.component
 def Layout(children=[]):
 

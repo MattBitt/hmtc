@@ -38,7 +38,6 @@ def Page():
             solara.Button("Domains Dashboard", classes=["button"])
         with solara.ColumnsResponsive():
             for item in items:
-
                 with solara.Link(f"{item['url']}"):
                     solara.Button(
                         f"{item['text']}", icon_name=item["icon"], classes=["button"]

@@ -135,18 +135,24 @@ def get_video_properties(filename):
 def create_thumnail(image, parent_id):
     
     size = 128, 128
+    if 'thumbnail' in image.stem:
+        logger.error("This is a thumbnail already.")
+        return
     outfile = image.parent / (image.stem + ".thumbnail.jpg")
-    if image != outfile:
-        
-        existing = Thumbnail.select().where(Thumbnail.path == str(outfile)).get_or_none()
+    existing = Thumbnail.select().where(Thumbnail.path == str(outfile)).get_or_none()
+    if outfile.exists():
         if existing:
-            logger.debug(f"Thumbnail already exists in DB. Skipping")
-        else:
-            im = Image.open(image)
-            im.thumbnail(size, Image.Resampling.LANCZOS)
-            im.save(outfile, "JPEG")
-            thumb = Thumbnail.create(path=outfile, parent_id=parent_id)
-            thumb.save()
+            logger.error(f"Do {outfile} and {existing} point to the same thing?")
+        
+    if existing:
+        logger.debug(f"Thumbnail already exists in DB. Skipping")
+    else:
+        im = Image.open(image)
+        im.thumbnail(size, Image.Resampling.LANCZOS)
+        im.save(outfile, "JPEG")
+        thumb = Thumbnail.create(path=outfile, parent_id=parent_id)
+        thumb.save()
+        logger.success(f"Created thumbnail for {image} and {parent_id}")
 
 
 def process_file(file, target, stem):
