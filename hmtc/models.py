@@ -364,7 +364,7 @@ class Superchat(BaseModel):
 
 
 class File(BaseModel):
-    path = CharField()
+    path = CharField(unique=True)
     file_size = IntegerField()  # stored in kbytes
     modified_datetime = DateTimeField()
     hash = CharField(null=True)  # could be useful for file verification
@@ -387,7 +387,16 @@ class ImageFile(File):
     def __str__(self):
         return f"PosterFileModel({self.id} - {self.path=})"
 
+class Thumbnail(BaseModel):
+    path = CharField(unique=True)
+    parent = ForeignKeyField(ImageFile, backref="thumbnail")
+        
+    def __repr__(self):
+        return f"ThumbnailModel({self.id} - {self.path=})"
 
+    def __str__(self):
+        return f"ThumbnailModel({self.id} - {self.path=})"
+    
 class InfoFile(File):
     # Since this appears to be a basic info file, we might not need additional fields
     # The base File fields should be sufficient, but we'll keep the class for type distinction
@@ -520,4 +529,5 @@ __all__ = [
     "SubtitleFile",
     "LyricFile",
     "OmegleSection",
+    "Thumbnail",
 ]

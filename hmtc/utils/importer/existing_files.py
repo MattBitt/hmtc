@@ -83,17 +83,14 @@ def create_video_from_folder(path: Path) -> None:
                 logger.debug(f"Deleting {file.name}")
                 file.unlink()
                 continue
+            if 'thumbnail' in file.name:
+                file.unlink() # recreate the thumbnail
+                continue
             Video.add_file(vid, file)
 
         logger.success(f"Created video {vid.instance.title}")
-        # if "omegle" in vid.title.lower():
-        #     # FUTURE ...
-        #     sections = check_for_sections(vid.description) or []
-        #     for section in sections:
-        #         # Section.create(vid, section)
-        #         pass
     else:
-        logger.debug(f"Skipping video {path.stem}")
+        logger.debug(f"No Info File found for {path.stem}. Skipping folder.")
 
 
 def update_existing_video_from_existing_files(path: Path) -> None:

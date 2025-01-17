@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
+import peewee
 
 import ffmpeg
 from loguru import logger
@@ -16,6 +17,7 @@ from hmtc.models import (
     InfoFile,
     LyricFile,
     SubtitleFile,
+    Thumbnail,
     VideoFile,
 )
 
@@ -130,6 +132,22 @@ def get_video_properties(filename):
     except ffmpeg.Error as e:
         print(f"Error probing file: {e.stderr}")
 
+def create_thumnail(image, parent_id):
+    
+    size = 128, 128
+    outfile = image.parent / (image.stem + ".thumbnail.jpg")
+    if image != outfile:
+        
+        existing = Thumbnail.select().where(Thumbnail.path == str(outfile)).get_or_none()
+        if existing:
+            logger.debug(f"Thumbnail already exists in DB. Skipping")
+        else:
+            im = Image.open(image)
+            im.thumbnail(size, Image.Resampling.LANCZOS)
+            im.save(outfile, "JPEG")
+            thumb = Thumbnail.create(path=outfile, parent_id=parent_id)
+            thumb.save()
+
 
 def process_file(file, target, stem):
 
@@ -154,8 +172,15 @@ def process_file(file, target, stem):
             file_dict["height"] = height
             file_dict["width"] = width
             file_dict["colorspace"] = colorspace
-
-            new_file = ImageFile.create(**file_dict)
+            try:
+                new_file = ImageFile.create(**file_dict)
+            except peewee.IntegrityError:
+                logger.error(f"Integrity Error.....")
+                return
+            
+            existing_thumbnail = list(final_path.parent.glob('*thumbnail*'))
+            if existing_thumbnail == []:
+                create_thumnail(Path(new_file.path), new_file.id)
 
         case "audio":
             final_path = file_dict["path"].with_suffix(file.suffix)
@@ -243,12 +268,13 @@ class FileRepo:
         filetype = get_filetype(source)
         if filetype in self.model.FILETYPES:
             try:
-                # move the file to its final destination
                 new_file_dict = process_file(source, target_path, stem)
             except Exception as e:
                 logger.error(f"Error adding a file {source} to item {item.id}")
                 raise e
-
+            if new_file_dict is None:
+                logger.error(f"New File Dict is None here....")
+                return
             item, created = self.model.get_or_create(item_id=item.id)
             setattr(item, new_file_dict["filetype"], new_file_dict["file"])
             item.save()
