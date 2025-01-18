@@ -158,7 +158,8 @@ def ChannelFilesCard():
                     solara.Markdown(f"## Database")
                 with solara.Row():
                     solara.Text(f"Info Files {info_files}", classes=["mx-6"])
-                    solara.Text(f"Posters {poster_files}", classes=["mx-6"])
+                with solara.Column():
+                    solara.Text(f"posters: {poster_files}", classes=["mx-6"])
                     solara.Text(f"Total {total_files}", classes=["mx-6"])
                     solara.Button(
                         f"Download Files",

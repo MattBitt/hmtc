@@ -390,7 +390,7 @@ class ImageFile(File):
 
 class Thumbnail(BaseModel):
     path = CharField(unique=True)
-    parent = ForeignKeyField(ImageFile, backref="thumbnail")
+    image = ForeignKeyField(ImageFile, backref="thumbnail")
 
     def __repr__(self):
         return f"ThumbnailModel({self.id} - {self.path=})"

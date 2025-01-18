@@ -133,7 +133,7 @@ def get_video_properties(filename):
         print(f"Error probing file: {e.stderr}")
 
 
-def create_thumnail(image, parent_id):
+def create_thumbnail(image, imagefile_id):
 
     size = 128, 128
     if "thumbnail" in image.stem:
@@ -151,9 +151,9 @@ def create_thumnail(image, parent_id):
         im = Image.open(image)
         im.thumbnail(size, Image.Resampling.LANCZOS)
         im.save(outfile, "JPEG")
-        thumb = Thumbnail.create(path=outfile, parent_id=parent_id)
+        thumb = Thumbnail.create(path=outfile, image_id=imagefile_id)
         thumb.save()
-        logger.success(f"Created thumbnail for {image} and {parent_id}")
+        logger.success(f"Created thumbnail for {image} and {imagefile_id}")
 
 
 def process_file(file, target, stem):
@@ -184,8 +184,9 @@ def process_file(file, target, stem):
             except peewee.IntegrityError:
                 logger.error(f"Integrity Error.....")
                 return
-
-            create_thumnail(Path(new_file.path), new_file.id)
+            # uncomment the next line to auto create thumbnails
+            # once production has generated what it needs
+            # create_thumnail(Path(new_file.path), new_file.id)
 
         case "audio":
             final_path = file_dict["path"].with_suffix(file.suffix)

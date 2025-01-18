@@ -1,10 +1,12 @@
 from pathlib import Path
 
+import peewee
 import solara
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import OmegleSection
+from hmtc.models import ImageFile, OmegleSection, Thumbnail
+from hmtc.repos.file_repo import create_thumbnail
 from hmtc.utils.importer.existing_files import (
     create_omegle_sections,
     import_existing_video_files_to_db,
@@ -13,6 +15,12 @@ from hmtc.utils.importer.existing_files import (
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
+
+
+def create_missing_thumbnails():
+    images = ImageFile.select().where(ImageFile.id.not_in(Thumbnail.select()))
+    for image in images:
+        create_thumbnail(Path(image.path), image.id)
 
 
 @solara.component
@@ -28,6 +36,10 @@ def SectionsControls():
                         STORAGE / "videos"
                     ),
                     classes=["button"],
+                )
+                solara.Text(f"Create missing thumbnails")
+                solara.Button(
+                    f"Create missing Thumbnails", on_click=create_missing_thumbnails
                 )
         with solara.Card("Sections"):
             with solara.Column():
