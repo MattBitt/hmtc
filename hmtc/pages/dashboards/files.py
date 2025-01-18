@@ -71,6 +71,10 @@ def process_working():
             if vf.video_id is None and file.suffix == ".mp4":
                 logger.debug(f"Found a missing video file. Adding it")
                 vid.add_file(file)
+                try:
+                    file.rmdir()
+                except Exception as e:
+                    logger.debug(f"Error {e} removing folder {file}")
             else:
                 logger.debug(f"Somethings fishy. Investigate before moving")
                 logger.debug(f"Vid  = {vid}")
@@ -83,7 +87,7 @@ def process_working():
 def WorkingFilesCard():
     with solara.Card(f"Working Files"):
         found_files = []
-        for file in WORKING.glob("downloads/*"):
+        for file in WORKING.glob("*/*___*"):
             if file.is_file():
                 found_files.append(file)
         solara.Markdown(f"{len(found_files)} found in the Working folder")
