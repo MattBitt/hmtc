@@ -70,6 +70,7 @@ def process_working():
 
             if vf.video_id is None and file.suffix == ".mp4":
                 logger.debug(f"Found a missing video file. Adding it")
+                vid.add_file(file)
             else:
                 logger.debug(f"Somethings fish. Investigate before moving")
                 logger.debug(f"Vid  = {vid}")
