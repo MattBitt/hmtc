@@ -62,7 +62,12 @@ def process_working():
             logger.error(f"Youtube ID {yt_id} not found in DB. Skipping")
             continue
         else:
-            vf = VideoFiles.select().where(VideoFiles.item_id == vid.instance.id)
+            vf = (
+                VideoFiles.select()
+                .where(VideoFiles.item_id == vid.instance.id)
+                .get_or_none()
+            )
+
             if vf.video_id is None and file.suffix == ".mp4":
                 logger.debug(f"Found a missing video file. Adding it")
             else:
@@ -77,7 +82,7 @@ def process_working():
 def WorkingFilesCard():
     with solara.Card(f"Working Files"):
         found_files = []
-        for file in WORKING.glob("*"):
+        for file in WORKING.glob("downloads/*"):
             if file.is_file():
                 found_files.append(file)
         solara.Markdown(f"{len(found_files)} found in the Working folder")
