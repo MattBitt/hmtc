@@ -29,15 +29,23 @@ def create_missing_thumbnails():
 
 def download_unique():
     vids_missing_video = VideoFiles.select().where(VideoFiles.video_id.is_null())
-    logger.debug(f"{len(vids_missing_video)} Videos are missing a video file.")
-    if len(vids_missing_video) > 10:
-        to_process = vids_missing_video[:10]
-    else:
-        to_process = vids_missing_video
+    vids_missing_list = set([x.item_id for x in vids_missing_video])
 
-    for video in to_process:
-        vid = Video(video)
-        download_video_file(vid.instance.youtube_id)
+    unique_vids = VideoModel.select(VideoModel.id).where(
+        VideoModel.unique_content == True
+    )
+    unique_list = set([x.id for x in unique_vids])
+    to_process = unique_list.intersection(vids_missing_list)
+    downloaded = 0
+    logger.debug(
+        f"Found {len(to_process)} unique videos missing a video file. Downloading"
+    )
+    for vid_id in to_process:
+        video = Video(vid_id)
+        download_video_file(video.instance.youtube_id)
+        downloaded += 1
+        if downloaded >= 10:
+            break
 
 
 @solara.component
