@@ -17,6 +17,9 @@ from hmtc.models import (
     VideoFile,
     VideoFiles,
 )
+from hmtc.models import (
+    Video as VideoModel,
+)
 from hmtc.utils.importer.existing_files import (
     import_channel_files_to_db,
     import_existing_video_files_to_db,
@@ -146,11 +149,25 @@ def VideoFilesCard():
         .where(VideoFiles.poster_id.is_null(False))
         .scalar()
     )
-    video_files = (
+
+    unique_vids = VideoModel.select(VideoModel.id).where(
+        VideoModel.unique_content == True
+    )
+    non_unique_vids = VideoModel.select(VideoModel.id).where(
+        VideoModel.unique_content == False
+    )
+
+    unique_video_files = (
         VideoFiles.select(fn.COUNT(VideoFiles.video_id))
-        .where(VideoFiles.video_id.is_null(False))
+        .where(VideoFiles.video_id.in_(unique_vids))
         .scalar()
     )
+    non_unique_video_files = (
+        VideoFiles.select(fn.COUNT(VideoFiles.video_id))
+        .where(VideoFiles.video_id.in_(non_unique_vids))
+        .scalar()
+    )
+    all_video_files = unique_video_files + non_unique_video_files
     audio_files = (
         VideoFiles.select(fn.COUNT(VideoFiles.audio_id))
         .where(VideoFiles.audio_id.is_null(False))
@@ -163,8 +180,9 @@ def VideoFilesCard():
     )
 
     total_files = (
-        info_files + (poster_files * 2) + video_files + audio_files + subtitle_files
+        info_files + (poster_files * 2) + all_video_files + audio_files + subtitle_files
     )
+
     with solara.Card(title=f"Videos ({num_videos})"):
 
         with solara.Row(justify="center"):
@@ -175,7 +193,16 @@ def VideoFilesCard():
                 solara.Text(f"posters: {poster_files}", classes=["mx-6"])
 
             solara.Text(f"subtitle {subtitle_files}", classes=["mx-6"])
-            solara.Text(f"videos {video_files}", classes=["mx-6"])
+            with solara.Column():
+                solara.Text(f"Video (mp4) Files", classes=["mx-6"])
+                with solara.Link(f"/tables/videos/unique/"):
+                    solara.Text(f"Unique videos {unique_video_files}", classes=["mx-6"])
+                with solara.Link(f"/tables/videos/nonunique/"):
+                    solara.Text(
+                        f"NonUnique videos {non_unique_video_files}", classes=["mx-6"]
+                    )
+                with solara.Link(f"/tables/videos/"):
+                    solara.Text(f"Total {all_video_files}", classes=["mx-6"])
             solara.Text(f"audios Files {audio_files}", classes=["mx-6"])
             solara.Text(f"Total {total_files}", classes=["mx-6"])
 

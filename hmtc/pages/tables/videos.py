@@ -15,6 +15,7 @@ from hmtc.models import (
 from hmtc.models import (
     Channel,
     Series,
+    VideoFiles,
 )
 from hmtc.models import (
     Section as SectionModel,
@@ -25,7 +26,7 @@ from hmtc.models import (
 from hmtc.router import parse_url_args
 
 refreshing = solara.reactive(0)
-unique_only = solara.reactive(False)
+missing_videos = solara.reactive(False)
 
 
 def view_details(router, item):
@@ -35,13 +36,13 @@ def view_details(router, item):
 @solara.component
 def FilterBar():
     with solara.Card("Filters"):
-        if unique_only.value:
+        if missing_videos.value:
             caption = "Show All"
         else:
-            caption = "Show Unique"
+            caption = "Show Missing Video Files"
         solara.Button(
             f"{caption}",
-            on_click=lambda: unique_only.set(not unique_only.value),
+            on_click=lambda: missing_videos.set(not missing_videos.value),
             classes=["button"],
         )
 
@@ -50,21 +51,31 @@ def FilterBar():
 def Page():
     router = solara.use_router()
     MySidebar(router)
-    parse_url_args()
+    args = parse_url_args()
     FilterBar()
-    if unique_only.value:
-        base_query = VideoModel.select().where(VideoModel.unique_content == True)
-    else:
-        base_query = VideoModel.select()
     headers = [
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
         {"text": "Title", "value": "title", "width": "30%"},
         {"text": "Duration", "value": "duration", "sortable": True},
-        {"text": "Unique", "value": "unique_content", "sortable": False},
+    ]
+
+    if "unique" in args:
+        base_query = VideoModel.select().where(VideoModel.unique_content == True)
+    elif "nonunique" in args:
+        base_query = VideoModel.select().where(VideoModel.unique_content == False)
+    else:
+        base_query = VideoModel.select()
+        headers += [{"text": "Unique", "value": "unique_content", "sortable": False}]
+    headers += [
         {"text": "Files", "value": "file_count", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
+    if missing_videos.value:
+        vids_missing_files = VideoFiles.select().where(
+            VideoFiles.video_id.is_null(True)
+        )
+        base_query = base_query.where(VideoModel.id.in_(vids_missing_files))
     search_fields = [VideoModel.youtube_id, VideoModel.title]
     VideoTable(
         router=router,
