@@ -31,7 +31,6 @@ from hmtc.utils.jellyfin_functions import (
     get_user_favorites,
     get_user_session,
 )
-from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
 WORKING = Path(config["WORKING"]) / "downloads"

@@ -14,7 +14,6 @@ from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
-from hmtc.utils.youtube_functions import download_video_file
 
 IMG_WIDTH = "300px"
 

@@ -186,9 +186,8 @@ def process_file(file, target, stem):
             except peewee.IntegrityError:
                 logger.error(f"Integrity Error.....")
                 return
-            # uncomment the next line to auto create thumbnails
-            # once production has generated what it needs
-            # create_thumnail(Path(new_file.path), new_file.id)
+
+            create_thumbnail(Path(new_file.path), new_file.id)
 
         case "audio":
             final_path = file_dict["path"].with_suffix(file.suffix)

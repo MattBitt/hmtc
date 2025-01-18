@@ -2,16 +2,20 @@ from pathlib import Path
 
 import peewee
 import solara
+from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
-from hmtc.models import ImageFile, OmegleSection, Thumbnail
+from hmtc.domains.video import Video
+from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
+from hmtc.models import Video as VideoModel
 from hmtc.repos.file_repo import create_thumbnail
 from hmtc.utils.importer.existing_files import (
     create_omegle_sections,
     import_existing_video_files_to_db,
     import_sections,
 )
+from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
@@ -23,9 +27,23 @@ def create_missing_thumbnails():
         create_thumbnail(Path(image.path), image.id)
 
 
+def download_unique():
+    vids_missing_video = VideoFiles.select().where(VideoFiles.video_id.is_null())
+    logger.debug(f"{len(vids_missing_video)} Videos are missing a video file.")
+    if len(vids_missing_video) > 10:
+        to_process = vids_missing_video[:10]
+    else:
+        to_process = vids_missing_video
+
+    for video in to_process:
+        vid = Video(video)
+        download_video_file(vid.instance.youtube_id)
+
+
 @solara.component
 def SectionsControls():
     num_sections = OmegleSection.select().count()
+    vids_missing_video = 15
     with solara.Columns():
         with solara.Card("Videos"):
             with solara.Column():
@@ -39,7 +57,14 @@ def SectionsControls():
                 )
                 solara.Text(f"Create missing thumbnails")
                 solara.Button(
-                    f"Create missing Thumbnails", on_click=create_missing_thumbnails
+                    f"Create missing Thumbnails",
+                    on_click=create_missing_thumbnails,
+                    classes=["button"],
+                )
+                solara.Button(
+                    f"Download Unique Videos {vids_missing_video}",
+                    on_click=download_unique,
+                    classes=["button"],
                 )
         with solara.Card("Sections"):
             with solara.Column():

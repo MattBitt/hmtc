@@ -36,7 +36,6 @@ from hmtc.utils.jellyfin_functions import (
     get_user_session,
 )
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
-from hmtc.utils.youtube_functions import download_video_file
 
 
 @solara.component

@@ -179,17 +179,15 @@ def get_playlist_info(id, output_folder, thumbnail=True, subtitle=True, info=Tru
 
 def download_video_file(
     id,
-    output_folder,
+    output_folder=WORKING,
     progress_hook=None,
 ):
     url = f"https://www.youtube.com/watch?v={id}"
-    logger.error("🟣🟣🟣🟣🟣🟣🟣")
     folder = Path(output_folder)
     if not is_disk_full(folder):
         if not folder.exists():
             folder.mkdir(parents=True)
     else:
-        logger.error(f"Disk is full: {folder}")
         raise Exception(f"Disk is full: {folder}")
 
     if progress_hook:
@@ -211,13 +209,13 @@ def download_video_file(
             info = ydl.extract_info(url)
             files = [f for f in Path(output_folder).glob(f"*{id}*")]
             logger.debug(f"Files: {files}")
-
+            return files
         except Exception as e:
             logger.error(e)
             info["error"] = True
             info["error_info"] = e
         # ℹ️ ydl.sanitize_info makes the info json-serializable
-        return ydl.sanitize_info(info), files
+        return []
 
 
 def parse_youtube_info_file(file: Path):
