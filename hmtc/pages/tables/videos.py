@@ -77,6 +77,7 @@ def Page():
             for v in VideoFiles.select().where(VideoFiles.video_id.is_null(True))
         ]
         base_query = base_query.where(VideoModel.id.in_(vids_missing_files))
+
     search_fields = [VideoModel.youtube_id, VideoModel.title]
     VideoTable(
         router=router,

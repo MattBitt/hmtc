@@ -159,12 +159,12 @@ def VideoFilesCard():
 
     unique_video_files = (
         VideoFiles.select(fn.COUNT(VideoFiles.video_id))
-        .where(VideoFiles.video_id.in_(unique_vids))
+        .where(VideoFiles.item_id.in_(unique_vids))
         .scalar()
     )
     non_unique_video_files = (
         VideoFiles.select(fn.COUNT(VideoFiles.video_id))
-        .where(VideoFiles.video_id.in_(non_unique_vids))
+        .where(VideoFiles.item_id.in_(non_unique_vids))
         .scalar()
     )
     all_video_files = unique_video_files + non_unique_video_files
