@@ -149,6 +149,8 @@ def create_thumbnail(image, imagefile_id):
         logger.debug(f"Thumbnail already exists in DB. Skipping")
     else:
         im = Image.open(image)
+        if im.mode == "RGBA":
+            im = im.convert("RGB")
         im.thumbnail(size, Image.Resampling.LANCZOS)
         im.save(outfile, "JPEG")
         thumb = Thumbnail.create(path=outfile, image_id=imagefile_id)
