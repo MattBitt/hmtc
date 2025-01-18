@@ -61,6 +61,7 @@ def Page():
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
         {"text": "Title", "value": "title", "width": "30%"},
         {"text": "Duration", "value": "duration", "sortable": True},
+        {"text": "Unique", "value": "unique_content", "sortable": False},
         {"text": "Files", "value": "file_count", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]

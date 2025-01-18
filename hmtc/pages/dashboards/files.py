@@ -72,7 +72,7 @@ def process_working():
                 logger.debug(f"Found a missing video file. Adding it")
                 vid.add_file(file)
             else:
-                logger.debug(f"Somethings fish. Investigate before moving")
+                logger.debug(f"Somethings fishy. Investigate before moving")
                 logger.debug(f"Vid  = {vid}")
                 logger.debug(f"vf = {vf}")
 
