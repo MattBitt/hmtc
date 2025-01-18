@@ -48,7 +48,10 @@ def download_unique():
             video.instance.youtube_id, WORKING / video.instance.youtube_id
         )
         downloaded += 1
-        if downloaded >= 10:
+        logger.debug(
+            f"Downloaded {downloaded} videos. {len(to_process) - downloaded} to go"
+        )
+        if downloaded >= 1000:
             break
 
 
