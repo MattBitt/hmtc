@@ -62,7 +62,7 @@ def process_working():
             logger.error(f"Youtube ID {yt_id} not found in DB. Skipping")
             continue
         else:
-            vf = VideoFiles.get_by(item_id=vid.instance.id)
+            vf = VideoFiles.select().where(VideoFiles.item_id == vid.instance.id)
             if vf.video_id is None and file.suffix == ".mp4":
                 logger.debug(f"Found a missing video file. Adding it")
             else:
