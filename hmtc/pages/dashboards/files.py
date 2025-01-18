@@ -1,10 +1,22 @@
+from pathlib import Path
+
 import solara
+from loguru import logger
 from peewee import fn
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains import Album, Artist, Channel, Track, User, Video
-from hmtc.models import ChannelFiles, Thumbnail, VideoFiles
+from hmtc.models import (
+    AudioFile,
+    ChannelFiles,
+    ImageFile,
+    InfoFile,
+    SubtitleFile,
+    Thumbnail,
+    VideoFile,
+    VideoFiles,
+)
 from hmtc.utils.importer.existing_files import (
     import_channel_files_to_db,
     import_existing_video_files_to_db,
@@ -43,6 +55,7 @@ def download_channel_files_from_youtube(*args, **kwargs):
 @solara.component
 def VideoFilesCard():
     num_video_files = solara.use_reactive(0)
+    extra_files = solara.use_reactive([])
 
     def count_files():
         counter = 0
@@ -51,6 +64,32 @@ def VideoFilesCard():
             if file.is_file():
                 counter += 1
         num_video_files.set(counter)
+
+    def find_extra_files():
+        # Get all paths from all tables in a single query
+        all_db_paths = (
+            ImageFile.select(ImageFile.path)
+            .union_all(InfoFile.select(InfoFile.path))
+            .union_all(SubtitleFile.select(SubtitleFile.path))
+            .union_all(AudioFile.select(AudioFile.path))
+            .union_all(VideoFile.select(VideoFile.path))
+            .union_all(Thumbnail.select(Thumbnail.path))
+        )
+        db_paths = {str(Path(p.path).resolve()) for p in all_db_paths}
+
+        # Find files on disk that aren't in the database
+        found_extra = []
+        storage_path = (STORAGE / "videos").resolve()
+        for file in storage_path.glob("**/*"):
+            if file.is_file():
+                normalized_path = str(file.resolve())
+                if normalized_path not in db_paths:
+                    found_extra.append(file)
+
+        # Update the reactive variable with results
+        extra_files.set(found_extra)
+        logger.success(f"Found {len(found_extra)} files not in database")
+        logger.debug(found_extra)
 
     num_videos = Video.count()
     info_files = (
@@ -104,6 +143,7 @@ def VideoFilesCard():
                         solara.Button(
                             f"Count Files", on_click=count_files, classes=["button"]
                         )
+                        solara.Button(f"Find extra files", on_click=find_extra_files)
                         if num_video_files.value > 0:
                             solara.Text(f"{num_video_files.value}", classes=["mx-6"])
 
