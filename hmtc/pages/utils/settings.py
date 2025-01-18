@@ -20,6 +20,7 @@ from hmtc.utils.youtube_functions import download_video_file
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
+WORKING = Path(config["WORKING"])
 
 
 def create_missing_thumbnails():
@@ -43,7 +44,9 @@ def download_unique():
     )
     for vid_id in to_process:
         video = Video(vid_id)
-        download_video_file(video.instance.youtube_id)
+        download_video_file(
+            video.instance.youtube_id, WORKING / video.instance.youtube_id
+        )
         downloaded += 1
         if downloaded >= 10:
             break

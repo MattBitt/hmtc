@@ -24,7 +24,8 @@ from hmtc.utils.importer.existing_files import (
 from hmtc.utils.youtube_functions import download_channel_files
 
 config = init_config()
-STORAGE = config["STORAGE"]
+STORAGE = Path(config["STORAGE"])
+WORKING = Path(config["WORKING"])
 
 
 @solara.component_vue("./FileCard.vue", vuetify=True)
@@ -50,6 +51,39 @@ def download_channel_files_from_youtube(*args, **kwargs):
 
         for file in files:
             Channel.add_file(_channel, file)
+
+
+def process_working():
+    for file in WORKING.glob("downloads/*___*"):
+        yt_id = str(file.stem)[-11:]
+        logger.debug(f"Found a file for {yt_id}")
+        vid = Video.get_by(youtube_id=yt_id)
+        if vid is None:
+            logger.error(f"Youtube ID {yt_id} not found in DB. Skipping")
+            continue
+        else:
+            vf = VideoFiles.get_by(item_id=vid.instance.id)
+            if vf.video_id is None and file.suffix == ".mp4":
+                logger.debug(f"Found a missing video file. Adding it")
+            else:
+                logger.debug(f"Somethings fish. Investigate before moving")
+                logger.debug(f"Vid  = {vid}")
+                logger.debug(f"vf = {vf}")
+
+    logger.success(f"Finished processing Working folder")
+
+
+@solara.component
+def WorkingFilesCard():
+    with solara.Card(f"Working Files"):
+        found_files = []
+        for file in WORKING.glob("*"):
+            if file.is_file():
+                found_files.append(file)
+        solara.Markdown(f"{len(found_files)} found in the Working folder")
+        solara.Button(
+            f"Process Working Folder", on_click=process_working, classes=["button"]
+        )
 
 
 @solara.component
@@ -225,5 +259,6 @@ def ChannelFilesCard():
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
+    WorkingFilesCard()
     VideoFilesCard()
     ChannelFilesCard()
