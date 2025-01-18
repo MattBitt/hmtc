@@ -54,7 +54,7 @@ def download_channel_files_from_youtube(*args, **kwargs):
 
 
 def process_working():
-    for file in WORKING.glob("downloads/*___*"):
+    for file in WORKING.glob("*___*"):
         yt_id = str(file.stem)[-11:]
         logger.debug(f"Found a file for {yt_id}")
         vid = Video.get_by(youtube_id=yt_id)
