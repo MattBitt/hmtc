@@ -12,6 +12,7 @@ from hmtc.models import Video as VideoModel
 from hmtc.repos.file_repo import create_thumbnail
 from hmtc.utils.importer.existing_files import (
     create_omegle_sections,
+    import_channel_files_to_db,
     import_existing_video_files_to_db,
     import_sections,
 )
@@ -85,6 +86,13 @@ def SectionsControls():
                     on_click=create_omegle_sections,
                     classes=["button"],
                 )
+        with solara.Card("Channels"):
+            solara.Text(f"Import Channels' files")
+            solara.Button(
+                "Scan Local",
+                on_click=lambda: import_channel_files_to_db(STORAGE / "channels"),
+                classes=["button"],
+            )
 
 
 @solara.component

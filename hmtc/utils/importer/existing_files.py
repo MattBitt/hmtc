@@ -9,6 +9,7 @@ from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
+from hmtc.models import Channel as ChannelModel
 from hmtc.models import OmegleSection as OmegleSectionModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Video as VideoModel
@@ -172,9 +173,31 @@ def import_existing_video_files_to_db(path):
                             create_video_from_folder(subfolder)
 
             else:
-                logger.debug(f"Skipping invalid youtube id {item.stem}")
+                logger.debug(f"Skipping invalid1 youtube id {item.stem}")
 
         circuit_breaker += 1
+
+    logger.success("Finished importing files to the database.")
+
+
+def import_channel_files_to_db(path):
+
+    for item in path.glob("*"):
+        if item.is_dir():
+            if len(str(item.stem)) == 24:
+                existing = ChannelModel.select().where(
+                    ChannelModel.youtube_id == str(item.stem)
+                )
+                if not existing:
+                    # not creating it here, unless i have to later
+                    # lol 1/17/25
+                    continue
+                channel = Channel(existing)
+                for file in item.glob("*"):
+                    channel.add_file(file)
+                    logger.success(f"Added {file} to {channel}")
+            else:
+                logger.debug(f"Skipping invalid youtube id {item.stem}")
 
     logger.success("Finished importing files to the database.")
 

@@ -15,6 +15,7 @@ from hmtc.domains.series import Series
 from hmtc.domains.video import Video
 from hmtc.utils.importer.existing_files import (
     create_video_from_folder,
+    import_channel_files_to_db,
     import_existing_video_files_to_db,
 )
 from hmtc.utils.importer.seed_database import recreate_database
@@ -56,7 +57,7 @@ def refresh_from_youtube():
 
 def scan_local_storage():
 
-    import_existing_video_files_to_db(STORAGE / "videos")
+    pass
 
 
 def ProgressCircle():
@@ -143,8 +144,6 @@ def Page():
         else:
             with solara.ColumnsResponsive(default=12, large=4):
                 for vid in latest_videos:
-                    # poster = FileManager.get_file_for_video(vid, "poster")
-
                     with solara.Card():
                         with solara.Column():
                             with solara.Link(f"/domains/video-details/{vid.id}"):

@@ -76,7 +76,7 @@ def fetch_ids_from(url, download_path="."):
 
 def get_video_info(
     youtube_id,
-    output_folder,
+    output_folder=WORKING,
     progress_hook=None,
 ):
     url = f"https://www.youtube.com/watch?v={youtube_id}"

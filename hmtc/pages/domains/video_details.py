@@ -11,7 +11,7 @@ from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
 from hmtc.domains.video import Video
-from hmtc.utils.youtube_functions import download_video_file
+from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
 config = init_config()
 WORKING = config["WORKING"]
@@ -53,6 +53,9 @@ def Page():
         )
         video.add_file(results[0])
 
+    def download_info():
+        info, files = get_video_info(video.instance.youtube_id)
+
     sections = []
 
     with solara.Column(classes=["main-container"]):
@@ -69,6 +72,6 @@ def Page():
         for file in video.file_repo.my_files(video.instance.id):
             solara.Markdown(f"### {file['file']}")
 
-        solara.Button(f"Download Info")
+        solara.Button(f"Download Info", on_click=download_info)
         solara.Button(f"Download Video", on_click=download_video)
         solara.Button(f"Create/Download Audio")

@@ -55,7 +55,7 @@
               </v-col>
               <v-col cols="12" sm="6" md="4">
                 <v-checkbox
-                  v-model="currentItem.contains_unique_content"
+                  v-model="currentItem.unique_content"
                   label="Unique Content"
                 ></v-checkbox>
               </v-col>

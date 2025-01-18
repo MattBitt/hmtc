@@ -24,9 +24,26 @@ from hmtc.models import (
 )
 from hmtc.router import parse_url_args
 
+refreshing = solara.reactive(0)
+unique_only = solara.reactive(False)
+
 
 def view_details(router, item):
     router.push(f"/domains/video-details/{item['id']}")
+
+
+@solara.component
+def FilterBar():
+    with solara.Card("Filters"):
+        if unique_only.value:
+            caption = "Show All"
+        else:
+            caption = "Show Unique"
+        solara.Button(
+            f"{caption}",
+            on_click=lambda: unique_only.set(not unique_only.value),
+            classes=["button"],
+        )
 
 
 @solara.component
@@ -34,8 +51,11 @@ def Page():
     router = solara.use_router()
     MySidebar(router)
     parse_url_args()
-
-    base_query = VideoModel.select()
+    FilterBar()
+    if unique_only.value:
+        base_query = VideoModel.select().where(VideoModel.unique_content == True)
+    else:
+        base_query = VideoModel.select()
     headers = [
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
