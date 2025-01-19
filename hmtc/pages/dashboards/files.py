@@ -10,6 +10,7 @@ from hmtc.domains import Album, Artist, Channel, Track, User, Video
 from hmtc.models import (
     AudioFile,
     ChannelFiles,
+    File,
     ImageFile,
     InfoFile,
     SubtitleFile,
@@ -104,6 +105,17 @@ def VideoFilesCard():
     num_video_files = solara.use_reactive(0)
     extra_files = solara.use_reactive([])
 
+    # Get all paths from all tables in a single query
+    all_db_paths = (
+        ImageFile.select(ImageFile.path, ImageFile.file_size)
+        .union_all(InfoFile.select(InfoFile.path, InfoFile.file_size))
+        .union_all(SubtitleFile.select(SubtitleFile.path, SubtitleFile.file_size))
+        .union_all(AudioFile.select(AudioFile.path, AudioFile.file_size))
+        .union_all(VideoFile.select(VideoFile.path, VideoFile.file_size))
+        # .union_all(Thumbnail.select(Thumbnail.path, Thumbnail.file_size))
+    )
+    db_paths = {str(Path(p.path).resolve()) for p in all_db_paths}
+
     def count_files():
         counter = 0
         storage_files = (STORAGE / "videos").glob("**/*")
@@ -113,16 +125,6 @@ def VideoFilesCard():
         num_video_files.set(counter)
 
     def find_extra_files():
-        # Get all paths from all tables in a single query
-        all_db_paths = (
-            ImageFile.select(ImageFile.path)
-            .union_all(InfoFile.select(InfoFile.path))
-            .union_all(SubtitleFile.select(SubtitleFile.path))
-            .union_all(AudioFile.select(AudioFile.path))
-            .union_all(VideoFile.select(VideoFile.path))
-            .union_all(Thumbnail.select(Thumbnail.path))
-        )
-        db_paths = {str(Path(p.path).resolve()) for p in all_db_paths}
 
         # Find files on disk that aren't in the database
         found_extra = []
@@ -178,7 +180,10 @@ def VideoFilesCard():
         .where(VideoFiles.subtitle_id.is_null(False))
         .scalar()
     )
-
+    # this works, but had to exclude thumbnails.
+    # need to change it to a regular File table.
+    # just makes more sense
+    file_size_on_disk = [x.file_size for x in all_db_paths]
     total_files = (
         info_files + (poster_files * 2) + all_video_files + audio_files + subtitle_files
     )
@@ -205,7 +210,7 @@ def VideoFilesCard():
                     solara.Text(f"Total {all_video_files}", classes=["mx-6"])
             solara.Text(f"audios Files {audio_files}", classes=["mx-6"])
             solara.Text(f"Total {total_files}", classes=["mx-6"])
-
+            solara.Text(f"Total Filesize {sum(file_size_on_disk) / 1_000_000:.3}GB")
         with solara.Row(justify="center"):
             with solara.Columns([6, 6]):
                 with solara.Column():
