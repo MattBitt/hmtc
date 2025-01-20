@@ -183,7 +183,7 @@ def VideoFilesCard():
     # this works, but had to exclude thumbnails.
     # need to change it to a regular File table.
     # just makes more sense
-    file_size_on_disk = [x.file_size for x in all_db_paths]
+    # file_size_on_disk = [x.file_size for x in all_db_paths]
     total_files = (
         info_files + (poster_files * 2) + all_video_files + audio_files + subtitle_files
     )
@@ -210,7 +210,7 @@ def VideoFilesCard():
                     solara.Text(f"Total {all_video_files}", classes=["mx-6"])
             solara.Text(f"audios Files {audio_files}", classes=["mx-6"])
             solara.Text(f"Total {total_files}", classes=["mx-6"])
-            solara.Text(f"Total Filesize {sum(file_size_on_disk) / 1_000_000:.3}GB")
+            # solara.Text(f"Total Filesize {sum(file_size_on_disk) / 1_000_000:.3}GB")
         with solara.Row(justify="center"):
             with solara.Columns([6, 6]):
                 with solara.Column():
