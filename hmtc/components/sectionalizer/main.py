@@ -16,7 +16,7 @@ class Section:
 
 @solara.component_vue("Timeline.vue")
 def Timeline(
-    videoTime, localVideoTime, totalDuration, sections, event_update_video_time
+    videoTime, localVideoTime, totalDuration, event_update_video_time
 ):
     pass
 
@@ -32,9 +32,6 @@ def Sectionalizer():
 
     def event_update_video_time(new_time: float):
         logger.debug(f"New time {new_time}")
-        if new_time is None:
-            logger.error(f"{new_time} is None!!!")
-            return
         video_time.value = new_time
         local_video_time.value = new_time
 
@@ -50,7 +47,6 @@ def Sectionalizer():
             videoTime=video_time.value,
             localVideoTime=local_video_time.value,
             totalDuration=total_duration.value,
-            sections=sections.value,
             event_update_video_time=event_update_video_time,
         )
 
@@ -76,11 +72,14 @@ def Sectionalizer():
                 disabled=not current_section.value or current_section.value.is_complete,
             )
 
-        # Section list
+    with solara.Columns([4, 8]):
+
         with solara.Card():
-            solara.Markdown("### Marked Sections")
+            solara.Markdown("### Sections")
             for section in sections.value:
                 with solara.Row():
                     solara.Text(
                         f"{section['start_time']:.2f}s - {section['end_time']:.2f}s:"
                     )
+        with solara.Card():
+            solara.Markdown("Section Editor")

@@ -47,52 +47,12 @@
           </v-btn>
         </template>
       </v-tooltip>
-
-      <!-- Sections -->
-      <div v-for="section in sections" :key="section.start_time">
-        <v-tooltip
-          v-if="section.is_complete"
-          :text="
-            'Type: ' +
-            section.section_type +
-            '\n' +
-            'Start: ' +
-            section.start_time.toFixed(2) +
-            's\n' +
-            'End: ' +
-            section.end_time.toFixed(2) +
-            's\n' +
-            'Duration: ' +
-            (section.end_time - section.start_time).toFixed(2) +
-            's'
-          "
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              :style="{
-                width:
-                  timeToPosition(section.end_time) -
-                  timeToPosition(section.start_time) +
-                  'px',
-                height: '10px',
-                background: '#4CAF50',
-                position: 'absolute',
-                left: timeToPosition(section.start_time) + 'px',
-                top: '25px',
-                cursor: 'pointer',
-              }"
-            >
-            </v-btn>
-          </template>
-        </v-tooltip>
-      </div>
     </div>
   </v-card>
 </template>
 
 <script>
-export default {
+module.exports = {
   props: {
     videoTime: {
       type: Number,
@@ -105,11 +65,6 @@ export default {
     totalDuration: {
       type: Number,
       required: true,
-    },
-    sections: {
-      type: Array,
-      required: true,
-      default: () => [],
     },
     event_update_video_time: {
       type: Function,
@@ -132,7 +87,7 @@ export default {
       baseRect: null,
       sliderWidth: 4,
       lastUpdateTime: 0,
-      updateThreshold: 125, // Adjusted threshold to reduce calls by 20%
+      updateThreshold: 100, // Minimum ms between updates to Python
     };
   },
 
@@ -163,7 +118,7 @@ export default {
       if (this.isDragging) {
         console.log("Move while dragging");
         e.preventDefault();
-        this.updateTimeFromEvent(e);
+        this.updateTimeFromEvent(e, true);
       }
     },
 
@@ -172,13 +127,13 @@ export default {
       if (this.isDragging) {
         // Force final update
         this.lastUpdateTime = 0;
-        this.updateTimeFromEvent(e);
+        this.updateTimeFromEvent(e, false);
       }
       this.isDragging = false;
       this.baseRect = null;
     },
 
-    updateTimeFromEvent(e) {
+    updateTimeFromEvent(e, isDragging = false) {
       if (!this.baseRect) {
         console.log("No baseRect available");
         return;
@@ -190,7 +145,10 @@ export default {
         return;
       }
 
+      // Calculate click position relative to timeline
       let clickX = clientX - this.baseRect.left - this.sliderWidth / 2;
+
+      // Enforce boundaries
       clickX = Math.max(0, Math.min(clickX, this.timelineWidth - this.sliderWidth));
 
       const newTime = Math.max(
@@ -198,12 +156,24 @@ export default {
         Math.min(this.positionToTime(clickX), this.totalDuration)
       );
 
-      // Debounce logic to reduce calls to Python
       const currentTime = Date.now();
-      if (currentTime - this.lastUpdateTime > this.updateThreshold) {
-        this.localVideoTime = newTime; // Update local state
-        this.update_video_time(newTime); // Send update to Python
-        this.lastUpdateTime = currentTime; // Update last call time
+      const timeSinceLastUpdate = currentTime - this.lastUpdateTime;
+
+      // Always update local display
+      this.localVideoTime = newTime;
+
+      // Only send updates to Python if:
+      // 1. We're not dragging (final position)
+      // 2. OR enough time has passed since last update
+      // 3. OR it's the first update of a drag
+      if (
+        !isDragging ||
+        timeSinceLastUpdate > this.updateThreshold ||
+        !this.lastUpdateTime
+      ) {
+        console.log("Sending update to Python:", newTime);
+        this.update_video_time(newTime);
+        this.lastUpdateTime = currentTime;
       }
     },
 
@@ -226,7 +196,7 @@ export default {
     },
 
     handleKeydown(e) {
-      const STEP = 1.0;
+      const STEP = 10.0;
 
       switch (e.key) {
         case "ArrowLeft":
