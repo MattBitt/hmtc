@@ -105,17 +105,6 @@ def VideoFilesCard():
     num_video_files = solara.use_reactive(0)
     extra_files = solara.use_reactive([])
 
-    # Get all paths from all tables in a single query
-    all_db_paths = (
-        ImageFile.select(ImageFile.path, ImageFile.file_size)
-        .union_all(InfoFile.select(InfoFile.path, InfoFile.file_size))
-        .union_all(SubtitleFile.select(SubtitleFile.path, SubtitleFile.file_size))
-        .union_all(AudioFile.select(AudioFile.path, AudioFile.file_size))
-        .union_all(VideoFile.select(VideoFile.path, VideoFile.file_size))
-        # .union_all(Thumbnail.select(Thumbnail.path, Thumbnail.file_size))
-    )
-    db_paths = {str(Path(p.path).resolve()) for p in all_db_paths}
-
     def count_files():
         counter = 0
         storage_files = (STORAGE / "videos").glob("**/*")
@@ -125,7 +114,16 @@ def VideoFilesCard():
         num_video_files.set(counter)
 
     def find_extra_files():
-
+        # Get all paths from all tables in a single query
+        all_db_paths = (
+            ImageFile.select(ImageFile.path, ImageFile.file_size)
+            .union_all(InfoFile.select(InfoFile.path, InfoFile.file_size))
+            .union_all(SubtitleFile.select(SubtitleFile.path, SubtitleFile.file_size))
+            .union_all(AudioFile.select(AudioFile.path, AudioFile.file_size))
+            .union_all(VideoFile.select(VideoFile.path, VideoFile.file_size))
+            # .union_all(Thumbnail.select(Thumbnail.path, Thumbnail.file_size))
+        )
+        db_paths = {str(Path(p.path).resolve()) for p in all_db_paths}
         # Find files on disk that aren't in the database
         found_extra = []
         storage_path = (STORAGE / "videos").resolve()
