@@ -15,9 +15,7 @@ class Section:
 
 
 @solara.component_vue("Timeline.vue")
-def Timeline(
-    videoTime, localVideoTime, totalDuration, event_update_video_time
-):
+def Timeline(videoTime, localVideoTime, totalDuration, event_update_video_time):
     pass
 
 
@@ -35,7 +33,7 @@ def Sectionalizer():
         video_time.value = new_time
         local_video_time.value = new_time
 
-    with solara.Column(align="center"):
+    with solara.Column(classes=["main-container"]):
         solara.Markdown("## Video Sectionalizer")
 
         # Video player
@@ -43,12 +41,13 @@ def Sectionalizer():
             solara.Text("Video Player Placeholder")
 
         # Timeline visualization using Vue component
-        Timeline(
-            videoTime=video_time.value,
-            localVideoTime=local_video_time.value,
-            totalDuration=total_duration.value,
-            event_update_video_time=event_update_video_time,
-        )
+        with solara.Columns([10]):
+            Timeline(
+                videoTime=video_time.value,
+                localVideoTime=local_video_time.value,
+                totalDuration=total_duration.value,
+                event_update_video_time=event_update_video_time,
+            )
 
         # Basic controls
         with solara.Row():

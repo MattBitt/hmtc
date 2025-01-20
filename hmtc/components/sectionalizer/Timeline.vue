@@ -1,218 +1,76 @@
 <template>
-  <v-card @keydown="handleKeydown" tabindex="0" ref="timelineCard" class="timeline-card">
-    <div
-      class="timeline-container"
-      :style="{ width: timelineWidth + 'px', height: '60px', position: 'relative' }"
-      @mousemove="handleMove"
-      @mouseup="handleEnd"
-      @mouseleave="handleEnd"
-      @touchmove="handleMove"
-      @touchend="handleEnd"
-      @touchcancel="handleEnd"
-    >
-      <!-- Base timeline -->
-      <v-btn
-        class="timeline-base"
-        @mousedown="handleStart"
-        @touchstart="handleStart"
-        :style="{
-          width: '100%',
-          height: '12px',
-          background: '#ddd',
-          position: 'absolute',
-          top: '24px',
-          cursor: 'pointer',
-        }"
+  <v-card tabindex="0" ref="timelineCard" class="timeline-card">
+    <div class="timeline-container">
+      <v-slider
+        v-model="localVideoTime"
+        :max="totalDuration"
+        :min="0"
+        step="1"
+        @change="update_video_time(localVideoTime)"
+        class="slider"
+        thumb-size="36"
+        :thumb-label="true"
+        ticks
+        hide-details
       >
-      </v-btn>
+        <template v-slot:thumb-label="{ value }">
+          {{ formattedTime }}
+        </template></v-slider
+      >
+    </div>
 
-      <!-- Current time indicator -->
-      <v-tooltip :text="'Current: ' + localVideoTime.toFixed(2) + 's'">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            @mousedown.stop="handleStart"
-            @touchstart.stop="handleStart"
-            :style="{
-              width: sliderWidth + 'px',
-              height: '20px',
-              background: 'red',
-              position: 'absolute',
-              left: timeToPosition(localVideoTime) + 'px',
-              top: '20px',
-              cursor: 'ew-resize',
-              transform: 'translateX(-50%)',
-            }"
-          >
-          </v-btn>
-        </template>
-      </v-tooltip>
+    <!-- Existing Mark Start and Mark End Buttons -->
+    <div>
+      <v-btn @click="markStart" :disabled="isEditingMode" class="button"
+        >Mark Start</v-btn
+      >
+      <v-btn @click="markEnd" :disabled="!isEditingMode" class="button">Mark End</v-btn>
     </div>
   </v-card>
 </template>
 
 <script>
-module.exports = {
-  props: {
-    videoTime: {
-      type: Number,
-      required: true,
-    },
-    localVideoTime: {
-      type: Number,
-      required: true,
-    },
-    totalDuration: {
-      type: Number,
-      required: true,
-    },
-    event_update_video_time: {
-      type: Function,
-      required: true,
-    },
-  },
-
-  created() {
-    console.log("Component created. Props:", {
-      videoTime: this.videoTime,
-      totalDuration: this.totalDuration,
-      hasUpdateFn: !!this.update_video_time,
-    });
-  },
-
+export default {
   data() {
     return {
-      timelineWidth: 600,
-      isDragging: false,
-      baseRect: null,
-      sliderWidth: 4,
-      lastUpdateTime: 0,
-      updateThreshold: 100, // Minimum ms between updates to Python
+      localVideoTime: 0,
+      totalDuration: 600, // Example total duration, adjust as needed
+      isEditingMode: false, // State variable for editing mode
     };
   },
 
-  mounted() {
-    this.$refs.timelineCard.$el.focus();
+  computed: {
+    formattedTime() {
+      const totalSeconds = Math.floor(this.localVideoTime);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const timeString = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+        2,
+        "0"
+      )}:${String(seconds).padStart(2, "0")}`;
+      console.log(hours, minutes, seconds);
+      console.log(timeString);
+
+      return timeString;
+    },
   },
 
   methods: {
-    getEventPosition(e) {
-      // Handle touch events
-      if (e.touches || e.changedTouches) {
-        const touch = e.touches ? e.touches[0] : e.changedTouches[0];
-        return touch ? touch.clientX : null;
-      }
-      // Handle mouse events
-      return e.clientX;
+    markStart() {
+      this.isEditingMode = true; // Enable editing mode
+      console.log("Editing mode enabled. Start time marked at:", this.localVideoTime);
     },
 
-    handleStart(e) {
-      console.log("Start event triggered");
-      e.preventDefault();
-      this.isDragging = true;
-      this.baseRect = e.target.closest(".timeline-container").getBoundingClientRect();
-      this.updateTimeFromEvent(e);
+    markEnd() {
+      this.isEditingMode = false; // Disable editing mode
+      console.log("End time marked at:", this.localVideoTime);
     },
 
-    handleMove(e) {
-      if (this.isDragging) {
-        console.log("Move while dragging");
-        e.preventDefault();
-        this.updateTimeFromEvent(e, true);
-      }
-    },
-
-    handleEnd(e) {
-      console.log("End event triggered, isDragging:", this.isDragging);
-      if (this.isDragging) {
-        // Force final update
-        this.lastUpdateTime = 0;
-        this.updateTimeFromEvent(e, false);
-      }
-      this.isDragging = false;
-      this.baseRect = null;
-    },
-
-    updateTimeFromEvent(e, isDragging = false) {
-      if (!this.baseRect) {
-        console.log("No baseRect available");
-        return;
-      }
-
-      const clientX = this.getEventPosition(e);
-      if (clientX === null) {
-        console.log("Invalid event position");
-        return;
-      }
-
-      // Calculate click position relative to timeline
-      let clickX = clientX - this.baseRect.left - this.sliderWidth / 2;
-
-      // Enforce boundaries
-      clickX = Math.max(0, Math.min(clickX, this.timelineWidth - this.sliderWidth));
-
-      const newTime = Math.max(
-        0,
-        Math.min(this.positionToTime(clickX), this.totalDuration)
-      );
-
-      const currentTime = Date.now();
-      const timeSinceLastUpdate = currentTime - this.lastUpdateTime;
-
-      // Always update local display
-      this.localVideoTime = newTime;
-
-      // Only send updates to Python if:
-      // 1. We're not dragging (final position)
-      // 2. OR enough time has passed since last update
-      // 3. OR it's the first update of a drag
-      if (
-        !isDragging ||
-        timeSinceLastUpdate > this.updateThreshold ||
-        !this.lastUpdateTime
-      ) {
-        console.log("Sending update to Python:", newTime);
-        this.update_video_time(newTime);
-        this.lastUpdateTime = currentTime;
-      }
-    },
-
-    timeToPosition(time) {
-      if (this.totalDuration <= 0) return 0;
-      // Calculate position with slider half-width offset
-      const position =
-        (time / this.totalDuration) * (this.timelineWidth - this.sliderWidth);
-      return position;
-    },
-
-    positionToTime(pos) {
-      if (this.timelineWidth <= this.sliderWidth) return 0;
-      const time = (pos / (this.timelineWidth - this.sliderWidth)) * this.totalDuration;
-      return time;
-    },
-
-    handleTimelineClick(e) {
-      this.updateTimeFromEvent(e);
-    },
-
-    handleKeydown(e) {
-      const STEP = 10.0;
-
-      switch (e.key) {
-        case "ArrowLeft":
-          e.preventDefault();
-          const prevTime = Math.max(0, this.localVideoTime - STEP);
-          console.log("Left arrow pressed, new time:", prevTime);
-          this.update_video_time(prevTime);
-          break;
-
-        case "ArrowRight":
-          e.preventDefault();
-          const nextTime = Math.min(this.totalDuration, this.localVideoTime + STEP);
-          console.log("Right arrow pressed, new time:", nextTime);
-          this.update_video_time(nextTime);
-          break;
-      }
+    update_video_time(newTime) {
+      // Function to send the updated time to the backend
+      console.log("Updating video time to:", newTime);
+      // Add your logic to update the backend here
     },
   },
 };
@@ -226,6 +84,14 @@ module.exports = {
 .timeline-container {
   user-select: none;
   touch-action: none;
+  position: relative; /* Ensure relative positioning for child elements */
+}
+
+.slider {
+  margin: 20px 0; /* Add margin for spacing */
+}
+
+.mark-button {
+  margin: 5px; /* Add margin for spacing */
 }
 </style>
-```
