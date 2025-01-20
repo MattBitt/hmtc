@@ -1,21 +1,18 @@
 <template>
-  <v-card @keydown="handleKeydown" tabindex="0" ref="timelineCard" class="timeline-card">
+  <v-card tabindex="0" ref="timelineCard" class="timeline-card">
     <div class="timeline-container">
-      <v-range-slider
-        v-model="videoRange"
+      <v-slider
+        v-model="localVideoTime"
         :max="totalDuration"
         :min="0"
-        step="1"
-        @change="update_video_time(videoRange)"
+        step="0.1"
+        @input="onSliderInput"
         class="slider"
-        thumb-label
-        :thumb-label="formattedTime"
         ticks
         hide-details
-      ></v-range-slider>
+      ></v-slider>
     </div>
 
-    <!-- Existing Mark Start and Mark End Buttons -->
     <div>
       <v-btn @click="markStart" :disabled="isEditingMode" class="mark-button"
         >Mark Start</v-btn
@@ -28,23 +25,40 @@
 </template>
 
 <script>
-export default {
+module.exports = {
+  props: {
+    totalDuration: {
+      type: Number,
+      required: true,
+    },
+    videoTime: {
+      type: Number,
+      default: 0,
+    },
+  },
   data() {
     return {
-      videoRange: [0, 600], // Start and end time range
-      totalDuration: 600, // Example total duration, adjust as needed
-      isEditingMode: false, // State variable for editing mode
+      localVideoTime: this.videoTime,
+      isEditingMode: false,
+      debounceTimeout: null,
+      debounceTime: 100,
+      touchDebounceTime: 300,
     };
+  },
+
+  watch: {
+    videoTime(newValue) {
+      this.localVideoTime = newValue;
+    },
   },
 
   computed: {
     formattedTime() {
-      const totalSeconds = Math.floor(this.videoRange[0]); // Use start time for display
+      const totalSeconds = Math.floor(this.localVideoTime);
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
 
-      // Format as HH:MM:SS
       return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
         2,
         "0"
@@ -54,19 +68,33 @@ export default {
 
   methods: {
     markStart() {
-      this.isEditingMode = true; // Enable editing mode
-      console.log("Editing mode enabled. Start time marked at:", this.videoRange[0]);
+      this.isEditingMode = true;
+      console.log("Editing mode enabled. Start time marked at:", this.localVideoTime);
     },
 
     markEnd() {
-      this.isEditingMode = false; // Disable editing mode
-      console.log("End time marked at:", this.videoRange[1]);
+      this.isEditingMode = false;
+      console.log("End time marked at:", this.localVideoTime);
     },
 
-    update_video_time(range) {
-      // Function to send the updated start and end times to the backend
-      console.log("Updating video range to:", range);
-      // Add your logic to update the backend here
+    onSliderInput(newTime) {
+      if (this.debounceTimeout) {
+        clearTimeout(this.debounceTimeout);
+      }
+
+      const isTouchEvent = "ontouchstart" in window;
+
+      const debounceDuration = isTouchEvent ? this.touchDebounceTime : this.debounceTime;
+
+      this.debounceTimeout = setTimeout(() => {
+        this.localVideoTime = newTime;
+        this.update_video_time(newTime);
+      }, debounceDuration);
+    },
+
+    update_video_time(newTime) {
+      console.log("Updating video time to:", newTime);
+      this.$emit("update:videoTime", newTime);
     },
   },
 };
@@ -80,14 +108,14 @@ export default {
 .timeline-container {
   user-select: none;
   touch-action: none;
-  position: relative; /* Ensure relative positioning for child elements */
+  position: relative;
 }
 
 .slider {
-  margin: 20px 0; /* Add margin for spacing */
+  margin: 20px 0;
 }
 
 .mark-button {
-  margin: 5px; /* Add margin for spacing */
+  margin: 5px;
 }
 </style>

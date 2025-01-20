@@ -15,25 +15,24 @@ class Section:
 
 
 @solara.component_vue("Timeline.vue")
-def Timeline(start_time, end_time, totalDuration, event_update_video_time):
+def Timeline(videoTime, totalDuration, update_video_time):
     pass
 
 
 @solara.component
 def Sectionalizer():
     # State management
-    current_timestamp = solara.use_reactive(0)
-    video_range = solara.use_reactive([0.0, 600.0])  # Start and end time range
+    video_time = solara.use_reactive(0.0)  # Current video time
     total_duration = solara.use_reactive(600.0)  # Total duration of the video
     is_editing_mode = solara.use_reactive(False)  # Editing mode state
     sections = solara.use_reactive([asdict(Section(0, 200))])
     current_section = solara.use_reactive(None)
 
-    def update_video_time(new_range: List[float]):
-        start_time, end_time = new_range
-        # Logic to handle the updated start and end times
-        print(f"Video range updated to: Start - {start_time}, End - {end_time}")
-        # Add your logic to process the start and end times here
+    def update_video_time(new_time: float):
+        # Logic to handle the updated video time
+        video_time.value = new_time
+        logger.debug(f"Video time updated to: {new_time}")
+        # Add your logic to process the video time here
 
     with solara.Column(classes=["main-container"]):
         solara.Markdown("## Video Sectionalizer")
@@ -44,17 +43,16 @@ def Sectionalizer():
 
         # Timeline visualization using Vue component
         Timeline(
-            start_time=video_range.value[0],
-            end_time=video_range.value[1],
+            videoTime=video_time.value,
             totalDuration=total_duration.value,
-            event_update_video_time=update_video_time  # Pass the update function
+            update_video_time=update_video_time  # Pass the update function
         )
 
         # Basic controls
         with solara.Row():
             solara.Button("Play/Pause", color="primary")
-            if video_range.value[0] is not None and video_range.value[1] is not None:
-                solara.Text(f"Current Time: {video_range.value[0]:.2f}s - {video_range.value[1]:.2f}s")
+            if video_time.value is not None:
+                solara.Text(f"Current Time: {video_time.value:.2f}s")
 
         # Section controls
         with solara.Row():
@@ -62,7 +60,7 @@ def Sectionalizer():
                 "Mark Start",
                 color="success",
                 on_click=lambda: sections.set(
-                    sections.value + [asdict(Section(video_range.value[0]))]
+                    sections.value + [asdict(Section(video_time.value))]
                 ),
             )
 
@@ -83,3 +81,7 @@ def Sectionalizer():
                     )
         with solara.Card():
             solara.Markdown("Section Editor")
+
+    # Example of using the video_time in your logic
+    # You can use video_time.value wherever you need the current video time
+    print(f"Current video time is: {video_time.value}")
