@@ -5,7 +5,7 @@
         v-model="localVideoTime"
         :max="totalDuration"
         :min="0"
-        step="0.1"
+        step="1"
         @input="onSliderInput"
         class="slider"
         ticks
