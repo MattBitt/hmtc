@@ -15,7 +15,7 @@ class Section:
 
 
 @solara.component_vue("Timeline.vue")
-def Timeline(videoTime, totalDuration, update_video_time):
+def Timeline(videoTime, totalDuration, event_update_video_time):
     pass
 
 
@@ -45,7 +45,7 @@ def Sectionalizer():
         Timeline(
             videoTime=video_time.value,
             totalDuration=total_duration.value,
-            update_video_time=update_video_time  # Pass the update function
+            event_update_video_time=update_video_time,  # Pass the update function
         )
 
         # Basic controls
