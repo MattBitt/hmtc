@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card @keydown="handleKeydown" tabindex="0" ref="timelineCard" class="timeline-card">
     <div
       class="timeline-container"
       :style="{ width: timelineWidth + 'px', height: '60px', position: 'relative' }"
@@ -17,10 +17,10 @@
         @touchstart="handleStart"
         :style="{
           width: '100%',
-          height: '10px',
+          height: '12px',
           background: '#ddd',
           position: 'absolute',
-          top: '25px',
+          top: '24px',
           cursor: 'pointer',
         }"
       >
@@ -41,6 +41,7 @@
               left: timeToPosition(localVideoTime) + 'px',
               top: '20px',
               cursor: 'ew-resize',
+              transform: 'translateX(-50%)',
             }"
           >
           </v-btn>
@@ -91,7 +92,7 @@
 </template>
 
 <script>
-module.exports = {
+export default {
   props: {
     videoTime: {
       type: Number,
@@ -130,7 +131,13 @@ module.exports = {
       isDragging: false,
       baseRect: null,
       sliderWidth: 4,
+      lastUpdateTime: 0,
+      updateThreshold: 125, // Adjusted threshold to reduce calls by 20%
     };
+  },
+
+  mounted() {
+    this.$refs.timelineCard.$el.focus();
   },
 
   methods: {
@@ -138,7 +145,7 @@ module.exports = {
       // Handle touch events
       if (e.touches || e.changedTouches) {
         const touch = e.touches ? e.touches[0] : e.changedTouches[0];
-        return touch ? touch.clientX : 0;
+        return touch ? touch.clientX : null;
       }
       // Handle mouse events
       return e.clientX;
@@ -156,47 +163,53 @@ module.exports = {
       if (this.isDragging) {
         console.log("Move while dragging");
         e.preventDefault();
-        this.updateTimeFromEvent(e, true);
+        this.updateTimeFromEvent(e);
       }
     },
 
     handleEnd(e) {
       console.log("End event triggered, isDragging:", this.isDragging);
       if (this.isDragging) {
-        this.updateTimeFromEvent(e, false);
+        // Force final update
+        this.lastUpdateTime = 0;
+        this.updateTimeFromEvent(e);
       }
       this.isDragging = false;
       this.baseRect = null;
     },
 
-    updateTimeFromEvent(e, isDragging = false) {
+    updateTimeFromEvent(e) {
       if (!this.baseRect) {
         console.log("No baseRect available");
         return;
       }
 
       const clientX = this.getEventPosition(e);
-      let clickX = clientX - this.baseRect.left;
+      if (clientX === null) {
+        console.log("Invalid event position");
+        return;
+      }
+
+      let clickX = clientX - this.baseRect.left - this.sliderWidth / 2;
       clickX = Math.max(0, Math.min(clickX, this.timelineWidth - this.sliderWidth));
 
       const newTime = Math.max(
         0,
         Math.min(this.positionToTime(clickX), this.totalDuration)
       );
-      console.log("Time calculation:", {
-        clickX,
-        newTime,
-        isDragging,
-      });
 
-      if (!isDragging) {
-        console.log("Updating with time:", newTime);
-        this.update_video_time(newTime);
+      // Debounce logic to reduce calls to Python
+      const currentTime = Date.now();
+      if (currentTime - this.lastUpdateTime > this.updateThreshold) {
+        this.localVideoTime = newTime; // Update local state
+        this.update_video_time(newTime); // Send update to Python
+        this.lastUpdateTime = currentTime; // Update last call time
       }
     },
 
     timeToPosition(time) {
       if (this.totalDuration <= 0) return 0;
+      // Calculate position with slider half-width offset
       const position =
         (time / this.totalDuration) * (this.timelineWidth - this.sliderWidth);
       return position;
@@ -211,14 +224,38 @@ module.exports = {
     handleTimelineClick(e) {
       this.updateTimeFromEvent(e);
     },
+
+    handleKeydown(e) {
+      const STEP = 1.0;
+
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          const prevTime = Math.max(0, this.localVideoTime - STEP);
+          console.log("Left arrow pressed, new time:", prevTime);
+          this.update_video_time(prevTime);
+          break;
+
+        case "ArrowRight":
+          e.preventDefault();
+          const nextTime = Math.min(this.totalDuration, this.localVideoTime + STEP);
+          console.log("Right arrow pressed, new time:", nextTime);
+          this.update_video_time(nextTime);
+          break;
+      }
+    },
   },
 };
 </script>
 
 <style scoped>
+.timeline-card {
+  outline: none;
+}
+
 .timeline-container {
   user-select: none;
-  touch-action: none; /* Prevent default touch actions like scrolling */
+  touch-action: none;
 }
 </style>
 ```

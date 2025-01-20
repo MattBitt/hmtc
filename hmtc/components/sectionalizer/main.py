@@ -1,8 +1,9 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import List
-from loguru import logger
+
 import numpy as np
 import solara
+from loguru import logger
 
 
 @dataclass
@@ -14,7 +15,9 @@ class Section:
 
 
 @solara.component_vue("Timeline.vue")
-def Timeline(videoTime, localVideoTime, totalDuration, sections, event_update_video_time):
+def Timeline(
+    videoTime, localVideoTime, totalDuration, sections, event_update_video_time
+):
     pass
 
 
@@ -34,7 +37,7 @@ def Sectionalizer():
             return
         video_time.value = new_time
         local_video_time.value = new_time
-    
+
     with solara.Column(align="center"):
         solara.Markdown("## Video Sectionalizer")
 
@@ -48,7 +51,7 @@ def Sectionalizer():
             localVideoTime=local_video_time.value,
             totalDuration=total_duration.value,
             sections=sections.value,
-            event_update_video_time=event_update_video_time
+            event_update_video_time=event_update_video_time,
         )
 
         # Basic controls
@@ -62,7 +65,9 @@ def Sectionalizer():
             solara.Button(
                 "Mark Start",
                 color="success",
-                on_click=lambda: sections.set(sections.value + [asdict(Section(local_video_time.value))]),
+                on_click=lambda: sections.set(
+                    sections.value + [asdict(Section(local_video_time.value))]
+                ),
             )
 
             solara.Button(
