@@ -120,6 +120,9 @@ def replace_files_for_existing_video(path: Path) -> None:
     logger.debug(f"Replacing files for {path.stem}")
 
 
+1
+
+
 def verify_files(item: BaseDomain, path: Path):
     logger.debug(f"Verifying Files for {item} and path {path}")
     # for file in item.files()
