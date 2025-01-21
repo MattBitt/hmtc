@@ -15,7 +15,7 @@ class Section:
 
 
 @solara.component_vue("Timeline.vue")
-def Timeline(videoTime, totalDuration, event_update_video_time):
+def Timeline(videoTime, totalDuration, event_update_time_cursor, event_create_section):
     pass
 
 
@@ -28,60 +28,44 @@ def Sectionalizer():
     sections = solara.use_reactive([asdict(Section(0, 200))])
     current_section = solara.use_reactive(None)
 
-    def update_video_time(new_time: float):
+    def update_time_cursor(new_time: float):
         # Logic to handle the updated video time
         video_time.value = new_time
         logger.debug(f"Video time updated to: {new_time}")
         # Add your logic to process the video time here
 
+    def create_section(*args):
+        start = args[0]["start"]
+        end = args[0]["end"]
+        logger.debug(f"Creating section from {start} to {end}")
+        sections.set(sections.value + [asdict(Section(start, end))])
+
     with solara.Column(classes=["main-container"]):
         solara.Markdown("## Video Sectionalizer")
 
         # Video player
-        with solara.Card():
-            solara.Text("Video Player Placeholder")
-
+        with solara.Columns():
+            with solara.Card():
+                solara.Text("Video Player Placeholder")
+                solara.Text(f"{video_time.value}")
+            with solara.Card():
+                solara.Text("Subtitles")
+                solara.Text(f"{video_time.value}")
         # Timeline visualization using Vue component
         Timeline(
             videoTime=video_time.value,
             totalDuration=total_duration.value,
-            event_update_video_time=update_video_time,  # Pass the update function
+            event_update_time_cursor=update_time_cursor,
+            event_create_section=create_section,
         )
 
-        # Basic controls
-        with solara.Row():
-            solara.Button("Play/Pause", color="primary")
-            if video_time.value is not None:
-                solara.Text(f"Current Time: {video_time.value:.2f}s")
-
-        # Section controls
-        with solara.Row():
-            solara.Button(
-                "Mark Start",
-                color="success",
-                on_click=lambda: sections.set(
-                    sections.value + [asdict(Section(video_time.value))]
-                ),
-            )
-
-            solara.Button(
-                "Mark End",
-                color="error",
-                disabled=not current_section.value or current_section.value.is_complete,
-            )
-
-    with solara.Columns([4, 8]):
-
-        with solara.Card():
-            solara.Markdown("### Sections")
-            for section in sections.value:
-                with solara.Row():
-                    solara.Text(
-                        f"{section['start_time']:.2f}s - {section['end_time']:.2f}s:"
-                    )
-        with solara.Card():
-            solara.Markdown("Section Editor")
-
-    # Example of using the video_time in your logic
-    # You can use video_time.value wherever you need the current video time
-    print(f"Current video time is: {video_time.value}")
+        with solara.Columns([4, 8]):
+            with solara.Card():
+                solara.Markdown("### Sections")
+                for section in sections.value:
+                    with solara.Row():
+                        solara.Text(
+                            f"{section['start_time']:.2f}s - {section['end_time']:.2f}s:"
+                        )
+            with solara.Card():
+                solara.Markdown("Section Editor")

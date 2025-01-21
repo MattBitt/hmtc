@@ -2,7 +2,7 @@
   <v-card tabindex="0" ref="timelineCard" class="timeline-card">
     <div class="timeline-container">
       <v-slider
-        v-model="localVideoTime"
+        v-model="localTimeCursor"
         :max="totalDuration"
         :min="0"
         step="1"
@@ -14,32 +14,31 @@
     </div>
 
     <div>
-      <v-btn @click="markStart" :disabled="isEditingMode" class="mark-button"
+      <v-btn @click="markStart" :disabled="isEditingMode" class="button"
         >Mark Start</v-btn
       >
-      <v-btn @click="markEnd" :disabled="!isEditingMode" class="mark-button"
-        >Mark End</v-btn
-      >
+      <v-btn @click="markEnd" :disabled="!isEditingMode" class="button">Mark End</v-btn>
     </div>
   </v-card>
 </template>
 
 <script>
-module.exports = {
+{
   props: {
     totalDuration: {
       type: Number,
       required: true,
     },
-    videoTime: {
+    timeCursor: {
       type: Number,
       default: 0,
     },
   },
   data() {
     return {
-      localVideoTime: this.videoTime,
+      localTimeCursor: this.timeCursor,
       isEditingMode: false,
+      startTime: null,
       debounceTimeout: null,
       debounceTime: 100,
       touchDebounceTime: 300,
@@ -47,22 +46,28 @@ module.exports = {
   },
 
   watch: {
-    videoTime(newValue) {
-      this.localVideoTime = newValue;
+    timeCursor(newValue) {
+      this.localTimeCursor = newValue;
     },
   },
 
-  computed: {},
+  computed: {
+
+  },
 
   methods: {
     markStart() {
       this.isEditingMode = true;
-      console.log("Editing mode enabled. Start time marked at:", this.localVideoTime);
+      this.startTime = this.localTimeCursor;
+      console.log("Start time marked at:", this.startTime);
     },
 
     markEnd() {
       this.isEditingMode = false;
-      console.log("End time marked at:", this.localVideoTime);
+      const endTime = this.localTimeCursor;
+      console.log("End time marked at:", endTime);
+
+      this.create_section({start: this.startTime, end: endTime});
     },
 
     onSliderInput(newTime) {
@@ -75,10 +80,12 @@ module.exports = {
       const debounceDuration = isTouchEvent ? this.touchDebounceTime : this.debounceTime;
 
       this.debounceTimeout = setTimeout(() => {
-        this.localVideoTime = newTime;
-        this.update_video_time(newTime);
+        this.localTimeCursor = newTime;
+        this.update_time_cursor(newTime);
       }, debounceDuration);
     },
+
+
   },
 };
 </script>
