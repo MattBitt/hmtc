@@ -51,9 +51,9 @@ def SectionRow(sections, current_section):
     def select_section(selected_section):
         current_section.set(selected_section)
     
-    with solara.Columns([4, 8]):
+    with solara.Column():
         SectionSelector(sections=sections.value, selected=current_section.value, event_set_selected=select_section)
-        SectionEditor(section=current_section.value)
+        # SectionEditor(section=current_section.value)
 
 @solara.component
 def Sectionalizer():
