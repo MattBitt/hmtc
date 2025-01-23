@@ -18,6 +18,7 @@ class Section:
 def Timeline(videoTime, totalDuration, event_update_time_cursor, event_create_section):
     pass
 
+
 @solara.component
 def SectionSelector(sections):
     with solara.Card():
@@ -26,13 +27,29 @@ def SectionSelector(sections):
             with solara.Row():
                 solara.Text(
                     f"{section['start_time']:.2f}s - {section['end_time']:.2f}s:"
-                            )
+                )
+
 
 @solara.component
 def SectionEditor(section):
     with solara.Card():
         solara.Markdown(f"Section Editor for section {section}")
-        
+
+
+@solara.component
+def VideoFrame(video_time):
+    with solara.Card():
+        solara.Text("Video Player Placeholder")
+        solara.Text(f"{video_time}")
+
+
+@solara.component
+def SubtitlesCard(video_time):
+    with solara.Card():
+        solara.Text("Subtitles")
+        solara.Text(f"{video_time}")
+
+
 def Sectionalizer():
     # State management
     video_time = solara.use_reactive(0.0)  # Current video time
@@ -54,17 +71,10 @@ def Sectionalizer():
         sections.set(sections.value + [asdict(Section(start, end))])
 
     with solara.Column(classes=["main-container"]):
-        solara.Markdown("## Video Sectionalizer")
-
-        # Video player
         with solara.Columns():
-            with solara.Card():
-                solara.Text("Video Player Placeholder")
-                solara.Text(f"{video_time.value}")
-            with solara.Card():
-                solara.Text("Subtitles")
-                solara.Text(f"{video_time.value}")
-        # Timeline visualization using Vue component
+            VideoFrame(video_time.value)
+            SubtitlesCard(video_time.value)
+
         Timeline(
             videoTime=video_time.value,
             totalDuration=total_duration.value,

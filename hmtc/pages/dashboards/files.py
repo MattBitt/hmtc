@@ -72,13 +72,14 @@ def process_working():
                 .get_or_none()
             )
 
-            if vf.video_id is None and file.suffix == ".mp4":
+            if vf.video_id is None and file.suffix in [".mp4", ".webm", ".mkv"]:
                 logger.debug(f"Found a missing video file. Adding it")
                 vid.add_file(file)
-                try:
-                    file.rmdir()
-                except Exception as e:
-                    logger.debug(f"Error {e} removing folder {file}")
+                if file.parent.isdir():
+                    try:
+                        file.parent.rmdir()
+                    except Exception as e:
+                        logger.debug(f"Error {e} removing folder {file}")
             else:
                 logger.debug(f"Somethings fishy. Investigate before moving")
                 logger.debug(f"Vid  = {vid}")

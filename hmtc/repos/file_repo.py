@@ -42,8 +42,6 @@ def MOVE_FILE(source: Path, target: Path):
             final_file = target
         else:
             raise Exception(f"Error moving file {source} to storage: {e}")
-    if target != final_file:
-        logger.error(f"Something fishy is happening")
 
     return final_file
 
