@@ -75,7 +75,7 @@ def process_working():
             if vf.video_id is None and file.suffix in [".mp4", ".webm", ".mkv"]:
                 logger.debug(f"Found a missing video file. Adding it")
                 vid.add_file(file)
-                if file.parent.isdir():
+                if file.parent.is_dir():
                     try:
                         file.parent.rmdir()
                     except Exception as e:
