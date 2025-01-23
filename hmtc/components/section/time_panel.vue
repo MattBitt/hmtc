@@ -4,10 +4,7 @@
       <span class="seven-seg myprimary">{{ timeString }}</span>
       <v-row justify="end">
         <v-col cols="3">
-          <v-btn
-            fab
-            :class="[isEditing ? 'mywarning' : 'button']"
-            @click="toggleEditMode"
+          <v-btn fab :class="[isEditing ? 'mywarning' : 'button']" @click="toggleEditMode"
             ><span v-if="isEditing"><v-icon>mdi-cancel</v-icon></span>
             <span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
           >

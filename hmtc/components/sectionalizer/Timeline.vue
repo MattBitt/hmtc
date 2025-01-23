@@ -14,10 +14,17 @@
     </div>
 
     <div>
-      <v-btn @click="markStart" :disabled="isEditingMode" class="button"
-        >Mark Start</v-btn
-      >
-      <v-btn @click="markEnd" :disabled="!isEditingMode" class="button">Mark End</v-btn>
+      <span v-if="isEditingMode">
+        <v-btn @click="isEditingMode = false" class="button mywarning">Cancel</v-btn>
+      </span>
+      <span v-else>
+        <v-btn @click="markStart" class="button">Mark Start</v-btn>
+      </span>
+      <v-btn @click="markEnd" :disabled="!canMarkEnd()" class="button">Mark End</v-btn>
+      <span v-if="isEditingMode">
+        <span>Start: {{ this.startTime }}</span>
+        <span>Duration: {{ this.localTimeCursor - this.startTime }}</span>
+      </span>
     </div>
   </v-card>
 </template>
@@ -83,6 +90,12 @@
         this.localTimeCursor = newTime;
         this.update_time_cursor(newTime);
       }, debounceDuration);
+    },
+    canMarkEnd() {
+      const enabled =  this.isEditingMode && ((this.localTimeCursor - this.startTime) > 5);
+      console.log("in canMarkEnd", this.startTime, this.localTimeCursor)
+      console.log(enabled)
+      return enabled;
     },
 
 
