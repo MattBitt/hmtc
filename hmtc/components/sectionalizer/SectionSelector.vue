@@ -9,8 +9,7 @@
         <v-card>
           <v-card-text
             ><h3>Some text for {{ section }}</h3>
-            <v-btn>{{ section }}</v-btn>
-            <h3>{{ i }} subtitle</h3>
+            <h3>{{ i }}: section index</h3>
           </v-card-text>
         </v-card>
       </v-tab-item>
@@ -36,7 +35,7 @@ module.exports = {
   },
   methods: {
     updateSelected(value) {
-      // this.set_selected(value);
+      this.set_selected(value);
       console.log("Updating to ", value);
     },
   },
