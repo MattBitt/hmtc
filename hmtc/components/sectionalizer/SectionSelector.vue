@@ -1,9 +1,9 @@
 <template>
   <v-card max-width="90%">
     <h1>{{ selected }}</h1>
-    <v-tabs vertical v-model="selected" mandatory color="primary">
+    <v-tabs vertical v-model="selected" mandatory color="primary" class="mx-4">
       <v-tab v-for="(section, i) in sections" :key="i">
-        {{ section.start_time }} - {{ section.end_time }}
+        {{ durationString(section.start) }} - {{ durationString(section.end) }}
       </v-tab>
       <v-tab-item v-for="(section, i) in sections" :key="i">
         <v-row justify="center">
@@ -33,8 +33,8 @@
         </v-card>
         <v-container>
           <v-range-slider
-            :value="[section.start / 1000, section.end / 1000]"
-            :max="video_duration"
+            :value="[section.start, section.end]"
+            :max="video_time"
             min="0"
             show-ticks="always"
             tick-size="4"
@@ -48,7 +48,7 @@
           <v-row justify="center">
             <v-col cols="2">
               <h4 class="primary--text font-weight-bold">
-                {{ durationString((section.end - section.start) / 1000) }}
+                {{ durationString(section.end - section.start) }}
               </h4>
             </v-col>
             <v-col cols="8">
@@ -74,12 +74,15 @@ module.exports = {
       type: Object,
       required: true,
     },
+    video_time: {
+      type: Number,
+      required: true,
+    },
   },
   emits: [],
   data() {
     return {
       children: [],
-      video_duration: 0,
     };
   },
   methods: {
@@ -88,9 +91,10 @@ module.exports = {
       console.log("Updating to ", value);
     },
     durationString(duration) {
-      const hrs = ~~(duration / 3600);
-      const mins = ~~((duration % 3600) / 60);
-      const secs = ~~duration % 60;
+      const durationSeconds = duration / 1000;
+      const hrs = ~~(durationSeconds / 3600);
+      const mins = ~~((durationSeconds % 3600) / 60);
+      const secs = ~~durationSeconds % 60;
       let ret = "";
       if (hrs > 0) {
         ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
@@ -98,7 +102,7 @@ module.exports = {
 
       ret += "" + mins + ":" + (secs < 10 ? "0" : "");
       ret += "" + secs;
-
+      console.log("calculated: ", ret);
       return ret;
     },
   },
@@ -109,6 +113,7 @@ module.exports = {
   },
   created() {
     console.log("children: ", this.children);
+    // console.log(sections, section, selected);
   },
   computed: {},
 };

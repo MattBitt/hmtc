@@ -8,8 +8,8 @@ from loguru import logger
 
 @dataclass
 class Section:
-    start_time: float
-    end_time: float = 0
+    start: float
+    end: float = 0
     section_type: str = "unnamed"
     is_complete: bool = False
 
@@ -20,7 +20,7 @@ def Timeline(videoTime, totalDuration, event_update_time_cursor, event_create_se
 
 
 @solara.component_vue("SectionSelector.vue")
-def SectionSelector(children, sections, selected, event_set_selected):
+def SectionSelector(children, sections, selected, video_time, event_set_selected):
     pass
 
 
@@ -41,7 +41,7 @@ current_section = solara.reactive(None)
 
 
 @solara.component
-def SectionRow(sections, current_section):
+def SectionRow(sections, current_section, total_duration):
 
     def select_section(selected_section):
         current_section.set(selected_section)
@@ -50,6 +50,7 @@ def SectionRow(sections, current_section):
         with SectionSelector(
             sections=sections.value,
             selected=current_section.value,
+            video_time=total_duration.value,
             event_set_selected=select_section,
         ):
             solara.Markdown(f"Im the first child!")
@@ -59,7 +60,7 @@ def SectionRow(sections, current_section):
 @solara.component
 def Sectionalizer():
     # State management
-    video_time = solara.use_reactive(0.0)  # Current video time
+    video_time = solara.use_reactive(10000.0)  # Current video time
     total_duration = solara.use_reactive(600000.0)  # Total duration of the video
 
     def update_time_cursor(new_time: float):
@@ -81,11 +82,11 @@ def Sectionalizer():
             SubtitlesCard(video_time=video_time.value)
 
         Timeline(
-            videoTime=video_time.value / 1000,
-            totalDuration=total_duration.value / 1000,
+            videoTime=video_time.value,
+            totalDuration=total_duration.value,
             event_update_time_cursor=update_time_cursor,
             event_create_section=create_section,
         )
         solara.Markdown(f"Currently Selected {current_section.value}")
         if len(sections.value) > 0:
-            SectionRow(sections, current_section)
+            SectionRow(sections, current_section, total_duration)
