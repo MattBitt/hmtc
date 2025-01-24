@@ -18,7 +18,7 @@ from hmtc.utils.db_migrator import run_migrations
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
-
+from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 
 # sets the color of the app bar based on the current dev enviorment
 def get_app_bar_color() -> str:
@@ -61,10 +61,13 @@ def main(config):
     db_instance = init_db(db_null, config)
 
     if config["general"]["environment"] == "development":
+        _STORAGE = Path(config['STORAGE']) / "videos"
         drop_all_tables(db_instance)
         create_tables(db_instance)
         run_migrations(db_instance)
         seed_database_from_json(db_instance)
+        import_existing_video_files_to_db(_STORAGE)
+                    
     else:
         create_tables(db_instance)
         run_migrations(db_instance)

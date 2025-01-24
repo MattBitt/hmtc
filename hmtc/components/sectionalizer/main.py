@@ -1,6 +1,6 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import List
-
+import uuid
 import numpy as np
 import solara
 from loguru import logger
@@ -9,7 +9,9 @@ from loguru import logger
 @dataclass
 class Section:
     start: float
+    
     end: float = 0
+    id: str = field(default_factory=lambda: str(uuid.uuid1()))
     section_type: str = "unnamed"
     is_complete: bool = False
 
@@ -20,7 +22,7 @@ def Timeline(videoTime, totalDuration, event_update_time_cursor, event_create_se
 
 
 @solara.component_vue("SectionSelector.vue")
-def SectionSelector(children, sections, selected, video_time, event_set_selected):
+def SectionSelector(children, sections, selected, video_time, event_set_selected, event_remove_section):
     pass
 
 
@@ -41,17 +43,21 @@ current_section = solara.reactive(None)
 
 
 @solara.component
-def SectionRow(sections, current_section, total_duration):
+def SectionRow(sections, remove_section, total_duration):
 
     def select_section(selected_section):
-        current_section.set(selected_section)
+        # current_section.set(selected_section)
+        pass
 
+
+                
     with solara.Column():
         with SectionSelector(
             sections=sections.value,
-            selected=current_section.value,
+            selected=None, # current_section.value,
             video_time=total_duration.value,
             event_set_selected=select_section,
+            event_remove_section=remove_section,
         ):
             solara.Markdown(f"Im the first child!")
             VideoFrame(video_time=500)
@@ -76,6 +82,13 @@ def Sectionalizer():
         new_sect = asdict(Section(start, end))
         sections.set(sections.value + [new_sect])
 
+    def remove_section(section):
+        logger.debug(f"Remove section {section}")
+        a = []
+        a[:] = [d for d in sections.value if d.get('id') != section['id']]
+        sections.set(a)
+
+
     with solara.Column(classes=["main-container"]):
         with solara.Columns():
             VideoFrame(video_time=video_time.value)
@@ -89,4 +102,4 @@ def Sectionalizer():
         )
         solara.Markdown(f"Currently Selected {current_section.value}")
         if len(sections.value) > 0:
-            SectionRow(sections, current_section, total_duration)
+            SectionRow(sections, remove_section, total_duration)

@@ -51,10 +51,15 @@
                 {{ durationString(section.end - section.start) }}
               </h4>
             </v-col>
-            <v-col cols="8">
+            <v-col cols="6">
               <h4 class="primary--text font-weight-bold">
                 {{ section.topics?.map(({ text }) => text).join(", ") }}
               </h4>
+            </v-col>
+            <v-col cols="2">
+              <v-btn class="button mywarning" @click="removeSection(section)"
+                ><v-icon>mdi-delete</v-icon>Delete</v-btn
+              >
             </v-col>
           </v-row>
         </v-container>
@@ -89,6 +94,10 @@ module.exports = {
     updateSelected(value) {
       this.set_selected(value);
       console.log("Updating to ", value);
+    },
+    removeSection(section) {
+      console.log("removing section", section);
+      this.remove_section(section);
     },
     durationString(duration) {
       const durationSeconds = duration / 1000;
