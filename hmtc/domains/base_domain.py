@@ -87,3 +87,10 @@ class BaseDomain:
             return Image.open(_poster.thumbnail.get().path)
         else:
             return Image.open(_poster.path)
+
+    def subtitles(self):
+        _subtitles = self.file_repo.get(self.instance.id, "subtitle")
+        if _subtitles is None:
+            return None
+        else:
+            return Path(_subtitles.path)

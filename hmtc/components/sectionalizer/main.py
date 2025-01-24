@@ -111,11 +111,9 @@ def Sectionalizer(video):
         with solara.Columns():
             solara.Markdown(f" ## Current Selected Section: {selected.value}")
             VideoFrame(time_cursor=time_cursor.value)
-
-        subtitles = [
-            Path(f["file"].path) for f in _files if f["filetype"] == "subtitle"
-        ][0]
-        if subtitles.exists():
+        # i think this fails if the video doesn't have a subtitle file
+        subtitles = video.subtitles()
+        if subtitles is not None:
             SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
 
         Timeline(
