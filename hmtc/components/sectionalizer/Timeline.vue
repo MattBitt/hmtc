@@ -30,7 +30,7 @@
 </template>
 
 <script>
-{
+export default {
   props: {
     totalDuration: {
       type: Number,
@@ -38,7 +38,7 @@
     },
     timeCursor: {
       type: Number,
-      default: 0,
+      required: true,
     },
   },
   data() {
@@ -58,9 +58,7 @@
     },
   },
 
-  computed: {
-
-  },
+  computed: {},
 
   methods: {
     markStart() {
@@ -74,7 +72,7 @@
       const endTime = this.localTimeCursor;
       console.log("End time marked at:", endTime);
 
-      this.create_section({start: this.startTime, end: endTime});
+      this.create_section({ start: this.startTime, end: endTime });
     },
 
     onSliderInput(newTime) {
@@ -92,13 +90,11 @@
       }, debounceDuration);
     },
     canMarkEnd() {
-      const enabled =  this.isEditingMode && ((this.localTimeCursor - this.startTime) > 5);
-      console.log("in canMarkEnd", this.startTime, this.localTimeCursor)
-      console.log(enabled)
+      const enabled = this.isEditingMode && this.localTimeCursor - this.startTime > 5;
+      console.log("in canMarkEnd", this.startTime, this.localTimeCursor);
+      console.log(enabled);
       return enabled;
     },
-
-
   },
 };
 </script>

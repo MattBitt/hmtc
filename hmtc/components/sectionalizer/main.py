@@ -20,7 +20,7 @@ def Timeline(videoTime, totalDuration, event_update_time_cursor, event_create_se
 
 
 @solara.component_vue("SectionSelector.vue")
-def SectionSelector(sections, selected, event_set_selected):
+def SectionSelector(children, sections, selected, event_set_selected):
     pass
 
 
@@ -31,11 +31,9 @@ def VideoFrame(video_time):
         solara.Text(f"{video_time}")
 
 
-@solara.component
+@solara.component_vue('SubtitlesCard.vue', vuetify=True)
 def SubtitlesCard(video_time):
-    with solara.Card():
-        solara.Text("Subtitles")
-        solara.Text(f"{video_time}")
+    pass
 
 
 sections = solara.reactive([])
@@ -49,18 +47,20 @@ def SectionRow(sections, current_section):
         current_section.set(selected_section)
 
     with solara.Column():
-        SectionSelector(
+        with SectionSelector(
             sections=sections.value,
             selected=current_section.value,
             event_set_selected=select_section,
-        )
-
+        ):
+            solara.Markdown(f"Im the first child!")
+            VideoFrame(video_time=500)
+            SubtitlesCard(video_time=200)
 
 @solara.component
 def Sectionalizer():
     # State management
     video_time = solara.use_reactive(0.0)  # Current video time
-    total_duration = solara.use_reactive(600.0)  # Total duration of the video
+    total_duration = solara.use_reactive(600000.0)  # Total duration of the video
 
     def update_time_cursor(new_time: float):
         # Logic to handle the updated video time
@@ -77,12 +77,12 @@ def Sectionalizer():
 
     with solara.Column(classes=["main-container"]):
         with solara.Columns():
-            VideoFrame(video_time.value)
-            SubtitlesCard(video_time.value)
+            VideoFrame(video_time=video_time.value)
+            SubtitlesCard(video_time=video_time.value)
 
         Timeline(
-            videoTime=video_time.value,
-            totalDuration=total_duration.value,
+            videoTime=video_time.value / 1000,
+            totalDuration=total_duration.value / 1000,
             event_update_time_cursor=update_time_cursor,
             event_create_section=create_section,
         )

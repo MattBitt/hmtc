@@ -6,12 +6,58 @@
         {{ section.start_time }} - {{ section.end_time }}
       </v-tab>
       <v-tab-item v-for="(section, i) in sections" :key="i">
+        <v-row justify="center">
+          <jupyter-widget
+            v-if="children.length > 0"
+            :widget="children[0]"
+            key="first-widget"
+          ></jupyter-widget>
+        </v-row>
+        <v-row>
+          <jupyter-widget
+            v-if="children.length > 1"
+            :widget="children[1]"
+            key="videoframe-widget"
+          ></jupyter-widget>
+          <jupyter-widget
+            v-if="children.length > 2"
+            :widget="children[2]"
+            key="subtitles-widget"
+          ></jupyter-widget>
+        </v-row>
         <v-card>
           <v-card-text
             ><h3>Some text for {{ section }}</h3>
             <h3>{{ i }}: section index</h3>
           </v-card-text>
         </v-card>
+        <v-container>
+          <v-range-slider
+            :value="[section.start / 1000, section.end / 1000]"
+            :max="video_duration"
+            min="0"
+            show-ticks="always"
+            tick-size="4"
+            readonly
+            color="primary"
+          >
+            <template v-slot:prepend>
+              <span class="tracknumber">{{ (i + 1).toString() }}</span>
+            </template>
+          </v-range-slider>
+          <v-row justify="center">
+            <v-col cols="2">
+              <h4 class="primary--text font-weight-bold">
+                {{ durationString((section.end - section.start) / 1000) }}
+              </h4>
+            </v-col>
+            <v-col cols="8">
+              <h4 class="primary--text font-weight-bold">
+                {{ section.topics?.map(({ text }) => text).join(", ") }}
+              </h4>
+            </v-col>
+          </v-row>
+        </v-container>
       </v-tab-item>
     </v-tabs>
   </v-card>
@@ -31,12 +77,29 @@ module.exports = {
   },
   emits: [],
   data() {
-    return {};
+    return {
+      children: [],
+      video_duration: 0,
+    };
   },
   methods: {
     updateSelected(value) {
       this.set_selected(value);
       console.log("Updating to ", value);
+    },
+    durationString(duration) {
+      const hrs = ~~(duration / 3600);
+      const mins = ~~((duration % 3600) / 60);
+      const secs = ~~duration % 60;
+      let ret = "";
+      if (hrs > 0) {
+        ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+      }
+
+      ret += "" + mins + ":" + (secs < 10 ? "0" : "");
+      ret += "" + secs;
+
+      return ret;
     },
   },
   watch: {
@@ -44,7 +107,9 @@ module.exports = {
       this.updateSelected(newValue);
     },
   },
-  created() {},
+  created() {
+    console.log("children: ", this.children);
+  },
   computed: {},
 };
 </script>
