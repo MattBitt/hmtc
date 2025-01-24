@@ -65,9 +65,9 @@ def SectionsControls():
                 solara.Text(f"Import Videos")
                 solara.Button(
                     "Scan Local",
-                on_click=lambda: import_existing_video_files_to_db(
-                    STORAGE / "videos"
-                ),
+                    on_click=lambda: import_existing_video_files_to_db(
+                        STORAGE / "videos"
+                    ),
                     classes=["button"],
                 )
                 solara.Text(f"Create missing thumbnails")

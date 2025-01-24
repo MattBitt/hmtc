@@ -153,7 +153,7 @@ def create_thumbnail(image, imagefile_id):
         im.save(outfile, "JPEG")
         thumb = Thumbnail.create(path=outfile, image_id=imagefile_id)
         thumb.save()
-        logger.success(f"Created thumbnail for {image} and {imagefile_id}")
+        # logger.success(f"Created thumbnail for {image} and {imagefile_id}")
 
 
 def process_file(file, target, stem):
@@ -283,7 +283,7 @@ class FileRepo:
             item, created = self.model.get_or_create(item_id=item.id)
             setattr(item, new_file_dict["filetype"], new_file_dict["file"])
             item.save()
-            logger.success(f"Added {filetype} file to {item}")
+            # logger.success(f"Added {filetype} file to {item}")
         else:
             raise ValueError(f"Filetype not found while ADDING {source}")
 

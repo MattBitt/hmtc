@@ -15,4 +15,5 @@ def Page():
     MySidebar(router)
 
     with solara.Column(classes=["main-container"]):
-        Sectionalizer()
+        video = Video.get_by(id=1)
+        Sectionalizer(video=video)

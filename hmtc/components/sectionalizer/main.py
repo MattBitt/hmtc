@@ -1,19 +1,29 @@
-from dataclasses import asdict, dataclass, field
-from typing import List
 import uuid
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import List
+
 import numpy as np
 import solara
 from loguru import logger
+
+from hmtc.utils.subtitles import find_caption_by_time, read_vtt
+
+
+@dataclass
+class Topic:
+    text: str
+    id: str = field(default_factory=lambda: str(uuid.uuid1()))
 
 
 @dataclass
 class Section:
     start: float
-    
     end: float = 0
     id: str = field(default_factory=lambda: str(uuid.uuid1()))
     section_type: str = "unnamed"
     is_complete: bool = False
+    topics = []
 
 
 @solara.component_vue("Timeline.vue")
@@ -22,84 +32,105 @@ def Timeline(videoTime, totalDuration, event_update_time_cursor, event_create_se
 
 
 @solara.component_vue("SectionSelector.vue")
-def SectionSelector(children, sections, selected, video_time, event_set_selected, event_remove_section):
+def SectionSelector(
+    sections, selected, video_duration, event_remove_section, event_update_selected
+):
     pass
 
 
 @solara.component
-def VideoFrame(video_time):
+def VideoFrame(time_cursor):
     with solara.Card():
         solara.Text("Video Player Placeholder")
-        solara.Text(f"{video_time}")
+        solara.Text(f"{time_cursor}")
 
 
-@solara.component_vue('SubtitlesCard.vue', vuetify=True)
-def SubtitlesCard(video_time):
-    pass
+@solara.component
+def SubtitlesCard(time_cursor, subtitles):
+    solara.Markdown(f"time_cursor: {time_cursor}")
+    solara.Markdown(f"subtitle file: {str(subtitles)}")
+
+    captions = read_vtt(subtitles)
+    # logger.debug(captions)
+    cap = find_caption_by_time(time_cursor / 1000, captions)
+    if cap is None:
+        logger.error("cap is now none...")
+        return
+    solara.Markdown(f"## {cap['text']}")
 
 
 sections = solara.reactive([])
-current_section = solara.reactive(None)
+selected = solara.reactive({})
 
 
 @solara.component
-def SectionRow(sections, remove_section, total_duration):
-
-    def select_section(selected_section):
-        # current_section.set(selected_section)
-        pass
-
-
-                
-    with solara.Column():
-        with SectionSelector(
-            sections=sections.value,
-            selected=None, # current_section.value,
-            video_time=total_duration.value,
-            event_set_selected=select_section,
-            event_remove_section=remove_section,
-        ):
-            solara.Markdown(f"Im the first child!")
-            VideoFrame(video_time=500)
-            SubtitlesCard(video_time=200)
-
-@solara.component
-def Sectionalizer():
+def Sectionalizer(video):
     # State management
-    video_time = solara.use_reactive(10000.0)  # Current video time
-    total_duration = solara.use_reactive(600000.0)  # Total duration of the video
+    time_cursor = solara.use_reactive(10000.0)  # Current video time
+    video_duration_ms = solara.use_reactive(
+        video.instance.duration * 1000
+    )  # Total duration of the video
 
     def update_time_cursor(new_time: float):
         # Logic to handle the updated video time
-        video_time.value = new_time
+        time_cursor.value = new_time
         logger.debug(f"Video time updated to: {new_time}")
         # Add your logic to process the video time here
+
+    def update_selected(section):
+        selected.set(section)
 
     def create_section(*args):
         start = args[0]["start"]
         end = args[0]["end"]
         logger.debug(f"Creating section from {start} to {end}")
-        new_sect = asdict(Section(start, end))
+        _section = Section(start, end)
+        _topics = [
+            asdict(t)
+            for t in (
+                Topic("banana"),
+                Topic("pineapple"),
+                Topic("hippo"),
+                Topic("table"),
+            )
+        ]
+        new_sect = asdict(_section)
+        new_sect["topics"] = _topics
         sections.set(sections.value + [new_sect])
+        logger.debug(f"After Creating section from {start} to {end}")
 
     def remove_section(section):
         logger.debug(f"Remove section {section}")
         a = []
-        a[:] = [d for d in sections.value if d.get('id') != section['id']]
+        a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
+    _files = video.file_repo.my_files(video.instance.id)
 
     with solara.Column(classes=["main-container"]):
         with solara.Columns():
-            VideoFrame(video_time=video_time.value)
-            SubtitlesCard(video_time=video_time.value)
+            solara.Markdown(f" ## Current Selected Section: {selected.value}")
+            VideoFrame(time_cursor=time_cursor.value)
+
+        subtitles = [
+            Path(f["file"].path) for f in _files if f["filetype"] == "subtitle"
+        ][0]
+        if subtitles.exists():
+            SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
 
         Timeline(
-            videoTime=video_time.value,
-            totalDuration=total_duration.value,
+            videoTime=time_cursor.value,
+            totalDuration=video_duration_ms.value,
             event_update_time_cursor=update_time_cursor,
             event_create_section=create_section,
         )
-        solara.Markdown(f"Currently Selected {current_section.value}")
+
         if len(sections.value) > 0:
-            SectionRow(sections, remove_section, total_duration)
+            with solara.Column():
+                SectionSelector(
+                    sections=sections.value,
+                    selected=selected.value,
+                    video_duration=video_duration_ms.value,
+                    event_update_selected=update_selected,
+                    event_remove_section=remove_section,
+                )

@@ -1,40 +1,14 @@
 <template>
   <v-card max-width="90%">
-    <h1>{{ selected }}</h1>
     <v-tabs vertical v-model="selected" mandatory color="primary" class="mx-4">
-      <v-tab v-for="(section, i) in sections" :key="i">
+      <v-tab v-for="(section, i) in sections" :key="section.id">
         {{ durationString(section.start) }} - {{ durationString(section.end) }}
       </v-tab>
       <v-tab-item v-for="(section, i) in sections" :key="i">
-        <v-row justify="center">
-          <jupyter-widget
-            v-if="children.length > 0"
-            :widget="children[0]"
-            key="first-widget"
-          ></jupyter-widget>
-        </v-row>
-        <v-row>
-          <jupyter-widget
-            v-if="children.length > 1"
-            :widget="children[1]"
-            key="videoframe-widget"
-          ></jupyter-widget>
-          <jupyter-widget
-            v-if="children.length > 2"
-            :widget="children[2]"
-            key="subtitles-widget"
-          ></jupyter-widget>
-        </v-row>
-        <v-card>
-          <v-card-text
-            ><h3>Some text for {{ section }}</h3>
-            <h3>{{ i }}: section index</h3>
-          </v-card-text>
-        </v-card>
         <v-container>
           <v-range-slider
             :value="[section.start, section.end]"
-            :max="video_time"
+            :max="video_duration"
             min="0"
             show-ticks="always"
             tick-size="4"
@@ -79,7 +53,7 @@ module.exports = {
       type: Object,
       required: true,
     },
-    video_time: {
+    video_duration: {
       type: Number,
       required: true,
     },
@@ -92,7 +66,7 @@ module.exports = {
   },
   methods: {
     updateSelected(value) {
-      this.set_selected(value);
+      this.update_selected(value);
       console.log("Updating to ", value);
     },
     removeSection(section) {
