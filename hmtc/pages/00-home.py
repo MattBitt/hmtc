@@ -73,7 +73,7 @@ def Page():
 
     empty_db = Series.count() == 0
     vids_imported = Video.count() > 0
-    latest_videos = Video.latest(3)
+    latest_videos = Video.latest(6)
 
     with solara.Column(classes=["main-container"]):
         with solara.Row(justify="center", style={"background-color": Colors.SURFACE}):
@@ -81,7 +81,7 @@ def Page():
                 ProgressCircle()
             else:
 
-                with solara.Link("/tables/videos/"):
+                with solara.Link("/tables/videos/unique"):
                     solara.Button("Videos", classes=["button"])
                 with solara.Link("/tables/tracks/"):
                     solara.Button("Tracks", classes=["button"])

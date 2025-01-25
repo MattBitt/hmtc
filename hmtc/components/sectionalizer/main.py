@@ -56,7 +56,7 @@ def SubtitlesCard(time_cursor, subtitles):
     if cap is None:
         logger.error("cap is now none...")
         return
-    solara.Markdown(f"## {cap['text']}")
+    solara.Text(f"{cap['text']}", classes=["primary--text"])
 
 
 sections = solara.reactive([])
@@ -66,7 +66,7 @@ selected = solara.reactive({})
 @solara.component
 def Sectionalizer(video):
     # State management
-    time_cursor = solara.use_reactive(10000.0)  # Current video time
+    time_cursor = solara.use_reactive(0)  # Current video time
     video_duration_ms = solara.use_reactive(
         video.instance.duration * 1000
     )  # Total duration of the video
@@ -105,7 +105,7 @@ def Sectionalizer(video):
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
-    _files = video.file_repo.my_files(video.instance.id)
+    
 
     with solara.Column(classes=["main-container"]):
         with solara.Columns():
@@ -115,7 +115,8 @@ def Sectionalizer(video):
         subtitles = video.subtitles()
         if subtitles is not None:
             SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
-
+        else:
+            solara.Markdown(f"No subtitles found for {video.title}")
         Timeline(
             videoTime=time_cursor.value,
             totalDuration=video_duration_ms.value,
