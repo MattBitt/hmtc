@@ -7,7 +7,7 @@ import numpy as np
 import solara
 from loguru import logger
 
-from hmtc.utils.subtitles import find_caption_by_time, read_vtt
+from hmtc.utils.subtitles import find_closest_caption, read_vtt
 
 
 @dataclass
@@ -51,12 +51,13 @@ def SubtitlesCard(time_cursor, subtitles):
     solara.Markdown(f"subtitle file: {str(subtitles)}")
 
     captions = read_vtt(subtitles)
-    # logger.debug(captions)
-    cap = find_caption_by_time(time_cursor / 1000, captions)
-    if cap is None:
-        logger.error("cap is now none...")
-        return
-    solara.Text(f"{cap['text']}", classes=["primary--text"])
+    closest = find_closest_caption(time_cursor / 1000, captions)
+    for index, caption in enumerate(closest["captions"]):
+        if index == closest["highlight_index"]:
+            _classes = ["info--text"]
+        else:
+            _classes = ["primary--text"]
+        solara.Text(f"{caption['text']}", classes=_classes)
 
 
 sections = solara.reactive([])
@@ -104,8 +105,6 @@ def Sectionalizer(video):
         a = []
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
-
-    
 
     with solara.Column(classes=["main-container"]):
         with solara.Columns():

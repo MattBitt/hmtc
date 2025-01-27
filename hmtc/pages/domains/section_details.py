@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.components.sectionalizer import Sectionalizer
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.video.no_sections_panel import NoSectionsPanel
 from hmtc.components.video.section_details_panel import SectionsDetailsPanel
@@ -57,7 +58,4 @@ def Page():
                 video=video,
             )
         else:
-            SectionsDetailsPanel(
-                video=video,
-                sections=sections,
-            )
+            Sectionalizer(video=video)

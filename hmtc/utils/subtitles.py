@@ -66,38 +66,41 @@ def parse_vtt_remove_duplicates(file_path):
     return captions
 
 
-def find_caption_by_time(seconds, captions):
-    """
-    Finds the caption whose interval encompasses the given time in seconds.
+# def find_caption_by_time(seconds, captions):
+#     """
+#     Finds the captions whose intervals encompass the given time in seconds and returns five lines of captions at a time.
 
-    Args:
-        seconds (int): The time in seconds to search for.
-        captions (list of dict): A list of captions with 'start', 'end', and 'text' keys.
+#     Args:
+#         seconds (int): The time in seconds to search for.
+#         captions (list of dict): A list of captions with 'start', 'end', and 'text' keys.
 
-    Returns:
-        dict or None: The caption dict that encompasses the time, or None if not found.
-    """
+#     Returns:
+#         list of dict or None: A list of up to five caption dicts that encompass the time, or None if not found.
+#     """
 
-    def timestamp_to_seconds(timestamp):
-        """Converts a timestamp in HH:MM:SS format to total seconds."""
-        pattern = r"align:start position:0%"
-        _timestamp = re.sub(pattern, "", timestamp).strip()
-        h, m = map(
-            int, _timestamp.split(":")[:2]
-        )  # Extract hours and minutes as integers
-        s, ms = map(
-            float, _timestamp.split(":")[2].split(".")
-        )  # Split seconds and milliseconds
-        return h * 3600 + m * 60 + s + (ms / 1000)
+#     def timestamp_to_seconds(timestamp):
+#         """Converts a timestamp in HH:MM:SS format to total seconds."""
+#         pattern = r"align:start position:0%"
+#         _timestamp = re.sub(pattern, "", timestamp).strip()
+#         h, m = map(
+#             int, _timestamp.split(":")[:2]
+#         )  # Extract hours and minutes as integers
+#         s, ms = map(
+#             float, _timestamp.split(":")[2].split(".")
+#         )  # Split seconds and milliseconds
+#         return h * 3600 + m * 60 + s + (ms / 1000)
 
-    for caption in captions:
-        if caption["start"] is None or caption["end"] is None:
-            continue
-        start_seconds = timestamp_to_seconds(caption["start"])
-        end_seconds = timestamp_to_seconds(caption["end"])
-        if start_seconds <= seconds <= end_seconds:
-            return caption
-    return None
+#     found_captions = []
+#     for caption in captions:
+#         if caption["start"] is None or caption["end"] is None:
+#             continue
+#         start_seconds = timestamp_to_seconds(caption["start"])
+#         end_seconds = timestamp_to_seconds(caption["end"])
+#         if start_seconds <= seconds <= end_seconds:
+#             found_captions.append(caption)
+#             if len(found_captions) == 5:
+#                 return found_captions
+#     return found_captions if found_captions else None
 
 
 def read_vtt(vtt_file):
@@ -156,6 +159,78 @@ def analyze_subtitle_density(vtt_file):
         "talking_segments": talking_segments,
         "music_segments": music_segments,
     }
+
+
+# i generated the following with gpt on 1/27/25
+def find_closest_caption(seconds, captions, n=2):
+    """
+    Finds the closest caption to the given timestamp and includes n lines around it.
+
+    Args:
+        seconds (int): The timestamp in seconds to find the closest caption for.
+        captions (list of dict): A list of captions with 'start', 'end', and 'text' keys.
+        n (int): The number of surrounding lines to include (default is 2).
+
+    Returns:
+        dict: A dictionary with the following keys:
+            - 'captions': A list of captions (including the closest and surrounding lines).
+            - 'highlight_index': The index of the closest caption in the returned list.
+    """
+
+    def timestamp_to_seconds(timestamp):
+        """Converts a timestamp in HH:MM:SS format to total seconds."""
+        pattern = r"align:start position:0%"
+        _timestamp = re.sub(pattern, "", timestamp).strip()
+        h, m = map(int, _timestamp.split(":")[:2])
+        s, ms = map(float, _timestamp.split(":")[2].split("."))
+        return h * 3600 + m * 60 + s + (ms / 1000)
+
+    # Validate inputs
+    if not captions or not isinstance(captions, list):
+        return None
+
+    # Convert timestamps to seconds and store in a new list for processing
+    for caption in captions:
+        caption["start_seconds"] = (
+            timestamp_to_seconds(caption["start"]) if caption["start"] else None
+        )
+        caption["end_seconds"] = (
+            timestamp_to_seconds(caption["end"]) if caption["end"] else None
+        )
+
+    # Find the closest caption
+    closest_index = None
+    min_diff = float("inf")
+    for i, caption in enumerate(captions):
+        if caption["start_seconds"] is not None and caption["end_seconds"] is not None:
+            # Calculate the mid-point of the caption's interval
+            mid_point = (caption["start_seconds"] + caption["end_seconds"]) / 2
+            diff = abs(seconds - mid_point)
+            if diff < min_diff:
+                min_diff = diff
+                closest_index = i
+
+    if closest_index is None:
+        return None
+
+    # Extract n lines around the closest caption
+    start_index = max(0, closest_index - n)
+    end_index = min(len(captions), closest_index + n + 1)
+    surrounding_captions = captions[start_index:end_index]
+
+    # Calculate highlight index
+    highlight_index = closest_index - start_index
+
+    # Prepare the output dictionary
+    result = {
+        "captions": [
+            {"start": caption["start"], "end": caption["end"], "text": caption["text"]}
+            for caption in surrounding_captions
+        ],
+        "highlight_index": highlight_index,
+    }
+
+    return result
 
 
 if __name__ == "__main__":

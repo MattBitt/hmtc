@@ -40,7 +40,8 @@ class Video(BaseDomain):
     @classmethod
     def latest(cls, limit: int) -> ModelSelect:
         return (
-            cls.repo.model.select().where(cls.repo.model.unique_content == True)
+            cls.repo.model.select()
+            .where(cls.repo.model.unique_content == True)
             .order_by(cls.repo.model.upload_date.desc())
             .limit(limit)
         )
