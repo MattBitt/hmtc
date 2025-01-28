@@ -53,9 +53,4 @@ def Page():
                 reactive_sections=sections,
             )
 
-        if len(sections) == 0:
-            NoSectionsPanel(
-                video=video,
-            )
-        else:
-            Sectionalizer(video=video)
+        Sectionalizer(video=video)

@@ -115,7 +115,7 @@ def Sectionalizer(video):
         if subtitles is not None:
             SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
         else:
-            solara.Markdown(f"No subtitles found for {video.title}")
+            solara.Markdown(f"No subtitles found for {video.instance.title}")
         Timeline(
             videoTime=time_cursor.value,
             totalDuration=video_duration_ms.value,
