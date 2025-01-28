@@ -161,6 +161,41 @@ def analyze_subtitle_density(vtt_file):
     }
 
 
+def remove_duplicated_captions(captions):
+    """
+    Removes or merges duplicate captions with identical or overlapping text in successive lines.
+
+    Args:
+        captions (list of dict): List of captions with 'start', 'end', and 'text'.
+
+    Returns:
+        list of dict: Cleaned captions with duplicates handled.
+    """
+
+    cleaned_captions = []
+
+    for caption in captions:
+        if cleaned_captions:
+            last_caption = cleaned_captions[-1]
+
+            # Check if the text is identical or the current text starts with the last text
+            if caption["text"].startswith(last_caption["text"]):
+                # Merge the times
+                last_caption["end"] = caption["end"]
+                # Update the text to include the new content
+                last_caption["text"] = (
+                    last_caption["text"]
+                    + "\n"
+                    + caption["text"][len(last_caption["text"]) :]
+                )
+                continue
+
+        # Otherwise, add the current caption to the cleaned list
+        cleaned_captions.append(caption)
+
+    return cleaned_captions
+
+
 # i generated the following with gpt on 1/27/25
 def find_closest_caption(seconds, captions, n=2):
     """
@@ -188,9 +223,9 @@ def find_closest_caption(seconds, captions, n=2):
     # Validate inputs
     if not captions or not isinstance(captions, list):
         return None
-
+    cleaned_captions = remove_duplicated_captions(captions)
     # Convert timestamps to seconds and store in a new list for processing
-    for caption in captions:
+    for caption in cleaned_captions:
         caption["start_seconds"] = (
             timestamp_to_seconds(caption["start"]) if caption["start"] else None
         )
@@ -201,7 +236,7 @@ def find_closest_caption(seconds, captions, n=2):
     # Find the closest caption
     closest_index = None
     min_diff = float("inf")
-    for i, caption in enumerate(captions):
+    for i, caption in enumerate(cleaned_captions):
         if caption["start_seconds"] is not None and caption["end_seconds"] is not None:
             # Calculate the mid-point of the caption's interval
             mid_point = (caption["start_seconds"] + caption["end_seconds"]) / 2
