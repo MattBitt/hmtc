@@ -36,18 +36,22 @@ def VideoInfoPanel(video):
     # poster = FileManager.get_file_for_video(video, "poster")
     # image = ImageManager(poster).image
     background_processing = solara.use_reactive(0)
+    is_unique = solara.use_reactive(video.unique_content)
     sections = SectionModel.select(
         SectionModel.id, SectionModel.start, SectionModel.end
     ).where(SectionModel.video_id == video.id)
 
-    def auto_create_tracks(*args):
-        pass
-        # for section in sections:
-        #     if section.track_id is None:
-        #         album = AlbumModel.get_by_id(video.album_id)
-        #         album_item = AlbumItem.from_model(album)
-        #         track = album_item.create_from_section(section=section, video=video)
-        #         section.save()
+    def mark_unique():
+        video.unique_content = True
+        video.save()
+        is_unique.set(True)
+        logger.info(f"Marked {video.title} 'UNIQUE'")
+
+    def mark_nonunique():
+        video.unique_content = False
+        video.save()
+        is_unique.set(False)
+        logger.info(f"Marked {video.title} 'UNIQUE'")
 
     section_durations = [
         (x.end - x.start) / 1000 for x in sections
@@ -68,16 +72,29 @@ def VideoInfoPanel(video):
             with solara.Row(justify="center"):
                 # solara.Markdown(f"Image Belongs Here")
                 solara.Image(vidDomain.poster(), width=IMG_WIDTH)
-            with solara.Row(justify="center"):
-                solara.Text(
-                    f"Uploaded: {time_ago_string(video.upload_date)}",
-                    classes=["medium-timer"],
-                )
-            with solara.Row(justify="center"):
-                solara.Text(
-                    f"Length: {seconds_to_hms(video.duration)}",
-                    classes=["medium-timer"],
-                )
+            with solara.Columns([6, 6]):
+                with solara.Column():
+                    with solara.Row(justify="center"):
+                        solara.Text(
+                            f"Uploaded: {time_ago_string(video.upload_date)}",
+                            classes=["medium-timer"],
+                        )
+                    with solara.Row(justify="center"):
+                        solara.Text(
+                            f"Length: {seconds_to_hms(video.duration)}",
+                            classes=["medium-timer"],
+                        )
+                with solara.Column():
+                    if is_unique.value:
+                        solara.Button(
+                            f"Mark NOT unique",
+                            on_click=mark_nonunique,
+                            classes=["button"],
+                        )
+                    else:
+                        solara.Button(
+                            f"Mark UNIQUE", on_click=mark_unique, classes=["button"]
+                        )
         with solara.Column():
             with solara.Row(justify="center"):
                 if len(section_durations) > 0:

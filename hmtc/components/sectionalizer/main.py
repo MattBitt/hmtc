@@ -7,7 +7,11 @@ import numpy as np
 import solara
 from loguru import logger
 
-from hmtc.utils.subtitles import find_closest_caption, read_vtt, find_substantial_phrase_lines
+from hmtc.utils.subtitles import (
+    find_closest_caption,
+    find_substantial_phrase_lines,
+    read_vtt,
+)
 
 
 @dataclass
@@ -58,18 +62,26 @@ def SubtitlesCard(time_cursor, subtitles):
             captions, ["yeah", "yea", "yes", "yep", "ok", "okay"]
         )
         ends = find_substantial_phrase_lines(captions, ["let's go", "lets go"])
-        solara.Markdown(f"Starts found: {starts}")
-        solara.Markdown(f"Ends found: {ends}")
+        starts_and_ends.set({"starts": starts, "ends": ends})
         searching.set(False)
 
     captions = read_vtt(subtitles)
     closest = find_closest_caption(time_cursor / 1000, captions)
+    solara.Button(
+        f"Search for Start/Ends",
+        on_click=search_for_starts_and_ends,
+        classes=["button"],
+    )
     for index, caption in enumerate(closest["captions"]):
         if index == closest["highlight_index"]:
             _classes = ["info--text"]
         else:
             _classes = ["primary--text"]
         solara.Text(f"{caption['text']}", classes=_classes)
+    if starts_and_ends.value != {}:
+        solara.Markdown(f"Starts found: {starts_and_ends.value['starts']}")
+        solara.Markdown(f"Ends found: {starts_and_ends.value['ends']}")
+
 
 sections = solara.reactive([])
 selected = solara.reactive({})

@@ -18,4 +18,3 @@ def Page():
     with solara.Column(classes=["main-container"]):
         video = Video.get_by(id=1)
         Sectionalizer(video=video)
-

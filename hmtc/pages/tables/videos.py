@@ -34,17 +34,37 @@ def view_details(router, item):
 
 
 @solara.component
-def FilterBar():
-    with solara.Card("Filters"):
-        if missing_videos.value:
-            caption = "Show All"
-        else:
-            caption = "Show Missing Video Files"
-        solara.Button(
-            f"{caption}",
-            on_click=lambda: missing_videos.set(not missing_videos.value),
-            classes=["button"],
-        )
+def FilterBar(filtered_by):
+
+    with solara.Card(f"Now Showing: {filtered_by}"):
+        with solara.Row():
+
+            if filtered_by == "unique":
+                with solara.Link(f"/tables/videos/nonunique"):
+                    solara.Button("Nonunique", classes=["button"])
+                with solara.Link(f"/tables/videos/all"):
+                    solara.Button("All", classes=["button"])
+            elif filtered_by == "nonunique":
+                with solara.Link(f"/tables/videos/unique"):
+                    solara.Button("Unique", classes=["button"])
+                with solara.Link(f"/tables/videos/all"):
+                    solara.Button("All", classes=["button"])
+            else:
+                with solara.Link(f"/tables/videos/unique"):
+                    solara.Button("Unique", classes=["button"])
+                with solara.Link(f"/tables/videos/nonunique"):
+                    solara.Button("Nonunique", classes=["button"])
+
+            solara.Div()
+            if missing_videos.value:
+                caption = "Show All"
+            else:
+                caption = "Show Missing Video Files"
+            solara.Button(
+                f"{caption}",
+                on_click=lambda: missing_videos.set(not missing_videos.value),
+                classes=["button"],
+            )
 
 
 @solara.component
@@ -52,7 +72,7 @@ def Page():
     router = solara.use_router()
     MySidebar(router)
     args = parse_url_args()
-    FilterBar()
+
     headers = [
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
@@ -62,11 +82,14 @@ def Page():
 
     if "unique" in args:
         base_query = VideoModel.select().where(VideoModel.unique_content == True)
+        FilterBar("unique")
     elif "nonunique" in args:
         base_query = VideoModel.select().where(VideoModel.unique_content == False)
+        FilterBar("nonunique")
     else:
         base_query = VideoModel.select()
         headers += [{"text": "Unique", "value": "unique_content", "sortable": False}]
+        FilterBar("all")
     headers += [
         {"text": "Files", "value": "file_count", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
