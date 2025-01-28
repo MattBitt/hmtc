@@ -64,7 +64,7 @@ def Page():
         solara.Button(
             f"Edit Sections ({len(sections)})",
             on_click=lambda: router.push(
-                f"/domains/section-details/{video.instance.id}"
+                f"/utils/sectionalizer/{video.instance.id}"
             ),
             classes=["button"],
         )

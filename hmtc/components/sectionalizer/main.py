@@ -45,14 +45,14 @@ def SectionSelector(
 
 @solara.component
 def VideoFrame(video, time_cursor):
-
-    with solara.Card():
-        solara.Text(f"{video.instance.title}")
-        solara.Text(f"{time_cursor}")
-
     vid_file = video.video_file()
-    ie = ImageExtractor(vid_file)
-    frame = ie.extract_frame(time_cursor / 1000)
+    try:
+        ie = ImageExtractor(vid_file)
+        frame = ie.extract_frame(time_cursor / 1000)
+    except Exception as e:
+        logger.error(f"Error {e}")
+        return None
+    
     solara.Image(frame, width="300px")
 
 
@@ -134,7 +134,7 @@ def Sectionalizer(video):
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
-    with solara.Column(classes=["main-container"]):
+    with solara.Card("Sectionalizer"):
         with solara.Columns():
             if video.video_file() is None:
                 solara.Markdown(

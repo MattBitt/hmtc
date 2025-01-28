@@ -32,16 +32,16 @@ class ImageManager:
                 raise Exception(f"Error: Could not open the image. {image}")
             self.image = cv2.imread(str(self.image_path), cv2.IMREAD_UNCHANGED)
 
-        elif isinstance(image, FileItem):
-            self.image_path = Path(image.path) / image.filename
+        # elif isinstance(image, FileItem):
+        #     self.image_path = Path(image.path) / image.filename
 
-            if not self.image_path.exists():
-                raise Exception(f"Error: Could not open the image. {image}")
+        #     if not self.image_path.exists():
+        #         raise Exception(f"Error: Could not open the image. {image}")
 
-            self.image = cv2.imread(str(self.image_path), cv2.IMREAD_UNCHANGED)
+        #     self.image = cv2.imread(str(self.image_path), cv2.IMREAD_UNCHANGED)
 
-            if self.image_path.suffix == ".webp":
-                self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        #     if self.image_path.suffix == ".webp":
+        #         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
 
         elif isinstance(image, (np.ndarray, np.generic)):
             self.image = image
