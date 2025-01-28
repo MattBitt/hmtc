@@ -10,7 +10,8 @@
         class="slider"
         ticks
         hide-details
-      ></v-slider>
+      >
+      </v-slider>
     </div>
 
     <div>

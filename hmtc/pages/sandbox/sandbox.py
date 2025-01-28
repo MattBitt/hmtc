@@ -18,10 +18,4 @@ def Page():
     with solara.Column(classes=["main-container"]):
         video = Video.get_by(id=1)
         Sectionalizer(video=video)
-        captions = read_vtt(f"hmtc/utils/temp/omegle_50.en.vtt")
-        starts = find_substantial_phrase_lines(
-            captions, ["yeah", "yes", "yep", "ok", "okay"]
-        )
-        ends = find_substantial_phrase_lines(captions, ["let's go", "lets go"])
-        solara.Markdown(f"Starts found: {starts}")
-        solara.Markdown(f"Ends found: {ends}")
+

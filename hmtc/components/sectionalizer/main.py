@@ -7,7 +7,7 @@ import numpy as np
 import solara
 from loguru import logger
 
-from hmtc.utils.subtitles import find_closest_caption, read_vtt
+from hmtc.utils.subtitles import find_closest_caption, read_vtt, find_substantial_phrase_lines
 
 
 @dataclass
@@ -47,8 +47,20 @@ def VideoFrame(time_cursor):
 
 @solara.component
 def SubtitlesCard(time_cursor, subtitles):
+    searching = solara.use_reactive(False)
+    starts_and_ends = solara.use_reactive({})
     solara.Markdown(f"time_cursor: {time_cursor}")
     solara.Markdown(f"subtitle file: {str(subtitles)}")
+
+    def search_for_starts_and_ends():
+        searching.set(True)
+        starts = find_substantial_phrase_lines(
+            captions, ["yeah", "yea", "yes", "yep", "ok", "okay"]
+        )
+        ends = find_substantial_phrase_lines(captions, ["let's go", "lets go"])
+        solara.Markdown(f"Starts found: {starts}")
+        solara.Markdown(f"Ends found: {ends}")
+        searching.set(False)
 
     captions = read_vtt(subtitles)
     closest = find_closest_caption(time_cursor / 1000, captions)
@@ -58,7 +70,6 @@ def SubtitlesCard(time_cursor, subtitles):
         else:
             _classes = ["primary--text"]
         solara.Text(f"{caption['text']}", classes=_classes)
-
 
 sections = solara.reactive([])
 selected = solara.reactive({})
