@@ -63,9 +63,7 @@ def Page():
         VideoInfoPanel(video=video.instance)
         solara.Button(
             f"Edit Sections ({len(sections)})",
-            on_click=lambda: router.push(
-                f"/utils/sectionalizer/{video.instance.id}"
-            ),
+            on_click=lambda: router.push(f"/utils/sectionalizer/{video.instance.id}"),
             classes=["button"],
         )
         solara.Markdown(f"## Files")

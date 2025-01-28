@@ -257,10 +257,7 @@ def create_omegle_sections():
             new_section = dict(
                 start=section.start * 1000,
                 end=section.end * 1000,
-                clip_number=section.clip_number,
-                section_type=(
-                    "instrumental" if section.clip_number != 99 else "advertisement"
-                ),
+                section_type="instrumental",
                 video=vid.instance,
             )
             SectionModel.create(**new_section)

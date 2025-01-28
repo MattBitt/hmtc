@@ -11,6 +11,9 @@
         ticks
         hide-details
       >
+        <template v-slot:append>
+          <span>{{ durationString }}</span>
+        </template>
       </v-slider>
     </div>
 
@@ -35,6 +38,10 @@ export default {
   props: {
     totalDuration: {
       type: Number,
+      required: true,
+    },
+    durationString: {
+      type: String,
       required: true,
     },
     timeCursor: {

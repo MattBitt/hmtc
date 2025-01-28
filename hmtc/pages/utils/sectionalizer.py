@@ -9,6 +9,7 @@ from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
+from hmtc.utils.time_functions import seconds_to_hms
 
 
 def parse_url_args():
@@ -19,15 +20,12 @@ def parse_url_args():
         router.push("/domains/videos")
     else:
         return router.parts[level:][0]
-    logger.error(f"Does this execute? {router.parts}")
 
 
 @solara.component
 def Page():
     router = solara.use_router()
     MySidebar(router=router)
-
-    register_vue_components(file=__file__)
 
     video_id = parse_url_args()
     if video_id is None or video_id == 0:
@@ -45,13 +43,6 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         with solara.Row():
-            solara.Text(f"{video.instance.title}", classes=['primary--text'])
-            solara.Markdown(f"Duration: {video.instance.duration}")
-            SectionDialogButton(
-                video=video,
-                reactive_sections=sections,
-            )
-        
-
+            solara.Text(f"{video.instance.title}", classes=["primary--text"])
 
         Sectionalizer(video=video)

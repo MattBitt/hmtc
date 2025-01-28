@@ -15,7 +15,6 @@ class Section(BaseDomain):
             "start": self.instance.start,
             "end": self.instance.end,
             "section_type": self.instance.section_type,
-            "clip_number": self.instance.clip_number,
             "video_id": self.instance.video_id,
         }
 

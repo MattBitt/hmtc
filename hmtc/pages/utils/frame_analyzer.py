@@ -3,10 +3,11 @@ from pathlib import Path
 import solara
 
 from hmtc.components.shared.sidebar import MySidebar
+from hmtc.domains.video import Video
 from hmtc.models import Video as VideoModel
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
-from hmtc.domains.video import Video
+
 
 def parse_url_args():
     router = solara.use_router()
@@ -32,8 +33,7 @@ def Page():
 
     # vid_file = FileManager.get_file_for_video(video, "video")
     vid_file = ""
-    
-    
+
     FRAME_INTERVAL = 0
     if vid_file.file_type == "":
         solara.Markdown(f"No video file found for video {video_id}")

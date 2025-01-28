@@ -195,7 +195,9 @@ class YoutubeSeriesVideo(BaseModel):
 class Section(BaseModel):
     start = IntegerField()
     end = IntegerField()
-    clip_number = IntegerField()
+    # 1/27/25 clip_number shouldn't be part of a section definition
+    # thats going to depend on how we're 'counting' sections
+
     section_type = CharField()
 
     video = ForeignKeyField(Video, backref="sections")

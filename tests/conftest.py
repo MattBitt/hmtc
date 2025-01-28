@@ -109,9 +109,9 @@ def disc_dicts():
 @pytest.fixture(scope="function")
 def section_dicts():
     return [
-        {"start": 0, "end": 100, "clip_number": 1, "section_type": "intro"},
-        {"start": 100, "end": 200, "clip_number": 2, "section_type": "main"},
-        {"start": 200, "end": 300, "clip_number": 3, "section_type": "outro"},
+        {"start": 0, "end": 100, "section_type": "intro"},
+        {"start": 100, "end": 200, "section_type": "main"},
+        {"start": 200, "end": 300, "section_type": "outro"},
     ]
 
 
