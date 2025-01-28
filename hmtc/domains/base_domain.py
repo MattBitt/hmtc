@@ -94,3 +94,10 @@ class BaseDomain:
             return None
         else:
             return Path(_subtitles.path)
+
+    def video_file(self):
+        video_file = self.file_repo.get(self.instance.id, "video")
+        if video_file is None:
+            return None
+        else:
+            return Path(video_file.path)

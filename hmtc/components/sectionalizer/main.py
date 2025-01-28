@@ -7,6 +7,7 @@ import numpy as np
 import solara
 from loguru import logger
 
+from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.subtitles import (
     find_closest_caption,
     find_substantial_phrase_lines,
@@ -43,18 +44,22 @@ def SectionSelector(
 
 
 @solara.component
-def VideoFrame(time_cursor):
+def VideoFrame(video, time_cursor):
+
     with solara.Card():
-        solara.Text("Video Player Placeholder")
+        solara.Text(f"{video.instance.title}")
         solara.Text(f"{time_cursor}")
+
+    vid_file = video.video_file()
+    ie = ImageExtractor(vid_file)
+    frame = ie.extract_frame(time_cursor / 1000)
+    solara.Image(frame, width="300px")
 
 
 @solara.component
 def SubtitlesCard(time_cursor, subtitles):
     searching = solara.use_reactive(False)
     starts_and_ends = solara.use_reactive({})
-    solara.Markdown(f"time_cursor: {time_cursor}")
-    solara.Markdown(f"subtitle file: {str(subtitles)}")
 
     def search_for_starts_and_ends():
         searching.set(True)
@@ -131,14 +136,18 @@ def Sectionalizer(video):
 
     with solara.Column(classes=["main-container"]):
         with solara.Columns():
-            solara.Markdown(f" ## Current Selected Section: {selected.value}")
-            VideoFrame(time_cursor=time_cursor.value)
-        # i think this fails if the video doesn't have a subtitle file
-        subtitles = video.subtitles()
-        if subtitles is not None:
-            SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
-        else:
-            solara.Markdown(f"No subtitles found for {video.instance.title}")
+            if video.video_file() is None:
+                solara.Markdown(
+                    f"## No Video (think mkv) file Found for {video.instance}"
+                )
+            else:
+                VideoFrame(video=video, time_cursor=time_cursor.value)
+
+            subtitles = video.subtitles()
+            if subtitles is not None:
+                SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
+            else:
+                solara.Markdown(f"No subtitles found for {video.instance.title}")
         Timeline(
             videoTime=time_cursor.value,
             totalDuration=video_duration_ms.value,
