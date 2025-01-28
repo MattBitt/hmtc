@@ -268,6 +268,45 @@ def find_closest_caption(seconds, captions, n=2):
     return result
 
 
+def find_substantial_phrase_lines(captions, phrases, threshold=0.4):
+    """
+    Finds timestamps or indices of captions where the text consists mostly (e.g., 80%) of specific phrases.
+
+    Args:
+        captions (list of dict): List of captions with 'start', 'end', and 'text'.
+        phrases (list of str): List of phrases to search for.
+        threshold (float): The minimum proportion of text that must match phrases (default is 0.8).
+
+    Returns:
+        list of dict: A list of dictionaries containing 'start', 'end', and 'text' for captions meeting the criteria.
+    """
+    matching_captions = []
+    # _captions = remove_duplicated_captions(captions)
+    for caption in captions:
+        text = caption["text"].lower()
+        # Split text into words and count total words
+        words = re.findall(r"\w+", text)
+        total_words = len(words)
+        if total_words == 0:
+            continue
+
+        # Count how many words match the phrases
+        match_count = sum(
+            1
+            for word in words
+            if any(
+                re.fullmatch(rf"{re.escape(phrase.lower())}", word)
+                for phrase in phrases
+            )
+        )
+
+        # Check if the match proportion meets or exceeds the threshold
+        if match_count / total_words >= threshold:
+            matching_captions.append(caption)
+
+    return matching_captions
+
+
 if __name__ == "__main__":
     # Example usage
     result = analyze_subtitle_density("hmtc/utils/temp/omegle_50.en.vtt")
