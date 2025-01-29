@@ -6,7 +6,6 @@ from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
-from hmtc.utils.subtitles import find_substantial_phrase_lines, read_vtt
 
 
 @solara.component
