@@ -140,7 +140,9 @@ def Sectionalizer(video):
         logger.debug(f"After Creating section from {start} to {end}")
 
     def remove_section(section):
-        logger.debug(f"Remove section {section}")
+        _sect = Section.get_by(id=section['id'])
+        logger.debug(f"Remove section {_sect}")
+        _sect.delete()
         a = []
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)

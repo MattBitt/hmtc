@@ -39,10 +39,7 @@
         <v-expansion-panel-content>
           <v-row class="">
             <v-col cols="6">
-              <SummaryPanel
-                :section="section"
-                :topics="section.topics"
-              ></SummaryPanel>
+              <SummaryPanel :section="section" :topics="section.topics"></SummaryPanel>
             </v-col>
             <!-- <v-col cols="6">
               <div v-if="section.track.title == 'No Track'">
@@ -87,9 +84,7 @@
                 <v-toolbar-title>Section {{ index + 1 }}</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-toolbar-items>
-                  <v-btn dark text :disabled="!valid" @click="refreshPanel">
-                    Save
-                  </v-btn>
+                  <v-btn dark text :disabled="!valid" @click="refreshPanel"> Save </v-btn>
                 </v-toolbar-items>
               </v-toolbar>
               <v-card>
@@ -206,9 +201,7 @@ export default {
 
     removeSection(section_id) {
       console.log("Deleted section", section_id);
-      const sectionIndex = this.sectionItems.findIndex(
-        (item) => item.id === section_id
-      );
+      const sectionIndex = this.sectionItems.findIndex((item) => item.id === section_id);
       if (sectionIndex !== -1) {
         this.sectionItems.splice(sectionIndex, 1);
       }

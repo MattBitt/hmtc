@@ -28,8 +28,27 @@
       <span v-if="isEditingMode">
         <span>Start: {{ this.startTime }}</span>
         <span>Duration: {{ this.localTimeCursor - this.startTime }}</span>
+        <v-btn medium fab class="button" @click="adjustTime(-5000)">
+          <v-icon>mdi-rewind-5</v-icon>
+        </v-btn>
+        <v-btn medium fab class="button" @click="adjustTime(-1000)">
+          <v-icon>mdi-rewind</v-icon>
+        </v-btn>
+        <!-- <v-btn medium fab class="button" @click="adjustTime(-250)">
+        <v-icon>mdi-step-backward</v-icon>
+      </v-btn>
+      <v-btn medium fab class="button" @click="adjustTime(250)">
+        <v-icon>mdi-step-forward</v-icon>
+      </v-btn> -->
+        <v-btn medium fab class="button" @click="adjustTime(1000)">
+          <v-icon>mdi-fast-forward</v-icon>
+        </v-btn>
+        <v-btn medium fab class="button" @click="adjustTime(5000)">
+          <v-icon>mdi-fast-forward-5</v-icon>
+        </v-btn>
       </span>
     </div>
+    <v-row v-if="isEditingMode" justify="center" class="mt-4"> </v-row>
   </v-card>
 </template>
 
@@ -99,9 +118,12 @@ export default {
     },
     canMarkEnd() {
       const enabled = this.isEditingMode && this.localTimeCursor - this.startTime > 5;
-      console.log("in canMarkEnd", this.startTime, this.localTimeCursor);
-      console.log(enabled);
+      // console.log("in canMarkEnd", this.startTime, this.localTimeCursor);
+      // console.log(enabled);
       return enabled;
+    },
+    adjustTime(delta) {
+      this.onSliderInput(this.localTimeCursor + delta);
     },
   },
 };

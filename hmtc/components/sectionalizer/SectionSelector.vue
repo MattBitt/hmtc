@@ -85,7 +85,7 @@ module.exports = {
 
       ret += "" + mins + ":" + (secs < 10 ? "0" : "");
       ret += "" + secs;
-      console.log("calculated: ", ret);
+      // console.log("calculated: ", ret);
       return ret;
     },
   },
