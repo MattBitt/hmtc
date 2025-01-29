@@ -32,7 +32,7 @@ class BaseDomain:
         try:
             self.file_repo.delete_files(self.instance.id)
         except Exception as e:
-            logger.error("Error Deleting Files {e}")
+            logger.error(f"Error Deleting Files {e}")
 
         if self.instance:
             self.instance.delete_instance()

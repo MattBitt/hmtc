@@ -24,16 +24,6 @@ class Topic:
     id: str = field(default_factory=lambda: str(uuid.uuid1()))
 
 
-@dataclass
-class SectionDC:
-    start: float
-    end: float = 0
-    id: str = field(default_factory=lambda: str(uuid.uuid1()))
-    section_type: str = "unnamed"
-    is_complete: bool = False
-    topics = []
-
-
 @solara.component_vue("Timeline.vue")
 def Timeline(
     videoTime,
@@ -140,7 +130,7 @@ def Sectionalizer(video):
         logger.debug(f"After Creating section from {start} to {end}")
 
     def remove_section(section):
-        _sect = Section.get_by(id=section['id'])
+        _sect = Section.get_by(id=section["id"])
         logger.debug(f"Remove section {_sect}")
         _sect.delete()
         a = []

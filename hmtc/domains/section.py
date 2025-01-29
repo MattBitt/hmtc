@@ -24,3 +24,6 @@ class Section(BaseDomain):
             cls(s)
             for s in SectionModel.select().where(SectionModel.video_id == video_id)
         ]
+
+    def delete(self):
+        self.instance.delete_instance()

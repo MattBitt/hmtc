@@ -8,7 +8,8 @@
         step="1000"
         @input="onSliderInput"
         class="slider"
-        ticks
+        thumb-color="blue"
+        thumb-label="always"
         hide-details
       >
         <template v-slot:append>
