@@ -8,8 +8,6 @@
         step="1000"
         @input="onSliderInput"
         class="slider"
-        thumb-color="blue"
-        thumb-label="always"
         hide-details
       >
         <template v-slot:append>
@@ -18,38 +16,46 @@
       </v-slider>
     </div>
 
-    <div>
-      <span v-if="isEditingMode">
-        <v-btn @click="isEditingMode = false" class="button mywarning">Cancel</v-btn>
-      </span>
-      <span v-else>
-        <v-btn @click="markStart" class="button">Mark Start</v-btn>
-      </span>
-      <v-btn @click="markEnd" :disabled="!canMarkEnd()" class="button">Mark End</v-btn>
-      <span v-if="isEditingMode">
-        <span>Start: {{ this.startTime }}</span>
-        <span>Duration: {{ this.localTimeCursor - this.startTime }}</span>
-        <v-btn medium fab class="button" @click="adjustTime(-5000)">
-          <v-icon>mdi-rewind-5</v-icon>
-        </v-btn>
-        <v-btn medium fab class="button" @click="adjustTime(-1000)">
-          <v-icon>mdi-rewind</v-icon>
-        </v-btn>
-        <!-- <v-btn medium fab class="button" @click="adjustTime(-250)">
+    <v-row>
+      <v-col cols="5">
+        <v-row justify="center">
+          <span v-if="isEditingMode">
+            <v-btn @click="isEditingMode = false" class="button mywarning">Cancel</v-btn>
+          </span>
+          <span v-else>
+            <v-btn @click="markStart" class="button">Mark Start</v-btn>
+          </span>
+          <v-btn @click="markEnd" :disabled="!canMarkEnd()" class="button"
+            >Mark End</v-btn
+          >
+        </v-row>
+      </v-col>
+      <v-col cols="2">
+        <span class="seven-seg">{{ videoTime / 1000 }}</span>
+      </v-col>
+      <v-col cols="5">
+        <v-row justify="end">
+          <v-btn medium fab class="button" @click="adjustTime(-5000)">
+            <v-icon>mdi-rewind-5</v-icon>
+          </v-btn>
+          <v-btn medium fab class="button" @click="adjustTime(-1000)">
+            <v-icon>mdi-rewind</v-icon>
+          </v-btn>
+          <!-- <v-btn medium fab class="button" @click="adjustTime(-250)">
         <v-icon>mdi-step-backward</v-icon>
       </v-btn>
       <v-btn medium fab class="button" @click="adjustTime(250)">
         <v-icon>mdi-step-forward</v-icon>
       </v-btn> -->
-        <v-btn medium fab class="button" @click="adjustTime(1000)">
-          <v-icon>mdi-fast-forward</v-icon>
-        </v-btn>
-        <v-btn medium fab class="button" @click="adjustTime(5000)">
-          <v-icon>mdi-fast-forward-5</v-icon>
-        </v-btn>
-      </span>
-    </div>
-    <v-row v-if="isEditingMode" justify="center" class="mt-4"> </v-row>
+          <v-btn medium fab class="button" @click="adjustTime(1000)">
+            <v-icon>mdi-fast-forward</v-icon>
+          </v-btn>
+          <v-btn medium fab class="button" @click="adjustTime(5000)">
+            <v-icon>mdi-fast-forward-5</v-icon>
+          </v-btn>
+        </v-row>
+      </v-col>
+    </v-row>
   </v-card>
 </template>
 
@@ -139,13 +145,5 @@ export default {
   user-select: none;
   touch-action: none;
   position: relative;
-}
-
-.slider {
-  margin: 20px 0;
-}
-
-.mark-button {
-  margin: 5px;
 }
 </style>
