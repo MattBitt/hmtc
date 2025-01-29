@@ -131,7 +131,7 @@ Werkzeug==3.0.2
 wheel==0.43.0
 widgetsnbextension==4.0.10
 wsproto==1.2.0
-yt-dlp==2025.1.15
+yt-dlp==2025.1.26
 scikit-image
 peewee-migrate
 webvtt-py

@@ -1,5 +1,6 @@
 import re
 
+import ffmpeg
 import webvtt
 from loguru import logger
 
@@ -307,9 +308,22 @@ def find_substantial_phrase_lines(captions, phrases, threshold=0.4):
     return matching_captions
 
 
+def convert_vtt_to_srt(input_vtt, output_srt):
+    """Converts a VTT subtitle file to SRT format using ffmpeg."""
+
+    try:
+        (
+            ffmpeg.input(input_vtt)
+            .output(output_srt, format="srt")
+            .run(capture_stdout=False, capture_stderr=False)
+        )
+        print(f"Successfully converted {input_vtt} to {output_srt}")
+    except ffmpeg.Error as e:
+        print(f"Error converting subtitles: {e.stderr.decode()}")
+
+
 if __name__ == "__main__":
     # Example usage
-    result = analyze_subtitle_density("hmtc/utils/temp/omegle_50.en.vtt")
-    # print("Subtitle Density:", result["subtitle_density"])
-    # print("Talking Segments:", result["talking_segments"])
-    print("Music Segments:", result["music_segments"])
+    convert_vtt_to_srt(
+        "hmtc/utils/temp/omegle_50.en.vtt", "hmtc/utils/temp/omegle_50.srt"
+    )
