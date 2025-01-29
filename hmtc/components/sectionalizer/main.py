@@ -88,15 +88,17 @@ def SubtitlesCard(time_cursor, subtitles):
         else:
             _classes = ["primary--text"]
         solara.Text(f"{caption['text']}", classes=_classes)
-
-    solara.Button(
-        f"Search for Start/Ends",
-        on_click=search_for_starts_and_ends,
-        classes=["button"],
-    )
-    if starts_and_ends.value != {}:
-        solara.Markdown(f"Starts found: {starts_and_ends.value['starts']}")
-        solara.Markdown(f"Ends found: {starts_and_ends.value['ends']}")
+    if starts_and_ends.value == {}:
+        solara.Button(
+            f"Search for Start/Ends",
+            on_click=search_for_starts_and_ends,
+            classes=["button"],
+        )
+    else:
+        possibles = []
+        for starts in starts_and_ends.value["starts"]:
+            possibles.append(starts["start"])
+        solara.Markdown(f"## Maybe Section Start: {possibles}")
 
 
 sections = solara.reactive([])
@@ -125,18 +127,11 @@ def Sectionalizer(video):
         start = args[0]["start"]
         end = args[0]["end"]
         logger.debug(f"Creating section from {start} to {end}")
-        _section = SectionDC(start, end)
-        _topics = [
-            asdict(t)
-            for t in (
-                Topic("banana"),
-                Topic("pineapple"),
-                Topic("hippo"),
-                Topic("table"),
-            )
-        ]
+        _section = Section.create(
+            {"start": start, "end": end, "section_type": "instrumental"}
+        )
+
         new_sect = asdict(_section)
-        new_sect["topics"] = _topics
         sections.set(sections.value + [new_sect])
         logger.debug(f"After Creating section from {start} to {end}")
 

@@ -1,7 +1,7 @@
 import solara
 from loguru import logger
 
-from hmtc.components.sectionalizer import Sectionalizer, Timeline
+from hmtc.components.sectionalizer import Sectionalizer, StartFrequency
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.domains.channel import Channel
@@ -18,3 +18,4 @@ def Page():
     with solara.Column(classes=["main-container"]):
         video = Video.get_by(id=1)
         Sectionalizer(video=video)
+        StartFrequency([10, 20, 30, 40])
