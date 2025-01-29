@@ -105,7 +105,8 @@ selected = solara.reactive({})
 
 @solara.component
 def Sectionalizer(video):
-    # State management
+    # session = solara.get_session_id()
+    # logger.debug(f"Loading sectionalizer. Current session {session}")
     time_cursor = solara.use_reactive(0)  # Current video time
     video_duration_ms = solara.use_reactive(
         video.instance.duration * 1000
