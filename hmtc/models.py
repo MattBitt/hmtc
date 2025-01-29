@@ -212,7 +212,7 @@ class Section(BaseModel):
 
 
 class OmegleSection(BaseModel):
-    # this is used to store the raw values
+    # this is used to store the raw values from the initial spreadsheet
     episode = IntegerField()
     clip_number = IntegerField()
     youtube_id = CharField()

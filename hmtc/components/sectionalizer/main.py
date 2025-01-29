@@ -128,11 +128,15 @@ def Sectionalizer(video):
         end = args[0]["end"]
         logger.debug(f"Creating section from {start} to {end}")
         _section = Section.create(
-            {"start": start, "end": end, "section_type": "instrumental"}
+            {
+                "start": start,
+                "end": end,
+                "section_type": "instrumental",
+                "video_id": video.instance.id,
+            }
         )
 
-        new_sect = asdict(_section)
-        sections.set(sections.value + [new_sect])
+        sections.set(sections.value + [_section.serialize()])
         logger.debug(f"After Creating section from {start} to {end}")
 
     def remove_section(section):
@@ -141,7 +145,9 @@ def Sectionalizer(video):
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
-    sections = solara.use_reactive(Section.get_for_video(video.instance.id))
+    _raw_sections = Section.get_for_video(video.instance.id)
+    _sections = [s.serialize() for s in _raw_sections]
+    sections = solara.use_reactive(_sections)
 
     with solara.Card(video.instance.title):
         with solara.Columns([9, 3]):

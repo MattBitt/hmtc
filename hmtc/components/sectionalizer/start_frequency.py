@@ -58,7 +58,7 @@ import plotly.express as px
 
 
 @solara.component
-def StartFrequency(times, on_click=None, on_hover=None):
+def StartFrequency(_range, times, on_click=None, on_hover=None):
     def handle_hover(*args):
         logger.error(f"Plotly Figure Component Hovered Over")
         logger.debug(f"args: {args}")
@@ -68,18 +68,24 @@ def StartFrequency(times, on_click=None, on_hover=None):
         logger.error(f"Plotly Figure Component Clicked args={args}")
         on_click(*args)
 
-    # Create a scatter plot with a single axis
     fig = px.scatter(
         x=times,
-        y=[50] * len(times),
-        title="Start Frequency Plot",
+        y=[10] * len(times),
+        title="",
         template="plotly_white",
     )
-    fig.update_yaxes(range=[0, 100])
-    fig.update_layout(barmode="relative")
-    fig.update_layout(plot_bgcolor="white")
-    fig.update_yaxes(showline=False, showgrid=False)
+    fig.update_xaxes(range=_range)
 
-    # Show the plot
+    fig.update_layout(plot_bgcolor="white")
+
+    # fig.update_layout(showlegend=False)
+    fig.update_xaxes(visible=False)
+    fig.update_yaxes(visible=False, range=[9, 11])
+    fig.update_traces(marker=dict(size=30))
+
+    fig.update_layout(
+        width=800,
+        height=200,
+    )
 
     solara.FigurePlotly(fig)
