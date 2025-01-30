@@ -13,6 +13,7 @@ from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.subtitles import (
     find_closest_caption,
     find_substantial_phrase_lines,
+    read_srt_file,
 )
 from hmtc.utils.time_functions import seconds_to_hms
 
@@ -59,12 +60,12 @@ def SubtitlesCard(time_cursor, subtitles):
     searching = solara.use_reactive(False)
     starts_and_ends = solara.use_reactive({})
 
-    captions = []  # read_vtt(subtitles) (retooling the subtitles)
+    captions = read_srt_file(subtitles)
 
     def search_for_starts_and_ends():
         searching.set(True)
         starts = find_substantial_phrase_lines(
-            captions, ["yeah", "yea", "yes", "yep", "ok", "okay"]
+            captions, ["yeah", "yea", "yes", "yep", "ok", "okay", "come on"]
         )
         ends = find_substantial_phrase_lines(captions, ["let's go", "lets go"])
         starts_and_ends.set({"starts": starts, "ends": ends})

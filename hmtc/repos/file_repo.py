@@ -25,7 +25,7 @@ VIDEOS = [".mkv", ".mp4", ".webm"]
 AUDIOS = [".mp3", ".wav"]
 LYRICS = [".lrc"]
 # not sure if i need to support srt as well
-SUBTITLES = [".en.vtt"]
+SUBTITLES = [".en.vtt", ".srt"]
 INFOS = [".nfo", ".info.json", ".json", ".txt"]
 POSTERS = [".jpg", ".jpeg", ".png", ".webp"]
 
