@@ -10,6 +10,7 @@ from hmtc.models import db_null
 def run_migrations(db):
     router = Router(db)
     router.run()
+    pass
 
 
 if __name__ == "__main__":

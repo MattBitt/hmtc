@@ -19,26 +19,8 @@
             "justMyCode": true,
             "env": {
                 "BROWSER": "echo",
-                "HMTC_ENV": "development",
-                "HMTC_CONFIG_PATH": "${workspaceFolder}/hmtc/config",
-                "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
-            }
-        },
-        {
-            // Use IntelliSense to learn about possible attributes.
-            "name": "Solara: Launch (single page)",
-            "type": "debugpy",
-            "request": "launch",
-            "program": ".venv/bin/solara",
-            "args": [
-                "run",
-                "hmtc/pages/00-home.py",
-                "--port=8767",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "env": {
-                "BROWSER": "echo",
+                "FLASK_APP": "hmtc/app.py",
+                "SOLARA_APP": "hmtc/pages",
                 "HMTC_ENV": "development",
                 "HMTC_CONFIG_PATH": "${workspaceFolder}/hmtc/config",
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
@@ -52,13 +34,10 @@
             "program": ".venv/bin/flask",
             "args": [
                 "run",
-                "--port=8767",
-                "--host=0.0.0.0",
             ],
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
-                "BROWSER": "echo",
                 "FLASK_APP": "hmtc/app.py",
                 "SOLARA_APP": "hmtc/pages",
                 "HMTC_ENV": "development",

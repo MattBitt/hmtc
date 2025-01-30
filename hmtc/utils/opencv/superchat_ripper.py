@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from loguru import logger
 from PIL import Image
-from skimage.color import rgb2gray
+
 
 from hmtc.assets.colors import Colors
 from hmtc.config import init_config

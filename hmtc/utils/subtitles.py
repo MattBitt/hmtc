@@ -6,9 +6,10 @@ import srt
 
 import ffmpeg
 import srt
-import webvtt
+
 from loguru import logger
 from thefuzz import fuzz
+
 
 # i generated the following with gpt on 1/27/25
 def find_closest_caption(seconds, captions, n=2):
@@ -17,7 +18,7 @@ def find_closest_caption(seconds, captions, n=2):
 
     Args:
         seconds (int): The timestamp in seconds to find the closest caption for.
-        captions (list of Subtitle Objects ): 
+        captions (list of Subtitle Objects ):
         n (int): The number of surrounding lines to include (default is 2).
 
     Returns:
@@ -133,6 +134,7 @@ def read_srt_file(file):
 
 # created with gpt on 1/28/25 after choosing srt instead of vtt
 
+
 def merge_subtitles(subtitle_path):
     """Merge subtitles while keeping the most unique text and minimizing entries using srt library."""
     subtitles = read_srt_file(subtitle_path)
@@ -145,7 +147,7 @@ def merge_subtitles(subtitle_path):
         dur = (sub.end - sub.start).total_seconds()
         if dur < 1:
             merged_subs.append(sub)
-    
+
     return merged_subs
 
 
