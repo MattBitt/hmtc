@@ -14,6 +14,7 @@ from hmtc.utils.subtitles import (
     find_closest_caption,
     find_substantial_phrase_lines,
     read_srt_file,
+    merge_subtitles,
 )
 from hmtc.utils.time_functions import seconds_to_hms
 
@@ -60,7 +61,7 @@ def SubtitlesCard(time_cursor, subtitles):
     searching = solara.use_reactive(False)
     starts_and_ends = solara.use_reactive({})
 
-    captions = read_srt_file(subtitles)
+    captions = merge_subtitles(subtitles)
 
     def search_for_starts_and_ends():
         searching.set(True)
@@ -87,7 +88,7 @@ def SubtitlesCard(time_cursor, subtitles):
     else:
         possibles = []
         for starts in starts_and_ends.value["starts"]:
-            possibles.append(starts["start"])
+            possibles.append(starts.start)
         solara.Markdown(f"## Maybe Section Start: {possibles}")
 
 
@@ -105,10 +106,8 @@ def Sectionalizer(video):
     )  # Total duration of the video
 
     def update_time_cursor(new_time: float):
-        # Logic to handle the updated video time
         time_cursor.value = new_time
-        logger.debug(f"Video time updated to: {new_time}")
-        # Add your logic to process the video time here
+
 
     def update_selected(section):
         selected.set(section)

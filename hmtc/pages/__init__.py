@@ -23,6 +23,7 @@ from hmtc.utils.my_logging import setup_logging
 
 # sets the color of the app bar based on the current dev enviorment
 def get_app_bar_color() -> str:
+    config = init_config()
     env = config["general"]["environment"]
     match env:
         case "development":
@@ -76,21 +77,3 @@ def main(config):
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
 
-
-# # this is the base of the app
-@solara.component
-def Layout(children=[]):
-
-    solara.Style(Path("../../assets/style.css"))
-    solara.lab.theme.dark = False
-    return solara.AppLayout(
-        navigation=False,
-        title="Main Title",
-        color=get_app_bar_color(),
-        sidebar_open=False,
-        children=children,
-    )
-
-
-config = init_config()
-main(config)

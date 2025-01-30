@@ -70,7 +70,7 @@ def Page():
     MySidebar(
         router=solara.use_router(),
     )
-
+    some = 1 + 2
     empty_db = Series.count() == 0
     vids_imported = Video.count() > 0
     latest_videos = Video.latest(6)
@@ -102,7 +102,7 @@ def Page():
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
             solara.Image(image=logo_image.image)
-
+            solara.Text("some text might appear")
         if empty_db:
             with solara.Row(justify="center"):
                 with solara.Column():

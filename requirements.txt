@@ -137,3 +137,4 @@ peewee-migrate
 webvtt-py
 srt
 thefuzz
+livereload

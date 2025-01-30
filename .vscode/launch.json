@@ -53,6 +53,7 @@
             "args": [
                 "run",
                 "--port=8767",
+                "--host=0.0.0.0",
             ],
             "console": "integratedTerminal",
             "justMyCode": true,
