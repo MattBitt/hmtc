@@ -136,3 +136,4 @@ scikit-image
 peewee-migrate
 webvtt-py
 srt
+thefuzz
