@@ -1,10 +1,13 @@
 import re
-from thefuzz import fuzz
+from datetime import datetime, timedelta
+
 import ffmpeg
+import srt
 import webvtt
 from loguru import logger
-import srt
-from datetime import datetime, timedelta
+from thefuzz import fuzz
+
+
 def parse_vtt_remove_duplicates(file_path):
     """
     Parses a YouTube-generated VTT file, combines duplicate and overlapping lines, and
@@ -219,20 +222,24 @@ def convert_vtt_to_srt(input_vtt, output_srt):
         logger.error(f"Error converting subtitles: {e.stderr.decode()}")
         return None
 
+
 def read_srt_file(file):
-    with open(file, 'r') as f:
-        raw_subs = r'{}'.format(f.read())
+    with open(file, "r") as f:
+        raw_subs = r"{}".format(f.read())
     if raw_subs is None:
         logger.error(f"Error Parsing subtitle file {file}")
         return None
     data = srt.parse(raw_subs)
-    
+
     return list(data)
+
 
 # created with gpt on 1/28/25 after choosing srt instead of vtt
 
-import srt
 from datetime import timedelta
+
+import srt
+
 
 def merge_subtitles(subtitle_path):
     """Merge subtitles while keeping the most unique text and minimizing entries using srt library."""
@@ -246,39 +253,43 @@ def merge_subtitles(subtitle_path):
     diff = 0
     for sub in subtitles:
         content = sub.content.strip()
-        if content != '':
+        if content != "":
             if current_text != "":
                 fuzzy = fuzz.partial_ratio(current_text, content)
-                if fuzzy > 50:
+                if fuzzy > 80:
                     # probably the same word
                     same += 1
                     # print(current_text,"===", content)
                 else:
                     # probably different word
                     diff += 1
-                    print(current_text, "!!!!=",  content)
+                    print(current_text, "!!!!=", content)
                     current_text = content
-                
+
             else:
-                
+
                 # Start new subtitle
                 current_start = sub.start
                 current_end = sub.end
                 current_text = sub.content
                 # 1st subtitle
                 # merged_subs.append(srt.Subtitle(index=len(merged_subs) + 1, start=current_start, end=current_end, content=current_text))
-            
 
-    
     # Add the last subtitle
     if current_text:
-        merged_subs.append(srt.Subtitle(index=len(merged_subs) + 1, start=current_start, end=current_end, content=current_text))
+        merged_subs.append(
+            srt.Subtitle(
+                index=len(merged_subs) + 1,
+                start=current_start,
+                end=current_end,
+                content=current_text,
+            )
+        )
     print(f"After {same=} {diff=}")
     return merged_subs
-   
+
 
 if __name__ == "__main__":
     # Example usage
     subtitles = "hmtc/utils/temp/omegle_50.srt"
     result = merge_subtitles(subtitles)
-
