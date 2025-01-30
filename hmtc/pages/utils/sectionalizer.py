@@ -19,7 +19,7 @@ def parse_url_args():
     if len(router.parts) == 1:
         router.push("/domains/videos")
     else:
-        return router.parts[level:][0]
+        return router.parts[level:][1]
 
 
 @solara.component

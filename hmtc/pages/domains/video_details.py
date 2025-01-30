@@ -20,12 +20,12 @@ WORKING = config["WORKING"]
 def parse_url_args():
     router = solara.use_router()
     level = solara.use_route_level()
-
+    logger.error(f"Parsing URL args from {router.parts}")
     if len(router.parts) == 1:
         router.push("/domains/videos")
     else:
-        return router.parts[level:][0]
-    logger.error(f"Does this execute? {router.parts}")
+        return router.parts[level:][1]
+    
 
 
 @solara.component
