@@ -135,3 +135,4 @@ yt-dlp==2025.1.26
 scikit-image
 peewee-migrate
 webvtt-py
+srt
