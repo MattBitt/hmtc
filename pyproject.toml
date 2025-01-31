@@ -11,6 +11,7 @@ dependencies = [
     "flask-socketio>=5.5.1",
     "gunicorn>=23.0.0",
     "loguru>=0.7.3",
+    "mutagen>=1.47.0",
     "numpy>=2.2.2",
     "opencv-python>=4.11.0.86",
     "pandas>=2.2.3",
@@ -19,6 +20,7 @@ dependencies = [
     "pillow>=11.1.0",
     "plotly>=6.0.0",
     "psycopg2>=2.9.10",
+    "psycopg2-binary>=2.9.10",
     "scikit-image>=0.25.1",
     "simple-websocket>=1.1.0",
     "solara>=1.44.0",
@@ -27,4 +29,9 @@ dependencies = [
     "thefuzz>=0.22.1",
     "websockets>=14.2",
     "yt-dlp>=2025.1.26",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
 ]

@@ -30,8 +30,28 @@ title = " "
 busy_downloading = solara.reactive(False)
 
 
+import sys
+import pika
+
+def send_message(message):
+    # Connect to RabbitMQ
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+
+    # Declare a queue (if it doesn't exist)
+    channel.queue_declare(queue='hello')
+
+    # Publish a message
+    channel.basic_publish(exchange='', routing_key='hello', body=message)
+
+    # Close the connection
+    connection.close()
+
+
+
 def refresh_from_youtube():
     busy_downloading.set(True)
+    send_message("About to Refresh from Youtube")
     for channel in Channel.to_auto_update():
         logger.debug(f"Checking channel {channel}")
         not_in_db = []
@@ -44,14 +64,14 @@ def refresh_from_youtube():
         logger.debug(f"Found {len(ids)} videos at {channel}")
         logger.debug(f"{len(not_in_db)} of them need to be added.")
         if config["general"]["environment"] == "development":
-            items = not_in_db[:5]
+            items = not_in_db[:1]
         else:
             items = not_in_db
         for youtube_id in items:
             get_video_info(youtube_id, WORKING / youtube_id)
 
             create_video_from_folder(WORKING / youtube_id)
-
+    send_message(f"Finished Refreshing from Youtube")
     busy_downloading.set(False)
 
 

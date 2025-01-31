@@ -1,3 +1,4 @@
+import pika
 import solara.server.flask
 from flask import Flask, g, make_response, request
 
