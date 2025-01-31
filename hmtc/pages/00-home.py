@@ -22,6 +22,10 @@ from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
 
+import sys
+
+from celery import Celery
+
 config = init_config()
 STORAGE = Path(config["STORAGE"])
 WORKING = Path(config["WORKING"])
@@ -30,28 +34,19 @@ title = " "
 busy_downloading = solara.reactive(False)
 
 
-import sys
-import pika
 
-def send_message(message):
-    # Connect to RabbitMQ
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
 
-    # Declare a queue (if it doesn't exist)
-    channel.queue_declare(queue='hello')
+app = Celery('tasks', broker='pyamqp://guest@localhost//')
 
-    # Publish a message
-    channel.basic_publish(exchange='', routing_key='hello', body=message)
-
-    # Close the connection
-    connection.close()
+@app.task
+def add(x, y):
+    return x + y
 
 
 
 def refresh_from_youtube():
     busy_downloading.set(True)
-    send_message("About to Refresh from Youtube")
+    add.delay(5, 6)
     for channel in Channel.to_auto_update():
         logger.debug(f"Checking channel {channel}")
         not_in_db = []
@@ -71,7 +66,7 @@ def refresh_from_youtube():
             get_video_info(youtube_id, WORKING / youtube_id)
 
             create_video_from_folder(WORKING / youtube_id)
-    send_message(f"Finished Refreshing from Youtube")
+    add.delay(100, 240)
     busy_downloading.set(False)
 
 

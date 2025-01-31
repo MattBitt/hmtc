@@ -5,7 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "ffmpeg>=1.4",
+    "celery>=5.4.0",
+    "ffmpeg-python>=0.2.0",
     "flask>=3.1.0",
     "flask-sock>=0.7.0",
     "flask-socketio>=5.5.1",
@@ -21,6 +22,7 @@ dependencies = [
     "plotly>=6.0.0",
     "psycopg2>=2.9.10",
     "psycopg2-binary>=2.9.10",
+    "redis>=5.2.1",
     "scikit-image>=0.25.1",
     "simple-websocket>=1.1.0",
     "solara>=1.44.0",
