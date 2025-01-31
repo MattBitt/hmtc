@@ -1,12 +1,8 @@
 import re
 from datetime import datetime, timedelta
-from datetime import timedelta
-
-import srt
 
 import ffmpeg
 import srt
-
 from loguru import logger
 from thefuzz import fuzz
 

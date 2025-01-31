@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 from loguru import logger
 from PIL import Image
-# from skimage.color import rgb2gray
 
+# from skimage.color import rgb2gray
 from hmtc.config import init_config
 
 config = init_config()
@@ -24,8 +24,8 @@ def images_are_the_same(img1, img2):
             # more than 10 percent difference in size
             return False
         img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
-    im1_weighted_mean = None # rgb2gray(img1)
-    im2_weighted_mean =  None #rgb2gray(img2)
+    im1_weighted_mean = None  # rgb2gray(img1)
+    im2_weighted_mean = None  # rgb2gray(img2)
     similarity = np.sum((im1_weighted_mean - im2_weighted_mean) ** 2)
     if similarity < 10000:
         return True

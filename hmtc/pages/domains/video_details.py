@@ -25,7 +25,6 @@ def parse_url_args():
         router.push("/domains/videos")
     else:
         return router.parts[level:][1]
-    
 
 
 @solara.component

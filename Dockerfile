@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y build-essential curl libpq-dev
 ENV VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:$PATH"
 
-COPY ./requirements.txt .
+COPY ./pyproject.toml .
 RUN uv venv /opt/venv && \
-    uv pip install -r requirements.txt && \
+    uv pip install -r pyproject.toml && \
     uv pip install psycopg2 ffmpeg-python
 
 # App image

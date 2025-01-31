@@ -8,7 +8,6 @@ import numpy as np
 from loguru import logger
 from PIL import Image
 
-
 from hmtc.assets.colors import Colors
 from hmtc.config import init_config
 from hmtc.utils.image import hex_to_rgb

@@ -13,8 +13,8 @@ from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.subtitles import (
     find_closest_caption,
     find_substantial_phrase_lines,
-    read_srt_file,
     merge_subtitles,
+    read_srt_file,
 )
 from hmtc.utils.time_functions import seconds_to_hms
 
@@ -107,7 +107,6 @@ def Sectionalizer(video):
 
     def update_time_cursor(new_time: float):
         time_cursor.value = new_time
-
 
     def update_selected(section):
         selected.set(section)

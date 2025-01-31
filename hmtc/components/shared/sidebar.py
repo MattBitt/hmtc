@@ -69,4 +69,4 @@ def MySidebar(
                 version=VERSION,
                 router=router,
                 event_sidebar_clicked=sidebar_clicked,
-        )
+            )
