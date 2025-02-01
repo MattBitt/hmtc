@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict
-
+import redis
+from rq import Queue
 import solara
 import solara.lab
 from loguru import logger
@@ -17,7 +18,7 @@ from hmtc.utils.importer.existing_files import (
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
-
+from hmtc.utils.tasks.slow_funcs import example
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
@@ -54,12 +55,7 @@ def refresh_from_youtube():
     busy_downloading.set(False)
 
 
-def start_task():
-    from hmtc.tasks import slow_operation
-    # result = slow_operation.delay((100, 240))
-    result = 'asdf'
-    logger.error(f"{result=}")
-    
+ 
     
 
 
@@ -102,11 +98,7 @@ def Page():
                     on_click=refresh_from_youtube,
                     disabled=False,
                 )
-                solara.Button(
-                    f"Start Task",
-                    classes=["button"],
-                    on_click=start_task,
-                )
+
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
             solara.Image(image=logo_image.image)

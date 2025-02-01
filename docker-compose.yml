@@ -26,15 +26,17 @@ services:
     depends_on:
       - postgres
 
-  redis:
-    image: redis:7-alpine
+  rq-worker:
+    image: jaredv/rq-docker:0.0.2
+    command: rq worker -u redis://rq-server:6379 high normal low
+    deploy:
+      replicas: 3
+
+  rq-server:
+    image: redis:alpine
     ports:
-      - "6379:6379"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - 6379:6379
+
 networks:
   default:
     name: myinternalnetwork

@@ -1,7 +1,10 @@
 
 from pathlib import Path
 from typing import Any, Dict
-
+import time
+import redis
+from rq import Queue
+import rq_dashboard
 import solara
 import solara.lab
 import solara.server.flask
@@ -21,7 +24,7 @@ from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
-
+from hmtc.utils.tasks.slow_funcs import count_words_at_url
 
 # sets the color of the app bar based on the current dev enviorment
 def get_app_bar_color() -> str:
@@ -79,24 +82,35 @@ def main(config):
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
     app = Flask(__name__)
-    app.config.update(
-    CELERY_BROKER_URL='redis://localhost:6379/0',
-    CELERY_RESULT_BACKEND='redis://localhost:6379/0'
-    )
 
     app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")
+    # app.config.from_object(rq_dashboard.default_settings)
+    
+    app.config['CACHE_TYPE'] = 'redis'
+    app.config['CACHE_REDIS_HOST'] = 'localhost'
+    app.config['CACHE_REDIS_PORT'] = 6379
+    app.config['CACHE_REDIS_DB'] = 0
+    app.config['RQ_DASHBOARD_REDIS_URL'] = 'redis://localhost:6379/0'
+    rq_dashboard.web.setup_rq_connection(app)
+
+
+    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
     return app
 
 config = init_config()
 app = main(config)
+r = redis.Redis.from_url("redis://localhost:6379/0")
+q = Queue("high", connection=r)
 
 
 @app.route("/hello")
 def hello_world():
+    job = q.enqueue_call(count_words_at_url, ("http://nvie.com",))
+    time.sleep(10)
+    logger.error(f"{job}")
     return f"Hello from Flask"
-
 
 
 if __name__ == "__main__":
     app.debug = True  # Enable debug mode for template auto-reload
-    app.run(use_reload=True)
+    app.run()
