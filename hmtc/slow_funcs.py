@@ -2,9 +2,9 @@ import time
 
 import requests
 from loguru import logger
-from hmtc.app import celery
+from hmtc.app import _celery
 
-@celery.task()
+@_celery.task()
 def example(seconds):
     logger.error("Starting task")
     for i in range(seconds):

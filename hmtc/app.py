@@ -5,7 +5,6 @@ from typing import Any, Dict
 import redis
 from celery import Celery
 
-1
 import solara
 import solara.lab
 import solara.server.flask
@@ -104,17 +103,28 @@ config = init_config()
 app = main(config)
 app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
 app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
-celery = make_celery(app)
+_celery = make_celery(app)
 
+# 1/31/25 - stopping for the night
+# run the following line for the celery worker (from the root dir)
+# export HMTC_ENV="development"; celery -A hmtc.app.celery worker --loglevel=debug
 
-
-@app.route("/hello")
-def hello_world():
+@app.route("/start_task")
+def start_task():
     from hmtc.slow_funcs import count_words_at_url, example
-    example.delay(3)
-    return f"Hello from Flask"
+    result = example.delay(45)
+    return {"result_id": result.id}
 
+@app.route("/task_status/<task_id>")
+def task_status(task_id):
 
+    print(f"Checking Task Status {task_id}")
+    result = _celery.AsyncResult(task_id)
+    return {
+        "ready": result.ready(),
+        "successful": result.successful(),
+        "value": result.result if result.ready() else None,
+    }
 if __name__ == "__main__":
     app.debug = True  # Enable debug mode for template auto-reload
     app.run()
