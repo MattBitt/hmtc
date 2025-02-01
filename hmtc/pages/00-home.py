@@ -1,8 +1,6 @@
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict
 
-import PIL
 import solara
 import solara.lab
 from loguru import logger
@@ -15,16 +13,11 @@ from hmtc.domains.series import Series
 from hmtc.domains.video import Video
 from hmtc.utils.importer.existing_files import (
     create_video_from_folder,
-    import_channel_files_to_db,
-    import_existing_video_files_to_db,
 )
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
 
-import sys
-
-from celery import Celery
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
@@ -35,18 +28,9 @@ busy_downloading = solara.reactive(False)
 
 
 
-
-app = Celery('tasks', broker='pyamqp://guest@localhost//')
-
-@app.task
-def add(x, y):
-    return x + y
-
-
-
 def refresh_from_youtube():
     busy_downloading.set(True)
-    add.delay(5, 6)
+
     for channel in Channel.to_auto_update():
         logger.debug(f"Checking channel {channel}")
         not_in_db = []
@@ -66,13 +50,17 @@ def refresh_from_youtube():
             get_video_info(youtube_id, WORKING / youtube_id)
 
             create_video_from_folder(WORKING / youtube_id)
-    add.delay(100, 240)
+
     busy_downloading.set(False)
 
 
-def scan_local_storage():
-
-    pass
+def start_task():
+    from hmtc.tasks import slow_operation
+    # result = slow_operation.delay((100, 240))
+    result = 'asdf'
+    logger.error(f"{result=}")
+    
+    
 
 
 def ProgressCircle():
@@ -114,6 +102,11 @@ def Page():
                     on_click=refresh_from_youtube,
                     disabled=False,
                 )
+                solara.Button(
+                    f"Start Task",
+                    classes=["button"],
+                    on_click=start_task,
+                )
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
             solara.Image(image=logo_image.image)
@@ -139,11 +132,7 @@ def Page():
                             f"#### No Videos found in the database. Scan the local storage for videos.",
                             classes=["primary--text"],
                         )
-                        solara.Button(
-                            f"Scan Local Storage...",
-                            classes=["button"],
-                            on_click=scan_local_storage,
-                        )
+
                     with solara.Card():
                         solara.Text(
                             f"#### No Videos found in the database. Please refresh from YouTube.",

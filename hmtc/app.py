@@ -1,15 +1,11 @@
 
-import solara.server.flask
-from flask import Flask, g, make_response, request
-
-
-
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
 import solara
 import solara.lab
+import solara.server.flask
+from flask import Flask, g, make_response, request
 from loguru import logger
 
 from hmtc.assets.colors import Colors
@@ -82,16 +78,23 @@ def main(config):
 
     logger.error(f"Current ENVIRONMENT = {config['general']['environment']}")
     logger.error(f"Current LOG_LEVEL = {config['running']['log_level']}")
+    app = Flask(__name__)
+    app.config.update(
+    CELERY_BROKER_URL='redis://localhost:6379/0',
+    CELERY_RESULT_BACKEND='redis://localhost:6379/0'
+    )
+
+    app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")
+    return app
 
 config = init_config()
-main(config)
-app = Flask(__name__)
-app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")
+app = main(config)
 
 
 @app.route("/hello")
 def hello_world():
-    return "Hi whoever you are! Do you see this?"
+    return f"Hello from Flask"
+
 
 
 if __name__ == "__main__":
