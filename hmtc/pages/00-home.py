@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict
-import redis
-from rq import Queue
+
 import solara
 import solara.lab
 from loguru import logger
@@ -17,8 +16,8 @@ from hmtc.utils.importer.existing_files import (
 )
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
+
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
-from hmtc.utils.tasks.slow_funcs import example
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
@@ -26,7 +25,6 @@ WORKING = Path(config["WORKING"])
 
 title = " "
 busy_downloading = solara.reactive(False)
-
 
 
 def refresh_from_youtube():
@@ -53,10 +51,6 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
     busy_downloading.set(False)
-
-
- 
-    
 
 
 def ProgressCircle():

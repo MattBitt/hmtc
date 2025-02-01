@@ -26,13 +26,7 @@ services:
     depends_on:
       - postgres
 
-  rq-worker:
-    image: jaredv/rq-docker:0.0.2
-    command: rq worker -u redis://rq-server:6379 high normal low
-    deploy:
-      replicas: 3
-
-  rq-server:
+  redis:
     image: redis:alpine
     ports:
       - 6379:6379

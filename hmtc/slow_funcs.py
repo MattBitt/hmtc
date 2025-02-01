@@ -1,15 +1,16 @@
 import time
-from loguru import logger
-import requests
 
+import requests
+from loguru import logger
+from hmtc.app import celery
+
+@celery.task()
 def example(seconds):
-    logger.error('Starting task')
+    logger.error("Starting task")
     for i in range(seconds):
         logger.debug(i)
         time.sleep(1)
     return "Done"
-
-
 
 
 def count_words_at_url(url):
