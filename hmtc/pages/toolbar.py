@@ -7,7 +7,7 @@ VERSION = f"v{get_version()}"
 
 
 @solara.component
-def MainToolbar(router, user):
+def MainToolbar(user):
     with solara.Row():
         with solara.Link(f"/"):
             solara.Button(icon_name="mdi-home", icon=True)
@@ -26,16 +26,9 @@ def MainToolbar(router, user):
                 icon_name="mdi-cogs",
                 icon=True,
             )
-        if True:  # logged_out
-            solara.Button(
-                icon_name="mdi-login",
-                on_click=lambda: router.push("/login"),
-                icon=True,
-            )
-        else:
+        with solara.Link(f"/logout"):
             solara.Button(
                 icon_name="mdi-logout",
-                on_click=lambda: router.push("/logout"),
                 icon=True,
             )
 

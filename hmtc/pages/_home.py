@@ -46,7 +46,7 @@ def get_app_bar_color() -> str:
 
 
 def check_auth(route, children):
-    public_paths = ["/"]
+    public_paths = ["/", "signup"]
     admin_paths = ["admin", "auth"]
 
     if route.path in public_paths:
@@ -83,19 +83,26 @@ def login(username: str, password: str):
     else:
         login_failed.value = True
 
+
 @solara.component_vue("./auth/LoginPage.vue")
 def _LoginPage(event_login_user):
     pass
+
+
+@solara.component
+def _CreateUser(event_create_user=None):
+    solara.Markdown(f"Create user Form")
+
 
 @solara.component
 def LoginForm():
     username = solara.use_reactive("")
     password = solara.use_reactive("")
-    
+
     def actually_login(item):
         logger.debug(f"Logging {item} into DB")
-        login(item['username', item['password']])
-    
+        login(item["username", item["password"]])
+
     _LoginPage(event_login_user=actually_login)
     with solara.Card("Login"):
         solara.Markdown(
@@ -118,12 +125,16 @@ def LoginForm():
 @solara.component
 def MyLayout(children=[]):
     route, routes = solara.use_route(peek=True)
-    router = solara.use_router()
+
     if route is None:
         return solara.Error("Route not found")
 
     children = check_auth(route, children)
-    show_nav = True if user.value else False
+    if user.value and user.value.admin:
+        show_nav = True
+    else:
+        show_nav = False
+
     with solara.AppLayout(
         children=children,
         navigation=show_nav,
@@ -132,10 +143,11 @@ def MyLayout(children=[]):
     ):
         with solara.AppBar():
             if user.value is not None:
-                MainToolbar(router, user)
+                MainToolbar(user)
             else:
                 with solara.Link(f"/users/"):
                     solara.Button("Login", classes=["button"])
+
 
 routes = [
     # route level == 0
@@ -146,25 +158,25 @@ routes = [
         layout=MyLayout,
         data={"somedata": "avalue"},
     ),  # matches empty path ''
-
     solara.Route(
-
-        path="users",       
-        component=UsersHomePage,
-        label="Home",
-        layout=MyLayout,
-
-    ),
-    solara.Route(
-        path="blog",
-        # route level == 1
+        path="api",
         children=[
-            solara.Route(path="/"),  # matches '/blog'
-            solara.Route(path="foo"),  # matches '/blog/foo'
-            solara.Route(path="bar"),  # matches '/blog/bar'
+            solara.Route(
+                path="signup",
+                component=_CreateUser,
+                label="Create a New Account",
+                layout=MyLayout,
+            ),
+            solara.Route(
+                path="users",
+                component=UsersHomePage,
+                label="User's Home",
+                layout=MyLayout,
+                children=[],
+            ),
+            solara.Route(
+                path="admin", component=MainAdmin, label="Admin", layout=MyLayout
+            ),  # matches '/contact'
         ],
     ),
-    solara.Route(
-        path="admin", component=MainAdmin, label="Admin", layout=MyLayout
-    ),  # matches '/contact'
 ]

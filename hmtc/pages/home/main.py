@@ -13,8 +13,12 @@ def HomePage():
     route_current, routes_current_level = solara.use_route()
 
     with solara.Column(classes=["main-container"]):
-        
+
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
             solara.Image(image=logo_image.image)
-            solara.Button("Sign Up")
+            with solara.Row():
+                with solara.Link(f"/login"):
+                    solara.Button("Login", classes=["button"])
+                with solara.Link(f"/api/users/signup"):
+                    solara.Button("Create Account", classes=["button"])
