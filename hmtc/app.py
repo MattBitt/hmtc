@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import redis
-from celery import Celery
+from hmtc.celery_app import _celery, example, count_words_at_url
 
 import solara
 import solara.lab
@@ -61,15 +61,7 @@ def setup_folders(config):
         path.mkdir(exist_ok=True, parents=True)
         check_folder_exist_and_writable(path)
 
-def make_celery(app):
-    celery = Celery(
-        app.name,
-        backend="redis://localhost:6379/0",
-        broker="redis://localhost:6379/0"
-    )
-    celery.conf.update(app.config)
-    celery.autodiscover_tasks(['hmtc.slow_funcs.example'])
-    return celery
+
 
 
 def main(config):
@@ -101,9 +93,7 @@ def main(config):
 
 config = init_config()
 app = main(config)
-app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
-app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
-_celery = make_celery(app)
+
 
 # 1/31/25 - stopping for the night
 # run the following line for the celery worker (from the root dir)
@@ -111,13 +101,12 @@ _celery = make_celery(app)
 
 @app.route("/start_task")
 def start_task():
-    from hmtc.slow_funcs import count_words_at_url, example
-    result = example.delay(45)
+    print(f"Getting ready to start the task")
+    result = example.delay(12)
     return {"result_id": result.id}
 
 @app.route("/task_status/<task_id>")
 def task_status(task_id):
-
     print(f"Checking Task Status {task_id}")
     result = _celery.AsyncResult(task_id)
     return {

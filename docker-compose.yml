@@ -27,12 +27,22 @@ services:
       - postgres
 
   redis:
-    image: redis:alpine
+    image: redis:7-bookworm
     ports:
       - 6379:6379
 
-networks:
-  default:
-    name: myinternalnetwork
-    external: true
-    driver: bridge
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app-stage
+    entrypoint: celery
+    command: -A hmtc.celery_app._celery worker --loglevel=info
+    environment:
+      - HMTC_ENV=development
+    volumes:
+      - ~/apps/worker:/app/worker
+    links:
+      - redis
+    depends_on:
+      - redis
