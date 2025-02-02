@@ -10,7 +10,6 @@ from flask import Flask, g, make_response, request
 from loguru import logger
 
 from hmtc.assets.colors import Colors
-from hmtc.celery_app import _celery, count_words_at_url, example
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,
@@ -91,27 +90,6 @@ config = init_config()
 app = main(config)
 
 
-# 1/31/25 - stopping for the night
-# run the following line for the celery worker (from the root dir)
-# export HMTC_ENV="development"; celery -A hmtc.app.celery worker --loglevel=debug
-
-
-@app.route("/start_task")
-def start_task():
-    print(f"Getting ready to start the task")
-    result = example.delay(12)
-    return {"result_id": result.id}
-
-
-@app.route("/task_status/<task_id>")
-def task_status(task_id):
-    print(f"Checking Task Status {task_id}")
-    result = _celery.AsyncResult(task_id)
-    return {
-        "ready": result.ready(),
-        "successful": result.successful(),
-        "value": result.result if result.ready() else None,
-    }
 
 
 if __name__ == "__main__":

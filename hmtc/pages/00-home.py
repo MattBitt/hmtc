@@ -4,7 +4,7 @@ from typing import Dict
 import solara
 import solara.lab
 from loguru import logger
-
+from flask import session
 from hmtc.assets.colors import Colors
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
@@ -137,7 +137,7 @@ def Page():
                         with solara.Column():
                             with solara.Link(f"/domains/video-details/{vid.id}"):
                                 solara.Image(
-                                    image=Video(vid).poster(thumbnail=False),
+                                    image=Video(vid).poster(thumbnail=True),
                                     width="300px",
                                 )
                             solara.Markdown(f"#### {vid.title}")

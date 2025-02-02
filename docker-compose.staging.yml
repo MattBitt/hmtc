@@ -1,11 +1,11 @@
 services:
   app:
     container_name: hmtc-app
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       target: app-stage
-    stop_signal: SIGINT 
+    stop_signal: SIGINT
     ports:
       - 5000:5000
     volumes:
@@ -14,8 +14,8 @@ services:
       - ~/apps/data_for_development/hmtc/staging/config:/app/config
     environment:
       - HMTC_ENV=staging
+      - SOLARA_MODE=production
       - UV_HTTP_TIMEOUT=120000
-
 
 networks:
   default:
