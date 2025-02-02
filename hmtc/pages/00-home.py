@@ -16,7 +16,6 @@ from hmtc.utils.importer.existing_files import (
 )
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
-
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
 
 config = init_config()

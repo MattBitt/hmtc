@@ -3,8 +3,6 @@ from pathlib import Path
 from typing import Any, Dict
 
 import redis
-from hmtc.celery_app import _celery, example, count_words_at_url
-
 import solara
 import solara.lab
 import solara.server.flask
@@ -12,6 +10,7 @@ from flask import Flask, g, make_response, request
 from loguru import logger
 
 from hmtc.assets.colors import Colors
+from hmtc.celery_app import _celery, count_words_at_url, example
 from hmtc.config import init_config
 from hmtc.db import (
     create_tables,
@@ -24,7 +23,6 @@ from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
 from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
-
 
 
 # sets the color of the app bar based on the current dev enviorment
@@ -62,8 +60,6 @@ def setup_folders(config):
         check_folder_exist_and_writable(path)
 
 
-
-
 def main(config):
     setup_folders(config)
     setup_logging(config)
@@ -99,11 +95,13 @@ app = main(config)
 # run the following line for the celery worker (from the root dir)
 # export HMTC_ENV="development"; celery -A hmtc.app.celery worker --loglevel=debug
 
+
 @app.route("/start_task")
 def start_task():
     print(f"Getting ready to start the task")
     result = example.delay(12)
     return {"result_id": result.id}
+
 
 @app.route("/task_status/<task_id>")
 def task_status(task_id):
@@ -114,6 +112,8 @@ def task_status(task_id):
         "successful": result.successful(),
         "value": result.result if result.ready() else None,
     }
+
+
 if __name__ == "__main__":
     app.debug = True  # Enable debug mode for template auto-reload
     app.run()

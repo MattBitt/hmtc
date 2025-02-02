@@ -31,18 +31,8 @@ services:
     ports:
       - 6379:6379
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: app-stage
-    entrypoint: celery
-    command: -A hmtc.celery_app._celery worker --loglevel=info
-    environment:
-      - HMTC_ENV=development
-    volumes:
-      - ~/apps/worker:/app/worker
-    links:
-      - redis
-    depends_on:
-      - redis
+networks:
+  default:
+    name: myinternalnetwork
+    external: true
+    driver: bridge
