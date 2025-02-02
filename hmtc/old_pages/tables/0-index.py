@@ -2,10 +2,8 @@ import solara
 from loguru import logger
 
 
-
 @solara.component
 def Page():
-    router = solara.use_router()
 
     solara.Markdown("## Domain Object Table Links")
 
@@ -42,10 +40,3 @@ def Page():
                     solara.Button(
                         f"{item['text']}", icon_name=item["icon"], classes=["button"]
                     )
-
-
-@solara.component
-def Layout(children=[]):
-    with solara.AppLayout(children=children, navigation=False):
-        with solara.Row():
-            solara.Text(f"Some text in the tables layout")

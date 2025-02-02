@@ -32,7 +32,6 @@ def MySidebar(
         router.push(item)
         return
 
-
     # solara.lab.ThemeToggle(enable_auto=False)
     with solara.Sidebar():
         # solara.InputText(label="global", value=app_state.value["value"])

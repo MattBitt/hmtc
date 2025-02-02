@@ -24,9 +24,6 @@ from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
 
 
-
-
-
 def setup_folders(config):
     WORKING = Path(config["WORKING"])
     STORAGE = Path(config["STORAGE"])
@@ -75,8 +72,6 @@ def main(config):
 
 config = init_config()
 app = main(config)
-
-
 
 
 if __name__ == "__main__":

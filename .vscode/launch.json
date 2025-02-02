@@ -6,21 +6,21 @@
     "configurations": [
         {
             // Use IntelliSense to learn about possible attributes.
-            "name": "Solara: Launch (multipage)",
+            "name": "Solara: Launch",
             "type": "debugpy",
             "request": "launch",
             "program": ".venv/bin/solara",
             "args": [
                 "run",
-                "hmtc/pages",
-                "--port=8767",
+                "hmtc/pages/_home.py",
+                "--port=8765",
             ],
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
                 "BROWSER": "echo",
                 "FLASK_APP": "hmtc/app.py",
-                "SOLARA_APP": "hmtc/pages",
+                "SOLARA_APP": "hmtc/pages/_home.py",
                 "HMTC_ENV": "development",
                 "HMTC_CONFIG_PATH": "${workspaceFolder}/hmtc/config",
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"
@@ -39,7 +39,7 @@
             "justMyCode": true,
             "env": {
                 "FLASK_APP": "hmtc/app.py",
-                "SOLARA_APP": "hmtc/pages",
+                "SOLARA_APP": "hmtc/pages/_home.py",
                 "HMTC_ENV": "development",
                 "HMTC_CONFIG_PATH": "${workspaceFolder}/hmtc/config",
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/hmtc"

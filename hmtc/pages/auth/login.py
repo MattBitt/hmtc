@@ -3,13 +3,6 @@ import solara
 from hmtc.components.shared.sidebar import MySidebar
 
 
-@solara.component_vue("../../components/auth/LoginPage.vue")
+@solara.component_vue("LoginPage.vue")
 def LoginPage():
     pass
-
-
-@solara.component
-def Page():
-    router = solara.use_router()
-
-    LoginPage()

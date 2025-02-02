@@ -68,7 +68,7 @@ def FilterBar(filtered_by):
 
 
 @solara.component
-def Page():
+def VideosPage():
     router = solara.use_router()
 
     args = parse_url_args()

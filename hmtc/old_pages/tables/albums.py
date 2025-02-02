@@ -30,7 +30,6 @@ def view_details(router, item):
 def Page():
 
     router = solara.use_router()
-    MySidebar(router)
 
     parse_url_args()
 
@@ -55,3 +54,8 @@ def Page():
             base_query=AlbumModel.select(),
             search_fields=search_fields,
         )
+
+
+@solara.component
+def Layout(children):
+    return children[0]

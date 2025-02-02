@@ -31,7 +31,6 @@ def parse_url_args():
 def Page():
     router = solara.use_router()
 
-
     register_vue_components(file=__file__)
 
     video_id = parse_url_args()

@@ -1,0 +1,170 @@
+import dataclasses
+from pathlib import Path
+from typing import Dict, Optional, cast
+
+import solara
+import solara.lab
+from flask import session
+from loguru import logger
+
+from hmtc.assets.colors import Colors
+from hmtc.config import init_config
+from hmtc.domains.channel import Channel
+from hmtc.domains.series import Series
+from hmtc.domains.video import Video
+from hmtc.pages.admin.main import MainAdmin
+from hmtc.pages.auth.login import LoginPage
+from hmtc.pages.home.main import HomePage
+from hmtc.pages.toolbar import MainToolbar
+from hmtc.pages.users.main import UsersHomePage
+from hmtc.utils.importer.existing_files import (
+    create_video_from_folder,
+)
+from hmtc.utils.importer.seed_database import recreate_database
+from hmtc.utils.opencv.image_manager import ImageManager
+from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
+
+config = init_config()
+STORAGE = Path(config["STORAGE"])
+WORKING = Path(config["WORKING"])
+
+
+# sets the color of the app bar based on the current dev enviorment
+def get_app_bar_color() -> str:
+    config = init_config()
+    env = config["general"]["environment"]
+    match env:
+        case "development":
+            color = Colors.ERROR
+        case "staging":
+            color = Colors.WARNING
+        case "production":
+            color = Colors.PRIMARY
+        case _:
+            color = Colors.SUCCESS
+    return str(color)
+
+
+def check_auth(route, children):
+    public_paths = ["/"]
+    admin_paths = ["admin", "auth"]
+
+    if route.path in public_paths:
+        children_auth = children
+    else:
+        if user.value is None:
+            children_auth = [LoginForm()]
+        else:
+            if route.path in admin_paths and not user.value.admin:
+                children_auth = [solara.Error("You are not an admin")]
+            else:
+                children_auth = children + [UsersHomePage()]
+    return children_auth
+
+
+@dataclasses.dataclass
+class User:
+    username: str
+    admin: bool = False
+
+
+user = solara.reactive(cast(Optional[User], None))
+login_failed = solara.reactive(False)
+
+
+def login(username: str, password: str):
+    # this function can be replace by a custom username/password check
+    if username == "test" and password == "test":
+        user.value = User(username, admin=False)
+        login_failed.value = False
+    elif username == "admin" and password == "admin":
+        user.value = User(username, admin=True)
+        login_failed.value = False
+    else:
+        login_failed.value = True
+
+@solara.component_vue("./auth/LoginPage.vue")
+def _LoginPage(event_login_user):
+    pass
+
+@solara.component
+def LoginForm():
+    username = solara.use_reactive("")
+    password = solara.use_reactive("")
+    
+    def actually_login(item):
+        logger.debug(f"Logging {item} into DB")
+        login(item['username', item['password']])
+    
+    _LoginPage(event_login_user=actually_login)
+    with solara.Card("Login"):
+        solara.Markdown(
+            """
+        This is an example login form.
+
+          * use admin/admin to login as admin.
+          * use test/test to login as a normal user.
+        """
+        )
+        solara.InputText(label="Username", value=username)
+        solara.InputText(label="Password", password=True, value=password)
+        solara.Button(
+            label="Login", on_click=lambda: login(username.value, password.value)
+        )
+        if login_failed.value:
+            solara.Error("Wrong username or password")
+
+
+@solara.component
+def MyLayout(children=[]):
+    route, routes = solara.use_route(peek=True)
+    router = solara.use_router()
+    if route is None:
+        return solara.Error("Route not found")
+
+    children = check_auth(route, children)
+    show_nav = True if user.value else False
+    with solara.AppLayout(
+        children=children,
+        navigation=show_nav,
+        sidebar_open=False,
+        color=get_app_bar_color(),
+    ):
+        with solara.AppBar():
+            if user.value is not None:
+                MainToolbar(router, user)
+            else:
+                with solara.Link(f"/users/"):
+                    solara.Button("Login", classes=["button"])
+
+routes = [
+    # route level == 0
+    solara.Route(
+        path="/",
+        component=HomePage,
+        label="Home",
+        layout=MyLayout,
+        data={"somedata": "avalue"},
+    ),  # matches empty path ''
+
+    solara.Route(
+
+        path="users",       
+        component=UsersHomePage,
+        label="Home",
+        layout=MyLayout,
+
+    ),
+    solara.Route(
+        path="blog",
+        # route level == 1
+        children=[
+            solara.Route(path="/"),  # matches '/blog'
+            solara.Route(path="foo"),  # matches '/blog/foo'
+            solara.Route(path="bar"),  # matches '/blog/bar'
+        ],
+    ),
+    solara.Route(
+        path="admin", component=MainAdmin, label="Admin", layout=MyLayout
+    ),  # matches '/contact'
+]

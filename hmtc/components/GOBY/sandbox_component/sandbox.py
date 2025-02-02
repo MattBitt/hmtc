@@ -2,8 +2,6 @@ import ipyvue
 import solara
 
 
-
-
 @solara.component_vue("ParentComponent.vue")
 def ParentComponent(myname: str = "", iconName: str = ""):
     pass
