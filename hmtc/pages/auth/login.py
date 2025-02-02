@@ -11,5 +11,5 @@ def LoginPage():
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router=router)
+
     LoginPage()

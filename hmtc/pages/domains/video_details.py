@@ -30,7 +30,7 @@ def parse_url_args():
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router=router)
+
 
     register_vue_components(file=__file__)
 

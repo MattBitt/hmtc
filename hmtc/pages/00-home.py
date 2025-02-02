@@ -6,7 +6,7 @@ import solara.lab
 from loguru import logger
 from flask import session
 from hmtc.assets.colors import Colors
-from hmtc.components.shared.sidebar import MySidebar
+
 from hmtc.config import init_config
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
@@ -58,10 +58,6 @@ def ProgressCircle():
 
 @solara.component
 def Page():
-
-    MySidebar(
-        router=solara.use_router(),
-    )
 
     empty_db = Series.count() == 0
     vids_imported = Video.count() > 0

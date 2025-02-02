@@ -1,12 +1,12 @@
 import solara
+from loguru import logger
 
-from hmtc.components.shared.sidebar import MySidebar
 
 
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router=router)
+
     solara.Markdown("## Domain Object Table Links")
 
     items = [
@@ -42,3 +42,5 @@ def Page():
                     solara.Button(
                         f"{item['text']}", icon_name=item["icon"], classes=["button"]
                     )
+
+    

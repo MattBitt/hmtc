@@ -299,7 +299,6 @@ def ChannelFilesCard():
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router=router)
     WorkingFilesCard()
     VideoFilesCard()
     ChannelFilesCard()

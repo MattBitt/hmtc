@@ -32,41 +32,12 @@ def MySidebar(
         router.push(item)
         return
 
-    with solara.AppBar():
-        with solara.Link(f"/"):
-            solara.Button(icon_name="mdi-home", icon=True)
-        with solara.Link(f"/dashboards/domains"):
-            solara.Button(
-                icon_name="mdi-google-circles-extended",
-                icon=True,
-            )
-        with solara.Link(f"/dashboards/files"):
-            solara.Button(
-                icon_name="mdi-folder",
-                icon=True,
-            )
-        with solara.Link(f"/utils/settings"):
-            solara.Button(
-                icon_name="mdi-cogs",
-                icon=True,
-            )
-        if True:  # logged_out
-            solara.Button(
-                icon_name="mdi-login", on_click=lambda: router.push("/login"), icon=True
-            )
-        else:
-            solara.Button(
-                icon_name="mdi-logout",
-                on_click=lambda: router.push("/logout"),
-                icon=True,
-            )
 
-        solara.Text(f"{VERSION}", classes=["version-number"])
-        # solara.lab.ThemeToggle(enable_auto=False)
-        with solara.Sidebar():
-            # solara.InputText(label="global", value=app_state.value["value"])
-            _Sidebar(
-                version=VERSION,
-                router=router,
-                event_sidebar_clicked=sidebar_clicked,
-            )
+    # solara.lab.ThemeToggle(enable_auto=False)
+    with solara.Sidebar():
+        # solara.InputText(label="global", value=app_state.value["value"])
+        _Sidebar(
+            version=VERSION,
+            router=router,
+            event_sidebar_clicked=sidebar_clicked,
+        )

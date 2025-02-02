@@ -1,7 +1,7 @@
 import ipyvue
 import solara
 
-from hmtc.components.shared.sidebar import MySidebar
+
 
 
 @solara.component_vue("ParentComponent.vue")

@@ -26,9 +26,6 @@ def Page():
         .limit(10)
     )
 
-    MySidebar(
-        router=router,
-    )
     seconds = reduce(lambda x, y: x + y.duration, videos, 0)
     days, hours, minutes, _seconds = (
         seconds // (24 * 3600),

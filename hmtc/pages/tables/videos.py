@@ -70,7 +70,7 @@ def FilterBar(filtered_by):
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router)
+
     args = parse_url_args()
 
     headers = [
