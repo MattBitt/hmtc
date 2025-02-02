@@ -12,12 +12,27 @@ from typing import Optional, cast
 
 import solara
 import solara.lab
-
+from hmtc.assets.colors import Colors
+from hmtc.config import init_config
 from hmtc.utils.version_manager import get_version
 github_url = solara.util.github_url(__file__)
 
 route_order = ["/", "users", "admin"]
 
+# sets the color of the app bar based on the current dev enviorment
+def get_app_bar_color() -> str:
+    config = init_config()
+    env = config["general"]["environment"]
+    match env:
+        case "development":
+            color = Colors.ERROR
+        case "staging":
+            color = Colors.WARNING
+        case "production":
+            color = Colors.PRIMARY
+        case _:
+            color = Colors.SUCCESS
+    return str(color)
 
 # program version
 VERSION = f"v{get_version()}"
@@ -67,14 +82,6 @@ def login(username: str, password: str):
 
 
 @solara.component
-def Page():
-    solara.Markdown("This page is visible for everyone")
-
-    solara.Markdown(__doc__)
-    solara.Button(label="View source", icon_name="mdi-github-circle", attributes={"href": github_url, "target": "_blank"}, text=True, outlined=True)
-
-
-@solara.component
 def LoginForm():
     username = solara.use_reactive("")
     password = solara.use_reactive("")
@@ -93,6 +100,13 @@ def LoginForm():
         if login_failed.value:
             solara.Error("Wrong username or password")
 
+@solara.component
+def Home():
+    solara.Markdown("Home")
+
+routes = [
+    solara.Route(path="/", component=Home, label="Home"),
+]
 
 @solara.component
 def Layout(children=[]):
@@ -104,7 +118,7 @@ def Layout(children=[]):
     children = check_auth(route, children)
 
 
-    with solara.AppLayout(children=children, navigation=True):
+    with solara.AppLayout(children=children, navigation=True, color=get_app_bar_color()):
         with solara.AppBar():
             with solara.Row():
                 with solara.Link(f"/"):
@@ -143,18 +157,18 @@ def Layout(children=[]):
                 else:
                     solara.Text("Not logged in")
             
-        with solara.lab.Tabs(align="center"):
-            for route in routes:
-                name = route.path if route.path != "/" else "Home"
-                is_admin = user.value and user.value.admin
-                # we could skip the admin tab if the user is not an admin
-                # if route.path == "admin" and not is_admin:
-                #     continue
-                # in this case we disable the tab
-                disabled = route.path == "admin" and not is_admin
-                solara.lab.Tab(name, path_or_route=route, disabled=disabled)
-        with solara.Sidebar():
-            solara.Text(f"Sidebar Menu asdf")
+            with solara.lab.Tabs(align="center"):
+                for route in routes:
+                    name = route.path if route.path != "/" else "Home"
+                    is_admin = user.value and user.value.admin
+                    # we could skip the admin tab if the user is not an admin
+                    # if route.path == "admin" and not is_admin:
+                    #     continue
+                    # in this case we disable the tab
+                    disabled = route.path == "admin" and not is_admin
+                    solara.lab.Tab(name, path_or_route=route, disabled=disabled)
+            with solara.Sidebar():
+                solara.Text(f"Sidebar Menu asdf")
         
 
         

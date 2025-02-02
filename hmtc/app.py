@@ -24,20 +24,7 @@ from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
 
 
-# sets the color of the app bar based on the current dev enviorment
-def get_app_bar_color() -> str:
-    config = init_config()
-    env = config["general"]["environment"]
-    match env:
-        case "development":
-            color = Colors.ERROR
-        case "staging":
-            color = Colors.WARNING
-        case "production":
-            color = Colors.PRIMARY
-        case _:
-            color = Colors.SUCCESS
-    return str(color)
+
 
 
 def setup_folders(config):

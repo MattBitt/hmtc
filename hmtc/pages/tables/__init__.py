@@ -43,4 +43,9 @@ def Page():
                         f"{item['text']}", icon_name=item["icon"], classes=["button"]
                     )
 
-    
+
+@solara.component
+def Layout(children=[]):
+    with solara.AppLayout(children=children, navigation=False):
+        with solara.Row():
+            solara.Text(f"Some text in the tables layout")
