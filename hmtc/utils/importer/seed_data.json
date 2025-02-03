@@ -44,19 +44,19 @@
     {
       "username": "john_doe",
       "email": "john@example.com",
-      "hashed_password": "hashedpassword123",
+      "password": "hashedpassword123",
       "jellyfin_id": "JFUSER123"
     },
     {
       "username": "jane_smith",
       "email": "jane@example.com",
-      "hashed_password": "hashedpassword456",
+      "password": "hashedpassword456",
       "jellyfin_id": "JFUSER456"
     },
     {
       "username": "alice_jones",
       "email": "alice@example.com",
-      "hashed_password": "hashedpassword789",
+      "password": "hashedpassword789",
       "jellyfin_id": "JFUSER789"
     }
   ],

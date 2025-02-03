@@ -11,9 +11,8 @@ from hmtc.assets.colors import Colors
 from hmtc.config import init_config
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
-from hmtc.domains.video import Video
+from hmtc.domains.user import User
 from hmtc.pages.admin.main import MainAdmin
-from hmtc.pages.auth.login import LoginPage
 from hmtc.pages.home.main import HomePage
 from hmtc.pages.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
@@ -66,29 +65,32 @@ def check_auth(route, children):
 
 
 @dataclasses.dataclass
-class User:
+class UserDC:
     username: str
     admin: bool = False
 
 
-user = solara.reactive(cast(Optional[User], None))
+user = solara.reactive(cast(Optional[UserDC], None))
 login_failed = solara.reactive(False)
 
 
 def login(username: str, password: str):
     # this function can be replace by a custom username/password check
-    if username == "test" and password == "test":
-        user.value = User(username, admin=False)
-        login_failed.value = False
-    elif username == "admin" and password == "admin":
-        user.value = User(username, admin=True)
+    existing = User.get_by(username=username)
+    if existing is None:
+        logger.error("User not found.")
+        login_failed.value = True
+        return None
+    hashed = User.hash_password(password)
+    if existing.instance.hashed_password == hashed:
+        user.value = UserDC(existing.instance.username, existing.instance.is_admin)
         login_failed.value = False
     else:
         login_failed.value = True
 
 
 @solara.component_vue("./auth/Login.vue")
-def _LoginPage(event_login_user):
+def _LoginPage(event_login):
     pass
 
 
@@ -102,12 +104,13 @@ def SignUpPage():
     def signup(user):
         logger.error(f"About to create a new user: {user=}")
 
+        new_user = User.create(user)
+        if new_user is None:
+            login_failed.set(True)
+        else:
+            logger.debug(f"User {new_user} created.")
+
     _SignUpPage(event_signup=signup)
-
-
-@solara.component
-def _CreateUser(event_create_user=None):
-    solara.Markdown(f"Create user Form")
 
 
 @solara.component
@@ -117,23 +120,10 @@ def LoginForm():
 
     def actually_login(item):
         logger.debug(f"Logging {item} into DB")
-        login(item["username", item["password"]])
+        login(item["username"], item["password"])
 
-    _LoginPage(event_login_user=actually_login)
     with solara.Card("Login"):
-        solara.Markdown(
-            """
-        This is an example login form.
-
-          * use admin/admin to login as admin.
-          * use test/test to login as a normal user.
-        """
-        )
-        solara.InputText(label="Username", value=username)
-        solara.InputText(label="Password", password=True, value=password)
-        solara.Button(
-            label="Login", on_click=lambda: login(username.value, password.value)
-        )
+        _LoginPage(event_login=actually_login)
         if login_failed.value:
             solara.Error("Wrong username or password")
 
@@ -167,35 +157,34 @@ def MyLayout(children=[]):
 
 
 routes = [
-        # route level == 0
-        solara.Route(path="/", component=SignUpPage, label="Sign Up", layout=MyLayout),
-        solara.Route(
-            path="api",
-            children=[
-                solara.Route(
-                    path="login",
-                    component=LoginPage,
-                    label="Login",
-                    layout=MyLayout,
-                ),
-                solara.Route(
-                    path="signup",
-                    component=_CreateUser,
-                    label="Create a New Account",
-                    layout=MyLayout,
-                ),
-                solara.Route(
-                    path="users",
-                    component=UsersHomePage,
-                    label="User's Home",
-                    layout=MyLayout,
-                    children=[],
-                ),
-                solara.Route(
-                    path="admin",
-                    component=MainAdmin,
-                    label="Admin",
-                ),
-            ],
-        ),
-    ]
+    # route level == 0
+    solara.Route(path="/", component=SignUpPage, label="Sign Up", layout=MyLayout),
+    solara.Route(
+        path="api",
+        children=[
+            solara.Route(
+                path="login",
+                component=LoginForm,
+                label="Login",
+                layout=MyLayout,
+            ),
+            solara.Route(
+                path="signup",
+                component=SignUpPage,
+                label="Create a New Account",
+                layout=MyLayout,
+            ),
+            solara.Route(
+                path="users",
+                component=UsersHomePage,
+                label="User's Home",
+                children=[],
+            ),
+            solara.Route(
+                path="admin",
+                component=MainAdmin,
+                label="Admin",
+            ),
+        ],
+    ),
+]

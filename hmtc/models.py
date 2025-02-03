@@ -275,6 +275,7 @@ class User(BaseModel):
     username = CharField(max_length=80)
     email = CharField(max_length=120)
     hashed_password = CharField(max_length=255)
+    is_admin = BooleanField(default=False)
     jellyfin_id = CharField(null=True)
 
     def __repr__(self):
