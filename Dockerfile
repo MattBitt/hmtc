@@ -22,7 +22,7 @@ COPY . .
 ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH="${PYTHONPATH}:/app/hmtc"
 ENV FLASK_APP="hmtc/app.py"
-ENV SOLARA_APP="hmtc/pages"
+ENV SOLARA_APP="hmtc/pages/_home.py"
 
 CMD ["flask", "run", "--host=0.0.0.0"]
 
