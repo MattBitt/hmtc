@@ -93,13 +93,16 @@ def _LoginPage(event_login_user):
 
 
 @solara.component_vue("./auth/SignUp.vue")
-def _SignUpPage(event_login_user):
+def _SignUpPage(event_signup=None):
     pass
 
 
 @solara.component
 def SignUpPage():
-    _SignUpPage()
+    def signup(user):
+        logger.error(f"About to create a new user: {user=}")
+
+    _SignUpPage(event_signup=signup)
 
 
 @solara.component
@@ -192,8 +195,7 @@ routes = [
                     path="admin",
                     component=MainAdmin,
                     label="Admin",
-                    layout=MyLayout,
-                ),  # matches '/contact'
+                ),
             ],
         ),
     ]

@@ -62,7 +62,7 @@
                 depressed
                 @click="wip"
               >
-                Sign Up!
+                Sign In!
               </v-btn>
             </div>
             <!-- <transition :name="transitionName">
