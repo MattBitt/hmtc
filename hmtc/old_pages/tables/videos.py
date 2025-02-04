@@ -30,7 +30,7 @@ missing_videos = solara.reactive(False)
 
 
 def view_details(router, item):
-    router.push(f"/domains/video-details/{item['id']}")
+    router.push(f"/api/videos/{item['id']}")
 
 
 @solara.component
@@ -40,19 +40,19 @@ def FilterBar(filtered_by):
         with solara.Row():
 
             if filtered_by == "unique":
-                with solara.Link(f"/tables/videos/nonunique"):
+                with solara.Link(f"/api/videos/index/nonunique"):
                     solara.Button("Nonunique", classes=["button"])
-                with solara.Link(f"/tables/videos/all"):
+                with solara.Link(f"/api/videos/index/all"):
                     solara.Button("All", classes=["button"])
             elif filtered_by == "nonunique":
-                with solara.Link(f"/tables/videos/unique"):
+                with solara.Link(f"/api/videos/index/unique"):
                     solara.Button("Unique", classes=["button"])
-                with solara.Link(f"/tables/videos/all"):
+                with solara.Link(f"/api/videos/index/all"):
                     solara.Button("All", classes=["button"])
             else:
-                with solara.Link(f"/tables/videos/unique"):
+                with solara.Link(f"/api/videos/index/unique"):
                     solara.Button("Unique", classes=["button"])
-                with solara.Link(f"/tables/videos/nonunique"):
+                with solara.Link(f"/api/videos/index/nonunique"):
                     solara.Button("Nonunique", classes=["button"])
 
             solara.Div()

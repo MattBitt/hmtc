@@ -6,18 +6,24 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
+from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
 from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
 from hmtc.models import SubtitleFile as SubtitleFileModel
 from hmtc.models import Video as VideoModel
 from hmtc.utils.importer.existing_files import (
     create_omegle_sections,
+    create_video_from_folder,
     import_channel_files_to_db,
     import_existing_video_files_to_db,
     import_sections,
 )
 from hmtc.utils.subtitles import convert_vtt_to_srt
-from hmtc.utils.youtube_functions import download_video_file
+from hmtc.utils.youtube_functions import (
+    download_video_file,
+    fetch_ids_from,
+    get_video_info,
+)
 
 config = init_config()
 STORAGE = Path(config["STORAGE"])
@@ -69,6 +75,29 @@ def convert_vtts_to_srts():
         old_file.unlink()
 
 
+def refresh_from_youtube():
+
+    for channel in Channel.to_auto_update():
+        logger.debug(f"Checking channel {channel}")
+        not_in_db = []
+        ids = fetch_ids_from(channel)
+        for youtube_id in ids:
+            vid = Video.get_by(youtube_id=youtube_id)
+            if vid is None:
+                not_in_db.append(youtube_id)
+
+        logger.debug(f"Found {len(ids)} videos at {channel}")
+        logger.debug(f"{len(not_in_db)} of them need to be added.")
+        if config["general"]["environment"] == "development":
+            items = not_in_db[:5]
+        else:
+            items = not_in_db
+        for youtube_id in items:
+            get_video_info(youtube_id, WORKING / youtube_id)
+
+            create_video_from_folder(WORKING / youtube_id)
+
+
 @solara.component
 def SectionsControls():
     num_sections = OmegleSection.select().count()
@@ -88,6 +117,11 @@ def SectionsControls():
                 solara.Button(
                     f"Download video Files for Unique Videos  {vids_missing_video}",
                     on_click=download_unique,
+                    classes=["button"],
+                )
+                solara.Button(
+                    "Check for New Videos",
+                    on_click=refresh_from_youtube,
                     classes=["button"],
                 )
         with solara.Card("Sections"):

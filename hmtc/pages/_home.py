@@ -12,6 +12,11 @@ from hmtc.config import init_config
 from hmtc.domains.channel import Channel
 from hmtc.domains.series import Series
 from hmtc.domains.user import User
+from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
+from hmtc.old_pages.dashboards.files import Page as FilesDashboard
+from hmtc.old_pages.domains.video_details import Page as VideoDetails
+from hmtc.old_pages.tables.videos import VideosPage
+from hmtc.old_pages.utils.settings import Page as SettingsPage
 from hmtc.pages.admin.main import MainAdmin
 from hmtc.pages.home.main import HomePage
 from hmtc.pages.toolbar import MainToolbar
@@ -22,7 +27,7 @@ from hmtc.utils.importer.existing_files import (
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
-from hmtc.old_pages.domains.video_details import Page as VideoDetails
+
 config = init_config()
 STORAGE = Path(config["STORAGE"])
 WORKING = Path(config["WORKING"])
@@ -50,12 +55,12 @@ def check_auth(route, children):
 
     if route.path in public_paths:
         children_auth = children
-    elif "api" not in route.path:
-        logger.error(f"'API' doesn't appear in this {route=}")
-        children_auth = []
     else:
         if user.value is None:
-            children_auth = [LoginForm()]
+            # redirect to Login Form if not authed
+            # children_auth = [LoginForm()]
+            children_auth = children
+
         else:
             if route.path in admin_paths and not user.value.admin:
                 children_auth = [solara.Error("You are not an admin")]
@@ -90,12 +95,9 @@ def login(username: str, password: str):
 
 
 @solara.component
-def VideoIndex():
-    solara.Text(f"Video Index Page")
-    
-@solara.component
 def UsersFavorites():
     solara.Text(f"Favorites!!!")
+
 
 @solara.component_vue("./auth/Login.vue")
 def _LoginPage(event_login):
@@ -147,9 +149,9 @@ def MyLayout(children=[]):
         children = check_auth(route, children)
 
     if user.value and user.value.admin:
-        show_nav = True
+        show_nav = False
     else:
-        show_nav = True
+        show_nav = False
 
     with solara.AppLayout(
         children=children,
@@ -158,50 +160,80 @@ def MyLayout(children=[]):
         color=get_app_bar_color(),
     ):
         with solara.AppBar():
-            if user.value is not None:
-                MainToolbar(user)
-
+            # if user.value is not None:
+            MainToolbar(user)
 
 
 routes = [
-    # route level == 0
-    solara.Route(path="/", component=LoginForm, label="Sign Up"),
     solara.Route(
-                path="signup",
-                component=SignUpPage,
-                label="Signup",
-            ),
+        path="/",
+        component=LoginForm,
+        label="Sign Up",
+        layout=MyLayout,
+    ),
+    solara.Route(
+        path="signup",
+        component=SignUpPage,
+        label="Signup",
+    ),
     solara.Route(
         path="api",
         children=[
-
             solara.Route(
                 path="users",
                 children=[
                     solara.Route(
-                        path="home", component=UsersHomePage, label="User's Home"
+                        path="home",
+                        component=UsersHomePage,
+                        label="User's Home",
+                        layout=MyLayout,
                     ),
                     solara.Route(
-                        path="favorites", component=UsersFavorites, label="User's Favorites"
+                        path="favorites",
+                        component=UsersFavorites,
+                        label="User's Favorites",
                     ),
                 ],
             ),
             solara.Route(
                 path="videos",
-
                 children=[
                     solara.Route(
-                        path="index", component=VideoIndex, label="Video Index"
+                        path="index",
+                        component=VideosPage,
+                        label="Video Index",
                     ),
                     solara.Route(
-                        path="details", component=VideoDetails, label="Video Details"
+                        path="details",
+                        component=VideoDetails,
+                        label="Video Details",
                     ),
                 ],
             ),
+        ],
+    ),
+    solara.Route(
+        path="admin",
+        children=[
             solara.Route(
-                path="admin",
-                component=MainAdmin,
-                label="Admin",
+                path="settings",
+                component=SettingsPage,
+                label="Settings",
+            ),
+            solara.Route(
+                path="dashboards",
+                children=[
+                    solara.Route(
+                        path="domains",
+                        component=DomainsDashboard,
+                        label="Admin",
+                    ),
+                    solara.Route(
+                        path="files",
+                        component=FilesDashboard,
+                        label="Files Dashboard",
+                    ),
+                ],
             ),
         ],
     ),

@@ -23,9 +23,10 @@ def parse_url_args():
     if not _id.isnumeric():
         raise ValueError(f"Video ID must be an integer")
     return _id
-        
-         
+
+
 # http://localhost:5000/api/videos/details/1
+
 
 @solara.component
 def Page():
