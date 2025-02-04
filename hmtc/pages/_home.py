@@ -22,7 +22,7 @@ from hmtc.utils.importer.existing_files import (
 from hmtc.utils.importer.seed_database import recreate_database
 from hmtc.utils.opencv.image_manager import ImageManager
 from hmtc.utils.youtube_functions import fetch_ids_from, get_video_info
-
+from hmtc.old_pages.domains.video_details import Page as VideoDetails
 config = init_config()
 STORAGE = Path(config["STORAGE"])
 WORKING = Path(config["WORKING"])
@@ -88,6 +88,11 @@ def login(username: str, password: str):
     else:
         login_failed.value = True
 
+
+@solara.component
+def VideoIndex():
+    solara.Text(f"Video Index Page")
+    
 @solara.component
 def UsersFavorites():
     solara.Text(f"Favorites!!!")
@@ -144,7 +149,7 @@ def MyLayout(children=[]):
     if user.value and user.value.admin:
         show_nav = True
     else:
-        show_nav = False
+        show_nav = True
 
     with solara.AppLayout(
         children=children,
@@ -172,14 +177,24 @@ routes = [
 
             solara.Route(
                 path="users",
-                component=UsersHomePage,
-                label="User's Home",
                 children=[
                     solara.Route(
                         path="home", component=UsersHomePage, label="User's Home"
                     ),
                     solara.Route(
                         path="favorites", component=UsersFavorites, label="User's Favorites"
+                    ),
+                ],
+            ),
+            solara.Route(
+                path="videos",
+
+                children=[
+                    solara.Route(
+                        path="index", component=VideoIndex, label="Video Index"
+                    ),
+                    solara.Route(
+                        path="details", component=VideoDetails, label="Video Details"
                     ),
                 ],
             ),
