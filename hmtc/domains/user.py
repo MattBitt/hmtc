@@ -26,6 +26,7 @@ class User(BaseDomain):
 
     @classmethod
     def create(cls, user_data):
+
         existing = (
             UserModel.select()
             .where(UserModel.username == user_data["username"])
@@ -36,6 +37,6 @@ class User(BaseDomain):
             user_data["hashed_password"] = User.hash_password(_password)
             new_user = cls.model.create(**user_data)
             logger.success(f"New user {new_user} created!")
-            return new_user
+            return cls(new_user)
         else:
             logger.error(f"User {existing} already exists. Can't create")

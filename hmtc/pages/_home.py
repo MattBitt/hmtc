@@ -88,6 +88,9 @@ def login(username: str, password: str):
     else:
         login_failed.value = True
 
+@solara.component
+def UsersFavorites():
+    solara.Text(f"Favorites!!!")
 
 @solara.component_vue("./auth/Login.vue")
 def _LoginPage(event_login):
@@ -133,9 +136,10 @@ def MyLayout(children=[]):
     route, routes = solara.use_route(peek=True)
 
     if route is None:
-        return solara.Error("Route not found")
-
-    children = check_auth(route, children)
+        logger.Error("Route not found")
+        children = children
+    else:
+        children = check_auth(route, children)
 
     if user.value and user.value.admin:
         show_nav = True
@@ -151,34 +155,33 @@ def MyLayout(children=[]):
         with solara.AppBar():
             if user.value is not None:
                 MainToolbar(user)
-            else:
-                with solara.Link(f"/api/users/"):
-                    solara.Button("Login", classes=["button"])
+
 
 
 routes = [
     # route level == 0
-    solara.Route(path="/", component=SignUpPage, label="Sign Up", layout=MyLayout),
+    solara.Route(path="/", component=LoginForm, label="Sign Up"),
+    solara.Route(
+                path="signup",
+                component=SignUpPage,
+                label="Signup",
+            ),
     solara.Route(
         path="api",
         children=[
-            solara.Route(
-                path="login",
-                component=LoginForm,
-                label="Login",
-                layout=MyLayout,
-            ),
-            solara.Route(
-                path="signup",
-                component=SignUpPage,
-                label="Create a New Account",
-                layout=MyLayout,
-            ),
+
             solara.Route(
                 path="users",
                 component=UsersHomePage,
                 label="User's Home",
-                children=[],
+                children=[
+                    solara.Route(
+                        path="home", component=UsersHomePage, label="User's Home"
+                    ),
+                    solara.Route(
+                        path="favorites", component=UsersFavorites, label="User's Favorites"
+                    ),
+                ],
             ),
             solara.Route(
                 path="admin",

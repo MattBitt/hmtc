@@ -11,7 +11,7 @@
           </v-form>
 
           <div class="d-flex justify-space-between mt-8">
-            <a href="/">
+            <a href="/signup">
               <p class="text--none">Don't Have an Account?</p>
 
               <p class="text--primary">Create One!</p>

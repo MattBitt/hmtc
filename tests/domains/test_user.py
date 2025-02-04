@@ -22,8 +22,8 @@ def test_user_create_no_username(user_dicts):
     try:
         User.create(ud)
         assert False
-    except Exception as e:
-        assert "null value in column" in str(e)
+    except KeyError as e:
+        assert "'username'" == str(e)
 
 
 def test_get_by_id(user_item):

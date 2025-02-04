@@ -30,9 +30,8 @@
           </v-form>
 
           <div class="d-flex justify-space-between mt-8">
-            <a href="/api/login">
+            <a href="/">
               <p class="text--none">Already have an Account?</p>
-
               <p class="text--primary">Login Instead</p>
             </a>
             <v-btn

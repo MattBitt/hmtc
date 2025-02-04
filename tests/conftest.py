@@ -340,17 +340,17 @@ def user_dicts() -> list:
         {
             "username": "user1",
             "email": "user1@example.com",
-            "hashed_password": "hashed_pw1",
+            "password": "hashed_pw1",
         },
         {
             "username": "user2",
             "email": "user2@example.com",
-            "hashed_password": "hashed_pw2",
+            "password": "hashed_pw2",
         },
         {
             "username": "user3",
             "email": "user3@example.com",
-            "hashed_password": "hashed_pw3",
+            "password": "hashed_pw3",
         },
     ]
 
