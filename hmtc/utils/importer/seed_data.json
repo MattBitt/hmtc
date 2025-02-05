@@ -54,9 +54,9 @@
       "jellyfin_id": "JFUSER456"
     },
     {
-      "username": "alice_jones",
+      "username": "mizzle",
       "email": "alice@example.com",
-      "password": "hashedpassword789",
+      "password": "matthew",
       "jellyfin_id": "JFUSER789"
     }
   ],

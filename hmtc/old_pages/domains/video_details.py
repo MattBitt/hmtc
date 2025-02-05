@@ -1,12 +1,9 @@
 from pathlib import Path
 
 import solara
+from flask import session
 from loguru import logger
 
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.components.video.no_sections_panel import NoSectionsPanel
-from hmtc.components.video.section_details_panel import SectionsDetailsPanel
-from hmtc.components.video.top_row import TopRow
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
@@ -33,6 +30,11 @@ def Page():
     router = solara.use_router()
 
     register_vue_components(file=__file__)
+    if "current_user" in session:
+        logger.debug(session["current_user"])
+    else:
+        logger.debug(f"No current user not currently in session dict")
+        return
 
     video_id = parse_url_args()
     if video_id is None or video_id == 0:
@@ -60,6 +62,7 @@ def Page():
     with solara.Column(classes=["main-container"]):
 
         VideoInfoPanel(video=video.instance)
+        solara.Text(f"Current visits in session {session['visits']}")
         solara.Button(
             f"Edit Sections ({len(sections)})",
             on_click=lambda: router.push(f"/utils/sectionalizer/{video.instance.id}"),

@@ -28,7 +28,7 @@ def parse_url_args():
     level = solara.use_route_level()
 
     if len(router.parts) == 1:
-        router.push("/domains/videos")
+        router.push("/api/videos")
     match router.parts:
         case ["superchat-segments", "long-enough", video_id]:
             return (

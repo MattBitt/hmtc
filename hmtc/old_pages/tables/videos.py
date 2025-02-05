@@ -40,19 +40,19 @@ def FilterBar(filtered_by):
         with solara.Row():
 
             if filtered_by == "unique":
-                with solara.Link(f"/api/videos/index/nonunique"):
+                with solara.Link(f"/api/videos/nonunique"):
                     solara.Button("Nonunique", classes=["button"])
-                with solara.Link(f"/api/videos/index/all"):
+                with solara.Link(f"/api/videos/all"):
                     solara.Button("All", classes=["button"])
             elif filtered_by == "nonunique":
-                with solara.Link(f"/api/videos/index/unique"):
+                with solara.Link(f"/api/videos/unique"):
                     solara.Button("Unique", classes=["button"])
-                with solara.Link(f"/api/videos/index/all"):
+                with solara.Link(f"/api/videos/all"):
                     solara.Button("All", classes=["button"])
             else:
-                with solara.Link(f"/api/videos/index/unique"):
+                with solara.Link(f"/api/videos/unique"):
                     solara.Button("Unique", classes=["button"])
-                with solara.Link(f"/api/videos/index/nonunique"):
+                with solara.Link(f"/api/videos/nonunique"):
                     solara.Button("Nonunique", classes=["button"])
 
             solara.Div()

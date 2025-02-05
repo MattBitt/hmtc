@@ -12,7 +12,7 @@ from hmtc.models import Section as SectionModel
 
 
 def view_details(router, item):
-    router.push(f"/domains/video-details/{item['video_id']}")
+    router.push(f"/api/videos/details/{item['video_id']}")
 
 
 @solara.component

@@ -14,6 +14,7 @@ class User(BaseDomain):
     def serialize(self) -> Dict[str, Any]:
         return {
             "id": self.instance.id,
+            "initials": self.instance.username[:1],
             "username": self.instance.username,
             "email": self.instance.email,
             "is_admin": self.instance.is_admin,

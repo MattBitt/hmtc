@@ -1,4 +1,5 @@
 import solara
+from loguru import logger
 
 from hmtc.assets.colors import Colors
 from hmtc.utils.version_manager import get_version
@@ -7,8 +8,18 @@ from hmtc.utils.version_manager import get_version
 VERSION = f"v{get_version()}"
 
 
+@solara.component_vue("./AvatarMenu.vue")
+def AvatarMenu(user, version, event_logout_user):
+    pass
+
+
 @solara.component
 def MainToolbar(user):
+
+    def logout_user(*args):
+        logger.debug(args)
+        user.set(None)
+
     with solara.Row(style={"background-color": Colors.PRIMARY}):
         with solara.Link(f"/"):
             solara.Button(icon_name="mdi-home", icon=True)
@@ -27,22 +38,15 @@ def MainToolbar(user):
                 icon_name="mdi-cogs",
                 icon=True,
             )
-        with solara.Link(f"/logout"):
+        with solara.Link(f"/api/videos"):
             solara.Button(
-                icon_name="mdi-logout",
+                icon_name="mdi-video",
                 icon=True,
             )
 
-        solara.Text(f"{VERSION}", classes=["version-number"])
         if user.value:
-            solara.Text(
-                f"Logged in as {user.value.username} as {'admin' if user.value.admin else 'user'}"
+            AvatarMenu(
+                user=user.value.serialize(),
+                version=VERSION,
+                event_logout_user=logout_user,
             )
-            with solara.Tooltip("Logout"):
-                solara.Button(
-                    icon_name="mdi-logout",
-                    icon=True,
-                    on_click=lambda: user.set(None),
-                )
-        else:
-            solara.Text("Not logged in")

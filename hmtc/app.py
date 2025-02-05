@@ -6,7 +6,7 @@ import redis
 import solara
 import solara.lab
 import solara.server.flask
-from flask import Flask, g, make_response, request
+from flask import Flask, g, make_response, render_template, request, session
 from loguru import logger
 
 from hmtc.assets.colors import Colors
@@ -66,12 +66,38 @@ def main(config):
     app = Flask(__name__)
 
     app.register_blueprint(solara.server.flask.blueprint, url_prefix="/")
-
+    app.secret_key = "ETw3$d%+[^j%Q6y^sbMI4n**QSl6SA"
     return app
 
 
 config = init_config()
 app = main(config)
+
+
+@app.route("/flask")
+def index():
+    if "visits" in session:
+        session["visits"] = session.get("visits") + 1
+    else:
+        session["visits"] = 1
+    return f"You have visited this page {session['visits']} times"
+
+
+@app.route("/logout")
+def logout():
+    if "current_user" in session:
+        session.pop("current_user")
+        logger.debug(f"Clearing current user {session['current_user']}")
+
+
+@app.before_request
+def before_request_func():
+    bad_paths = ["/_solara", "/static", "/jupyter"]
+    for path in bad_paths:
+        if request.path.startswith(path):
+            return None
+
+    logger.debug(f"Before request {request.path=} of a regular path object")
 
 
 if __name__ == "__main__":

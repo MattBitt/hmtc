@@ -52,5 +52,5 @@ def Page():
         for video in album_vids:
             with solara.Row():
                 solara.Markdown(f"{video.title}")
-                with solara.Link(f"/domains/video-details/{video.id}"):
+                with solara.Link(f"/api/videos/details/{video.id}"):
                     solara.Markdown("Details")

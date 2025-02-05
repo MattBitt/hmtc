@@ -4,7 +4,7 @@ from typing import Dict, Optional, cast
 
 import solara
 import solara.lab
-from flask import session
+from flask import redirect, session
 from loguru import logger
 
 from hmtc.assets.colors import Colors
@@ -19,7 +19,7 @@ from hmtc.old_pages.tables.videos import VideosPage
 from hmtc.old_pages.utils.settings import Page as SettingsPage
 from hmtc.pages.admin.main import MainAdmin
 from hmtc.pages.home.main import HomePage
-from hmtc.pages.toolbar import MainToolbar
+from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.utils.importer.existing_files import (
     create_video_from_folder,
@@ -51,7 +51,7 @@ def get_app_bar_color() -> str:
 
 def check_auth(route, children):
     public_paths = ["/", "signup", "login"]
-    admin_paths = ["admin", "auth"]
+    admin_paths = []
 
     if route.path in public_paths:
         children_auth = children
@@ -65,7 +65,8 @@ def check_auth(route, children):
             if route.path in admin_paths and not user.value.admin:
                 children_auth = [solara.Error("You are not an admin")]
             else:
-                children_auth = children + [UsersHomePage()]
+                # children_auth = children + [UsersHomePage()]
+                children_auth = children
     return children_auth
 
 
@@ -80,7 +81,7 @@ login_failed = solara.reactive(False)
 
 
 def login(username: str, password: str):
-    # this function can be replace by a custom username/password check
+
     existing = User.get_by(username=username)
     if existing is None:
         logger.error("User not found.")
@@ -88,20 +89,21 @@ def login(username: str, password: str):
         return None
     hashed = User.hash_password(password)
     if existing.instance.hashed_password == hashed:
-        user.value = UserDC(existing.instance.username, existing.instance.is_admin)
+        user.value = existing
+        session["current_user"] = existing.instance.username
         login_failed.value = False
     else:
         login_failed.value = True
 
 
+def logout():
+    if "current_user" in session.keys():
+        session.pop("current_user")
+
+
 @solara.component
 def UsersFavorites():
     solara.Text(f"Favorites!!!")
-
-
-@solara.component_vue("./auth/Login.vue")
-def _LoginPage(event_login):
-    pass
 
 
 @solara.component_vue("./auth/SignUp.vue")
@@ -121,6 +123,11 @@ def SignUpPage():
             logger.debug(f"User {new_user} created.")
 
     _SignUpPage(event_signup=signup)
+
+
+@solara.component_vue("./auth/Login.vue")
+def _LoginPage(event_login):
+    pass
 
 
 @solara.component
@@ -148,7 +155,7 @@ def MyLayout(children=[]):
     else:
         children = check_auth(route, children)
 
-    if user.value and user.value.admin:
+    if user.value and user.value.instance.is_admin:
         show_nav = False
     else:
         show_nav = False
@@ -186,7 +193,6 @@ routes = [
                         path="home",
                         component=UsersHomePage,
                         label="User's Home",
-                        layout=MyLayout,
                     ),
                     solara.Route(
                         path="favorites",
@@ -199,7 +205,7 @@ routes = [
                 path="videos",
                 children=[
                     solara.Route(
-                        path="index",
+                        path="/",
                         component=VideosPage,
                         label="Video Index",
                     ),
