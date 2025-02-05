@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import solara
+import solara.lab
 from flask import session
 from loguru import logger
 
+from hmtc.components.sectionalizer import Sectionalizer
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
@@ -29,7 +31,6 @@ def parse_url_args():
 def Page():
     router = solara.use_router()
 
-    register_vue_components(file=__file__)
     if "current_user" in session:
         logger.debug(session["current_user"])
     else:
@@ -60,18 +61,14 @@ def Page():
     sections = []
 
     with solara.Column(classes=["main-container"]):
-
         VideoInfoPanel(video=video.instance)
-        solara.Text(f"Current visits in session {session['visits']}")
-        solara.Button(
-            f"Edit Sections ({len(sections)})",
-            on_click=lambda: router.push(f"/utils/sectionalizer/{video.instance.id}"),
-            classes=["button"],
-        )
-        solara.Markdown(f"## Files")
-        for file in video.file_repo.my_files(video.instance.id):
-            solara.Markdown(f"### {file['file']}")
-
-        solara.Button(f"Download Info", on_click=download_info)
-        solara.Button(f"Download Video", on_click=download_video)
-        solara.Button(f"Create/Download Audio")
+        with solara.lab.Tabs():
+            with solara.lab.Tab("Files"):
+                for file in video.file_repo.my_files(video.instance.id):
+                    solara.Markdown(f"### {file['file']}")
+            with solara.lab.Tab("Controls"):
+                solara.Button(f"Download Info", on_click=download_info)
+                solara.Button(f"Download Video", on_click=download_video)
+                solara.Button(f"Create/Download Audio")
+            with solara.lab.Tab("Sectionalizer"):
+                Sectionalizer(video=video)

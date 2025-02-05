@@ -14,7 +14,7 @@ def UsersHomePage():
 
     with solara.Column(classes=["main-container"]):
         with solara.Row(justify="center", style={"background-color": Colors.SURFACE}):
-            with solara.Link("/tables/videos/unique"):
+            with solara.Link("/api/videos"):
                 solara.Button("Videos", classes=["button"])
             with solara.Link("/tables/tracks/"):
                 solara.Button("Tracks", classes=["button"])

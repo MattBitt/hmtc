@@ -14,11 +14,12 @@ def AvatarMenu(user, version, event_logout_user):
 
 
 @solara.component
-def MainToolbar(user):
+def MainToolbar(user, logged_in):
 
     def logout_user(*args):
         logger.debug(args)
         user.set(None)
+        logged_in.set(False)
 
     with solara.Row(style={"background-color": Colors.PRIMARY}):
         with solara.Link(f"/"):

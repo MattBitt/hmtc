@@ -9,28 +9,26 @@
         </v-btn>
       </template>
       <v-card style="height: 300px">
-        <v-navigation-drawer permanent>
-          <v-list-item>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title class="text-h6"> HMTC </v-list-item-title>
+            <v-list-item-subtitle> {{ version }} </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list dense nav>
+          <v-list-item link @click="logout_user()">
+            <v-list-item-icon>
+              <v-icon>mdi-logout</v-icon>
+            </v-list-item-icon>
+
             <v-list-item-content>
-              <v-list-item-title class="text-h6"> HMTC </v-list-item-title>
-              <v-list-item-subtitle> {{ version }} </v-list-item-subtitle>
+              <v-list-item-title>Logout</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-
-          <v-divider></v-divider>
-
-          <v-list dense nav>
-            <v-list-item link @click="logout_user()">
-              <v-list-item-icon>
-                <v-icon>mdi-logout</v-icon>
-              </v-list-item-icon>
-
-              <v-list-item-content>
-                <v-list-item-title>Logout</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-navigation-drawer>
+        </v-list>
       </v-card>
     </v-menu>
   </v-row>

@@ -77,6 +77,7 @@ class UserDC:
 
 
 user = solara.reactive(cast(Optional[UserDC], None))
+logged_in = solara.reactive(False)
 login_failed = solara.reactive(False)
 
 
@@ -94,11 +95,6 @@ def login(username: str, password: str):
         login_failed.value = False
     else:
         login_failed.value = True
-
-
-def logout():
-    if "current_user" in session.keys():
-        session.pop("current_user")
 
 
 @solara.component
@@ -137,12 +133,21 @@ def LoginForm():
 
     def actually_login(item):
         logger.debug(f"Logging {item} into DB")
+        logged_in.set(True)
         login(item["username"], item["password"])
 
     with solara.Card("Login"):
         _LoginPage(event_login=actually_login)
         if login_failed.value:
             solara.Error("Wrong username or password")
+
+
+@solara.component
+def Home():
+    if logged_in.value:
+        UsersHomePage()
+    else:
+        LoginForm()
 
 
 @solara.component
@@ -155,27 +160,21 @@ def MyLayout(children=[]):
     else:
         children = check_auth(route, children)
 
-    if user.value and user.value.instance.is_admin:
-        show_nav = False
-    else:
-        show_nav = False
-
     with solara.AppLayout(
         children=children,
-        navigation=show_nav,
+        navigation=False,
         sidebar_open=False,
         color=get_app_bar_color(),
     ):
         with solara.AppBar():
-            # if user.value is not None:
-            MainToolbar(user)
+            MainToolbar(user, logged_in)
 
 
 routes = [
     solara.Route(
         path="/",
-        component=LoginForm,
-        label="Sign Up",
+        component=Home,
+        label="Home",
         layout=MyLayout,
     ),
     solara.Route(
