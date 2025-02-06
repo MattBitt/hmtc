@@ -4,11 +4,12 @@ import solara
 import solara.lab
 from flask import session
 from loguru import logger
-from hmtc.domains.section import Section
+
 from hmtc.components.sectionalizer import Sectionalizer
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
+from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
@@ -23,14 +24,28 @@ def parse_url_args():
         raise ValueError(f"Video ID must be an integer")
     return _id
 
+
 sections = solara.reactive([])
 selected = solara.reactive({})
+
 
 @solara.component_vue("./SectionSelector.vue", vuetify=True)
 def SectionSelector(
     sections, selected, video_duration, event_remove_section, event_update_selected
 ):
     pass
+
+
+@solara.component
+def AlbumPanel(video):
+    disc = video.instance.disc
+    if disc is None:
+        with solara.Link(f"/api/albums/"):
+            solara.Button(f"Album Table", classes=["button"])
+    else:
+        with solara.Link(f"/api/albums/editor/{disc.album.id}"):
+            solara.Button(f"Album Editor", classes=["button"])
+
 
 @solara.component
 def Page():
@@ -39,15 +54,19 @@ def Page():
     if "current_user" in session:
         logger.debug(session["current_user"])
     else:
-        logger.debug(f"No current user not currently in session dict")
+        logger.debug(f"No user currently logged in")
+        with solara.Error(f"No user currently logged in"):
+            with solara.Link("/"):
+                solara.Button("Home", classes=["button"])
         return
-
     video_id = parse_url_args()
     try:
         video = Video(video_id)
     except Exception as e:
         logger.error(f"Exception {e}")
-        router.push("/")
+        with solara.Error(f"Video Id {video_id} not found."):
+            with solara.Link("/"):
+                solara.Button("Home", classes=["button"])
         return
 
     def download_video():
@@ -61,7 +80,7 @@ def Page():
 
     def update_selected(section):
         selected.set(section)
-    
+
     def create_section(*args):
         start = args[0]["start"]
         end = args[0]["end"]
@@ -87,15 +106,14 @@ def Page():
         sections.set(a)
 
     with solara.Column(classes=["main-container"]):
-        VideoInfoPanel(video=video.instance)
+        with solara.Row():
+            with solara.Columns([8, 4]):
+                with solara.Card():
+                    VideoInfoPanel(video=video.instance)
+                with solara.Card():
+                    AlbumPanel(video=video)
+
         with solara.lab.Tabs():
-            with solara.lab.Tab("Files"):
-                for file in video.file_repo.my_files(video.instance.id):
-                    solara.Markdown(f"### {file['file']}")
-                with solara.Column():
-                    solara.Button(f"Download Info", on_click=download_info, classes=["button"])
-                    solara.Button(f"Download Video", on_click=download_video, classes=["button"])
-                    solara.Button(f"Create/Download Audio", classes=["button"])
             with solara.lab.Tab("Sectionalizer"):
                 Sectionalizer(video=video, create_section=create_section)
             with solara.lab.Tab("Sections"):
@@ -109,3 +127,14 @@ def Page():
                             event_update_selected=update_selected,
                             event_remove_section=remove_section,
                         )
+            with solara.lab.Tab("Files"):
+                for file in video.file_repo.my_files(video.instance.id):
+                    solara.Markdown(f"### {file['file']}")
+                with solara.Column():
+                    solara.Button(
+                        f"Download Info", on_click=download_info, classes=["button"]
+                    )
+                    solara.Button(
+                        f"Download Video", on_click=download_video, classes=["button"]
+                    )
+                    solara.Button(f"Create/Download Audio", classes=["button"])

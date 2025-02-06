@@ -36,9 +36,6 @@ def Timeline(
     pass
 
 
-
-
-
 @solara.component
 def VideoFrame(video, time_cursor):
     vid_file = video.video_file()
@@ -104,7 +101,6 @@ def Sectionalizer(video, create_section):
     def update_time_cursor(new_time: float):
         time_cursor.value = new_time
 
-
     _raw_sections = Section.get_for_video(video.instance.id)
     _sections = [s.serialize() for s in _raw_sections]
     sections = solara.use_reactive(_sections)
@@ -145,5 +141,3 @@ def Sectionalizer(video, create_section):
             event_update_time_cursor=update_time_cursor,
             event_create_section=create_section,
         )
-
-

@@ -14,11 +14,13 @@ from hmtc.domains.series import Series
 from hmtc.domains.user import User
 from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.old_pages.dashboards.files import Page as FilesDashboard
-from hmtc.pages.videos.video_details import Page as VideoDetails
+from hmtc.old_pages.tables.albums import Page as AlbumsPage
 from hmtc.old_pages.tables.videos import VideosPage
 from hmtc.old_pages.utils.settings import Page as SettingsPage
+from hmtc.pages.albums.details import Page as AlbumDetails
 from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
+from hmtc.pages.videos.video_details import Page as VideoDetails
 from hmtc.utils.importer.existing_files import (
     create_video_from_folder,
 )
@@ -210,6 +212,21 @@ routes = [
                         path="details",
                         component=VideoDetails,
                         label="Video Details",
+                    ),
+                ],
+            ),
+            solara.Route(
+                path="albums",
+                children=[
+                    solara.Route(
+                        path="/",
+                        component=AlbumsPage,
+                        label="Album Index",
+                    ),
+                    solara.Route(
+                        path="details",
+                        component=AlbumDetails,
+                        label="Album Details",
                     ),
                 ],
             ),

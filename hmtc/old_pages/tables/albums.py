@@ -54,8 +54,3 @@ def Page():
             base_query=AlbumModel.select(),
             search_fields=search_fields,
         )
-
-
-@solara.component
-def Layout(children):
-    return children[0]
