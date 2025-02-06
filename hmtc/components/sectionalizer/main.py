@@ -36,11 +36,7 @@ def Timeline(
     pass
 
 
-@solara.component_vue("SectionSelector.vue")
-def SectionSelector(
-    sections, selected, video_duration, event_remove_section, event_update_selected
-):
-    pass
+
 
 
 @solara.component
@@ -97,7 +93,7 @@ selected = solara.reactive({})
 
 
 @solara.component
-def Sectionalizer(video):
+def Sectionalizer(video, create_section):
     # session = solara.get_session_id()
     # logger.debug(f"Loading sectionalizer. Current session {session}")
     time_cursor = solara.use_reactive(0)  # Current video time
@@ -108,32 +104,6 @@ def Sectionalizer(video):
     def update_time_cursor(new_time: float):
         time_cursor.value = new_time
 
-    def update_selected(section):
-        selected.set(section)
-
-    def create_section(*args):
-        start = args[0]["start"]
-        end = args[0]["end"]
-        logger.debug(f"Creating section from {start} to {end}")
-        _section = Section.create(
-            {
-                "start": start,
-                "end": end,
-                "section_type": "instrumental",
-                "video_id": video.instance.id,
-            }
-        )
-
-        sections.set(sections.value + [_section.serialize()])
-        logger.debug(f"After Creating section from {start} to {end}")
-
-    def remove_section(section):
-        _sect = Section.get_by(id=section["id"])
-        logger.debug(f"Remove section {_sect}")
-        _sect.delete()
-        a = []
-        a[:] = [d for d in sections.value if d.get("id") != section["id"]]
-        sections.set(a)
 
     _raw_sections = Section.get_for_video(video.instance.id)
     _sections = [s.serialize() for s in _raw_sections]
@@ -176,12 +146,4 @@ def Sectionalizer(video):
             event_create_section=create_section,
         )
 
-        if len(sections.value) > 0:
-            with solara.Column():
-                SectionSelector(
-                    sections=sections.value,
-                    selected=selected.value,
-                    video_duration=video_duration_ms.value,
-                    event_update_selected=update_selected,
-                    event_remove_section=remove_section,
-                )
+

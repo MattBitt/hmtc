@@ -43,7 +43,7 @@
 </template>
 <script>
 module.exports = {
-  name: "SectionSelector",
+  name: "Sectionalizer",
   props: {
     sections: {
       type: Array,

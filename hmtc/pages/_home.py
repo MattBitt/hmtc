@@ -14,11 +14,9 @@ from hmtc.domains.series import Series
 from hmtc.domains.user import User
 from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.old_pages.dashboards.files import Page as FilesDashboard
-from hmtc.old_pages.domains.video_details import Page as VideoDetails
+from hmtc.pages.videos.video_details import Page as VideoDetails
 from hmtc.old_pages.tables.videos import VideosPage
 from hmtc.old_pages.utils.settings import Page as SettingsPage
-from hmtc.pages.admin.main import MainAdmin
-from hmtc.pages.home.main import HomePage
 from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.utils.importer.existing_files import (
