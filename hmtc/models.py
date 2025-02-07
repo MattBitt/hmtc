@@ -163,7 +163,7 @@ class Video(BaseModel):
 
     # relationships
     channel = ForeignKeyField(Channel, backref="videos")
-    disc = ForeignKeyField(Disc, backref="videos", null=True)
+
 
     def __repr__(self):
         return f"VideoModel({self.id} - {self.title=})"
@@ -179,7 +179,9 @@ class DiscVideo(BaseModel):
 
 
 class YoutubeSeriesVideo(BaseModel):
-    youtube_series = ForeignKeyField(YoutubeSeries, backref="video", on_delete="CASCADE")
+    youtube_series = ForeignKeyField(
+        YoutubeSeries, backref="video", on_delete="CASCADE"
+    )
     video = ForeignKeyField(Video, backref="youtube_series", on_delete="CASCADE")
     episode_number = IntegerField(null=True)
     episode_verbose = CharField(null=True)
@@ -222,7 +224,9 @@ class OmegleSection(BaseModel):
     end = IntegerField()
     topics = CharField()
 
-    video = ForeignKeyField(Video, backref="imported_sections", null=True, on_delete="CASCADE")
+    video = ForeignKeyField(
+        Video, backref="imported_sections", null=True, on_delete="CASCADE"
+    )
 
     def __repr__(self):
         return (
@@ -263,8 +267,8 @@ class Track(BaseModel):
     # won't be assigned by jellyfin until after the track is uploaded
     jellyfin_id = IntegerField(null=True)
 
-    section = ForeignKeyField(Section, backref="track",on_delete="CASCADE")
-    disc = ForeignKeyField(Disc, backref="tracks",on_delete="CASCADE")
+    section = ForeignKeyField(Section, backref="track", on_delete="CASCADE")
+    disc = ForeignKeyField(Disc, backref="tracks", on_delete="CASCADE")
 
     def __repr__(self):
         return f"TrackModel({self.id} - {self.title=})"

@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.domains.album import Album
 from hmtc.domains.video import Video
 from hmtc.models import (
     Album as AlbumModel,
@@ -14,19 +15,9 @@ from hmtc.models import (
 from hmtc.models import (
     Video as VideoModel,
 )
+from hmtc.pages.albums.video_selector import VideoSelector
 
 selected_videos = solara.reactive([])
-
-
-def item_selected(item_dict):
-    if item_dict["value"]:
-        selected_videos.set([*selected_videos.value, item_dict["item"]])
-    else:
-        # remove this item from selected
-        new_list = [
-            vid for vid in selected_videos.value if vid["id"] != item_dict["item"]["id"]
-        ]
-        selected_videos.set(new_list)
 
 
 @solara.component
@@ -39,12 +30,13 @@ def Page():
         {"text": "Title", "value": "title", "width": "30%"},
         {"text": "Order", "value": "order", "sortable": True},
     ]
+    _album = AlbumModel.select().get()
+    album = Album(_album)
     base_query = (
         VideoModel.select()
         .join(DiscVideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
         .join(DiscModel, on=(DiscModel.id == DiscVideoModel.disc_id))
-        .where(DiscModel.album_id == 1)
+        .where(DiscModel.album_id == album.instance.id)
     )
     search_fields = [VideoModel.title]
-    for item in base_query:
-        solara.Text(f"{item}")
+    VideoSelector(album=album)

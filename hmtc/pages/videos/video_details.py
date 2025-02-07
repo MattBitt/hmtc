@@ -9,8 +9,11 @@ from hmtc.components.sectionalizer import Sectionalizer
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
+from hmtc.domains.album import Album
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
+from hmtc.models import Album as AlbumModel
+from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
 config = init_config()
@@ -36,14 +39,39 @@ def SectionSelector(
     pass
 
 
+
 @solara.component
 def AlbumPanel(video):
-    disc = video.instance.disc
-    if disc is None:
+
+
+    dv = DiscVideoModel.select().where(DiscVideoModel.video_id == video.instance.id).first()
+    if dv is None:
+        _album = None
+    else:
+        _album = dv.disc.album
+    album = solara.use_reactive(_album)
+    albums = [a.title for a in AlbumModel.select(AlbumModel.title)]
+
+    def update_album(album_title):
+        logger.debug(f"Updating album {album_title}")
+        try:
+            at = album_title.title
+        except:
+            at = album_title
+        new_album = Album.get_by(title=at)
+        if new_album is None:
+            raise ValueError(f"Album {album_title} not found.")
+        new_album.add_video(video.instance)
+        
+        logger.debug(f"Adding video {video.instance} to album {album_title}")
+        
+    solara.Text(f"{album.value} current Album")
+    if dv is None:
         with solara.Link(f"/api/albums/"):
             solara.Button(f"Album Table", classes=["button"])
+        solara.Select(label="Album", value=album, values=albums, on_value=update_album)
     else:
-        with solara.Link(f"/api/albums/editor/{disc.album.id}"):
+        with solara.Link(f"/api/albums/details/{album.value.id}"):
             solara.Button(f"Album Editor", classes=["button"])
 
 
