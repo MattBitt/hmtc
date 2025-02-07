@@ -116,11 +116,14 @@ class Disc(BaseModel):
 
     album = ForeignKeyField(Album, backref="discs", on_delete="CASCADE")
 
+    class Meta:
+        indexes = ((("order", "album"), True),)
+
     def __repr__(self):
-        return f"DiscModel({self.id} - {self.disc_title=})"
+        return f"DiscModel({self.id} - {self.title=})"
 
     def __str__(self):
-        return f"DiscModel({self.id} - {self.disc_title=})"
+        return f"DiscModel({self.id} - {self.title=})"
 
 
 class Channel(BaseModel):
@@ -176,6 +179,8 @@ class DiscVideo(BaseModel):
     disc = ForeignKeyField(Disc, backref="dv", on_delete="CASCADE")
     order = IntegerField()  # video order on disc
 
+    class Meta:
+        indexes = ((("video", "disc", "order"), True),)
 
 class YoutubeSeriesVideo(BaseModel):
     youtube_series = ForeignKeyField(

@@ -19,24 +19,35 @@ from hmtc.pages.albums.video_selector import VideoSelector
 
 selected_videos = solara.reactive([])
 
+def parse_url_args():
+    router = solara.use_router()
+    _id = router.parts[-1]
+    if not _id.isnumeric():
+        raise ValueError(f"Video ID must be an integer")
+    return _id
 
 @solara.component
 def Page():
     with solara.Column(classes=["main-container"]):
         solara.Text(f"Album Editor Page")
     router = solara.use_router()
-    headers = [
-        {"text": "ID", "value": "id", "sortable": True, "align": "right"},
-        {"text": "Title", "value": "title", "width": "30%"},
-        {"text": "Order", "value": "order", "sortable": True},
-    ]
-    _album = AlbumModel.select().get()
-    album = Album(_album)
+    album_id = parse_url_args()
+    try:
+        _album = Album(album_id)
+    except Exception as e:
+        logger.error(f"Exception {e}")
+        with solara.Error(f"Video Id {album_id} not found."):
+            with solara.Link("/"):
+                solara.Button("Home", classes=["button"])
+        return
+
+
     base_query = (
-        VideoModel.select()
-        .join(DiscVideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
-        .join(DiscModel, on=(DiscModel.id == DiscVideoModel.disc_id))
-        .where(DiscModel.album_id == album.instance.id)
+        DiscModel.select()
+        .join(DiscVideoModel, on=(DiscVideoModel.video_id == DiscModel.id))
+        .join(VideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
+        .where(DiscModel.album_id == _album.instance.id)
     )
-    search_fields = [VideoModel.title]
-    VideoSelector(album=album)
+    
+    for item in base_query:
+        solara.Text(f"{item}")

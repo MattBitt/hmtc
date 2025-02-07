@@ -40,56 +40,38 @@ def SectionSelector(
 
 
 @solara.component
-def AlbumPanel(video):
-
-    dv = (
-        DiscVideoModel.select()
-        .where(DiscVideoModel.video_id == video.instance.id)
-        .first()
-    )
-    if dv is None:
-        _album = None
-    else:
-        _album = dv.disc.album
-    album = solara.use_reactive(_album)
+def AlbumPanel(album, update_album_for_video):
 
     albums = [a.title for a in AlbumModel.select(AlbumModel.title)]
 
-    def update_album(album_title):
-        logger.debug(f"Updating album {album_title}")
-        try:
-            at = album_title.title()
-        except:
-            at = album_title
-        new_album = Album.get_by(title=at)
-        if new_album is None:
-            raise ValueError(f"Album {album_title} not found.")
-        new_album.add_video(video.instance)
-
-        logger.debug(f"Adding video {video.instance} to album {album_title}")
-
     solara.Text(f"{album} current Album")
-    if album.value is None:
+    if album.value == "":
+        with solara.Row(justify="center"):
+            solara.Select(label="Album", value=album, values=albums, on_value=update_album_for_video)
         with solara.Link(f"/api/albums/"):
             solara.Button(f"Album Table", classes=["button"])
-        solara.Select(label="Album", value=album, values=albums, on_value=update_album)
+
     else:
-        with solara.Link(f"/api/albums/details/{album.value.id}"):
-            solara.Button(f"Album Editor", classes=["button"])
+        _album = Album.get_by(title=album.value)
+        if _album is None:
+            solara.Error(f"_album is None!!!!!")
+            return
+        with solara.Link(f"/api/albums/details/{_album.instance.id}"):
+            solara.Button(f"{album}", classes=["button"])
 
 
 @solara.component
 def Page():
     router = solara.use_router()
 
-    if "current_user" in session:
-        logger.debug(session["current_user"])
-    else:
-        logger.debug(f"No user currently logged in")
-        with solara.Error(f"No user currently logged in"):
-            with solara.Link("/"):
-                solara.Button("Home", classes=["button"])
-        return
+    # if "current_user" in session:
+    #     logger.debug(session["current_user"])
+    # else:
+    #     logger.debug(f"No user currently logged in")
+    #     with solara.Error(f"No user currently logged in"):
+    #         with solara.Link("/"):
+    #             solara.Button("Home", classes=["button"])
+    #     return
     video_id = parse_url_args()
     try:
         video = Video(video_id)
@@ -99,7 +81,7 @@ def Page():
             with solara.Link("/"):
                 solara.Button("Home", classes=["button"])
         return
-
+    
     def download_video():
         results = download_video_file(
             video.instance.youtube_id, WORKING / video.instance.youtube_id
@@ -136,13 +118,33 @@ def Page():
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
+
+    
+    dv = (
+        DiscVideoModel.select()
+        .where(DiscVideoModel.video_id == video.instance.id)
+        .first()
+    )
+    if dv is None:
+        _album_title = ""
+    else:
+        _album_title = dv.disc.album.title
+    current_album_title = solara.use_reactive(_album_title)
+
+    def update_album_for_video(album_title):
+        _album = Album.get_by(title=album_title)
+        _album.add_video(video=video.instance)
+        current_album_title.set(_album.instance.title)
+        
+        logger.debug(f"Updating Album For video {album_title}")
+
     with solara.Column(classes=["main-container"]):
         with solara.Row():
             with solara.Columns([8, 4]):
                 with solara.Card():
                     VideoInfoPanel(video=video.instance)
                 with solara.Card():
-                    AlbumPanel(video=video)
+                    AlbumPanel(album=current_album_title, update_album_for_video=update_album_for_video)
 
         with solara.lab.Tabs():
             with solara.lab.Tab("Sectionalizer"):

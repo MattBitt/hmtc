@@ -37,7 +37,9 @@ class Album(BaseDomain):
             disc = DiscModel.create(
                 title=f"Disc {num_discs+1}", order=1, album_id=self.instance.id
             )
-            DiscVideoModel.create(video=video, disc=disc, order=1)
+            logger.success(f"Created disc: {disc}")
+            dv = DiscVideoModel.create(video=video, disc=disc, order=1)
+            logger.success(f"Created disc video: {dv}")
         # how many discs do i have = n
         # create a disc 'Disc n+1'
         # create a discvideo
