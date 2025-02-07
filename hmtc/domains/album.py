@@ -31,8 +31,12 @@ class Album(BaseDomain):
             num_vids = len(existing_disc.videos)
             DiscVideoModel.create(video=video, disc=existing_disc, order=num_vids + 1)
         else:
-            num_discs = DiscModel.select().where(DiscModel.album_id == self.instance.id).count()
-            disc = DiscModel.create(title=f"Disc {num_discs+1}", order=1, album_id=self.instance.id)
+            num_discs = (
+                DiscModel.select().where(DiscModel.album_id == self.instance.id).count()
+            )
+            disc = DiscModel.create(
+                title=f"Disc {num_discs+1}", order=1, album_id=self.instance.id
+            )
             DiscVideoModel.create(video=video, disc=disc, order=1)
         # how many discs do i have = n
         # create a disc 'Disc n+1'

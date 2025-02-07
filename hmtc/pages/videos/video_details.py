@@ -39,34 +39,37 @@ def SectionSelector(
     pass
 
 
-
 @solara.component
 def AlbumPanel(video):
 
-
-    dv = DiscVideoModel.select().where(DiscVideoModel.video_id == video.instance.id).first()
+    dv = (
+        DiscVideoModel.select()
+        .where(DiscVideoModel.video_id == video.instance.id)
+        .first()
+    )
     if dv is None:
         _album = None
     else:
         _album = dv.disc.album
     album = solara.use_reactive(_album)
+
     albums = [a.title for a in AlbumModel.select(AlbumModel.title)]
 
     def update_album(album_title):
         logger.debug(f"Updating album {album_title}")
         try:
-            at = album_title.title
+            at = album_title.title()
         except:
             at = album_title
         new_album = Album.get_by(title=at)
         if new_album is None:
             raise ValueError(f"Album {album_title} not found.")
         new_album.add_video(video.instance)
-        
+
         logger.debug(f"Adding video {video.instance} to album {album_title}")
-        
-    solara.Text(f"{album.value} current Album")
-    if dv is None:
+
+    solara.Text(f"{album} current Album")
+    if album.value is None:
         with solara.Link(f"/api/albums/"):
             solara.Button(f"Album Table", classes=["button"])
         solara.Select(label="Album", value=album, values=albums, on_value=update_album)

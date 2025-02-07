@@ -33,7 +33,6 @@ class Video(BaseDomain):
             "unique_content": self.instance.unique_content,
             "jellyfin_id": self.instance.jellyfin_id,
             "channel_id": self.instance.channel_id,
-
             "file_count": self.file_repo.num_files(self.instance.id),
         }
 

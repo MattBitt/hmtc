@@ -164,7 +164,6 @@ class Video(BaseModel):
     # relationships
     channel = ForeignKeyField(Channel, backref="videos")
 
-
     def __repr__(self):
         return f"VideoModel({self.id} - {self.title=})"
 
