@@ -105,3 +105,10 @@ def test_count(album_dicts):
         album.delete()
 
     assert Album.count() == 0
+
+
+def test_add_video(album_item, video_item):
+    album = album_item
+    album.add_video(video_item.instance)
+    assert album.videos_count() == 1
+    album.delete()

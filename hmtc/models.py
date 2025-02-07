@@ -114,7 +114,7 @@ class Disc(BaseModel):
     title = CharField()
     order = IntegerField()  # disc order on the album
 
-    album = ForeignKeyField(Album, backref="discs")
+    album = ForeignKeyField(Album, backref="discs", on_delete="CASCADE")
 
     def __repr__(self):
         return f"DiscModel({self.id} - {self.disc_title=})"
@@ -179,8 +179,8 @@ class DiscVideo(BaseModel):
 
 
 class YoutubeSeriesVideo(BaseModel):
-    youtube_series = ForeignKeyField(YoutubeSeries, backref="video")
-    video = ForeignKeyField(Video, backref="youtube_series")
+    youtube_series = ForeignKeyField(YoutubeSeries, backref="video", on_delete="CASCADE")
+    video = ForeignKeyField(Video, backref="youtube_series", on_delete="CASCADE")
     episode_number = IntegerField(null=True)
     episode_verbose = CharField(null=True)
 
@@ -202,7 +202,7 @@ class Section(BaseModel):
 
     section_type = CharField()
 
-    video = ForeignKeyField(Video, backref="sections")
+    video = ForeignKeyField(Video, backref="sections", on_delete="CASCADE")
 
     def __repr__(self):
         return (
@@ -222,7 +222,7 @@ class OmegleSection(BaseModel):
     end = IntegerField()
     topics = CharField()
 
-    video = ForeignKeyField(Video, backref="imported_sections", null=True)
+    video = ForeignKeyField(Video, backref="imported_sections", null=True, on_delete="CASCADE")
 
     def __repr__(self):
         return (
@@ -244,8 +244,8 @@ class Topic(BaseModel):
 
 
 class SectionTopic(BaseModel):
-    section = ForeignKeyField(Section, backref="topics")
-    topic = ForeignKeyField(Topic, backref="sections")
+    section = ForeignKeyField(Section, backref="topics", on_delete="CASCADE")
+    topic = ForeignKeyField(Topic, backref="sections", on_delete="CASCADE")
     order = IntegerField()
 
     def __repr__(self):
@@ -263,8 +263,8 @@ class Track(BaseModel):
     # won't be assigned by jellyfin until after the track is uploaded
     jellyfin_id = IntegerField(null=True)
 
-    section = ForeignKeyField(Section, backref="track")
-    disc = ForeignKeyField(Disc, backref="tracks")
+    section = ForeignKeyField(Section, backref="track",on_delete="CASCADE")
+    disc = ForeignKeyField(Disc, backref="tracks",on_delete="CASCADE")
 
     def __repr__(self):
         return f"TrackModel({self.id} - {self.title=})"

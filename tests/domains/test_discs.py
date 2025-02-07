@@ -103,3 +103,4 @@ def test_disc_video(disc_item, video_item):
     assert len(disc_item.instance.dv.select()) == 1
 
     print(dv)
+    dv.delete_instance()
