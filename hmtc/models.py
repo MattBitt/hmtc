@@ -182,6 +182,7 @@ class DiscVideo(BaseModel):
     class Meta:
         indexes = ((("video", "disc", "order"), True),)
 
+
 class YoutubeSeriesVideo(BaseModel):
     youtube_series = ForeignKeyField(
         YoutubeSeries, backref="video", on_delete="CASCADE"

@@ -47,7 +47,12 @@ def AlbumPanel(album, update_album_for_video):
     solara.Text(f"{album} current Album")
     if album.value == "":
         with solara.Row(justify="center"):
-            solara.Select(label="Album", value=album, values=albums, on_value=update_album_for_video)
+            solara.Select(
+                label="Album",
+                value=album,
+                values=albums,
+                on_value=update_album_for_video,
+            )
         with solara.Link(f"/api/albums/"):
             solara.Button(f"Album Table", classes=["button"])
 
@@ -81,7 +86,7 @@ def Page():
             with solara.Link("/"):
                 solara.Button("Home", classes=["button"])
         return
-    
+
     def download_video():
         results = download_video_file(
             video.instance.youtube_id, WORKING / video.instance.youtube_id
@@ -118,8 +123,6 @@ def Page():
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
-
-    
     dv = (
         DiscVideoModel.select()
         .where(DiscVideoModel.video_id == video.instance.id)
@@ -135,7 +138,7 @@ def Page():
         _album = Album.get_by(title=album_title)
         _album.add_video(video=video.instance)
         current_album_title.set(_album.instance.title)
-        
+
         logger.debug(f"Updating Album For video {album_title}")
 
     with solara.Column(classes=["main-container"]):
@@ -144,7 +147,10 @@ def Page():
                 with solara.Card():
                     VideoInfoPanel(video=video.instance)
                 with solara.Card():
-                    AlbumPanel(album=current_album_title, update_album_for_video=update_album_for_video)
+                    AlbumPanel(
+                        album=current_album_title,
+                        update_album_for_video=update_album_for_video,
+                    )
 
         with solara.lab.Tabs():
             with solara.lab.Tab("Sectionalizer"):

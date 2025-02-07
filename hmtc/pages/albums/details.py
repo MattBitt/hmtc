@@ -15,9 +15,9 @@ from hmtc.models import (
 from hmtc.models import (
     Video as VideoModel,
 )
-from hmtc.pages.albums.video_selector import VideoSelector
 
 selected_videos = solara.reactive([])
+
 
 def parse_url_args():
     router = solara.use_router()
@@ -26,10 +26,10 @@ def parse_url_args():
         raise ValueError(f"Video ID must be an integer")
     return _id
 
+
 @solara.component
 def Page():
-    with solara.Column(classes=["main-container"]):
-        solara.Text(f"Album Editor Page")
+
     router = solara.use_router()
     album_id = parse_url_args()
     try:
@@ -41,13 +41,13 @@ def Page():
                 solara.Button("Home", classes=["button"])
         return
 
-
-    base_query = (
-        DiscModel.select()
-        .join(DiscVideoModel, on=(DiscVideoModel.video_id == DiscModel.id))
-        .join(VideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
-        .where(DiscModel.album_id == _album.instance.id)
-    )
-    
-    for item in base_query:
-        solara.Text(f"{item}")
+    discs = DiscModel.select().where(DiscModel.album_id == _album.instance.id)
+    with solara.Column(classes=["main-container"]):
+        solara.Text(f"{_album.instance.title}")
+        for disc in discs:
+            solara.Text(f"{disc.title}")
+            disc_videos = DiscVideoModel.select().where(
+                DiscVideoModel.disc_id == disc.id
+            )
+            for dv in disc_videos:
+                solara.Text(f"{dv.video.title}")
