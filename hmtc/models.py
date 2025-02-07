@@ -112,6 +112,8 @@ class Album(BaseModel):
 
 class Disc(BaseModel):
     title = CharField()
+    order = IntegerField()  # disc order on the album
+
     album = ForeignKeyField(Album, backref="discs")
 
     def __repr__(self):
@@ -171,9 +173,9 @@ class Video(BaseModel):
 
 
 class DiscVideo(BaseModel):
-    video_id = ForeignKeyField(Video, backref="albums")
-    disc_id = ForeignKeyField(Disc, backref="albums")
-    order = IntegerField()
+    video = ForeignKeyField(Video, backref="dv", on_delete="CASCADE")
+    disc = ForeignKeyField(Disc, backref="dv", on_delete="CASCADE")
+    order = IntegerField()  # video order on disc
 
 
 class YoutubeSeriesVideo(BaseModel):

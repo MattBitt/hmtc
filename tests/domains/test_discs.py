@@ -3,6 +3,7 @@ import pytest
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.models import Disc as DiscModel
+from hmtc.models import DiscVideo as DiscVideoModel
 
 
 def test_disc_create_and_load(disc_dicts, album_dicts):
@@ -92,3 +93,13 @@ def test_count(disc_dicts, album_item):
         disc.delete()
 
     assert Disc.count() == 0
+
+
+def test_disc_video(disc_item, video_item):
+    print(disc_item.instance.album)
+    dv = DiscVideoModel.create(
+        video_id=video_item.instance.id, disc_id=disc_item.instance.id, order=1
+    )
+    assert len(disc_item.instance.dv.select()) == 1
+
+    print(dv)

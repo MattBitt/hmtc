@@ -100,9 +100,9 @@ def channel_dicts() -> list:
 def disc_dicts():
 
     return [
-        {"title": "Disc 1"},
-        {"title": "Disc 2"},
-        {"title": "Disc 3"},
+        {"title": "Disc 1", "order": 1},
+        {"title": "Disc 2", "order": 2},
+        {"title": "Disc 3", "order": 3},
     ]
 
 
