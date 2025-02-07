@@ -123,11 +123,7 @@ def Page():
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
-    dv = (
-        DiscVideoModel.select()
-        .where(DiscVideoModel.video_id == video.instance.id)
-        .first()
-    )
+    dv = DiscVideoModel.select().where(DiscVideoModel.video == video.instance).first()
     if dv is None:
         _album_title = ""
     else:
