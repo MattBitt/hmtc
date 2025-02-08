@@ -6,8 +6,12 @@ from loguru import logger
 
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
+from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
+from hmtc.models import Album as AlbumModel
+from hmtc.models import Channel as ChannelModel
+from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
 from hmtc.models import SubtitleFile as SubtitleFileModel
 from hmtc.models import Video as VideoModel
@@ -98,6 +102,50 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
 
+def assign_albums():
+    # created on 2/7/25 to assign the 'initial videos' to
+    # albums
+    vids_with_album = DiscVideoModel.select(DiscVideoModel.video_id)
+    vids_with_no_album = VideoModel.select(VideoModel).where(
+        (VideoModel.id.not_in(vids_with_album)) & VideoModel.unique_content == True
+    )
+    logger.debug(f"Vids with album #: {len(vids_with_album)}")
+    logger.debug(f"Unique Vids without album #: {len(vids_with_no_album)}")
+
+    main_channel = (
+        ChannelModel.select().where(ChannelModel.title == "Harry Mack").get_or_none()
+    )
+    clips_channel = (
+        ChannelModel.select()
+        .where(ChannelModel.title == "Harry Mack Clips")
+        .get_or_none()
+    )
+
+    if main_channel:
+        main_channel_vids = vids_with_no_album.where(
+            VideoModel.channel_id == main_channel.id
+        ).order_by(VideoModel.upload_date)
+
+        omegle_bars_album = (
+            AlbumModel.select().where(AlbumModel.title == "Omegle Bars").get_or_none()
+        )
+        omegle_bars_vids = main_channel_vids.where(
+            VideoModel.title.contains("Omegle Bars")
+        )
+
+        logger.debug(f"Omegle Bars Vids #: {len(omegle_bars_vids)}")
+        for vid in omegle_bars_vids:
+            logger.debug(f"Added {vid} to {omegle_bars_album}")
+            _album = Album(omegle_bars_album)
+            _album.add_video(vid)
+
+    if clips_channel:
+        clip_channel_vids = vids_with_no_album.where(
+            VideoModel.channel_id == clips_channel.id
+        )
+        logger.debug(f"Clips Channel Vids #: {len(clip_channel_vids)}")
+
+
 @solara.component
 def SectionsControls():
     num_sections = OmegleSection.select().count()
@@ -162,6 +210,12 @@ def SectionsControls():
             solara.Button(
                 f"Convert {num_vtts} vtt files to SRT",
                 on_click=convert_vtts_to_srts,
+                classes=["button"],
+            )
+        with solara.Card("Assign Albums to Videos"):
+            solara.Button(
+                f"Assign Albums",
+                on_click=assign_albums,
                 classes=["button"],
             )
 

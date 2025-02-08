@@ -44,7 +44,7 @@ def Page():
     discs = DiscModel.select().where(DiscModel.album_id == _album.instance.id)
     with solara.Column(classes=["main-container"]):
         solara.Text(f"{_album.instance.title}")
-        for disc in discs:
+        for disc in discs.limit(20):
             solara.Text(f"{disc.title}")
             disc_videos = DiscVideoModel.select().where(
                 DiscVideoModel.disc_id == disc.id
