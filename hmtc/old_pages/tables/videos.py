@@ -17,6 +17,7 @@ from hmtc.models import (
     Series,
     VideoFiles,
 )
+from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import (
     Section as SectionModel,
 )
@@ -26,7 +27,12 @@ from hmtc.models import (
 from hmtc.router import parse_url_args
 
 refreshing = solara.reactive(0)
-missing_videos = solara.reactive(False)
+unique_options = ["unique", "nonunique", "all"]
+unique = solara.reactive("unique")
+
+missing_options = ["has", "missing", "all"]
+has_video_file = solara.reactive("all")
+has_album = solara.reactive("all")
 
 
 def view_details(router, item):
@@ -34,37 +40,39 @@ def view_details(router, item):
 
 
 @solara.component
-def FilterBar(filtered_by):
+def FilterBar():
+    filter_string = ""
 
-    with solara.Card(f"Now Showing: {filtered_by}"):
+    def reset():
+        unique.set("unique")
+        has_video_file.set("all")
+        has_album.set("all")
+
+    with solara.Card():
         with solara.Row():
-
-            if filtered_by == "unique":
-                with solara.Link(f"/api/videos/nonunique"):
-                    solara.Button("Nonunique", classes=["button"])
-                with solara.Link(f"/api/videos/all"):
-                    solara.Button("All", classes=["button"])
-            elif filtered_by == "nonunique":
-                with solara.Link(f"/api/videos/unique"):
-                    solara.Button("Unique", classes=["button"])
-                with solara.Link(f"/api/videos/all"):
-                    solara.Button("All", classes=["button"])
-            else:
-                with solara.Link(f"/api/videos/unique"):
-                    solara.Button("Unique", classes=["button"])
-                with solara.Link(f"/api/videos/nonunique"):
-                    solara.Button("Nonunique", classes=["button"])
-
-            solara.Div()
-            if missing_videos.value:
-                caption = "Show All"
-            else:
-                caption = "Show Missing Video Files"
-            solara.Button(
-                f"{caption}",
-                on_click=lambda: missing_videos.set(not missing_videos.value),
-                classes=["button"],
-            )
+            with solara.Columns():
+                with solara.Column():
+                    solara.Select(
+                        label="Unique Videos", value=unique, values=unique_options
+                    )
+                with solara.Column():
+                    solara.Select(
+                        label="Has Video File",
+                        value=has_video_file,
+                        values=missing_options,
+                    )
+                with solara.Column():
+                    solara.Select(
+                        label="Has Album", value=has_album, values=missing_options
+                    )
+                with solara.Column():
+                    solara.Select(
+                        label="Another Filter",
+                        value=has_video_file,
+                        values=missing_options,
+                    )
+        with solara.Row():
+            solara.Button(f"Reset", on_click=reset, classes=["button"])
 
 
 @solara.component
@@ -76,32 +84,45 @@ def VideosPage():
     headers = [
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
-        {"text": "Title", "value": "title", "width": "30%"},
+        {"text": "Title", "value": "title"},
+        {"text": "Album", "value": "album_title", "sortable": False},
         {"text": "Duration", "value": "duration", "sortable": True},
     ]
 
-    if "unique" in args:
+    if unique.value == "unique":
         base_query = VideoModel.select().where(VideoModel.unique_content == True)
-        FilterBar("unique")
-    elif "nonunique" in args:
+
+    elif unique.value == "nonunique":
         base_query = VideoModel.select().where(VideoModel.unique_content == False)
-        FilterBar("nonunique")
+
     else:
         base_query = VideoModel.select()
         headers += [{"text": "Unique", "value": "unique_content", "sortable": False}]
-        FilterBar("all")
-    headers += [
-        {"text": "Files", "value": "file_count", "sortable": False},
-        {"text": "Actions", "value": "actions", "sortable": False},
-    ]
-    if missing_videos.value:
+
+    if has_video_file.value == "missing":
         vids_missing_files = [
             v.item_id
             for v in VideoFiles.select().where(VideoFiles.video_id.is_null(True))
         ]
         base_query = base_query.where(VideoModel.id.in_(vids_missing_files))
+    if has_album.value == "missing":
+        vids_with_albums = [
+            dv.video_id for dv in DiscVideoModel.select(DiscVideoModel.video_id)
+        ]
+        base_query = base_query.where(VideoModel.id.not_in(vids_with_albums))
+    elif has_album.value == "has":
+        vids_with_albums = [
+            dv.video_id for dv in DiscVideoModel.select(DiscVideoModel.video_id)
+        ]
+        base_query = base_query.where(VideoModel.id.in_(vids_with_albums))
+
+    headers += [
+        {"text": "Files", "value": "file_count", "sortable": False},
+        {"text": "Actions", "value": "actions", "sortable": False},
+    ]
 
     search_fields = [VideoModel.youtube_id, VideoModel.title]
+    FilterBar()
     VideoTable(
         router=router,
         headers=headers,

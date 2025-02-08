@@ -149,7 +149,6 @@ def assign_albums():
         add_vids_to_album("Wordplay Wednesday", main_channel_vids)
         add_vids_to_album("Happy Hour", main_channel_vids)
 
-
     if clips_channel:
         clip_channel_vids = vids_with_no_album.where(
             VideoModel.channel_id == clips_channel.id

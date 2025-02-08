@@ -7,6 +7,7 @@ from PIL import Image
 
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
+from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFiles
 from hmtc.repos.file_repo import FileRepo
@@ -22,6 +23,15 @@ class Video(BaseDomain):
     file_repo = FileRepo(VideoFiles)
 
     def serialize(self) -> Dict[str, Any]:
+        dv = (
+            DiscVideoModel.select()
+            .where(DiscVideoModel.video_id == self.instance.id)
+            .get_or_none()
+        )
+        if dv is not None:
+            album_title = dv.disc.album.title
+        else:
+            album_title = ""
         return {
             "id": self.instance.id,
             "title": self.instance.title,
@@ -34,6 +44,7 @@ class Video(BaseDomain):
             "jellyfin_id": self.instance.jellyfin_id,
             "channel_id": self.instance.channel_id,
             "file_count": self.file_repo.num_files(self.instance.id),
+            "album_title": album_title,
         }
 
     @classmethod
