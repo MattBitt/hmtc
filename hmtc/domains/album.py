@@ -143,3 +143,15 @@ class Album(BaseDomain):
             DiscModel.update(order=order_b).where(
                 DiscModel.id == disc.instance.id
             ).execute()
+
+    def reset_disc_numbers(self):
+        discs = DiscModel.select(DiscModel.id, DiscModel.order).where(DiscModel.album_id == self.instance.id).order_by(DiscModel.order.asc())
+        actual_discs = [x.order for x in discs]
+        ideal_discs = [x+1 for x in range(len(discs))]
+        logger.debug(f"{actual_discs}")
+        logger.debug(f"{ideal_discs}")
+        for disc in zip(actual_discs, ideal_discs):
+            if disc[0] != disc[1]:
+                logger.debug(f"Need to update {disc[0]} to {disc[1]}")
+    def reorder_discs_by_upload_date(self):
+        pass

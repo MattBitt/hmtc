@@ -118,9 +118,20 @@ def MultiVideoDiscCard(disc, move_up, move_down, remove_video):
 
 
 @solara.component
-def AlbumCard(album):
-    solara.Text(f"{album.instance.title}")
-
+def AlbumCard(album, refresh_counter):
+    def reset_disc_numbers():
+        logger.debug(f"Resetting the disc numbers")
+        album.reset_disc_numbers()
+        refresh_counter.set(refresh_counter.value + 1)
+    
+    def reorder_discs():
+        logger.debug(f"Reordering the discs by upload date")
+        album.reorder_discs_by_upload_date()
+        refresh_counter.set(refresh_counter.value + 1)
+    with solara.Row(justify="center"):
+        solara.Markdown(f"### {album.instance.title}")
+        solara.Button(f"Reset Disc Numbers", on_click=reset_disc_numbers, classes=["button"])
+        solara.Button(f"Reorder Discs", on_click=reorder_discs, classes=["button"])
 
 @solara.component
 def AlbumDiscs(query, current_page, num_pages, num_items, refresh_counter):
@@ -151,7 +162,11 @@ def Page():
         page=current_page.value,
         per_page=per_page,
     )
+    
     if current_page.value > num_pages:
+        # if the query is updated and the 'current
+        # page' is no longer valid, move to the 
+        # last page
         current_page.set(num_pages)
 
     with solara.Column(classes=["main-container"]):
@@ -160,5 +175,5 @@ def Page():
             solara.Info(f"No Videos added to this album")
             return
         if refresh_counter.value > 0:
-            AlbumCard(_album)
+            AlbumCard(_album, refresh_counter)
             AlbumDiscs(_query, current_page, num_pages, num_items, refresh_counter)
