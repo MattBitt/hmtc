@@ -26,7 +26,7 @@ def rename_vids_for_albums(db_instance):
         vid.unique_content = True
         vid.save()
     for i, vid in enumerate(vids[-2:]):
-        vid.title = f"Guerilla Bars {i}"
+        vid.title = f"Guerrilla Bars {i}"
         vid.unique_content = True
         vid.save()
 

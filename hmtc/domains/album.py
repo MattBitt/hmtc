@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from loguru import logger
+from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.db import init_db
@@ -37,16 +38,19 @@ class Album(BaseDomain):
 
     def add_video(self, video: VideoModel, existing_disc=None):
         logger.debug(f"Adding {video} to {self}")
+        last_disc = (
+            DiscModel.select(fn.MAX(DiscModel.order))
+            .where(DiscModel.album_id == self.instance.id)
+            .scalar()
+        )
+        if last_disc is None:
+            last_disc = 1
         if existing_disc is not None:
-            num_vids = len(existing_disc.videos)
-            DiscVideoModel.create(video=video, disc=existing_disc, order=num_vids + 1)
+            DiscVideoModel.create(video=video, disc=existing_disc, order=last_disc + 1)
         else:
-            num_discs = (
-                DiscModel.select().where(DiscModel.album_id == self.instance.id).count()
-            )
             disc = DiscModel.create(
-                title=f"Disc {num_discs+1}",
-                order=num_discs + 1,
+                title=f"Disc {last_disc+1}",
+                order=last_disc + 1,
                 album_id=self.instance.id,
             )
             logger.success(f"Created disc: {disc}")
