@@ -106,7 +106,9 @@ def add_vids_to_album(search_string, channel_vids):
     this_album = (
         AlbumModel.select().where(AlbumModel.title == search_string).get_or_none()
     )
-
+    if this_album is None:
+        logger.error(f"Album: {search_string} NOT found")
+        return
     these_vids = channel_vids.where(VideoModel.title.contains(search_string))
 
     logger.debug(f"{search_string} Vids #: {len(these_vids)}")
@@ -143,6 +145,10 @@ def assign_albums():
         add_vids_to_album("Omegle Bars", main_channel_vids)
         add_vids_to_album("Guerrilla Bars", main_channel_vids)
         add_vids_to_album("Flow State", main_channel_vids)
+        add_vids_to_album("Stream of Consciousness", main_channel_vids)
+        add_vids_to_album("Wordplay Wednesday", main_channel_vids)
+        add_vids_to_album("Happy Hour", main_channel_vids)
+
 
     if clips_channel:
         clip_channel_vids = vids_with_no_album.where(
