@@ -213,7 +213,7 @@ def Page():
         per_page=per_page,
     )
 
-    segments = [SuperchatSegmentItem.from_model(seg) for seg in query]
+    segments = []  # [SuperchatSegmentItem.from_model(seg) for seg in query]
 
     if refresh_trigger.value > 0:
         with solara.Column(classes=["main-container"]):
