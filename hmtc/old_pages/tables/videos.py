@@ -47,7 +47,12 @@ def view_details(router, item):
 @solara.component
 def FilterBar():
     filter_string = ""
-    channel_titles = [x.title for x in ChannelModel.select(ChannelModel.title)]
+    channel_titles = [
+        x.title
+        for x in ChannelModel.select(ChannelModel.title).order_by(
+            ChannelModel.title.asc()
+        )
+    ]
 
     def reset():
         unique.set("unique")
