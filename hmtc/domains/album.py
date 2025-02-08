@@ -30,9 +30,19 @@ class Album(BaseDomain):
     instance: AlbumModel = None
 
     def serialize(self) -> Dict[str, Any]:
-        num_discs = DiscModel.select(fn.COUNT(DiscModel.id)).where(DiscModel.album_id == self.instance.id).scalar()
-        my_discs = DiscModel.select(DiscModel.id).where(DiscModel.album_id == self.instance.id)
-        num_videos = DiscVideoModel.select(fn.COUNT(DiscVideoModel.video_id)).where(DiscVideoModel.disc_id.in_(my_discs)).scalar()
+        num_discs = (
+            DiscModel.select(fn.COUNT(DiscModel.id))
+            .where(DiscModel.album_id == self.instance.id)
+            .scalar()
+        )
+        my_discs = DiscModel.select(DiscModel.id).where(
+            DiscModel.album_id == self.instance.id
+        )
+        num_videos = (
+            DiscVideoModel.select(fn.COUNT(DiscVideoModel.video_id))
+            .where(DiscVideoModel.disc_id.in_(my_discs))
+            .scalar()
+        )
         return {
             "id": self.instance.id,
             "title": self.instance.title,
