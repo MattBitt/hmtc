@@ -1,4 +1,5 @@
 import time
+from datetime import date
 from typing import Callable
 
 import ipyvue
@@ -27,6 +28,44 @@ def view_details(router, item):
 
 
 @solara.component
+def NewAlbum():
+    new_item = solara.use_reactive("")
+    error = solara.use_reactive("")
+    success = solara.use_reactive("")
+
+    def create_album():
+        logger.debug(f"Creating new album {new_item.value} if possible")
+        if len(new_item.value) <= 1:
+            error.set(f"Value {new_item.value} too short.")
+        else:
+            try:
+                new_album = Album.create(
+                    {"title": new_item.value, "release_date": date.today()}
+                )
+                success.set(f"{new_album} was created!")
+            except Exception as e:
+                error.set(f"Error {e}")
+
+    def reset():
+        new_item.set("")
+        error.set("")
+        success.set("")
+
+    with solara.Card():
+        with solara.Columns([6, 6]):
+            solara.InputText(label="Album Title", value=new_item)
+            with solara.Row():
+                solara.Button(
+                    label="Create Album", on_click=create_album, classes=["button"]
+                )
+                solara.Button(label="Reset Form", on_click=reset, classes=["button"])
+        if success.value:
+            solara.Success(f"{success}")
+        elif error.value:
+            solara.Error(f"{error}")
+
+
+@solara.component
 def Page():
 
     router = solara.use_router()
@@ -48,6 +87,7 @@ def Page():
     search_fields = [AlbumModel.title]
 
     with solara.Column(classes=["main-container"]):
+        NewAlbum()
         AlbumTable(
             router=router,
             headers=headers,

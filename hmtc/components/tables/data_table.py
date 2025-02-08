@@ -63,7 +63,7 @@ def DataTable(
     def delete_item(*args):
         # 12/22/24 this is untested (ish)
         logger.debug(f"Deleting {domain_class} Item: {args[0]['id']}")
-        domain_class.get_by(id=args[0]["id"]).delete_me()
+        domain_class.get_by(id=args[0]["id"]).delete()
 
     if search_text.value != "":
         if len(search_fields) == 1:
