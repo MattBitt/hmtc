@@ -13,10 +13,10 @@ def PaginationControls(current_page, num_pages, num_items):
 
     def last():
         current_page.set(num_pages)
-    
+
     def first():
         current_page.set(1)
-        
+
     with solara.Row(justify="space-between"):
         solara.Button(
             "First",
