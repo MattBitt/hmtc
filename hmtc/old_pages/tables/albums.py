@@ -81,6 +81,8 @@ def Page():
         },
         {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Title", "value": "title", "width": "30%"},
+        {"text": "Discs", "value":"num_discs", "sortable": False},
+        {"text": "Videos", "value":"num_videos", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
 
