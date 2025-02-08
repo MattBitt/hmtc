@@ -28,6 +28,14 @@ def parse_url_args():
 
 
 @solara.component
+def DiscCard(disc):
+    with solara.Card(f"{disc.title}"):
+        disc_videos = DiscVideoModel.select().where(DiscVideoModel.disc_id == disc.id)
+        for dv in disc_videos:
+            solara.Text(f"{dv.video.title}")
+
+
+@solara.component
 def Page():
 
     router = solara.use_router()
@@ -44,10 +52,6 @@ def Page():
     discs = DiscModel.select().where(DiscModel.album_id == _album.instance.id)
     with solara.Column(classes=["main-container"]):
         solara.Text(f"{_album.instance.title}")
-        for disc in discs.limit(20):
-            solara.Text(f"{disc.title}")
-            disc_videos = DiscVideoModel.select().where(
-                DiscVideoModel.disc_id == disc.id
-            )
-            for dv in disc_videos:
-                solara.Text(f"{dv.video.title}")
+        with solara.ColumnsResponsive():
+            for disc in discs.limit(20):
+                DiscCard(disc)

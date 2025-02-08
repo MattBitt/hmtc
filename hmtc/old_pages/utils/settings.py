@@ -102,6 +102,20 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
 
+def add_vids_to_album(search_string, channel_vids):
+    this_album = (
+        AlbumModel.select().where(AlbumModel.title == search_string).get_or_none()
+    )
+
+    these_vids = channel_vids.where(VideoModel.title.contains(search_string))
+
+    logger.debug(f"{search_string} Vids #: {len(these_vids)}")
+    for vid in these_vids:
+        logger.debug(f"Added {vid} to {this_album}")
+        _album = Album(this_album)
+        _album.add_video(vid)
+
+
 def assign_albums():
     # created on 2/7/25 to assign the 'initial videos' to
     # albums
@@ -126,24 +140,17 @@ def assign_albums():
             VideoModel.channel_id == main_channel.id
         ).order_by(VideoModel.upload_date)
 
-        omegle_bars_album = (
-            AlbumModel.select().where(AlbumModel.title == "Omegle Bars").get_or_none()
-        )
-        omegle_bars_vids = main_channel_vids.where(
-            VideoModel.title.contains("Omegle Bars")
-        )
-
-        logger.debug(f"Omegle Bars Vids #: {len(omegle_bars_vids)}")
-        for vid in omegle_bars_vids:
-            logger.debug(f"Added {vid} to {omegle_bars_album}")
-            _album = Album(omegle_bars_album)
-            _album.add_video(vid)
+        add_vids_to_album("Omegle Bars", main_channel_vids)
+        add_vids_to_album("Guerrilla Bars", main_channel_vids)
+        add_vids_to_album("Flow State", main_channel_vids)
 
     if clips_channel:
         clip_channel_vids = vids_with_no_album.where(
             VideoModel.channel_id == clips_channel.id
         )
         logger.debug(f"Clips Channel Vids #: {len(clip_channel_vids)}")
+        # these will all be on the same disk
+        # ex omegle bar exclusives will all be on 1 'disk'
 
 
 @solara.component
