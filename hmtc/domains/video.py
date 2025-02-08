@@ -32,6 +32,7 @@ class Video(BaseDomain):
             album_title = dv.disc.album.title
         else:
             album_title = ""
+
         return {
             "id": self.instance.id,
             "title": self.instance.title,
@@ -45,6 +46,7 @@ class Video(BaseDomain):
             "channel_id": self.instance.channel_id,
             "file_count": self.file_repo.num_files(self.instance.id),
             "album_title": album_title,
+            "channel_title": self.instance.channel.title,
         }
 
     @classmethod
