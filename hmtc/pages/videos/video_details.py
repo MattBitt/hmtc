@@ -42,7 +42,10 @@ def SectionSelector(
 @solara.component
 def AlbumPanel(album, update_album_for_video):
 
-    albums = [a.title for a in AlbumModel.select(AlbumModel.title)]
+    albums = [
+        a.title
+        for a in AlbumModel.select(AlbumModel.title).order_by(AlbumModel.title.asc())
+    ]
 
     solara.Text(f"{album} current Album")
     if album.value == "":
