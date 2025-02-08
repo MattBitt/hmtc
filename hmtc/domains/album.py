@@ -145,13 +145,27 @@ class Album(BaseDomain):
             ).execute()
 
     def reset_disc_numbers(self):
-        discs = DiscModel.select(DiscModel.id, DiscModel.order).where(DiscModel.album_id == self.instance.id).order_by(DiscModel.order.asc())
-        actual_discs = [x.order for x in discs]
-        ideal_discs = [x+1 for x in range(len(discs))]
-        logger.debug(f"{actual_discs}")
-        logger.debug(f"{ideal_discs}")
-        for disc in zip(actual_discs, ideal_discs):
-            if disc[0] != disc[1]:
-                logger.debug(f"Need to update {disc[0]} to {disc[1]}")
-    def reorder_discs_by_upload_date(self):
-        pass
+        discs = (
+            DiscModel.select(DiscModel.id, DiscModel.order)
+            .where(DiscModel.album_id == self.instance.id)
+            .order_by(DiscModel.order.asc())
+        )
+        # actual_disc_orders = [x.order for x in discs]
+        ideal_disc_orders = [x + 1 for x in range(len(discs))]
+        logger.debug(f"{discs}")
+        logger.debug(f"{ideal_disc_orders}")
+        for x in zip(discs, ideal_disc_orders):
+            if x[0].order != x[1]:
+                logger.debug(f"Need to update {x[0]} to order: {x[1]}")
+                x[0].order = x[1]
+                x[0].save()
+
+    def delete_discs(self):
+        discs = (
+            DiscModel.select(DiscModel.id, DiscModel.order)
+            .where(DiscModel.album_id == self.instance.id)
+            .order_by(DiscModel.order.asc())
+        )
+        for disc in discs:
+            _disc = Disc(disc)
+            _disc.delete()

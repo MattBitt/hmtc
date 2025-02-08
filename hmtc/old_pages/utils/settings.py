@@ -148,6 +148,10 @@ def assign_albums():
         add_vids_to_album("Stream of Consciousness", main_channel_vids)
         add_vids_to_album("Wordplay Wednesday", main_channel_vids)
         add_vids_to_album("Happy Hour", main_channel_vids)
+        add_vids_to_album("Energy Exchange", main_channel_vids)
+        add_vids_to_album("Behind the Bars", main_channel_vids)
+        add_vids_to_album("Busking", main_channel_vids)
+        add_vids_to_album("Livestream Highlights", main_channel_vids)
 
     if clips_channel:
         clip_channel_vids = vids_with_no_album.where(

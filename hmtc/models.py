@@ -121,10 +121,10 @@ class Disc(BaseModel):
         indexes = ((("order", "album"), True),)
 
     def __repr__(self):
-        return f"DiscModel({self.id} - {self.title=})"
+        return f"DiscModel({self.id} - {self.order=}:{self.title=})"
 
     def __str__(self):
-        return f"DiscModel({self.id} - {self.title=})"
+        return f"DiscModel({self.id} - {self.order=}:{self.title=})"
 
 
 class Channel(BaseModel):

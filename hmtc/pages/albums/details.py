@@ -123,15 +123,25 @@ def AlbumCard(album, refresh_counter):
         logger.debug(f"Resetting the disc numbers")
         album.reset_disc_numbers()
         refresh_counter.set(refresh_counter.value + 1)
-    
-    def reorder_discs():
-        logger.debug(f"Reordering the discs by upload date")
-        album.reorder_discs_by_upload_date()
+
+    def delete_discs():
+
+        logger.debug(f"Deleting {album.instance.title}'s Discs")
+        album.delete_discs()
         refresh_counter.set(refresh_counter.value + 1)
+
     with solara.Row(justify="center"):
         solara.Markdown(f"### {album.instance.title}")
-        solara.Button(f"Reset Disc Numbers", on_click=reset_disc_numbers, classes=["button"])
-        solara.Button(f"Reorder Discs", on_click=reorder_discs, classes=["button"])
+        solara.Button(
+            f"Reset Disc Numbers", on_click=reset_disc_numbers, classes=["button"]
+        )
+        solara.Button(
+            f"Delete All Discs",
+            icon_name="mdi-delete",
+            on_click=delete_discs,
+            classes=["button mywarning"],
+        )
+
 
 @solara.component
 def AlbumDiscs(query, current_page, num_pages, num_items, refresh_counter):
@@ -162,10 +172,10 @@ def Page():
         page=current_page.value,
         per_page=per_page,
     )
-    
+
     if current_page.value > num_pages:
         # if the query is updated and the 'current
-        # page' is no longer valid, move to the 
+        # page' is no longer valid, move to the
         # last page
         current_page.set(num_pages)
 
