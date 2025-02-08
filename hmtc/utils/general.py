@@ -1,5 +1,6 @@
 import csv
 import json
+import math
 import os
 import re
 import shutil
@@ -257,5 +258,5 @@ def get_file_type(file: str, override=None):
 
 def paginate(query, page, per_page):
     num_items = query.count()
-    num_pages = num_items // per_page
+    num_pages = math.ceil(num_items / per_page)
     return query.paginate(page, per_page), num_items, num_pages

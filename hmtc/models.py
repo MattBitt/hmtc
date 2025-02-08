@@ -112,6 +112,7 @@ class Album(BaseModel):
 
 class Disc(BaseModel):
     title = CharField()
+    folder_name = CharField(null=True)  # likely Disk 1/2/3...
     order = IntegerField()  # disc order on the album
 
     album = ForeignKeyField(Album, backref="discs", on_delete="CASCADE")

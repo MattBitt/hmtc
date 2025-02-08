@@ -2,14 +2,24 @@ from typing import Any, Dict
 
 from loguru import logger
 
+from hmtc.config import init_config
+from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
+from hmtc.domains.disc import Disc
 from hmtc.models import Album as AlbumModel
-from hmtc.models import AlbumFiles
+from hmtc.models import AlbumFiles, db_null
 from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.album_repo import AlbumRepo
 from hmtc.repos.file_repo import FileRepo
+
+config = init_config()
+db_instance = init_db(db_null, config)
+
+# using this for swapping the order
+# im sure there's a better way...
+MAX_DISCS = 5000
 
 
 class Album(BaseDomain):
@@ -59,3 +69,58 @@ class Album(BaseDomain):
             .where(DiscModel.album_id == self.instance.id)
         )
         return base_query
+
+    def get_disc_before(self, order):
+        return (
+            DiscModel.select(DiscModel.id, DiscModel.order)
+            .where((DiscModel.album_id == self.instance.id) & (DiscModel.order < order))
+            .order_by(DiscModel.order.desc())
+            .get_or_none()
+        )
+
+    def get_disc_after(self, order):
+        return (
+            DiscModel.select(DiscModel.id, DiscModel.order)
+            .where((DiscModel.album_id == self.instance.id) & (DiscModel.order > order))
+            .order_by(DiscModel.order.asc())
+            .get_or_none()
+        )
+
+    def move_disc_up(self, disc: Disc):
+
+        order_a = disc.instance.order
+        disc_b = self.get_disc_before(order_a)
+        if disc_b is None:
+            logger.error(f"No Disc found before this one {disc.instance}")
+            return
+        disc_b = Disc(disc_b)
+        order_b = disc_b.instance.order
+        with db_instance.atomic():
+            DiscModel.update(order=MAX_DISCS).where(
+                DiscModel.id == disc.instance.id
+            ).execute()
+            DiscModel.update(order=order_a).where(
+                DiscModel.id == disc_b.instance.id
+            ).execute()
+            DiscModel.update(order=order_b).where(
+                DiscModel.id == disc.instance.id
+            ).execute()
+
+    def move_disc_down(self, disc):
+        order_a = disc.instance.order
+        disc_b = self.get_disc_after(order_a)
+        if disc_b is None:
+            logger.error(f"No Disc found after this one {disc.instance}")
+            return
+        disc_b = Disc(disc_b)
+        order_b = disc_b.instance.order
+        with db_instance.atomic():
+            DiscModel.update(order=MAX_DISCS).where(
+                DiscModel.id == disc.instance.id
+            ).execute()
+            DiscModel.update(order=order_a).where(
+                DiscModel.id == disc_b.instance.id
+            ).execute()
+            DiscModel.update(order=order_b).where(
+                DiscModel.id == disc.instance.id
+            ).execute()

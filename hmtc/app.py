@@ -20,7 +20,10 @@ from hmtc.models import db_null
 from hmtc.utils.db_migrator import run_migrations
 from hmtc.utils.general import check_folder_exist_and_writable
 from hmtc.utils.importer.existing_files import import_existing_video_files_to_db
-from hmtc.utils.importer.seed_database import seed_database_from_json
+from hmtc.utils.importer.seed_database import (
+    rename_vids_for_albums,
+    seed_database_from_json,
+)
 from hmtc.utils.my_logging import setup_logging
 
 
@@ -56,6 +59,7 @@ def main(config):
         run_migrations(db_instance)
         seed_database_from_json(db_instance)
         import_existing_video_files_to_db(_STORAGE)
+        rename_vids_for_albums(db_instance)
 
     else:
         create_tables(db_instance)

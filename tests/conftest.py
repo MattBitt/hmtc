@@ -27,8 +27,6 @@ from hmtc.domains import (
 )
 from hmtc.models import db_null
 from hmtc.utils.db_migrator import run_migrations
-from hmtc.utils.general import copy_tree, remove_tree
-from hmtc.utils.importer.seed_database import seed_database_from_json
 from hmtc.utils.my_logging import setup_logging
 
 config = init_config()

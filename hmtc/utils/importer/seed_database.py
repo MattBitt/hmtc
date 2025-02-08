@@ -8,11 +8,27 @@ from loguru import logger
 from hmtc.config import init_config
 from hmtc.db import create_tables, drop_all_tables, init_db
 from hmtc.domains import Album, Series, User, YoutubeSeries
+from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 
 config = init_config()
 
 STORAGE = config["STORAGE"]
+
+
+def rename_vids_for_albums(db_instance):
+    vids = VideoModel.select()
+    if len(vids) < 4:
+        logger.error("Not enough videos")
+        return
+    for i, vid in enumerate(vids[:-2]):
+        vid.title = f"Omegle Bars {i}"
+        vid.unique_content = True
+        vid.save()
+    for i, vid in enumerate(vids[-2:]):
+        vid.title = f"Guerilla Bars {i}"
+        vid.unique_content = True
+        vid.save()
 
 
 def seed_database_from_json(db_instance):
@@ -33,9 +49,6 @@ def seed_database_from_json(db_instance):
 
     for user in data["User"]:
         User.create(user)
-
-    # for artist in data["Artist"]:
-    #     Artist.create(artist)
 
     logger.success("Database seeded from seed_data.json")
 
