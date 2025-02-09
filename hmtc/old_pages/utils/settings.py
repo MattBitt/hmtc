@@ -103,7 +103,7 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
 
-def add_vids_to_album(search_string, channel_vids, compilation=False):
+def add_vids_to_album(search_string, channel_vids, existing_disc=None):
     this_album = (
         AlbumModel.select().where(AlbumModel.title == search_string).get_or_none()
     )
@@ -114,21 +114,8 @@ def add_vids_to_album(search_string, channel_vids, compilation=False):
 
     logger.debug(f"{search_string} Vids #: {len(these_vids)}")
     _album = Album(this_album)
-    if compilation:
-        comp_disc = (
-            DiscModel.select()
-            .where((DiscModel.order == 0) & (DiscModel.album_id == _album.instance.id))
-            .get_or_none()
-        )
-        if comp_disc is None:
-            comp_disc = DiscModel.create(
-                **{
-                    "title": "Disc 0",
-                    "order": 0,
-                    "folder_name": "Disc 0",
-                    "album_id": _album.instance.id,
-                }
-            )
+    if existing_disc is not None:
+        comp_disc = existing_disc
     else:
         comp_disc = None
 
@@ -164,7 +151,7 @@ def assign_albums():
             VideoModel.channel_id == main_channel.id
         ).order_by(VideoModel.upload_date)
 
-        add_vids_to_album("Omegle Bars", main_channel_vids)
+        add_vids_to_album("Omegle Bars", main_channel_vids, existing_disc=None)
         add_vids_to_album("Guerrilla Bars", main_channel_vids)
         add_vids_to_album("Flow State", main_channel_vids)
         add_vids_to_album("Stream of Consciousness", main_channel_vids)
@@ -181,8 +168,8 @@ def assign_albums():
             VideoModel.channel_id == clips_channel.id
         )
         logger.debug(f"Clips Channel Vids #: {len(clip_channel_vids)}")
-        add_vids_to_album("Omegle Bars", clip_channel_vids, compilation=True)
-        add_vids_to_album("Guerrilla Bars", clip_channel_vids, compilation=True)
+        add_vids_to_album("Omegle Bars", clip_channel_vids, existing_disc=None)
+        add_vids_to_album("Guerrilla Bars", clip_channel_vids, existing_disc=None)
         # these will all be on the same disk
         # ex omegle bar exclusives will all be on 1 'disk'
     if uc_health_channel:

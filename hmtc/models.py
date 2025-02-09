@@ -181,7 +181,7 @@ class DiscVideo(BaseModel):
     order = IntegerField()  # video order on disc
 
     class Meta:
-        indexes = ((("video", "disc", "order"), True),)
+        indexes = ((("disc", "order"), True),)
 
 
 class YoutubeSeriesVideo(BaseModel):
