@@ -9,9 +9,13 @@ from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
 from hmtc.utils.general import paginate
 
+refresh_counter = solara.reactive(1)
+
 
 @solara.component
-def SecondRow(video: Video, refresh_counter):
+def SecondRow(
+    video: Video,
+):
     error = solara.use_reactive("")
     success = solara.use_reactive("")
     unique = solara.use_reactive(video.instance.unique_content)
@@ -125,11 +129,11 @@ def MainRow(video: Video):
 
 
 @solara.component
-def VideoEditor(refresh_counter):
+def VideoEditor():
     current_page = solara.use_reactive(1)
     vids_with_album = DiscVideoModel.select(DiscVideoModel.video_id).distinct()
     page_query = VideoModel.select(VideoModel).where(
-        (VideoModel.id.not_in(vids_with_album))
+        (VideoModel.id.not_in(vids_with_album) & (VideoModel.unique_content == False))
     )
 
     if len(page_query) == 0:
@@ -150,7 +154,7 @@ def VideoEditor(refresh_counter):
     with solara.Row(justify="center"):
         MainRow(video)
     with solara.Row(justify="center"):
-        SecondRow(video, refresh_counter)
+        SecondRow(video)
     with solara.Row(justify="center"):
         PaginationControls(
             current_page=current_page, num_pages=num_pages, num_items=num_items
@@ -159,9 +163,7 @@ def VideoEditor(refresh_counter):
 
 @solara.component
 def Page():
-    solara.Markdown(f"Video Editor")
-    refresh_counter = solara.use_reactive(1)
 
     with solara.Column(classes=["main-container"]):
-        if refresh_counter.value > 0:
-            VideoEditor(refresh_counter)
+        # if refresh_counter.value > 0:
+        VideoEditor()

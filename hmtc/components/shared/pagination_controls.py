@@ -3,6 +3,9 @@ import solara
 
 @solara.component
 def PaginationControls(current_page, num_pages, num_items):
+    def first():
+        current_page.set(1)
+
     def previous():
         if current_page.value > 1:
             current_page.set(current_page.value - 1)
@@ -13,9 +16,6 @@ def PaginationControls(current_page, num_pages, num_items):
 
     def last():
         current_page.set(num_pages)
-
-    def first():
-        current_page.set(1)
 
     with solara.Row(justify="space-between"):
         solara.Button(

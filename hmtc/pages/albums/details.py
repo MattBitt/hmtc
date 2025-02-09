@@ -76,6 +76,8 @@ def DiscCard(disc, refresh_counter):
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title}"
         disc_editor = {"display": "none"}
+        # delete the following once it works
+        disc_editor = {}
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
         disc_editor = {}
