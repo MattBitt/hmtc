@@ -66,7 +66,7 @@ def SubtitlesCard(time_cursor, subtitles):
         searching.set(False)
 
     closest = find_closest_caption(time_cursor / 1000, captions)
-    if "captions" not in closest.keys() or closest["captions"] == None:
+    if closest is None:
         logger.error(f"Captions not found in {closest}")
         return
 
