@@ -74,3 +74,7 @@ class Video(BaseDomain):
             .where(VideoModel.unique_content == True)
             .scalar()
         )
+
+    def delete_file(self, filetype) -> Path | None:
+        _file = self.file_repo.delete(item_id=self.instance.id, filetype=filetype)
+        logger.success(f"{_file} deleted")

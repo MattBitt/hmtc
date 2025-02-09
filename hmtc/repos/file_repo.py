@@ -293,6 +293,34 @@ class FileRepo:
             if file["filetype"] == filetype:
                 return file["file"]
 
+    def delete(self, item_id: int, filetype: str):
+        files = self.my_files(item_id)
+        for file in files:
+            if file["filetype"] == filetype:
+                mkv_file = file["file"]
+                path = Path(mkv_file.path)
+                if not path.exists():
+                    logger.error(f"File doesn't exist!")
+                    return
+
+                item_file_row = (
+                    self.model.select()
+                    .where((self.model.item_id == item_id))
+                    .get_or_none()
+                )
+
+                if filetype == "video":
+                    logger.debug(f"Found {filetype} file. Deleting")
+                    file_id = item_file_row.video.id
+                    item_file_row.video = None
+                    item_file_row.save()
+
+                    res2 = VideoFile.select().where(VideoFile.id == file_id).get()
+                    res2.delete_instance()
+
+                logger.success(f"Deleted {filetype} {file} successfully.")
+                path.unlink()
+
     def delete_files(self, item_id):
         # this function is incomplete (at best)
         # only mentioned info files, but don't think i tested

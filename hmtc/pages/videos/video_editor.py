@@ -15,6 +15,7 @@ def SecondRow(video: Video, refresh_counter):
     error = solara.use_reactive("")
     success = solara.use_reactive("")
     unique = solara.use_reactive(video.instance.unique_content)
+
     def assign_album(title):
         album = Album.get_by(title=title)
         if album is None:
@@ -30,9 +31,11 @@ def SecondRow(video: Video, refresh_counter):
         video.instance.save()
         unique.set(new_unique)
         refresh_counter.set(refresh_counter.value + 1)
-    
+
     def delete_video_file():
         logger.error(f"Deleting video_file for {video.instance.title}")
+        video.delete_file("video")
+        refresh_counter.set(refresh_counter.value + 1)
 
     with solara.Columns([8, 4]):
         with solara.Card("Album"):
@@ -84,13 +87,19 @@ def SecondRow(video: Video, refresh_counter):
                         f"Clear", on_click=lambda: success.set(""), classes=["button"]
                     )
         with solara.Card("Other"):
-            
+
             with solara.ColumnsResponsive():
                 solara.Button(
-                    f"Unique: {str(unique.value)}", on_click=toggle_unique, classes=["button"]
+                    f"Unique: {str(unique.value)}",
+                    on_click=toggle_unique,
+                    classes=["button"],
                 )
                 solara.Button(
-                    f"Delete Video File", icon_name="mdi-delete", on_click=delete_video_file, classes=["button mywarning"], disabled=video.video_file() is None
+                    f"Delete Video File",
+                    icon_name="mdi-delete",
+                    on_click=delete_video_file,
+                    classes=["button mywarning"],
+                    disabled=video.video_file() is None,
                 )
 
 
