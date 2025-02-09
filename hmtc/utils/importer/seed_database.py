@@ -17,7 +17,7 @@ STORAGE = config["STORAGE"]
 
 
 def rename_vids_for_albums(db_instance):
-    vids = VideoModel.select().order_by(VideoModel.upload_date.desc())
+    vids = VideoModel.select().order_by(VideoModel.upload_date.asc())
     if len(vids) < 4:
         logger.error("Not enough videos")
         return
