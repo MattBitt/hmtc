@@ -61,7 +61,10 @@ class Album(BaseDomain):
         if last_disc is None:
             last_disc = 1
         if existing_disc is not None:
-            DiscVideoModel.create(video=video, disc=existing_disc, order=last_disc + 1)
+            new_dv = DiscVideoModel.create(
+                video=video, disc=existing_disc, order=last_disc + 1
+            )
+            logger.success(f"Created disc video: {new_dv}")
         else:
             disc = DiscModel.create(
                 title=f"Disc {last_disc+1}",
@@ -147,7 +150,7 @@ class Album(BaseDomain):
     def reset_disc_numbers(self):
         discs = (
             DiscModel.select(DiscModel.id, DiscModel.order)
-            .where(DiscModel.album_id == self.instance.id)
+            .where((DiscModel.album_id == self.instance.id) & (DiscModel.order != 0))
             .order_by(DiscModel.order.asc())
         )
         # actual_disc_orders = [x.order for x in discs]

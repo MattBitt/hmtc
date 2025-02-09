@@ -66,6 +66,10 @@ def SubtitlesCard(time_cursor, subtitles):
         searching.set(False)
 
     closest = find_closest_caption(time_cursor / 1000, captions)
+    if "captions" not in closest.keys() or closest["captions"] == None:
+        logger.error(f"Captions not found in {closest}")
+        return
+
     for index, caption in enumerate(closest["captions"]):
         if index == closest["highlight_index"]:
             _classes = ["info--text"]

@@ -17,16 +17,19 @@ STORAGE = config["STORAGE"]
 
 
 def rename_vids_for_albums(db_instance):
-    vids = VideoModel.select()
+    vids = VideoModel.select().order_by(VideoModel.upload_date.desc())
     if len(vids) < 4:
         logger.error("Not enough videos")
         return
-    for i, vid in enumerate(vids[:-2]):
+    for i, vid in enumerate(vids[:4]):
         vid.title = f"Omegle Bars {i}"
         vid.unique_content = True
         vid.save()
-    for i, vid in enumerate(vids[-2:]):
+    for i, vid in enumerate(vids[4:7:]):
         vid.title = f"Guerrilla Bars {i}"
+        vid.unique_content = True
+        vid.save()
+    for vid in vids[7:]:
         vid.unique_content = True
         vid.save()
 

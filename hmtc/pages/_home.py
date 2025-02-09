@@ -15,9 +15,11 @@ from hmtc.domains.user import User
 from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.old_pages.dashboards.files import Page as FilesDashboard
 from hmtc.old_pages.tables.albums import Page as AlbumsPage
+from hmtc.old_pages.tables.discs import Page as DiscsPage
 from hmtc.old_pages.tables.videos import VideosPage
 from hmtc.old_pages.utils.settings import Page as SettingsPage
 from hmtc.pages.albums.details import Page as AlbumDetails
+from hmtc.pages.discs.details import Page as DiscDetails
 from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.pages.videos.video_details import Page as VideoDetails
@@ -227,6 +229,21 @@ routes = [
                         path="details",
                         component=AlbumDetails,
                         label="Album Details",
+                    ),
+                ],
+            ),
+            solara.Route(
+                path="discs",
+                children=[
+                    solara.Route(
+                        path="/",
+                        component=DiscsPage,
+                        label="Disc Index",
+                    ),
+                    solara.Route(
+                        path="details",
+                        component=DiscDetails,
+                        label="Disc Details",
                     ),
                 ],
             ),

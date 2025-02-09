@@ -1,5 +1,6 @@
 import solara
 from loguru import logger
+from peewee import fn
 
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
@@ -60,61 +61,57 @@ def DiscCard(disc, refresh_counter):
         disc.delete()
         refresh_counter.set(refresh_counter.value + 1)
 
-    num_videos_on_disc = (
-        DiscVideoModel.select()
-        .where(DiscVideoModel.disc_id == disc.instance.id)
-        .count()
-    )
-    if num_videos_on_disc == 1:
-        SingleVideoDiscCard(disc, move_up, move_down, remove_video)
-    else:
-        MultiVideoDiscCard(disc, move_up, move_down, remove_video)
-
-
-@solara.component
-def SingleVideoDiscCard(disc, move_up, move_down, remove_video):
     dv = (
         DiscVideoModel.select()
         .where(DiscVideoModel.disc_id == disc.instance.id)
         .first()
     )
-    with solara.Card(f"{disc.instance.order} - {dv.video.title}"):
-        solara.Text(f"folder: {disc.instance.folder_name}")
 
-        with solara.Columns():
+    num_videos_on_disc = (
+        DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
+        .where(DiscVideoModel.disc_id == disc.instance.id)
+        .scalar()
+    )
+
+    if num_videos_on_disc == 1:
+        card_title = f"{disc.instance.order} - {dv.video.title}"
+        disc_editor = {"display": "none"}
+    else:
+        card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
+        disc_editor = {}
+
+    with solara.Card(f"{card_title}"):
+        solara.Text(f"{disc.instance.folder_name}")
+        with solara.Columns([6, 6]):
             with solara.Row():
                 solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
 
             with solara.Row():
-                solara.Button(
-                    "Delete Disc",
-                    on_click=remove_video,
-                    classes=["button mywarning"],
-                    icon_name="mdi-delete",
-                )
+                with solara.Column():
+                    solara.Button(
+                        "Delete Disc",
+                        on_click=remove_video,
+                        classes=["button mywarning"],
+                        icon_name="mdi-delete",
+                    )
                 with solara.Column():
                     solara.Button(
                         "Move Up",
                         on_click=move_up,
                         classes=["button"],
-                        disabled=dv.disc.order == 1,
+                        disabled=disc.instance.order <= 1,
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
                         classes=["button"],
-                        disabled=False,
+                        disabled=disc.instance.order == 0,
                     )
-
-
-@solara.component
-def MultiVideoDiscCard(disc, move_up, move_down, remove_video):
-    num_vids = 0
-    with solara.Card(f"{disc.title} ({num_vids} Videos)"):
-        disc_videos = DiscVideoModel.select().where(DiscVideoModel.disc_id == disc.id)
-        for dv in disc_videos:
-            solara.Text(f"Order: {dv.disc.order}\n")
-            solara.Text(f"{dv.video.title}")
+                with solara.Column():
+                    with solara.Link(f"/api/discs/details/{disc.instance.id}"):
+                        solara.Button(
+                            "Edit Disc", classes=["button"], style=disc_editor
+                        )
 
 
 @solara.component
@@ -125,26 +122,26 @@ def AlbumCard(album, refresh_counter):
         refresh_counter.set(refresh_counter.value + 1)
 
     def delete_discs():
-
         logger.debug(f"Deleting {album.instance.title}'s Discs")
         album.delete_discs()
         refresh_counter.set(refresh_counter.value + 1)
 
-    with solara.Row(justify="center"):
-        solara.Markdown(f"### {album.instance.title}")
-        solara.Button(
-            f"Reset Disc Numbers", on_click=reset_disc_numbers, classes=["button"]
-        )
+    with solara.Row(justify="space-around"):
         solara.Button(
             f"Delete All Discs",
             icon_name="mdi-delete",
             on_click=delete_discs,
             classes=["button mywarning"],
         )
+        solara.Markdown(f"# {album.instance.title}")
+        solara.Button(
+            f"Reset Disc Numbers", on_click=reset_disc_numbers, classes=["button"]
+        )
 
 
 @solara.component
 def AlbumDiscs(query, current_page, num_pages, num_items, refresh_counter):
+
     PaginationControls(
         current_page=current_page, num_pages=num_pages, num_items=num_items
     )
@@ -185,5 +182,5 @@ def Page():
             solara.Info(f"No Videos added to this album")
             return
         if refresh_counter.value > 0:
-            AlbumCard(_album, refresh_counter)
             AlbumDiscs(_query, current_page, num_pages, num_items, refresh_counter)
+            AlbumCard(_album, refresh_counter)

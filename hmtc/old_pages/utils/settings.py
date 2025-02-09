@@ -11,6 +11,7 @@ from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Channel as ChannelModel
+from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
 from hmtc.models import SubtitleFile as SubtitleFileModel
@@ -102,7 +103,7 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
 
-def add_vids_to_album(search_string, channel_vids):
+def add_vids_to_album(search_string, channel_vids, compilation=False):
     this_album = (
         AlbumModel.select().where(AlbumModel.title == search_string).get_or_none()
     )
@@ -112,10 +113,28 @@ def add_vids_to_album(search_string, channel_vids):
     these_vids = channel_vids.where(VideoModel.title.contains(search_string))
 
     logger.debug(f"{search_string} Vids #: {len(these_vids)}")
+    _album = Album(this_album)
+    if compilation:
+        comp_disc = (
+            DiscModel.select()
+            .where((DiscModel.order == 0) & (DiscModel.album_id == _album.instance.id))
+            .get_or_none()
+        )
+        if comp_disc is None:
+            comp_disc = DiscModel.create(
+                **{
+                    "title": "Disc 0",
+                    "order": 0,
+                    "folder_name": "Disc 0",
+                    "album_id": _album.instance.id,
+                }
+            )
+    else:
+        comp_disc = None
+
     for vid in these_vids:
         logger.debug(f"Added {vid} to {this_album}")
-        _album = Album(this_album)
-        _album.add_video(vid)
+        _album.add_video(vid, existing_disc=comp_disc)
 
 
 def assign_albums():
@@ -159,6 +178,8 @@ def assign_albums():
             VideoModel.channel_id == clips_channel.id
         )
         logger.debug(f"Clips Channel Vids #: {len(clip_channel_vids)}")
+        add_vids_to_album("Omegle Bars", clip_channel_vids, compilation=True)
+        add_vids_to_album("Guerrilla Bars", clip_channel_vids, compilation=True)
         # these will all be on the same disk
         # ex omegle bar exclusives will all be on 1 'disk'
 
