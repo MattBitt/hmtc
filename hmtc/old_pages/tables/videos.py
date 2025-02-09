@@ -95,11 +95,11 @@ def VideosPage():
     args = parse_url_args()
 
     headers = [
-        {"text": "ID", "value": "id", "sortable": True, "align": "right"},
+        # {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
-        {"text": "Title", "value": "title"},
-        {"text": "Album", "value": "album_title", "sortable": False},
-        {"text": "Channel", "value": "channel_title", "sortable": False},
+        {"text": "Title", "value": "title", "width": "30%"},
+        # {"text": "Album", "value": "album_title", "sortable": False},
+        # {"text": "Channel", "value": "channel_title", "sortable": False},
         {"text": "Duration", "value": "duration", "sortable": True},
     ]
 
@@ -139,7 +139,7 @@ def VideosPage():
         base_query = base_query.where(VideoModel.channel_id == channel.instance.id)
 
     headers += [
-        {"text": "Files", "value": "file_count", "sortable": False},
+        # {"text": "Files", "value": "file_count", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
 

@@ -218,6 +218,8 @@ def SectionsControls():
                     on_click=refresh_from_youtube,
                     classes=["button"],
                 )
+                with solara.Link(f"/api/videos/editor"):
+                    solara.Button("Video Item Editor", classes=["button"])
         with solara.Card("Sections"):
             with solara.Column():
                 solara.Text(f"These controls are for creating the")
