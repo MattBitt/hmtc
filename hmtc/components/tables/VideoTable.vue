@@ -9,19 +9,14 @@
           <v-toolbar-title>Edit Video {{ currentItem.id }}</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-toolbar-items>
-            <v-btn dark text :disabled="!valid" @click="saveItemToDB">
-              Save
-            </v-btn>
+            <v-btn dark text :disabled="!valid" @click="saveItemToDB"> Save </v-btn>
           </v-toolbar-items>
         </v-toolbar>
         <v-card-text>
           <v-container>
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="currentItem.title"
-                  label="Title"
-                ></v-text-field>
+                <v-text-field v-model="currentItem.title" label="Title"></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">
                 <v-text-field
@@ -82,9 +77,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-          <v-btn class="button mywarning" outlined @click="deleteItemConfirm"
-            >OK</v-btn
-          >
+          <v-btn class="button mywarning" outlined @click="deleteItemConfirm">OK</v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
@@ -172,11 +165,7 @@
           </v-chip>
         </div>
         <div v-else>
-          <span
-            v-if="
-              item.section_info.section_count == item.section_info.track_count
-            "
-          >
+          <span v-if="item.section_info.section_count == item.section_info.track_count">
             <v-chip color="success">
               <v-icon>mdi-check</v-icon>
             </v-chip>
@@ -203,9 +192,7 @@
         </div>
       </template>
       <template v-slot:item.contains_unique_content="{ item }">
-        <v-simple-checkbox
-          v-model="item.contains_unique_content"
-        ></v-simple-checkbox>
+        <v-simple-checkbox v-model="item.contains_unique_content"></v-simple-checkbox>
       </template>
       <template v-slot:item.superchats="{ item }">
         <a :href="'/superchats/' + item.id">
@@ -224,9 +211,6 @@
         <v-icon x-large color="primary" class="mb-4" @click="action1(item)">
           {{ action1_icon }}
         </v-icon>
-        <a :href="'/domains/superchat-control-panel/' + item.id">
-          <v-icon x-large color="primary" class="mb-4"> mdi-comment </v-icon></a
-        >
       </template>
     </v-data-table>
   </div>

@@ -140,7 +140,7 @@ def VideosPage():
 
     headers += [
         # {"text": "Files", "value": "file_count", "sortable": False},
-        {"text": "Actions", "value": "actions", "sortable": False},
+        {"text": "Actions", "value": "actions", "sortable": False, "align": "end"},
     ]
 
     search_fields = [VideoModel.youtube_id, VideoModel.title]

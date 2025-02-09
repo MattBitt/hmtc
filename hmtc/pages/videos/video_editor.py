@@ -111,7 +111,7 @@ def VideoEditor(refresh_counter):
     current_page = solara.use_reactive(1)
     vids_with_album = DiscVideoModel.select(DiscVideoModel.video_id).distinct()
     page_query = VideoModel.select(VideoModel).where(
-        (VideoModel.id.not_in(vids_with_album)) & VideoModel.unique_content == True
+        (VideoModel.id.not_in(vids_with_album))
     )
 
     if len(page_query) == 0:

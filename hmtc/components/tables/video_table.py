@@ -29,13 +29,16 @@ def _VideoTable(
 
 
 @solara.component
-def VideoTable(router, headers, base_query, search_fields):
+def VideoTable(router, headers, base_query, search_fields, sorted_dict={}):
+
     item_info = {
         "model": VideoModel,
         "vue_component": _VideoTable,
         "action1_path": "/api/videos/details",
         "action1_icon": "mdi-rhombus-split",
     }
+    if sorted_dict != {}:
+        item_info |= sorted_dict
     DataTable(
         router=router,
         base_query=base_query,

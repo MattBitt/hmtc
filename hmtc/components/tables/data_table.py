@@ -19,6 +19,7 @@ def DataTable(
     action2_icon="",
 ):
     current_page = solara.use_reactive(1)
+
     current_sort_field = solara.use_reactive("id")
     current_sort_direction = solara.use_reactive("asc")
     per_page = solara.use_reactive(12)
@@ -47,13 +48,16 @@ def DataTable(
         page = args[0]["page"]
         if page != current_page.value:
             current_page.set(page)
+
         if args[0]["sortBy"] != [] and (args[0]["sortBy"] != current_sort_field.value):
             current_sort_field.set(args[0]["sortBy"][0])
+
         if args[0]["sortDesc"] != []:
             if args[0]["sortDesc"][0] == True:
                 current_sort_direction.set("desc")
             else:
                 current_sort_direction.set("asc")
+
         loading.set(False)
 
     def save_item(*args):
