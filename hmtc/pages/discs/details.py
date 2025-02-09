@@ -130,9 +130,10 @@ def MainRow(disc: Disc):
 @solara.component
 def DiscEditor(disc: Disc):
     current_page = solara.use_reactive(1)
-    disc_vids = [
-        x.video_id for x in DiscVideoModel.select(DiscVideoModel.video_id).distinct()
-    ]
+    disc_vids = DiscVideoModel.select(DiscVideoModel.video_id).where(
+        DiscVideoModel.disc_id == disc.instance.id
+    )
+
     page_query = VideoModel.select().where(VideoModel.id.in_(disc_vids))
     if len(page_query) == 0:
         solara.Warning(f"No Discs Found meeting these criteria.")
