@@ -186,7 +186,9 @@ def assign_albums():
         # these will all be on the same disk
         # ex omegle bar exclusives will all be on 1 'disk'
     if uc_health_channel:
-        uch_vids = vids_with_no_album.where(VideoModel.channel_id == clips_channel.id)
+        uch_vids = vids_with_no_album.where(
+            VideoModel.channel_id == uc_health_channel.id
+        )
         add_vids_to_album("UCHealth", uch_vids)
 
 
