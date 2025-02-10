@@ -46,7 +46,7 @@ def SecondRow(
         # since this is a single video disc
         # i should delete the disc
 
-        disc.delete()
+        logger.debug(f"Removing this video from this Disc")
         refresh_counter.set(refresh_counter.value + 1)
 
     num_videos_on_disc = (

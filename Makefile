@@ -17,6 +17,8 @@ deploy:
 	git push
 	ssh root@192.168.0.202 /mnt/user/data/appdata/hmtc_app_code/deploy.sh
 	python hmtc/utils/version_manager.py
+prodrestart:
+	ssh root@192.168.0.202 /mnt/user/data/appdata/hmtc_app_code/deploy.sh
 
 cleanup:
 	ruff check --config hmtc/config/ruff.toml --select I . --fix

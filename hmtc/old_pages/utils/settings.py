@@ -150,7 +150,18 @@ def assign_albums():
     )
     if omegle_album is not None:
         omegle_disc, created = DiscModel.get_or_create(
-            title="Exclusive", folder_name="Disc 0", order=0, album_id=omegle_album.id
+            title="Omegle Bars", folder_name="Disc 0", order=0, album_id=omegle_album.id
+        )
+
+    guerr_album = (
+        AlbumModel.select().where(AlbumModel.title == "Guerrilla Bars").get_or_none()
+    )
+    if guerr_album is not None:
+        guerr_disc, created = DiscModel.get_or_create(
+            title="Guerrilla Bars",
+            folder_name="Disc 0",
+            order=0,
+            album_id=guerr_album.id,
         )
 
     if main_channel:
@@ -176,11 +187,15 @@ def assign_albums():
         clip_channel_vids = vids_with_no_album.where(
             VideoModel.channel_id == clips_channel.id
         )
-        logger.debug(f"Clips Channel Vids #: {len(clip_channel_vids)}")
-        add_vids_to_album("Omegle Bars", clip_channel_vids, existing_disc=None)
-        add_vids_to_album("Guerrilla Bars", clip_channel_vids, existing_disc=None)
-        # these will all be on the same disk
-        # ex omegle bar exclusives will all be on 1 'disk'
+        if omegle_album:
+            add_vids_to_album(
+                "Omegle Bars", clip_channel_vids, existing_disc=omegle_disc
+            )
+        if guerr_album:
+            add_vids_to_album(
+                "Guerrilla Bars", clip_channel_vids, existing_disc=guerr_disc
+            )
+
     if uc_health_channel:
         uch_vids = vids_with_no_album.where(
             VideoModel.channel_id == uc_health_channel.id
