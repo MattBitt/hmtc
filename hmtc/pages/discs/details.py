@@ -3,6 +3,7 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.components.sectionalizer.main import VideoFrame
+from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
@@ -40,10 +41,8 @@ def VideoCard(
         refresh_counter.set(refresh_counter.value + 1)
 
     def remove_video():
-        # since this is a single video disc
-        # i should delete the disc
 
-        logger.debug(f"Removing this video from this Disc")
+        disc.remove_video(video)
         refresh_counter.set(refresh_counter.value + 1)
 
     num_videos_on_disc = (
@@ -68,14 +67,14 @@ def VideoCard(
         card_title = f"Video {order}: {disc.instance.title}"
 
     with solara.Card(title=f"{card_title}", subtitle=f"{disc.instance.folder_name}"):
-        with solara.Columns([6, 6]):
+        with solara.Columns([4, 8]):
             with solara.Row():
                 solara.Image(video.poster(thumbnail=True), width="150px")
 
             with solara.Row():
                 with solara.Column():
                     solara.Button(
-                        "Delete Disc",
+                        "Remove Video",
                         on_click=remove_video,
                         classes=["button mywarning"],
                         icon_name="mdi-delete",
@@ -84,18 +83,22 @@ def VideoCard(
                     solara.Button(
                         "Move Up",
                         on_click=move_up,
+                        icon_name="mdi-arrow-up-box",
                         classes=["button"],
                         disabled=order == 1,
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
+                        icon_name="mdi-arrow-down-box",
                         classes=["button"],
                         disabled=order == num_videos_on_disc,
                     )
                 with solara.Column():
                     with solara.Link(f"/api/videos/details/{video.instance.id}"):
-                        solara.Button("Edit Videos", classes=["button"])
+                        solara.Button(
+                            "Details", icon_name="mdi-rhombus-split", classes=["button"]
+                        )
 
 
 @solara.component
@@ -105,12 +108,7 @@ def MainRow(disc: Disc):
             solara.Error("Instance is None...")
             return
 
-    num_videos_on_disc = (
-        DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
-        .where(DiscVideoModel.disc_id == disc.instance.id)
-        .scalar()
-    )
-
+    num_videos_on_disc = disc.num_videos_on_disc()
     with solara.Card():
         with solara.Row(justify="center"):
             solara.Markdown(
@@ -125,7 +123,7 @@ def DiscEditor(disc: Disc):
     disc_vids, num_items, num_pages = disc.videos_paginated(current_page, per_page=3)
 
     if len(disc_vids) == 0:
-        solara.Warning(f"No Discs Found meeting these criteria.")
+        solara.Warning(f"No Videos found for {disc}")
         return
 
     if current_page.value > num_pages:

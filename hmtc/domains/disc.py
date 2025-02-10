@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from loguru import logger
+from peewee import fn
 
 from hmtc.config import init_config
 from hmtc.db import init_db
@@ -28,6 +29,13 @@ class Disc(BaseDomain):
             "album_id": self.instance.album_id,
         }
 
+    def num_videos_on_disc(self):
+        (
+            DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
+            .where(DiscVideoModel.disc_id == self.instance.id)
+            .scalar()
+        )
+
     def videos_paginated(self, current_page, per_page):
         disc_vids = (
             VideoModel.select()
@@ -41,8 +49,9 @@ class Disc(BaseDomain):
             )
             .order_by(DiscVideoModel.order.asc())
         )
+        p = paginate(query=disc_vids, page=current_page.value, per_page=per_page)
 
-        return paginate(query=disc_vids, page=current_page.value, per_page=per_page)
+        return p
 
     def swap_video_order(self, disc_vid_a: DiscVideoModel, disc_vid_b: DiscVideoModel):
         orig_a = disc_vid_a.order
@@ -107,3 +116,18 @@ class Disc(BaseDomain):
 
         logger.debug(f"swapping {disc_vid.order} and {target.order}")
         self.swap_video_order(disc_vid, target)
+
+    def remove_video(self, video: Video):
+        disc_vid = (
+            DiscVideoModel.select()
+            .where(
+                (DiscVideoModel.disc_id == self.instance.id)
+                & (DiscVideoModel.video_id == video.instance.id)
+            )
+            .get_or_none()
+        )
+        if disc_vid is None:
+            logger.error(f"Disc Video not found.")
+            return
+        disc_vid.delete_instance()
+        logger.success(f"Video {video} removed from Disc {self}")

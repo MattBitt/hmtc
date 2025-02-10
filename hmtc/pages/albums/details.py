@@ -41,7 +41,7 @@ def parse_url_args():
 
 
 @solara.component
-def DiscCard(disc, refresh_counter):
+def DiscCard(disc: Disc, refresh_counter):
     def move_up():
 
         album = Album(disc.instance.album)
@@ -67,24 +67,17 @@ def DiscCard(disc, refresh_counter):
         .first()
     )
 
-    num_videos_on_disc = (
-        DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
-        .where(DiscVideoModel.disc_id == disc.instance.id)
-        .scalar()
-    )
-
+    num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title}"
         disc_editor = {"display": "none"}
-        # delete the following once it works
-        disc_editor = {}
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
         disc_editor = {}
 
     with solara.Card(f"{card_title}"):
         solara.Text(f"{disc.instance.folder_name}")
-        with solara.Columns([6, 6]):
+        with solara.Columns([4, 8]):
             with solara.Row():
                 solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
 
@@ -100,12 +93,14 @@ def DiscCard(disc, refresh_counter):
                     solara.Button(
                         "Move Up",
                         on_click=move_up,
+                        icon_name="mdi-arrow-down-box",
                         classes=["button"],
                         disabled=disc.instance.order <= 1,
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
+                        icon_name="mdi-arrow-down-box",
                         classes=["button"],
                         disabled=disc.instance.order == 0,
                     )
@@ -137,7 +132,9 @@ def AlbumCard(album, refresh_counter):
         )
         solara.Markdown(f"# {album.instance.title}")
         solara.Button(
-            f"Reset Disc Numbers", on_click=reset_disc_numbers, classes=["button"]
+            f"Reset Disc Numbers",
+            on_click=reset_disc_numbers,
+            classes=["button mywarning"],
         )
 
 
@@ -188,5 +185,5 @@ def Page():
                 solara.Markdown(f"## {_album.instance.title} ({num_items} Discs) ")
 
         if refresh_counter.value > 0:
-            AlbumDiscs(_query, current_page, num_pages, num_items, refresh_counter)
             AlbumCard(_album, refresh_counter)
+            AlbumDiscs(_query, current_page, num_pages, num_items, refresh_counter)

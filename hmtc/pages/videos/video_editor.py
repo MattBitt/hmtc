@@ -7,6 +7,7 @@ from hmtc.domains.album import Album
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
+from hmtc.models import VideoFiles as VideoFilesModel
 from hmtc.utils.general import paginate
 
 refresh_counter = solara.reactive(1)
@@ -132,8 +133,13 @@ def MainRow(video: Video):
 def VideoEditor():
     current_page = solara.use_reactive(1)
     vids_with_album = DiscVideoModel.select(DiscVideoModel.video_id).distinct()
+    vids_with_videofile = (
+        VideoFilesModel.select(VideoFilesModel.item_id)
+        .where(VideoFilesModel.video.is_null(False))
+        .distinct()
+    )
     page_query = VideoModel.select(VideoModel).where(
-        (VideoModel.id.not_in(vids_with_album) & (VideoModel.unique_content == False))
+        (VideoModel.id.in_(vids_with_videofile) & (VideoModel.unique_content == False))
     )
 
     if len(page_query) == 0:
