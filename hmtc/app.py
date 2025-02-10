@@ -91,7 +91,7 @@ def index():
 def logout():
     if "current_user" in session:
         session.pop("current_user")
-        logger.debug(f"Clearing current user {session['current_user']}")
+        # logger.debug(f"Clearing current user {session['current_user']}")
 
 
 @app.before_request
@@ -101,7 +101,7 @@ def before_request_func():
         if request.path.startswith(path):
             return None
 
-    logger.debug(f"Before request {request.path=} of a regular path object")
+    # logger.debug(f"Before request {request.path=} of a regular path object")
 
 
 if __name__ == "__main__":

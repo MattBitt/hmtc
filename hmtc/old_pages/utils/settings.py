@@ -148,50 +148,63 @@ def assign_albums():
     omegle_album = (
         AlbumModel.select().where(AlbumModel.title == "Omegle Bars").get_or_none()
     )
-    if omegle_album is not None:
-        omegle_disc, created = DiscModel.get_or_create(
-            title="Omegle Bars", folder_name="Disc 0", order=0, album_id=omegle_album.id
-        )
 
     guerr_album = (
         AlbumModel.select().where(AlbumModel.title == "Guerrilla Bars").get_or_none()
     )
+
+    if omegle_album is not None:
+        logger.debug(f"Found Omegle album {omegle_album}")
+        omegle_disc, created = DiscModel.get_or_create(
+            title="Omegle Bars", folder_name="Disc 0", order=0, album_id=omegle_album.id
+        )
+
     if guerr_album is not None:
+        logger.debug(f"Found Guerrilla album {guerr_album}")
         guerr_disc, created = DiscModel.get_or_create(
             title="Guerrilla Bars",
             folder_name="Disc 0",
             order=0,
             album_id=guerr_album.id,
         )
+    if config["general"]["environment"] == "development":
+        # this has already been run in the prod database
+        # and now has some fake data baked in
+        # need to retool this before importing into prod
+        # which, shouldn't be needed
+        if main_channel:
+            main_channel_vids = vids_with_no_album.where(
+                VideoModel.channel_id == main_channel.id
+            ).order_by(VideoModel.upload_date)
 
-    if main_channel:
-        main_channel_vids = vids_with_no_album.where(
-            VideoModel.channel_id == main_channel.id
-        ).order_by(VideoModel.upload_date)
-        if omegle_album:
-            add_vids_to_album(
-                "Omegle Bars", main_channel_vids, existing_disc=omegle_disc
-            )
-        add_vids_to_album("Guerrilla Bars", main_channel_vids)
-        add_vids_to_album("Flow State", main_channel_vids)
-        add_vids_to_album("Stream of Consciousness", main_channel_vids)
-        add_vids_to_album("Wordplay Wednesday", main_channel_vids)
-        add_vids_to_album("Happy Hour", main_channel_vids)
-        add_vids_to_album("Energy Exchange", main_channel_vids)
-        add_vids_to_album("Behind the Bars", main_channel_vids)
-        add_vids_to_album("Busking", main_channel_vids)
-        add_vids_to_album("Livestream Highlights", main_channel_vids)
-        add_vids_to_album("Official", main_channel_vids)
+            if omegle_album:
+                add_vids_to_album(
+                    "Omegle Bars", main_channel_vids, existing_disc=omegle_disc
+                )
+            add_vids_to_album("Guerrilla Bars", main_channel_vids)
+            add_vids_to_album("Flow State", main_channel_vids)
+            add_vids_to_album("Stream of Consciousness", main_channel_vids)
+            add_vids_to_album("Wordplay Wednesday", main_channel_vids)
+            add_vids_to_album("Happy Hour", main_channel_vids)
+            add_vids_to_album("Energy Exchange", main_channel_vids)
+            add_vids_to_album("Behind the Bars", main_channel_vids)
+            add_vids_to_album("Busking", main_channel_vids)
+            add_vids_to_album("Livestream Highlights", main_channel_vids)
+            add_vids_to_album("Official", main_channel_vids)
 
     if clips_channel:
         clip_channel_vids = vids_with_no_album.where(
             VideoModel.channel_id == clips_channel.id
         )
         if omegle_album:
+            logger.debug(
+                f"Adding Omegle Clips to the album {omegle_album} {omegle_disc}"
+            )
             add_vids_to_album(
                 "Omegle Bars", clip_channel_vids, existing_disc=omegle_disc
             )
         if guerr_album:
+            logger.debug(f"Adding Omegle Clips to the album {guerr_album} {guerr_disc}")
             add_vids_to_album(
                 "Guerrilla Bars", clip_channel_vids, existing_disc=guerr_disc
             )
