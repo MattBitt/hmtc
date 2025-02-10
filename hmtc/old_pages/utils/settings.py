@@ -162,7 +162,7 @@ def assign_albums():
     if guerr_album is not None:
         logger.debug(f"Found Guerrilla album {guerr_album}")
         guerr_disc, created = DiscModel.get_or_create(
-            title="Guerrilla Bars",
+            title="Disc 0",
             folder_name="Disc 0",
             order=0,
             album_id=guerr_album.id,
@@ -203,11 +203,15 @@ def assign_albums():
             add_vids_to_album(
                 "Omegle Bars", clip_channel_vids, existing_disc=omegle_disc
             )
-        if guerr_album:
-            logger.debug(f"Adding Omegle Clips to the album {guerr_album} {guerr_disc}")
-            add_vids_to_album(
-                "Guerrilla Bars", clip_channel_vids, existing_disc=guerr_disc
-            )
+        if config["general"]["environment"] == "development":
+            # same reasoning as above
+            if guerr_album:
+                logger.debug(
+                    f"Adding Guerrilla Clips to the album {guerr_album} {guerr_disc}"
+                )
+                add_vids_to_album(
+                    "Guerrilla Bars", clip_channel_vids, existing_disc=guerr_disc
+                )
 
     if uc_health_channel:
         uch_vids = vids_with_no_album.where(
