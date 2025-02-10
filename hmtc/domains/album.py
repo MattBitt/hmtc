@@ -61,14 +61,16 @@ class Album(BaseDomain):
         if last_disc is None:
             last_disc = 1
         if existing_disc is not None:
-            num_vids_on_existing_disc = DiscVideoModel.select().where(DiscVideoModel.disc_id == existing_disc.id).count()
+            num_vids_on_existing_disc = (
+                DiscVideoModel.select()
+                .where(DiscVideoModel.disc_id == existing_disc.id)
+                .count()
+            )
             if num_vids_on_existing_disc == 0:
                 order = 1
             else:
-                order = num_vids_on_existing_disc
-            new_dv = DiscVideoModel.create(
-                video=video, disc=existing_disc, order=order
-            )
+                order = num_vids_on_existing_disc + 1
+            new_dv = DiscVideoModel.create(video=video, disc=existing_disc, order=order)
             logger.success(f"Created disc video: {new_dv}")
         else:
             disc = DiscModel.create(

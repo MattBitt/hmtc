@@ -144,13 +144,13 @@ def AlbumCard(album, refresh_counter):
 @solara.component
 def AlbumDiscs(query, current_page, num_pages, num_items, refresh_counter):
 
-    PaginationControls(
-        current_page=current_page, num_pages=num_pages, num_items=num_items
-    )
-
     for disc in query:
         _disc = Disc(disc)
         DiscCard(_disc, refresh_counter)
+
+    PaginationControls(
+        current_page=current_page, num_pages=num_pages, num_items=num_items
+    )
 
 
 @solara.component
@@ -183,6 +183,10 @@ def Page():
         if len(_query) == 0:
             solara.Info(f"No Videos added to this album")
             return
+        with solara.Card():
+            with solara.Row(justify="center"):
+                solara.Markdown(f"## {_album.instance.title} ({num_items} Discs) ")
+
         if refresh_counter.value > 0:
             AlbumDiscs(_query, current_page, num_pages, num_items, refresh_counter)
             AlbumCard(_album, refresh_counter)

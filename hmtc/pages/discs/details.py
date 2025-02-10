@@ -54,22 +54,23 @@ def SecondRow(
         .where(DiscVideoModel.disc_id == disc.instance.id)
         .scalar()
     )
-    order = DiscVideoModel.select(DiscVideoModel.order).where(
-        (DiscVideoModel.video_id == video.instance.id)
-        & (DiscVideoModel.disc_id == disc.instance.id)
-    ).get().order
+    order = (
+        DiscVideoModel.select(DiscVideoModel.order)
+        .where(
+            (DiscVideoModel.video_id == video.instance.id)
+            & (DiscVideoModel.disc_id == disc.instance.id)
+        )
+        .get()
+        .order
+    )
+
     if num_videos_on_disc == 1:
-        card_title = f"{video.instance.title}"
-        disc_editor = {"display": "none"}
-        # delete the following once it works
-        disc_editor = {}
+        card_title = f"{video.instance.title} (only video on this disc)"
+
     else:
+        card_title = f"Video {order}: {disc.instance.title}"
 
-        card_title = f"{order}: ({num_videos_on_disc} Videos)"
-        disc_editor = {}
-
-    with solara.Card(f"{card_title}"):
-        solara.Text(f"{disc.instance.folder_name}")
+    with solara.Card(title=f"{card_title}", subtitle=f"{disc.instance.folder_name}"):
         with solara.Columns([6, 6]):
             with solara.Row():
                 solara.Image(video.poster(thumbnail=True), width="150px")
@@ -87,19 +88,17 @@ def SecondRow(
                         "Move Up",
                         on_click=move_up,
                         classes=["button"],
-                        disabled= order ==  1,
+                        disabled=order == 1,
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
                         classes=["button"],
-                        disabled=order == 0,
+                        disabled=order == num_videos_on_disc,
                     )
                 with solara.Column():
-                    with solara.Link(f"/api/discs/details/{disc.instance.id}"):
-                        solara.Button(
-                            "Edit Disc", classes=["button"], style=disc_editor
-                        )
+                    with solara.Link(f"/api/videos/details/{video.instance.id}"):
+                        solara.Button("Edit Videos", classes=["button"])
 
     with solara.Card():
         solara.Text(f"Video: {video.instance.title}")
@@ -111,26 +110,42 @@ def MainRow(disc: Disc):
         with solara.Row(justify="center"):
             solara.Error("Instance is None...")
             return
+
+    num_videos_on_disc = (
+        DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
+        .where(DiscVideoModel.disc_id == disc.instance.id)
+        .scalar()
+    )
+
     with solara.Card():
         with solara.Row(justify="center"):
-            solara.Text(f"{disc.instance.title}")
-            solara.Text(f"{disc.instance.album.title}")
+            solara.Markdown(
+                f"## {disc.instance.album.title} - {disc.instance.title} ({num_videos_on_disc} Videos) "
+            )
 
 
 @solara.component
 def DiscEditor(disc: Disc):
     current_page = solara.use_reactive(1)
-    disc_vids = DiscVideoModel.select(DiscVideoModel.video_id).where(
-        DiscVideoModel.disc_id == disc.instance.id
+    disc_vids = (
+        VideoModel.select()
+        .join(DiscVideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
+        .where(
+            VideoModel.id.in_(
+                DiscVideoModel.select(DiscVideoModel.video_id).where(
+                    DiscVideoModel.disc_id == disc.instance.id
+                )
+            )
+        )
+        .order_by(DiscVideoModel.order.asc())
     )
 
-    page_query = VideoModel.select().where(VideoModel.id.in_(disc_vids))
-    if len(page_query) == 0:
+    if len(disc_vids) == 0:
         solara.Warning(f"No Discs Found meeting these criteria.")
         return
 
     _query, num_items, num_pages = paginate(
-        query=page_query,
+        query=disc_vids,
         page=current_page.value,
         per_page=3,
     )

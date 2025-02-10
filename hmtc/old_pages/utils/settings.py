@@ -145,13 +145,22 @@ def assign_albums():
     uc_health_channel = (
         ChannelModel.select().where(ChannelModel.title == "UCHealth").get_or_none()
     )
+    omegle_album = (
+        AlbumModel.select().where(AlbumModel.title == "Omegle Bars").get_or_none()
+    )
+    if omegle_album is not None:
+        omegle_disc, created = DiscModel.get_or_create(
+            title="Exclusive", folder_name="Disc 0", order=0, album_id=omegle_album.id
+        )
 
     if main_channel:
         main_channel_vids = vids_with_no_album.where(
             VideoModel.channel_id == main_channel.id
         ).order_by(VideoModel.upload_date)
-
-        add_vids_to_album("Omegle Bars", main_channel_vids, existing_disc=None)
+        if omegle_album:
+            add_vids_to_album(
+                "Omegle Bars", main_channel_vids, existing_disc=omegle_disc
+            )
         add_vids_to_album("Guerrilla Bars", main_channel_vids)
         add_vids_to_album("Flow State", main_channel_vids)
         add_vids_to_album("Stream of Consciousness", main_channel_vids)
