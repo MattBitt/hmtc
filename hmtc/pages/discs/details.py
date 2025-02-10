@@ -9,7 +9,6 @@ from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
-from hmtc.utils.general import paginate
 
 refresh_counter = solara.reactive(1)
 
@@ -23,7 +22,7 @@ def parse_url_args():
 
 
 @solara.component
-def SecondRow(
+def VideoCard(
     disc: Disc,
     video: Video,
 ):
@@ -32,14 +31,12 @@ def SecondRow(
 
     def move_up():
 
-        album = Album(disc.instance.album)
-        album.move_disc_up(disc)
+        disc.move_video_up(video)
         refresh_counter.set(refresh_counter.value + 1)
 
     def move_down():
 
-        album = Album(disc.instance.album)
-        album.move_disc_down(disc)
+        disc.move_video_down(video)
         refresh_counter.set(refresh_counter.value + 1)
 
     def remove_video():
@@ -100,9 +97,6 @@ def SecondRow(
                     with solara.Link(f"/api/videos/details/{video.instance.id}"):
                         solara.Button("Edit Videos", classes=["button"])
 
-    with solara.Card():
-        solara.Text(f"Video: {video.instance.title}")
-
 
 @solara.component
 def MainRow(disc: Disc):
@@ -127,28 +121,12 @@ def MainRow(disc: Disc):
 @solara.component
 def DiscEditor(disc: Disc):
     current_page = solara.use_reactive(1)
-    disc_vids = (
-        VideoModel.select()
-        .join(DiscVideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
-        .where(
-            VideoModel.id.in_(
-                DiscVideoModel.select(DiscVideoModel.video_id).where(
-                    DiscVideoModel.disc_id == disc.instance.id
-                )
-            )
-        )
-        .order_by(DiscVideoModel.order.asc())
-    )
+
+    disc_vids, num_items, num_pages = disc.videos_paginated(current_page, per_page=3)
 
     if len(disc_vids) == 0:
         solara.Warning(f"No Discs Found meeting these criteria.")
         return
-
-    _query, num_items, num_pages = paginate(
-        query=disc_vids,
-        page=current_page.value,
-        per_page=3,
-    )
 
     if current_page.value > num_pages:
         current_page.set(num_pages)
@@ -156,8 +134,8 @@ def DiscEditor(disc: Disc):
     with solara.Row(justify="center"):
         MainRow(disc)
 
-    for video in _query:
-        SecondRow(disc, Video(video))
+    for video in disc_vids:
+        VideoCard(disc, Video(video))
     with solara.Row(justify="center"):
         PaginationControls(
             current_page=current_page, num_pages=num_pages, num_items=num_items
@@ -176,5 +154,5 @@ def Page():
                 solara.Button("Home", classes=["button"])
         return
     with solara.Column(classes=["main-container"]):
-        # if refresh_counter.value > 0:
-        DiscEditor(disc)
+        if refresh_counter.value > 0:
+            DiscEditor(disc)
