@@ -71,23 +71,26 @@ def SubtitlesCard(time_cursor, subtitles):
         logger.error(f"Captions not found in {closest}")
         return
 
-    for index, caption in enumerate(closest["captions"]):
-        if index == closest["highlight_index"]:
-            _classes = ["info--text"]
+    while len(closest["captions"]) < 5:
+        closest["captions"].append({"text": "----", "start": 0, "end": 0})
+    with solara.Column():
+        for index, caption in enumerate(closest["captions"]):
+            if index == closest["highlight_index"]:
+                _classes = ["info--text"]
+            else:
+                _classes = ["primary--text"]
+            solara.Text(f"{caption['text']}", classes=_classes)
+        if starts_and_ends.value == {}:
+            solara.Button(
+                f"Search for Start/Ends",
+                on_click=search_for_starts_and_ends,
+                classes=["button"],
+            )
         else:
-            _classes = ["primary--text"]
-        solara.Text(f"{caption['text']}", classes=_classes)
-    if starts_and_ends.value == {}:
-        solara.Button(
-            f"Search for Start/Ends",
-            on_click=search_for_starts_and_ends,
-            classes=["button"],
-        )
-    else:
-        possibles = []
-        for starts in starts_and_ends.value["starts"]:
-            possibles.append(starts.start)
-        solara.Markdown(f"## Maybe Section Start: {possibles}")
+            possibles = []
+            for starts in starts_and_ends.value["starts"]:
+                possibles.append(starts.start)
+            solara.Markdown(f"## Maybe Section Start: {possibles}")
 
 
 sections = solara.reactive([])
@@ -111,7 +114,7 @@ def Sectionalizer(video, create_section):
     sections = solara.use_reactive(_sections)
 
     with solara.Card(video.instance.title):
-        with solara.Columns([9, 3]):
+        with solara.Columns([6, 6]):
             with solara.Column():
                 if video.video_file() is not None:
                     with solara.Column():
@@ -122,23 +125,22 @@ def Sectionalizer(video, create_section):
                     solara.Markdown(
                         f"## No Video (think mkv) file Found for {video.instance}"
                     )
-
+            with solara.Column():
                 subtitles = video.subtitles()
                 if subtitles is not None:
                     SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
                 else:
                     solara.Markdown(f"No subtitles found for {video.instance.title}")
-            with solara.Column():
-                with solara.Row(justify="center"):
-                    SectionDialogButton(
-                        video=video,
-                        reactive_sections=sections,
-                    )
-                with solara.Row(justify="center"):
-                    solara.Text(
-                        seconds_to_hms(int(time_cursor.value / 1000)),
-                        classes=["seven-seg"],
-                    )
+
+        with solara.Row(justify="center"):
+            SectionDialogButton(
+                video=video,
+                reactive_sections=sections,
+            )
+            solara.Text(
+                seconds_to_hms(int(time_cursor.value / 1000)),
+                classes=["seven-seg"],
+            )
         Timeline(
             videoTime=time_cursor.value,
             totalDuration=video_duration_ms.value,

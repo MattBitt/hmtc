@@ -76,13 +76,14 @@ def Page():
     video_id = parse_url_args()
     try:
         video = Video(video_id)
-        sections = solara.use_reactive([Section(s).serialize() for s in video.sections()])
+
     except Exception as e:
         logger.error(f"Exception {e}")
         with solara.Error(f"Video Id {video_id} not found."):
             with solara.Link("/"):
                 solara.Button("Home", classes=["button"])
         return
+    sections = solara.use_reactive([Section(s).serialize() for s in video.sections()])
 
     def download_video():
         results = download_video_file(
