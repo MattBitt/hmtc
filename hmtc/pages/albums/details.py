@@ -75,7 +75,6 @@ def DiscCard(disc: Disc, refresh_counter):
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
 
-
     with solara.Card(f"{card_title}"):
         solara.Text(f"{disc.instance.folder_name}")
         with solara.Columns([4, 8]):

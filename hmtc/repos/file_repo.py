@@ -20,6 +20,7 @@ from hmtc.models import (
     Thumbnail,
     VideoFile,
 )
+from hmtc.utils.subtitles import convert_vtt_to_srt
 
 VIDEOS = [".mkv", ".mp4", ".webm"]
 AUDIOS = [".mp3", ".wav"]
@@ -237,7 +238,10 @@ def process_file(file, target, stem):
             final_path = file_dict["path"].with_suffix(".en.vtt")
             if file.parent != target.parent:
                 MOVE_FILE(file, final_path)
-            file_dict["path"] = final_path
+            srt_path = str(final_path).replace(".en.vtt", ".srt")
+            convert_vtt_to_srt(final_path, srt_path)
+            file_dict["path"] = srt_path
+
             new_file = SubtitleFile.create(**file_dict)
         case _:
             raise Exception(f"Filetype {filetype}")
