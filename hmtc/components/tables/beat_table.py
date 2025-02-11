@@ -34,7 +34,7 @@ def BeatTable(router, headers, base_query, search_fields):
         "model": BeatModel,
         "vue_component": _BeatTable,
         "action1_path": "/beat-details",
-        "action1_icon": "mdi-user",
+        "action1_icon": Icons.USER.value",
     }
     DataTable(
         router=router,

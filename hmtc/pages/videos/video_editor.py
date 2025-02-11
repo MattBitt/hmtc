@@ -1,6 +1,6 @@
 import solara
 from loguru import logger
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.sectionalizer.main import VideoFrame
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
@@ -101,7 +101,7 @@ def SecondRow(
                 )
                 solara.Button(
                     f"Delete Video File",
-                    icon_name="mdi-delete",
+                    icon_name=Icons.DELETE.value,
                     on_click=delete_video_file,
                     classes=["button mywarning"],
                     disabled=video.video_file() is None,

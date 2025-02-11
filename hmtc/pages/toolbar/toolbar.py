@@ -1,6 +1,6 @@
 import solara
 from loguru import logger
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.assets.colors import Colors
 from hmtc.utils.version_manager import get_version
 
@@ -23,25 +23,25 @@ def MainToolbar(user, logged_in):
 
     with solara.Row(style={"background-color": Colors.PRIMARY}):
         with solara.Link(f"/"):
-            solara.Button(icon_name="mdi-home", icon=True)
+            solara.Button(icon_name=Icons.HOME.value, icon=True)
         with solara.Link(f"/admin/dashboards/domains"):
             solara.Button(
-                icon_name="mdi-google-circles-extended",
+                icon_name=Icons.DOMAIN.value,
                 icon=True,
             )
         with solara.Link(f"/admin/dashboards/files"):
             solara.Button(
-                icon_name="mdi-folder",
+                icon_name=Icons.FILE.value,
                 icon=True,
             )
         with solara.Link(f"/admin/settings"):
             solara.Button(
-                icon_name="mdi-cogs",
+                icon_name=Icons.SETTINGS.value,
                 icon=True,
             )
         with solara.Link(f"/api/videos"):
             solara.Button(
-                icon_name="mdi-video",
+                icon_name=Icons.VIDEO.value,
                 icon=True,
             )
 

@@ -24,4 +24,4 @@ def FancyComponent():
     solara.Button(label="Hi")
     ParentComponent(myname="matt")
     ParentComponent(myname="lindsay")
-    ParentComponent(iconName="mdi-account")
+    ParentComponent(iconName=Icons.USER.value)

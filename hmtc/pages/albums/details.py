@@ -19,7 +19,7 @@ from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.utils.general import paginate
-
+from hmtc.assets.icons.icon_repo import Icons
 selected_videos = solara.reactive([])
 
 
@@ -79,7 +79,10 @@ def DiscCard(disc: Disc, refresh_counter):
         solara.Text(f"{disc.instance.folder_name}")
         with solara.Columns([4, 8]):
             with solara.Row():
-                solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
+                if dv.video is not None:
+                    solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
+                else:
+                    solara.Error(f"No Poster found...")
 
             with solara.Row():
                 with solara.Column():
@@ -87,27 +90,27 @@ def DiscCard(disc: Disc, refresh_counter):
                         "Delete Disc",
                         on_click=remove_video,
                         classes=["button mywarning"],
-                        icon_name="mdi-delete",
+                        icon_name=Icons.DELETE.value,
                     )
                 with solara.Column():
                     solara.Button(
                         "Move Up",
                         on_click=move_up,
-                        icon_name="mdi-arrow-down-box",
+                        icon_name=Icons.UP_BOX.value,
                         classes=["button"],
                         disabled=disc.instance.order <= 1,
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
-                        icon_name="mdi-arrow-down-box",
+                        icon_name=Icons.DOWN_BOX.value,
                         classes=["button"],
                         disabled=disc.instance.order == 0,
                     )
                 with solara.Column():
                     with solara.Link(f"/api/discs/details/{disc.instance.id}"):
                         solara.Button(
-                            "Edit Disc", classes=["button"], style=disc_editor
+                            "Edit Disc", classes=["button"],icon_name=Icons.EDIT.value, style=disc_editor
                         )
 
 
@@ -126,7 +129,7 @@ def AlbumCard(album, refresh_counter):
     with solara.Row(justify="space-around"):
         solara.Button(
             f"Delete All Discs",
-            icon_name="mdi-delete",
+            icon_name=Icons.DELETE.value,
             on_click=delete_discs,
             classes=["button mywarning"],
         )

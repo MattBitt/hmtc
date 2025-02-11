@@ -4,7 +4,7 @@ from loguru import logger
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.video import Video
 from hmtc.models import Video as VideoModel
-
+from hmtc.assets.icons.icon_repo import Icons
 
 @solara.component_vue("VideoTable.vue", vuetify=True)
 def _VideoTable(
@@ -35,7 +35,7 @@ def VideoTable(router, headers, base_query, search_fields, sorted_dict={}):
         "model": VideoModel,
         "vue_component": _VideoTable,
         "action1_path": "/api/videos/details",
-        "action1_icon": "mdi-rhombus-split",
+        "action1_icon": Icons.VIDEO.value,
     }
     if sorted_dict != {}:
         item_info |= sorted_dict

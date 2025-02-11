@@ -3,7 +3,7 @@ from pathlib import Path
 import solara
 from loguru import logger
 from peewee import fn
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains import Album, Artist, Channel, Track, User, Video
@@ -35,7 +35,7 @@ WORKING = Path(config["WORKING"])
 @solara.component_vue("./FileCard.vue", vuetify=True)
 def FileCard(
     title: str = "File Card",
-    icon: str = "mdi-account",
+    icon: str = Icons.USER.value,
     value: str = "123",
     button_caption="",
     event_button_click=None,

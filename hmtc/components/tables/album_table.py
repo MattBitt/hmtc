@@ -1,6 +1,6 @@
 import solara
 from loguru import logger
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains import Album
 from hmtc.models import Album as AlbumModel
@@ -34,7 +34,7 @@ def AlbumTable(router, headers, base_query, search_fields):
         "model": AlbumModel,
         "vue_component": _AlbumTable,
         "action1_path": "/api/albums/details",
-        "action1_icon": "mdi-album",
+        "action1_icon": Icons.ALBUM.value,
     }
     DataTable(
         router=router,

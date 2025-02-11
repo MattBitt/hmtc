@@ -3,7 +3,7 @@ from pathlib import Path
 import PIL
 import solara
 from loguru import logger
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.assets.colors import Colors
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
 from hmtc.components.shared.my_spinner import MySpinner
@@ -111,6 +111,7 @@ def VideoInfoPanel(video):
                 with solara.Link(f"/superchat-fine-tuner/{video.id}"):
                     solara.Button(
                         label="Superchat Fine Tuner",
+                        icon_name=Icons.SUPERCHAT.value,
                         classes=["button"],
                     )
 
@@ -118,7 +119,7 @@ def VideoInfoPanel(video):
                 with solara.Link(f"/domains/superchat-control-panel/{video.id}"):
                     solara.Button(
                         label="Search for Superchats",
-                        icon_name="mdi-magnify",
+                        icon_name=Icons.SEARCH.value,
                         classes=["button"],
                     )
             with solara.Row(justify="center"):
@@ -126,7 +127,7 @@ def VideoInfoPanel(video):
                     with solara.Link(f"/superchat-segments/{video.id}"):
                         solara.Button(
                             label=f"Segments ({num_segments})",
-                            icon_name="mdi-chat-processing",
+                            icon_name=Icons.SUPERCHAT_SEGMENT.value,
                             classes=["button"],
                         )
             with solara.Row(justify="center"):
@@ -134,6 +135,6 @@ def VideoInfoPanel(video):
                     with solara.Link(f"/superchat-segments/long-enough/{video.id}"):
                         solara.Button(
                             label=f"Segments (Long Enough)",
-                            icon_name="mdi-chat-processing",
+                            icon_name=Icons.SUPERCHAT_SEGMENT.value,
                             classes=["button"],
                         )

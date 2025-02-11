@@ -34,7 +34,7 @@ def SuperchatTable(router, headers, base_query, search_fields):
         "model": SuperchatModel,
         "vue_component": _SuperchatTable,
         "action1_path": "/superchat-details",
-        "action1_icon": "mdi-user",
+        "action1_icon": Icons.USER.value",
     }
     DataTable(
         router=router,

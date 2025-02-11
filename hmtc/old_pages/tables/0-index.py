@@ -1,5 +1,6 @@
 import solara
 from loguru import logger
+from hmtc.assets.icons.icon_repo import Icons
 
 
 @solara.component
@@ -8,26 +9,26 @@ def Page():
     solara.Markdown("## Domain Object Table Links")
 
     items = [
-        {"text": "Albums", "icon": "mdi-album", "url": "/tables/albums"},
-        {"text": "Artists", "icon": "mdi-account", "url": "/tables/artists"},
-        {"text": "Beats", "icon": "mdi-music", "url": "/tables/beats"},
-        {"text": "Channels", "icon": "mdi-view-list", "url": "/tables/channels"},
-        {"text": "Discs", "icon": "mdi-disc", "url": "/tables/discs"},
-        {"text": "Sections", "icon": "mdi-rhombus-split", "url": "/tables/sections"},
-        {"text": "Series", "icon": "mdi-shape", "url": "/tables/series"},
-        {"text": "Superchats", "icon": "mdi-account", "url": "/tables/superchats"},
+        {"text": "Albums", "icon": Icons.ALBUM.value, "url": "/tables/albums"},
+        {"text": "Artists", "icon": Icons.USER.value, "url": "/tables/artists"},
+        {"text": "Beats", "icon": Icons.BEAT.value, "url": "/tables/beats"},
+        {"text": "Channels", "icon": Icons.CHANNEL.value, "url": "/tables/channels"},
+        {"text": "Discs", "icon": Icons.DISC.value, "url": "/tables/discs"},
+        {"text": "Sections", "icon": Icons.SECTION.value, "url": "/tables/sections"},
+        {"text": "Series", "icon": Icons.SERIES.value, "url": "/tables/series"},
+        {"text": "Superchats", "icon": Icons.USER.value, "url": "/tables/superchats"},
         {
             "text": "Superchat Segments",
-            "icon": "mdi-account",
+            "icon": Icons.USER.value,
             "url": "/tables/superchat-segments",
         },
-        {"text": "Topics", "icon": "mdi-book-open", "url": "/tables/topics"},
-        {"text": "Tracks", "icon": "mdi-music-clef-treble", "url": "/tables/tracks"},
-        {"text": "Users", "icon": "mdi-account", "url": "/tables/users"},
-        {"text": "Videos (Unique)", "icon": "mdi-video", "url": "/tables/videos"},
+        {"text": "Topics", "icon": Icons.TOPIC.value, "url": "/tables/topics"},
+        {"text": "Tracks", "icon": Icons.TRACK.value, "url": "/tables/tracks"},
+        {"text": "Users", "icon": Icons.USER.value, "url": "/tables/users"},
+        {"text": "Videos (Unique)", "icon": Icons.VIDEO.value, "url": "/tables/videos"},
         {
             "text": "Youtube Series",
-            "icon": "mdi-youtube",
+            "icon": Icons.YOUTUBE_SERIES.value,
             "url": "/tables/youtube-series",
         },
     ]

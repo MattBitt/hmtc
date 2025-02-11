@@ -152,8 +152,8 @@ def Page():
                     )
 
         with solara.lab.Tabs():
-            with solara.lab.Tab("Sectionalizer"):
-                Sectionalizer(video=video, create_section=create_section)
+            # with solara.lab.Tab("Sectionalizer"):
+            #     Sectionalizer(video=video, create_section=create_section)
             with solara.lab.Tab("Sections"):
                 if len(sections.value) > 0:
                     with solara.Column():

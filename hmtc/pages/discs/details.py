@@ -10,7 +10,7 @@ from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
-
+from hmtc.assets.icons.icon_repo import Icons
 refresh_counter = solara.reactive(1)
 
 
@@ -77,27 +77,27 @@ def VideoCard(
                         "Remove Video",
                         on_click=remove_video,
                         classes=["button mywarning"],
-                        icon_name="mdi-delete",
+                        icon_name=Icons.TRACK.value,
                     )
                 with solara.Column():
                     solara.Button(
                         "Move Up",
                         on_click=move_up,
-                        icon_name="mdi-arrow-up-box",
+                        icon_name=Icons.UP_BOX.value,
                         classes=["button"],
                         disabled=order == 1,
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
-                        icon_name="mdi-arrow-down-box",
+                        icon_name=Icons.DOWN_BOX.value,
                         classes=["button"],
                         disabled=order == num_videos_on_disc,
                     )
                 with solara.Column():
                     with solara.Link(f"/api/videos/details/{video.instance.id}"):
                         solara.Button(
-                            "Details", icon_name="mdi-rhombus-split", classes=["button"]
+                            "Details", icon_name=Icons.SECTION.value, classes=["button"]
                         )
 
 

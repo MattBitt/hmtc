@@ -1,5 +1,5 @@
 import solara
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.domains import (
     Album,
@@ -21,7 +21,7 @@ from hmtc.domains import (
 
 @solara.component_vue("./DomainCard.vue", vuetify=True)
 def DomainCard(
-    title: str = "Domain Card", icon: str = "mdi-account", value: str = "123"
+    title: str = "Domain Card", icon: str = Icons.USER.value, value: str = "123"
 ):
     pass
 
@@ -31,46 +31,46 @@ def Dashboard():
     with solara.Columns([6, 6]):
         with solara.Card():
             with solara.Columns([6, 6]):
-                DomainCard(title="Unique", icon="mdi-video", value=Video.unique_count())
-                DomainCard(title="Videos", icon="mdi-video", value=Video.repo.count())
+                DomainCard(title="Unique", icon=Icons.VIDEO.value, value=Video.unique_count())
+                DomainCard(title="Videos", icon=Icons.VIDEO.value, value=Video.repo.count())
             with solara.Columns([6, 6]):
                 DomainCard(
                     title="Sections",
-                    icon="mdi-rhombus-split",
+                    icon=Icons.SECTION.value,
                     value=Section.repo.count(),
                 )
 
                 DomainCard(
-                    title="Topics", icon="mdi-book-open", value=Topic.repo.count()
+                    title="Topics", icon=Icons.TOPIC.value, value=Topic.repo.count()
                 )
             with solara.Columns([6, 6]):
                 DomainCard(
-                    title="Superchats", icon="mdi-comment", value=Superchat.repo.count()
+                    title="Superchats", icon=Icons.SUPERCHAT.value, value=Superchat.repo.count()
                 )
                 DomainCard(
                     title="Segments",
-                    icon="mdi-comment",
+                    icon=Icons.SUPERCHAT_SEGMENT.value,
                     value=SuperchatSegment.repo.count(),
                 )
         with solara.Card():
-            DomainCard(title="Albums", icon="mdi-album", value=Album.repo.count())
+            DomainCard(title="Albums", icon=Icons.ALBUM.value, value=Album.repo.count())
             with solara.Columns([6, 6]):
-                DomainCard(title="Discs", icon="mdi-disc", value=Disc.repo.count())
+                DomainCard(title="Discs", icon=Icons.DISC.value, value=Disc.repo.count())
                 DomainCard(
                     title="Tracks",
-                    icon="mdi-music-clef-treble",
+                    icon=Icons.TRACK.value,
                     value=Track.repo.count(),
                 )
     with solara.Columns([4, 4, 4]):
-        DomainCard(title="Channels", icon="mdi-view-list", value=Channel.repo.count())
-        DomainCard(title="Series", icon="mdi-shape", value=Series.repo.count())
+        DomainCard(title="Channels", icon=Icons.CHANNEL.value, value=Channel.repo.count())
+        DomainCard(title="Series", icon=Icons.SERIES.value, value=Series.repo.count())
         DomainCard(
-            title="Youtube Series", icon="mdi-youtube", value=YoutubeSeries.repo.count()
+            title="Youtube Series", icon=Icons.YOUTUBE_SERIES.value, value=YoutubeSeries.repo.count()
         )
     with solara.Columns([4, 4, 4]):
-        DomainCard(title="Beats", icon="mdi-music", value=Beat.repo.count())
-        DomainCard(title="Artists", icon="mdi-account", value=Artist.repo.count())
-        DomainCard(title="Users", icon="mdi-account", value=User.repo.count())
+        DomainCard(title="Beats", icon=Icons.BEAT.value, value=Beat.repo.count())
+        DomainCard(title="Artists", icon=Icons.USER.value, value=Artist.repo.count())
+        DomainCard(title="Users", icon=Icons.USER.value, value=User.repo.count())
 
 
 @solara.component

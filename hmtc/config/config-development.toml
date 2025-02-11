@@ -25,10 +25,10 @@ port = 5432
 
 [jellyfin]
 api = "d035af26e54542e9a3a31785ec260e14"
-url = "http://192.168.0.202:8096"
-user = "user1"
+url = "http://localhost:8096"
+user = "admin"
 user_id = "f6f0fa8013a94ee3a1161bae8af59733"
-password = "User1"
+password = "admin"
 client="hmtc-dev"
 device="cronus"
 device_id="cronus-dev"

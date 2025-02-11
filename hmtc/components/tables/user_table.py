@@ -34,7 +34,7 @@ def UserTable(router, headers, base_query, search_fields):
         "model": UserModel,
         "vue_component": _UserTable,
         "action1_path": "/user-details",
-        "action1_icon": "mdi-user",
+        "action1_icon": Icons.USER.value",
     }
     DataTable(
         router=router,
