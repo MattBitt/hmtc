@@ -22,7 +22,8 @@ from hmtc.pages.albums.details import Page as AlbumDetails
 from hmtc.pages.discs.details import Page as DiscDetails
 from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
-from hmtc.pages.videos.video_details import Page as VideoDetails
+from hmtc.pages.videos.details import Page as VideoDetails
+from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
 from hmtc.pages.videos.video_editor import Page as VideoEditor
 from hmtc.utils.importer.existing_files import (
     create_video_from_folder,
@@ -220,6 +221,11 @@ routes = [
                         path="editor",
                         component=VideoEditor,
                         label="Video Editor",
+                    ),
+                    solara.Route(
+                        path="sectionalizer",
+                        component=VideoSectionalizer,
+                        label="Sectionalizer",
                     ),
                 ],
             ),

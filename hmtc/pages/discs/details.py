@@ -2,6 +2,7 @@ import solara
 from loguru import logger
 from peewee import fn
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.sectionalizer.main import VideoFrame
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.pagination_controls import PaginationControls
@@ -10,7 +11,7 @@ from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
-from hmtc.assets.icons.icon_repo import Icons
+
 refresh_counter = solara.reactive(1)
 
 
@@ -23,7 +24,7 @@ def parse_url_args():
 
 
 @solara.component
-def VideoCard(
+def DiscVideoCard(
     disc: Disc,
     video: Video,
 ):
@@ -45,11 +46,7 @@ def VideoCard(
         disc.remove_video(video)
         refresh_counter.set(refresh_counter.value + 1)
 
-    num_videos_on_disc = (
-        DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
-        .where(DiscVideoModel.disc_id == disc.instance.id)
-        .scalar()
-    )
+    num_videos_on_disc = disc.num_videos_on_disc()
     order = (
         DiscVideoModel.select(DiscVideoModel.order)
         .where(
@@ -117,14 +114,13 @@ def MainRow(disc: Disc):
 
 
 @solara.component
-def DiscEditor(disc: Disc):
+def DiscDetails(disc: Disc):
     current_page = solara.use_reactive(1)
 
     disc_vids, num_items, num_pages = disc.videos_paginated(current_page, per_page=3)
 
     if len(disc_vids) == 0:
-        solara.Warning(f"No Videos found for {disc}")
-        return
+        return solara.Warning(f"No Videos found for {disc}")
 
     if current_page.value > num_pages:
         current_page.set(num_pages)
@@ -133,7 +129,7 @@ def DiscEditor(disc: Disc):
         MainRow(disc)
 
     for video in disc_vids:
-        VideoCard(disc, Video(video))
+        DiscVideoCard(disc, Video(video))
     with solara.Row(justify="center"):
         PaginationControls(
             current_page=current_page, num_pages=num_pages, num_items=num_items
@@ -153,4 +149,4 @@ def Page():
         return
     with solara.Column(classes=["main-container"]):
         if refresh_counter.value > 0:
-            DiscEditor(disc)
+            DiscDetails(disc)

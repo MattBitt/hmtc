@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains import Artist
 from hmtc.models import Artist as ArtistModel
@@ -34,7 +35,7 @@ def ArtistTable(router, headers, base_query, search_fields):
         "model": ArtistModel,
         "vue_component": _ArtistTable,
         "action1_path": "/artist-details",
-        "action1_icon": Icons.USER.value",
+        "action1_icon": Icons.USER.value,
     }
     DataTable(
         router=router,

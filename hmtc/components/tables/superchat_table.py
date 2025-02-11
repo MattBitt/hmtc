@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.superchat import Superchat
 from hmtc.models import Superchat as SuperchatModel
@@ -34,7 +35,7 @@ def SuperchatTable(router, headers, base_query, search_fields):
         "model": SuperchatModel,
         "vue_component": _SuperchatTable,
         "action1_path": "/superchat-details",
-        "action1_icon": Icons.USER.value",
+        "action1_icon": Icons.USER.value,
     }
     DataTable(
         router=router,

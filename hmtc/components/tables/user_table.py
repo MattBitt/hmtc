@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.user import User
 from hmtc.models import User as UserModel
@@ -34,7 +35,7 @@ def UserTable(router, headers, base_query, search_fields):
         "model": UserModel,
         "vue_component": _UserTable,
         "action1_path": "/user-details",
-        "action1_icon": Icons.USER.value",
+        "action1_icon": Icons.USER.value,
     }
     DataTable(
         router=router,

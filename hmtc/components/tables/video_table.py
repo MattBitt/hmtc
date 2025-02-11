@@ -1,10 +1,11 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.video import Video
 from hmtc.models import Video as VideoModel
-from hmtc.assets.icons.icon_repo import Icons
+
 
 @solara.component_vue("VideoTable.vue", vuetify=True)
 def _VideoTable(

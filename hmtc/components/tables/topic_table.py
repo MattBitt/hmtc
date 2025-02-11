@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.topic import Topic
 from hmtc.models import Topic as TopicModel
@@ -34,7 +35,7 @@ def TopicTable(router, headers, base_query, search_fields):
         "model": TopicModel,
         "vue_component": _TopicTable,
         "action1_path": "/topic-details",
-        "action1_icon": "mdi-topic",
+        "action1_icon": Icons.TOPIC.value,
     }
     DataTable(
         router=router,

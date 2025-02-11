@@ -3,6 +3,7 @@ from pathlib import Path
 import solara
 from loguru import logger
 from peewee import fn
+
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config

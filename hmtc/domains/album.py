@@ -14,6 +14,7 @@ from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.album_repo import AlbumRepo
 from hmtc.repos.file_repo import FileRepo
+from hmtc.utils.general import paginate
 
 config = init_config()
 db_instance = init_db(db_null, config)
@@ -179,3 +180,13 @@ class Album(BaseDomain):
         for disc in discs:
             _disc = Disc(disc)
             _disc.delete()
+
+    def discs_paginated(self, current_page, per_page):
+        album_discs = (
+            DiscModel.select()
+            .where(DiscModel.album_id == self.instance.id)
+            .order_by(DiscModel.order)
+        )
+        p = paginate(query=album_discs, page=current_page.value, per_page=per_page)
+
+        return p

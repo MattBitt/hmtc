@@ -30,7 +30,7 @@ class Disc(BaseDomain):
         }
 
     def num_videos_on_disc(self):
-        (
+        return (
             DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
             .where(DiscVideoModel.disc_id == self.instance.id)
             .scalar()

@@ -144,7 +144,7 @@ def Page():
         with solara.Row():
             with solara.Columns([8, 4]):
                 with solara.Card():
-                    VideoInfoPanel(video=video.instance)
+                    VideoInfoPanel(video_domain=video)
                 with solara.Card():
                     AlbumPanel(
                         album=current_album_title,

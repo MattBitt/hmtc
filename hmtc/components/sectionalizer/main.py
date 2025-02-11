@@ -9,6 +9,7 @@ from loguru import logger
 
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.domains.section import Section
+from hmtc.domains.video import Video
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.subtitles import (
     find_closest_caption,
@@ -37,7 +38,7 @@ def Timeline(
 
 
 @solara.component
-def VideoFrame(video, time_cursor):
+def VideoFrame(video: Video, time_cursor):
     vid_file = video.video_file()
     try:
         ie = ImageExtractor(vid_file)

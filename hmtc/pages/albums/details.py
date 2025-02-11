@@ -2,6 +2,7 @@ import solara
 from loguru import logger
 from peewee import fn
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
@@ -19,7 +20,7 @@ from hmtc.models import (
     Video as VideoModel,
 )
 from hmtc.utils.general import paginate
-from hmtc.assets.icons.icon_repo import Icons
+
 selected_videos = solara.reactive([])
 
 
@@ -70,10 +71,28 @@ def DiscCard(disc: Disc, refresh_counter):
     num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title}"
-        disc_editor = {"display": "none"}
+        item_edit_button = solara.Link(
+            f"/api/videos/details/{disc.instance.id}",
+            children=[
+                solara.Button(
+                    "Edit Video",
+                    classes=["button"],
+                    icon_name=Icons.VIDEO.value,
+                )
+            ],
+        )
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
-        disc_editor = {}
+        item_edit_button = solara.Link(
+            f"/api/discs/details/{disc.instance.id}",
+            children=[
+                solara.Button(
+                    "Edit Disc",
+                    classes=["button"],
+                    icon_name=Icons.DISC.value,
+                )
+            ],
+        )
 
     with solara.Card(f"{card_title}"):
         solara.Text(f"{disc.instance.folder_name}")
@@ -108,16 +127,29 @@ def DiscCard(disc: Disc, refresh_counter):
                         disabled=disc.instance.order == 0,
                     )
                 with solara.Column():
-                    with solara.Link(f"/api/discs/details/{disc.instance.id}"):
-                        solara.Button(
-                            "Edit Disc", classes=["button"],icon_name=Icons.EDIT.value, style=disc_editor
-                        )
+                    if num_videos_on_disc == 1:
+
+                        with solara.Link(f"/api/videos/details/{disc.instance.id}"):
+                            solara.Button(
+                                "Details",
+                                classes=["button"],
+                                icon_name=Icons.VIDEO.value,
+                            )
+
+                    else:
+
+                        with solara.Link(f"/api/discs/details/{disc.instance.id}"):
+                            solara.Button(
+                                "Details",
+                                classes=["button"],
+                                icon_name=Icons.DISC.value,
+                            )
 
 
 @solara.component
-def AlbumCard(album, refresh_counter):
+def AlbumCard(album: Album, refresh_counter):
     def reset_disc_numbers():
-        logger.debug(f"Resetting the disc numbers")
+        logger.debug(f"Renumber Discs")
         album.reset_disc_numbers()
         refresh_counter.set(refresh_counter.value + 1)
 
@@ -142,9 +174,18 @@ def AlbumCard(album, refresh_counter):
 
 
 @solara.component
-def AlbumDiscs(query, current_page, num_pages, num_items, refresh_counter):
+def AlbumDiscs(album: Album, refresh_counter):
+    current_page = solara.use_reactive(1)
 
-    for disc in query:
+    album_discs, num_items, num_pages = album.discs_paginated(current_page, per_page=3)
+
+    if len(album_discs) == 0:
+        return solara.Info(f"No Discs added to this album")
+
+    if current_page.value > num_pages:
+        current_page.set(num_pages)
+
+    for disc in album_discs:
         _disc = Disc(disc)
         DiscCard(_disc, refresh_counter)
 
@@ -154,39 +195,21 @@ def AlbumDiscs(query, current_page, num_pages, num_items, refresh_counter):
 
 
 @solara.component
+def AlbumDetails(album: Album):
+
+    with solara.Card():
+        with solara.Row(justify="center"):
+            solara.Markdown(f"## {album.instance.title}")
+
+
+@solara.component
 def Page():
-    router = solara.use_router()
-    current_page = solara.use_reactive(1)
+
     refresh_counter = solara.use_reactive(1)
-    per_page = 3
+
     _album = parse_url_args()
-    query = (
-        DiscModel.select()
-        .where(DiscModel.album_id == _album.instance.id)
-        .order_by(DiscModel.order)
-    )
-
-    _query, num_items, num_pages = paginate(
-        query=query,
-        page=current_page.value,
-        per_page=per_page,
-    )
-
-    if current_page.value > num_pages:
-        # if the query is updated and the 'current
-        # page' is no longer valid, move to the
-        # last page
-        current_page.set(num_pages)
 
     with solara.Column(classes=["main-container"]):
-
-        if len(_query) == 0:
-            solara.Info(f"No Videos added to this album")
-            return
-        with solara.Card():
-            with solara.Row(justify="center"):
-                solara.Markdown(f"## {_album.instance.title} ({num_items} Discs) ")
-
         if refresh_counter.value > 0:
             AlbumCard(_album, refresh_counter)
-            AlbumDiscs(_query, current_page, num_pages, num_items, refresh_counter)
+            AlbumDiscs(_album, refresh_counter)

@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains import Beat
 from hmtc.models import Beat as BeatModel
@@ -34,7 +35,7 @@ def BeatTable(router, headers, base_query, search_fields):
         "model": BeatModel,
         "vue_component": _BeatTable,
         "action1_path": "/beat-details",
-        "action1_icon": Icons.USER.value",
+        "action1_icon": Icons.USER.value,
     }
     DataTable(
         router=router,

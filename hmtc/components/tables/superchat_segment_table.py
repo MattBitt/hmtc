@@ -1,6 +1,7 @@
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.tables.data_table import DataTable
 from hmtc.domains.superchat_segment import SuperchatSegment
 from hmtc.models import SuperchatSegment as SuperchatSegmentModel
@@ -34,7 +35,7 @@ def SuperchatSegmentTable(router, headers, base_query, search_fields):
         "model": SuperchatSegmentModel,
         "vue_component": _SuperchatSegmentTable,
         "action1_path": "/superchat_segment-details",
-        "action1_icon": "mdi-cog",
+        "action1_icon": Icons.SUPERCHAT_SEGMENT.value,
     }
     DataTable(
         router=router,

@@ -1,7 +1,8 @@
 import solara
 from loguru import logger
-from hmtc.assets.icons.icon_repo import Icons
+
 from hmtc.assets.colors import Colors
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.utils.version_manager import get_version
 
 # program version

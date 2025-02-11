@@ -18,12 +18,8 @@ def UsersHomePage():
                 solara.Button("Videos", classes=["button"])
             with solara.Link("/api/albums"):
                 solara.Button("Albums", classes=["button"])
-            with solara.Link("/tables/tracks/"):
+            with solara.Link("/api/tracks/"):
                 solara.Button("Tracks", classes=["button"])
-            with solara.Link("/dashboards/domains/"):
-                solara.Button("Domains", classes=["button"], href="/dashboards/domains")
-            with solara.Link("/dashboards/files/"):
-                solara.Button("Files", classes=["button"], href="/dashboards/domains")
 
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
