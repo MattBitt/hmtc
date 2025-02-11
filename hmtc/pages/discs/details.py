@@ -74,7 +74,7 @@ def DiscVideoCard(
                         "Remove Video",
                         on_click=remove_video,
                         classes=["button mywarning"],
-                        icon_name=Icons.TRACK.value,
+                        icon_name=Icons.DELETE.value,
                     )
                 with solara.Column():
                     solara.Button(

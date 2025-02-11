@@ -8,10 +8,12 @@ from PIL import Image
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import DiscVideo as DiscVideoModel
+from hmtc.models import Section as SectionModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFiles
 from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.video_repo import VideoRepo
+from hmtc.utils.general import paginate
 
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "videos"
@@ -78,3 +80,20 @@ class Video(BaseDomain):
     def delete_file(self, filetype) -> Path | None:
         _file = self.file_repo.delete(item_id=self.instance.id, filetype=filetype)
         logger.success(f"{_file} deleted")
+
+    def sections_paginated(self, current_page, per_page):
+        video_sections = (
+            SectionModel.select()
+            .where(SectionModel.video_id == self.instance.id)
+            .order_by(SectionModel.start)
+        )
+        return paginate(
+            query=video_sections, page=current_page.value, per_page=per_page
+        )
+
+    def sections(self):
+        return (
+            SectionModel.select()
+            .where(SectionModel.video_id == self.instance.id)
+            .order_by(SectionModel.start)
+        )

@@ -5,7 +5,7 @@ import solara.lab
 from flask import session
 from loguru import logger
 
-from hmtc.components.sectionalizer import Sectionalizer
+from hmtc.components.section.selector import Page as SectionSelector
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
@@ -30,13 +30,6 @@ def parse_url_args():
 
 sections = solara.reactive([])
 selected = solara.reactive({})
-
-
-@solara.component_vue("./SectionSelector.vue", vuetify=True)
-def SectionSelector(
-    sections, selected, video_duration, event_remove_section, event_update_selected
-):
-    pass
 
 
 @solara.component
@@ -83,6 +76,7 @@ def Page():
     video_id = parse_url_args()
     try:
         video = Video(video_id)
+        sections = solara.use_reactive([Section(s).serialize() for s in video.sections()])
     except Exception as e:
         logger.error(f"Exception {e}")
         with solara.Error(f"Video Id {video_id} not found."):
@@ -98,33 +92,6 @@ def Page():
 
     def download_info():
         info, files = get_video_info(video.instance.youtube_id)
-
-    def update_selected(section):
-        selected.set(section)
-
-    def create_section(*args):
-        start = args[0]["start"]
-        end = args[0]["end"]
-        logger.debug(f"Creating section from {start} to {end}")
-        _section = Section.create(
-            {
-                "start": start,
-                "end": end,
-                "section_type": "instrumental",
-                "video_id": video.instance.id,
-            }
-        )
-
-        sections.set(sections.value + [_section.serialize()])
-        logger.debug(f"After Creating section from {start} to {end}")
-
-    def remove_section(section):
-        _sect = Section.get_by(id=section["id"])
-        logger.debug(f"Remove section {_sect}")
-        _sect.delete()
-        a = []
-        a[:] = [d for d in sections.value if d.get("id") != section["id"]]
-        sections.set(a)
 
     dv = DiscVideoModel.select().where(DiscVideoModel.video == video.instance).first()
     if dv is None:
@@ -152,19 +119,9 @@ def Page():
                     )
 
         with solara.lab.Tabs():
-            # with solara.lab.Tab("Sectionalizer"):
-            #     Sectionalizer(video=video, create_section=create_section)
             with solara.lab.Tab("Sections"):
-                if len(sections.value) > 0:
-                    with solara.Column():
-                        SectionSelector(
-                            sections=sections.value,
-                            selected=selected.value,
-                            video_duration=video.instance.duration * 1000,
-                            event_create_section=create_section,
-                            event_update_selected=update_selected,
-                            event_remove_section=remove_section,
-                        )
+                with solara.Column():
+                    SectionSelector(video=video, sections=sections)
             with solara.lab.Tab("Files"):
                 for file in video.file_repo.my_files(video.instance.id):
                     solara.Markdown(f"### {file['file']}")
