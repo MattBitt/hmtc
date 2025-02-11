@@ -71,28 +71,10 @@ def DiscCard(disc: Disc, refresh_counter):
     num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title}"
-        item_edit_button = solara.Link(
-            f"/api/videos/details/{disc.instance.id}",
-            children=[
-                solara.Button(
-                    "Edit Video",
-                    classes=["button"],
-                    icon_name=Icons.VIDEO.value,
-                )
-            ],
-        )
+
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
-        item_edit_button = solara.Link(
-            f"/api/discs/details/{disc.instance.id}",
-            children=[
-                solara.Button(
-                    "Edit Disc",
-                    classes=["button"],
-                    icon_name=Icons.DISC.value,
-                )
-            ],
-        )
+
 
     with solara.Card(f"{card_title}"):
         solara.Text(f"{disc.instance.folder_name}")
@@ -129,7 +111,7 @@ def DiscCard(disc: Disc, refresh_counter):
                 with solara.Column():
                     if num_videos_on_disc == 1:
 
-                        with solara.Link(f"/api/videos/details/{disc.instance.id}"):
+                        with solara.Link(f"/api/videos/details/{dv.video.id}"):
                             solara.Button(
                                 "Details",
                                 classes=["button"],
