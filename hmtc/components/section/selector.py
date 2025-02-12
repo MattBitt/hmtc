@@ -15,9 +15,7 @@ def SectionSelector(
 
 
 @solara.component
-def Page(video: Video, sections):
-
-    selected = solara.use_reactive(None)
+def Page(video: Video, sections, selected):
 
     def create_section(section):
         logger.debug(f"Creating a section for {video} using args {section}")

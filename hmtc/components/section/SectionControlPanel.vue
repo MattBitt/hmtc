@@ -42,10 +42,7 @@
                 5 minute section after the last one</v-btn
               >
 
-              <v-btn
-                outlined
-                class="button mywarning"
-                @click="deleteAllSections"
+              <v-btn outlined class="button mywarning" @click="deleteAllSections"
                 >Delete All Sections</v-btn
               >
             </v-col></v-col
@@ -64,12 +61,7 @@ module.exports = {
   name: "SectionControlPanel",
   props: {},
 
-  emits: [
-    "deleteAllSections",
-    "createSection",
-    "startAtJellyfin",
-    "endAtJellyfin",
-  ],
+  emits: ["deleteAllSections", "createSection", "startAtJellyfin", "endAtJellyfin"],
 
   methods: {
     createSection(start, end) {

@@ -244,7 +244,7 @@ class OmegleSection(BaseModel):
 
 
 class Topic(BaseModel):
-    text = CharField()
+    text = CharField(unique=True)
 
     def __repr__(self):
         return f"TopicModel({self.id} - {self.text=})"

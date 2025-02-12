@@ -25,11 +25,7 @@
 
     <v-row class="mt-10 ml-6">
       <v-col v-for="topic in item.topics" :key="topic.text + topic.id">
-        <v-chip
-          :key="topic.id"
-          close
-          @click:close="removeTopic(item.id, topic.text)"
-        >
+        <v-chip :key="topic.id" close @click:close="removeTopic(item.id, topic.text)">
           {{ topic.text }}</v-chip
         >
       </v-col>

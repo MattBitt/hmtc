@@ -64,7 +64,7 @@ def AlbumPanel(album, update_album_for_video):
 @solara.component
 def Page():
     router = solara.use_router()
-
+    selected = solara.use_reactive(0)
     # if "current_user" in session:
     #     logger.debug(session["current_user"])
     # else:
@@ -113,16 +113,21 @@ def Page():
             with solara.Columns([8, 4]):
                 with solara.Card():
                     VideoInfoPanel(video_domain=video)
+                    
                 with solara.Card():
                     AlbumPanel(
                         album=current_album_title,
                         update_album_for_video=update_album_for_video,
                     )
+                    if len(sections.value) > 0 and len(sections.value) >= selected.value:
+                        solara.Text(f"Current Section: {sections.value[selected.value]}")
+                    else:
+                        solara.Text(f"{len(sections.value)}==>{selected.value}")
 
         with solara.lab.Tabs():
             with solara.lab.Tab("Sections"):
                 with solara.Column():
-                    SectionSelector(video=video, sections=sections)
+                    SectionSelector(video=video, sections=sections, selected=selected)
             with solara.lab.Tab("Files"):
                 for file in video.file_repo.my_files(video.instance.id):
                     solara.Markdown(f"### {file['file']}")
