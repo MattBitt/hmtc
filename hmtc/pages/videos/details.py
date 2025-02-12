@@ -113,14 +113,19 @@ def Page():
             with solara.Columns([8, 4]):
                 with solara.Card():
                     VideoInfoPanel(video_domain=video)
-                    
+
                 with solara.Card():
                     AlbumPanel(
                         album=current_album_title,
                         update_album_for_video=update_album_for_video,
                     )
-                    if len(sections.value) > 0 and len(sections.value) >= selected.value:
-                        solara.Text(f"Current Section: {sections.value[selected.value]}")
+                    if (
+                        len(sections.value) > 0
+                        and len(sections.value) >= selected.value
+                    ):
+                        solara.Text(
+                            f"Current Section: {sections.value[selected.value]}"
+                        )
                     else:
                         solara.Text(f"{len(sections.value)}==>{selected.value}")
 

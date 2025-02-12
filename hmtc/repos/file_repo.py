@@ -243,7 +243,7 @@ def process_file(file, target, stem):
             else:
                 logger.debug("SRT File")
                 final_path = file_dict["path"].with_suffix(".srt")
-            
+
             if file.parent != target.parent:
                 MOVE_FILE(file, final_path)
 

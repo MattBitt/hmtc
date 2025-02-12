@@ -7,6 +7,7 @@ from hmtc.domains.section import Section
 from hmtc.domains.topic import Topic
 from hmtc.domains.video import Video
 
+refresh = solara.reactive(1)
 
 
 def parse_url_args():
@@ -18,21 +19,29 @@ def parse_url_args():
 
 
 @solara.component
-def NewTopic(section):
+def NewTopic(sections, selected):
     new_item = solara.use_reactive("")
     error = solara.use_reactive("")
     success = solara.use_reactive("")
-    
-    
+    if len(sections.value) == 0:
+        return solara.Text(f"No Sections found")
+
+    section = sections.value[selected.value]
+
     def create_topic():
+        if error.value != "":
+            error.set("")
+        if success.value != "":
+            success.set("")
         logger.debug(f"Creating new topic {new_item.value} if possible")
         if len(new_item.value) <= 1:
             error.set(f"Value {new_item.value} too short.")
         else:
             try:
-                _section = Section(section['id'])
+                _section = Section(section["id"])
                 topic = _section.add_topic(topic=new_item.value)
                 success.set(f"{topic} was created!")
+                refresh.set(refresh.value + 1)
 
             except Exception as e:
                 error.set(f"Error {e}")
@@ -54,7 +63,6 @@ def NewTopic(section):
             solara.Success(f"{success}")
         elif error.value:
             solara.Error(f"{error}")
-    
 
 
 @solara.component
@@ -69,6 +77,7 @@ def Page():
     )
     sections = solara.use_reactive([Section(x).serialize() for x in _sections])
     selected = solara.use_reactive(0)
+
     def create_section(section):
         logger.debug(f"Creating a section for {video} using args {section}")
         start = section["start"]
@@ -89,5 +98,5 @@ def Page():
     with solara.Column(classes=["main-container"]):
         Sectionalizer(video=video, create_section=create_section)
         SectionSelector(video=video, sections=sections, selected=selected)
-        if len(sections.value) > 0:
-            NewTopic(section=sections.value[selected.value])
+        if refresh.value > 0:
+            NewTopic(sections=sections, selected=selected)

@@ -9,19 +9,14 @@
           <v-toolbar-title>Edit Topic {{ currentItem.id }}</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-toolbar-items>
-            <v-btn dark text :disabled="!valid" @click="saveItemToDB">
-              Save
-            </v-btn>
+            <v-btn dark text :disabled="!valid" @click="saveItemToDB"> Save </v-btn>
           </v-toolbar-items>
         </v-toolbar>
         <v-card-text>
           <v-container>
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="currentItem.text"
-                  label="Title"
-                ></v-text-field>
+                <v-text-field v-model="currentItem.text" label="Title"></v-text-field>
               </v-col>
             </v-row>
           </v-container>
@@ -46,9 +41,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-          <v-btn class="button mywarning" outlined @click="deleteItemConfirm"
-            >OK</v-btn
-          >
+          <v-btn class="button mywarning" outlined @click="deleteItemConfirm">OK</v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
@@ -98,7 +91,9 @@
       <template v-slot:item.text="{ item }">
         <v-chip color="info">{{ item.text }}</v-chip>
       </template>
-
+      <template v-slot:item.num_sections="{ item }">
+        <v-chip color="primary">{{ item.num_sections }}</v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil

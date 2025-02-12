@@ -35,11 +35,13 @@ class Section(BaseDomain):
     def add_topic(self, topic: str):
         section_number = self.num_topics() + 1
         topic, created = TopicModel.get_or_create(text=topic)
-        st = SectionTopicModel.create(section_id=self.instance.id, topic_id=topic.id, order = section_number )
+        st = SectionTopicModel.create(
+            section_id=self.instance.id, topic_id=topic.id, order=section_number
+        )
         return st
 
     def num_topics(self):
-        return  (
+        return (
             TopicModel.select()
             .join(SectionTopicModel, on=(TopicModel.id == SectionTopicModel.topic_id))
             .where(SectionTopicModel.section_id == self.instance.id)

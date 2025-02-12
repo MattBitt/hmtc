@@ -34,8 +34,8 @@ def TopicTable(router, headers, base_query, search_fields):
     item_info = {
         "model": TopicModel,
         "vue_component": _TopicTable,
-        "action1_path": "/topic-details",
-        "action1_icon": Icons.TOPIC.value,
+        "action1_path": "",
+        "action1_icon": "",
     }
     DataTable(
         router=router,

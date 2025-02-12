@@ -30,6 +30,7 @@ def Page():
     headers = [
         {"text": "ID", "value": "id"},
         {"text": "Text", "value": "text"},
+        {"text": "Sections", "value": "num_sections", "sortable": False},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
     search_fields = [TopicModel.text]

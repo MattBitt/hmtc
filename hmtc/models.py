@@ -258,6 +258,9 @@ class SectionTopic(BaseModel):
     topic = ForeignKeyField(Topic, backref="sections", on_delete="CASCADE")
     order = IntegerField()
 
+    class Meta:
+        indexes = ((("section", "topic"), True),)
+
     def __repr__(self):
         return f"SectionTopicsModel({self.id} - {self.section=})"
 
