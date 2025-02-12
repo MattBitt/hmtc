@@ -15,7 +15,7 @@ from hmtc.router import parse_url_args
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router)
+
     parse_url_args()
     base_query = (
         TopicModel.select(
@@ -24,7 +24,6 @@ def Page():
         )
         .group_by(TopicModel.id, TopicModel.text)
         .order_by(TopicModel.text.asc())
-        .limit(100)
     )
 
     headers = [
