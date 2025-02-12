@@ -8,6 +8,7 @@ from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
+from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Channel as ChannelModel
@@ -15,6 +16,7 @@ from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
 from hmtc.models import SubtitleFile as SubtitleFileModel
+from hmtc.models import Topic as TopicModel
 from hmtc.models import Video as VideoModel
 from hmtc.utils.importer.existing_files import (
     create_omegle_sections,
@@ -220,6 +222,40 @@ def assign_albums():
         add_vids_to_album("UCHealth", uch_vids)
 
 
+def create_topics_from_omegle():
+    existing = TopicModel.select().where(TopicModel.text == "pineapple").count()
+    if existing > 3:
+        logger.error(f"Omegle Topics have already been imported...")
+        return
+    else:
+        sections = OmegleSection.select()
+        data = [(s.youtube_id, s.topics, s.start) for s in sections]
+
+        for youtube_id, topics, start in data[:20]:
+
+            video = Video.get_by(youtube_id=youtube_id)
+            if video is None:
+                logger.debug(f"Video {youtube_id} Not found. Skipping")
+                continue
+
+            sections = video.sections()
+            section = [s for s in sections if s.start == start * 1000]
+            if section == []:
+                logger.debug(f"Section Not found. Skipping")
+                continue
+            if len(section) > 1:
+                logger.error(f"Found 2 sections that match. Skipping")
+                continue
+            section = section[0]
+            # logger.debug(f"adding {topics} to {section}")
+            topic_list = topics.split("|")
+            for topic in topic_list:
+                cleaned = topic.strip().lower()
+                logger.debug(f"Adding {cleaned} to {section}")
+                new_topic = Section(section).add_topic(cleaned)
+        # logger.debug(data[:10])
+
+
 @solara.component
 def SectionsControls():
     num_sections = OmegleSection.select().count()
@@ -262,6 +298,12 @@ def SectionsControls():
                     on_click=create_omegle_sections,
                     classes=["button"],
                 )
+                solara.Button(
+                    "Create Topics for Omegle Bars",
+                    on_click=create_topics_from_omegle,
+                    classes=["button"],
+                )
+
     with solara.Row(justify="center"):
         with solara.Card("Channels"):
             solara.Text(f"Import Channels' files")

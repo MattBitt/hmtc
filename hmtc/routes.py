@@ -2,23 +2,23 @@ import solara
 
 from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.old_pages.dashboards.files import Page as FilesDashboard
-from hmtc.old_pages.tables.albums import Page as AlbumsPage
-from hmtc.old_pages.tables.artists import Page as ArtistsPage
-from hmtc.old_pages.tables.beats import Page as BeatsPage
-from hmtc.old_pages.tables.channels import Page as ChannelsPage
-from hmtc.old_pages.tables.discs import Page as DiscsPage
-from hmtc.old_pages.tables.sections import Page as SectionsPage
-from hmtc.old_pages.tables.series import Page as SeriesesPage
-from hmtc.old_pages.tables.superchat_segments import Page as SuperchatSegmentsPage
-from hmtc.old_pages.tables.superchats import Page as SuperchatsPage
-from hmtc.old_pages.tables.topics import Page as TopicsPage
-from hmtc.old_pages.tables.tracks import Page as TracksPage
-from hmtc.old_pages.tables.users import Page as UsersPage
-from hmtc.old_pages.tables.videos import VideosPage
-from hmtc.old_pages.tables.youtube_series import Page as YoutubeSeriesesPage
 from hmtc.old_pages.utils.settings import Page as SettingsPage
 from hmtc.pages.albums.details import Page as AlbumDetails
 from hmtc.pages.discs.details import Page as DiscDetails
+from hmtc.pages.tables.albums import Page as AlbumsPage
+from hmtc.pages.tables.artists import Page as ArtistsPage
+from hmtc.pages.tables.beats import Page as BeatsPage
+from hmtc.pages.tables.channels import Page as ChannelsPage
+from hmtc.pages.tables.discs import Page as DiscsPage
+from hmtc.pages.tables.sections import Page as SectionsPage
+from hmtc.pages.tables.series import Page as SeriesesPage
+from hmtc.pages.tables.superchat_segments import Page as SuperchatSegmentsPage
+from hmtc.pages.tables.superchats import Page as SuperchatsPage
+from hmtc.pages.tables.topics import Page as TopicsPage
+from hmtc.pages.tables.tracks import Page as TracksPage
+from hmtc.pages.tables.users import Page as UsersPage
+from hmtc.pages.tables.videos import VideosPage
+from hmtc.pages.tables.youtube_series import Page as YoutubeSeriesesPage
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.pages.videos.details import Page as VideoDetails
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer

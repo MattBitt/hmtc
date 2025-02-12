@@ -247,10 +247,10 @@ def create_omegle_sections():
             pass
         else:
             if vid.instance.sections.count() > 0:
-                existing_sections = [s.clip_number for s in vid.instance.sections]
-                if section.clip_number in existing_sections:
+                existing_sections = [s.start for s in vid.instance.sections]
+                if section.start * 1000 in existing_sections:
                     logger.debug(
-                        f"{vid} already has section {section.clip_number}. Not creating the default"
+                        f"{vid} already has section starting at {section.start}. Not creating the default"
                     )
                     continue
 
