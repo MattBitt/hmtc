@@ -231,7 +231,7 @@ def create_topics_from_omegle():
         sections = OmegleSection.select()
         data = [(s.youtube_id, s.topics, s.start) for s in sections]
 
-        for youtube_id, topics, start in data[:20]:
+        for youtube_id, topics, start in data:
 
             video = Video.get_by(youtube_id=youtube_id)
             if video is None:

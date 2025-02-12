@@ -1,5 +1,7 @@
 from typing import Any, Dict
 
+from loguru import logger
+
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Section as SectionModel
 from hmtc.models import SectionTopic as SectionTopicModel
@@ -35,6 +37,17 @@ class Section(BaseDomain):
     def add_topic(self, topic: str):
         section_number = self.num_topics() + 1
         topic, created = TopicModel.get_or_create(text=topic)
+        existing = (
+            SectionTopicModel.select()
+            .where(
+                (SectionTopicModel.section_id == self.instance.id)
+                & (SectionTopicModel.topic_id == topic.id)
+            )
+            .get_or_none()
+        )
+        if existing:
+            logger.error(f"This section already exists. Skipping creation")
+            return
         st = SectionTopicModel.create(
             section_id=self.instance.id, topic_id=topic.id, order=section_number
         )
