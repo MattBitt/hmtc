@@ -1,0 +1,41 @@
+from pathlib import Path
+
+import solara
+from loguru import logger
+
+from hmtc.components.sectionalizer import Sectionalizer, StartFrequency
+from hmtc.components.shared.ok_cancel import OkCancel
+from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.transitions.swap import SwapTransition
+from hmtc.domains.channel import Channel
+from hmtc.domains.video import Video
+
+choosing = solara.reactive(False)
+
+
+@solara.component
+def Step1():
+    with solara.Card(title="Step1"):
+        solara.Text(f"asdfasdfasdf")
+
+
+@solara.component
+def Step2():
+    with solara.Card(title="Step2"):
+        solara.Text(f"asdfasdfasdf")
+
+
+@solara.component
+def Page():
+
+    def toggle_choose():
+        choosing.set(not choosing.value)
+
+    with solara.Column(classes=["main-container"]):
+        print("The component render function gets called")
+
+        solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
+
+        with SwapTransition(show_first=(choosing.value == True), name="fade"):
+            Step1()
+            Step2()

@@ -5,6 +5,7 @@ from hmtc.old_pages.dashboards.files import Page as FilesDashboard
 from hmtc.old_pages.utils.settings import Page as SettingsPage
 from hmtc.pages.albums.details import Page as AlbumDetails
 from hmtc.pages.discs.details import Page as DiscDetails
+from hmtc.pages.sandbox.sandbox import Page as Sandbox
 from hmtc.pages.tables.albums import Page as AlbumsPage
 from hmtc.pages.tables.artists import Page as ArtistsPage
 from hmtc.pages.tables.beats import Page as BeatsPage
@@ -196,6 +197,16 @@ def api_routes():
                         path="/",
                         component=SuperchatSegmentsPage,
                         label="Superchat Segment Index",
+                    ),
+                ],
+            ),
+            solara.Route(
+                path="sandbox",
+                children=[
+                    solara.Route(
+                        path="/",
+                        component=Sandbox,
+                        label="Sandbox",
                     ),
                 ],
             ),

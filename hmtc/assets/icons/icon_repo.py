@@ -12,6 +12,7 @@ class Icons(Enum):
     EDIT = "mdi-pencil"
     FILE = "mdi-folder"
     HOME = "mdi-home"
+    SANDBOX = "mdi-shovel"
     SEARCH = "mdi-magnify"
     SECTION = "mdi-rhombus-split"
     SERIES = "mdi-shape"

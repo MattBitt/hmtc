@@ -30,6 +30,11 @@ def MainToolbar(user, logged_in):
                 icon_name=Icons.DOMAIN.value,
                 icon=True,
             )
+        with solara.Link(f"/api/videos"):
+            solara.Button(
+                icon_name=Icons.VIDEO.value,
+                icon=True,
+            )
         with solara.Link(f"/admin/dashboards/files"):
             solara.Button(
                 icon_name=Icons.FILE.value,
@@ -40,9 +45,9 @@ def MainToolbar(user, logged_in):
                 icon_name=Icons.SETTINGS.value,
                 icon=True,
             )
-        with solara.Link(f"/api/videos"):
+        with solara.Link(f"/api/sandbox"):
             solara.Button(
-                icon_name=Icons.VIDEO.value,
+                icon_name=Icons.SANDBOX.value,
                 icon=True,
             )
 

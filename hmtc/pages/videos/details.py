@@ -154,10 +154,13 @@ def AlbumPanel(album, video):
 
 @solara.component
 def SelectedSectionPanel(sections):
-    if len(sections.value) > 0 and len(sections.value) > selected.value:
-        solara.Text(f"Current Section: {sections.value[selected.value]}")
+    if len(sections.value) > 0:
+        if selected.value == {}:
+            solara.Text(f"Nothing Selected")
+        else:
+            solara.Text(f"Current Section {sections.value[selected.value]}")
     else:
-        solara.Text(f"No selected section.")
+        solara.Text(f"No Sections")
 
 
 @solara.component

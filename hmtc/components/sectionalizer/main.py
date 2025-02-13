@@ -7,6 +7,7 @@ import numpy as np
 import solara
 from loguru import logger
 
+from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
@@ -75,7 +76,7 @@ def SubtitlesCard(time_cursor, subtitles, starts_and_ends):
         logger.error(f"Captions not found in {closest}")
         return
 
-    while len(closest["captions"]) < 9:
+    while len(closest["captions"]) < 7:
         closest["captions"].append({"text": "----", "start": 0, "end": 0})
     with solara.Columns([8, 4]):
         with solara.Column():
@@ -85,24 +86,33 @@ def SubtitlesCard(time_cursor, subtitles, starts_and_ends):
                 else:
                     _classes = ["primary--text"]
                 solara.Text(f"{caption['text']}", classes=_classes)
-        with solara.Column():
-            if starts_and_ends.value["starts"] == []:
-                solara.Button(
-                    f"Start/Ends",
-                    on_click=search_for_starts_and_ends,
-                    classes=["button"],
-                )
-            else:
-                possibles = []
-                for starts in starts_and_ends.value["starts"]:
-                    possibles.append(starts.start)
-                seconds = [p.seconds for p in possibles]
-                solara.Text(f"Possibles", classes=["primary--text"])
-                for sec in seconds:
-                    with solara.Row():
-                        solara.Text(
-                            f"{seconds_to_hms(sec)} ({sec})", classes=["info--text"]
-                        )
+
+        with SwapTransition(
+            show_first=starts_and_ends.value["starts"] == [], name="fade"
+        ):
+            BeforeSearch(search_for_starts_and_ends)
+            AfterSearch(starts_and_ends)
+
+
+def AfterSearch(starts_and_ends):
+    with solara.Column():
+        possibles = []
+        for starts in starts_and_ends.value["starts"]:
+            possibles.append(starts.start)
+        seconds = [p.seconds for p in possibles]
+        solara.Text(f"Possibles", classes=["primary--text"])
+        for sec in seconds:
+            with solara.Row():
+                solara.Text(f"{seconds_to_hms(sec)} ({sec})", classes=["info--text"])
+
+
+def BeforeSearch(search_for_starts_and_ends):
+    with solara.Column():
+        solara.Button(
+            f"Start/Ends",
+            on_click=search_for_starts_and_ends,
+            classes=["button"],
+        )
 
 
 sections = solara.reactive([])
@@ -161,7 +171,9 @@ def Sectionalizer(video, create_section):
             )
         with solara.Column():
             times = [p.start.seconds for p in possibles.value["starts"]]
-            BarGraph(possibles=times)
+            with SwapTransition(show_first=(len(times) > 0), name="slide-fade"):
+                BarGraph(possibles=times)
+                solara.Text(f"No search performed yet.")
             Timeline(
                 videoTime=time_cursor.value,
                 totalDuration=video_duration_ms.value,
