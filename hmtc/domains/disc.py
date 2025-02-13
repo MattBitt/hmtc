@@ -55,14 +55,20 @@ class Disc(BaseDomain):
 
     def swap_video_order(self, disc_vid_a: DiscVideoModel, disc_vid_b: DiscVideoModel):
         orig_a = disc_vid_a.order
+        folder_a = disc_vid_a.disc.folder_name
         orig_b = disc_vid_b.order
+        folder_b = disc_vid_b.disc.folder_name
         tmp_order = 999
 
         disc_vid_a.order = tmp_order
         disc_vid_a.save()
         disc_vid_b.order = orig_a
         disc_vid_b.save()
+        disc_vid_b.disc.folder_name = folder_a
+        disc_vid_b.disc.save()
         disc_vid_a.order = orig_b
+        disc_vid_a.disc.folder_name = folder_b
+        disc_vid_a.disc.save()
         disc_vid_a.save()
 
     def move_video_up(self, video: Video):

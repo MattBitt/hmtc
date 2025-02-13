@@ -96,10 +96,13 @@ class Video(BaseDomain):
 
     def album(self):
         from hmtc.domains.album import Album
-        dv = DiscVideoModel.select().where(DiscVideoModel.video_id == self.instance.id).get_or_none()
+
+        dv = (
+            DiscVideoModel.select()
+            .where(DiscVideoModel.video_id == self.instance.id)
+            .get_or_none()
+        )
         if dv is None:
             return None
 
         return Album(dv.disc.album)
-        
-        

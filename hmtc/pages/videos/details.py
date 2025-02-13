@@ -27,15 +27,23 @@ def parse_url_args():
     _id = router.parts[-1]
     if not _id.isnumeric():
         raise ValueError(f"Video ID must be an integer")
-    return _id
+
+    try:
+        video = Video(_id)
+
+    except Exception as e:
+        logger.error(f"Exception {e}")
+
+    return video
 
 
 sections = solara.reactive([])
 selected = solara.reactive({})
 refresh_counter = solara.reactive(1)
 
+
 @solara.component
-def NoAlbum(album, video, choosing_disc):
+def NoAlbum(video, choosing_disc):
     album_title = solara.use_reactive("")
     albums = [
         a.title
@@ -45,32 +53,30 @@ def NoAlbum(album, video, choosing_disc):
 
     def update_album_for_video(disc_folder_name):
         from hmtc.domains.disc import Disc
-            
+
         logger.debug(f"{disc_folder_name}")
         _album = Album.get_by(title=album_title.value)
         if disc_folder_name == "Create New":
             _album.add_video(video=video.instance)
         else:
             _disc = Disc.get_by(folder_name=disc_folder_name)
-            _album.add_video(video=video.instance, existing_disc=_disc)
+            _album.add_video(video=video.instance, existing_disc=_disc.instance)
         # disc.set(_disc)
-        album.set(_album)
+        #        album.set(_album)
         choosing_disc.set(False)
-        refresh_counter.set(refresh_counter.value + 1)  
-
+        refresh_counter.set(refresh_counter.value + 1)
 
     def choose_disc(disc_title):
         logger.debug(f"{disc_title}")
-      
+
         choosing_disc.set(True)
 
     def cancel():
-        album.set("")
+
         choosing_disc.set(False)
+        refresh_counter.set(refresh_counter.value + 1)
         # reactive_disc.set(None)
         # reactive_album.set(None)
-
-
 
     with solara.Row(justify="center"):
         solara.Select(
@@ -93,10 +99,15 @@ def NoAlbum(album, video, choosing_disc):
             .order_by(DiscModel.folder_name.asc())
         )
         if len(discs) == 0:
-            solara.Button(label="Create Disc", icon_name=Icons.DISC.value, on_click=lambda: update_album_for_video(new_item[0]), classes=["button"])
+            solara.Button(
+                label="Create Disc",
+                icon_name=Icons.DISC.value,
+                on_click=lambda: update_album_for_video(new_item[0]),
+                classes=["button"],
+            )
         else:
-            
-            _disc_list = new_item + [disc.title for disc in discs]
+
+            _disc_list = new_item + [disc.folder_name for disc in discs]
             solara.Select(
                 label="Which Disc?",
                 value=reactive_disc,
@@ -104,7 +115,6 @@ def NoAlbum(album, video, choosing_disc):
                 on_value=update_album_for_video,
             )
         solara.Button(label="Cancel", classes=["button mywarning"], on_click=cancel)
-
 
 
 @solara.component
@@ -115,7 +125,9 @@ def HasAlbum(album, video):
         return
     with solara.Link(f"/api/albums/details/{_album.instance.id}"):
         solara.Button(
-            label=f"{album.value.instance.title}", classes=["button"], icon_name=Icons.ALBUM.value
+            label=f"{album.value.instance.title}",
+            classes=["button"],
+            icon_name=Icons.ALBUM.value,
         )
 
 
@@ -124,7 +136,7 @@ def AlbumPanel(album, video):
     choosing_disc = solara.use_reactive(False)
 
     if album.value is None or choosing_disc.value:
-        NoAlbum(album=album, video=video, choosing_disc=choosing_disc)
+        NoAlbum(video=video, choosing_disc=choosing_disc)
     else:
         HasAlbum(album=album, video=video)
 
@@ -141,16 +153,13 @@ def Page():
     #         with solara.Link("/"):
     #             solara.Button("Home", classes=["button"])
     #     return
-    video_id = parse_url_args()
-    try:
-        video = Video(video_id)
-
-    except Exception as e:
-        logger.error(f"Exception {e}")
-        with solara.Error(f"Video Id {video_id} not found."):
+    video = parse_url_args()
+    if video is None:
+        with solara.Error(f"Video Id not found."):
             with solara.Link("/"):
                 solara.Button("Home", classes=["button"])
-        return
+            return
+
     sections = solara.use_reactive([Section(s).serialize() for s in video.sections()])
 
     def download_video():
@@ -161,8 +170,6 @@ def Page():
 
     def download_info():
         info, files = get_video_info(video.instance.youtube_id)
-
-
 
     album = solara.use_reactive(video.album())
     if refresh_counter.value > 0:
@@ -191,7 +198,9 @@ def Page():
             with solara.lab.Tabs():
                 with solara.lab.Tab("Sections"):
                     with solara.Column():
-                        SectionSelector(video=video, sections=sections, selected=selected)
+                        SectionSelector(
+                            video=video, sections=sections, selected=selected
+                        )
                 with solara.lab.Tab("Files"):
                     for file in video.file_repo.my_files(video.instance.id):
                         solara.Markdown(f"### {file['file']}")
@@ -200,6 +209,8 @@ def Page():
                             f"Download Info", on_click=download_info, classes=["button"]
                         )
                         solara.Button(
-                            f"Download Video", on_click=download_video, classes=["button"]
+                            f"Download Video",
+                            on_click=download_video,
+                            classes=["button"],
                         )
                         solara.Button(f"Create/Download Audio", classes=["button"])

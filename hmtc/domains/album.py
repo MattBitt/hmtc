@@ -53,7 +53,7 @@ class Album(BaseDomain):
         }
 
     def add_video(self, video: VideoModel, existing_disc=None):
-        logger.debug(f"Adding {video} to {self}")
+        logger.debug(f"Adding {video} to {self} ")
         last_disc = (
             DiscModel.select(fn.MAX(DiscModel.order))
             .where(DiscModel.album_id == self.instance.id)
@@ -72,10 +72,11 @@ class Album(BaseDomain):
             else:
                 order = num_vids_on_existing_disc + 1
             new_dv = DiscVideoModel.create(video=video, disc=existing_disc, order=order)
-            logger.success(f"Created disc video: {new_dv}")
+            logger.success(f"Added video to existing: {existing_disc}")
         else:
             disc = DiscModel.create(
                 title=f"Disc {last_disc+1}",
+                folder_name=f"Disc {last_disc+1}",
                 order=last_disc + 1,
                 album_id=self.instance.id,
             )
@@ -163,12 +164,14 @@ class Album(BaseDomain):
         )
         # actual_disc_orders = [x.order for x in discs]
         ideal_disc_orders = [x + 1 for x in range(len(discs))]
-        logger.debug(f"{discs}")
+        logger.debug(f"{list(discs)}")
         logger.debug(f"{ideal_disc_orders}")
         for x in zip(discs, ideal_disc_orders):
             if x[0].order != x[1]:
                 logger.debug(f"Need to update {x[0]} to order: {x[1]}")
                 x[0].order = x[1]
+                x[0].folder_name = f"Disc {x[1]}"
+                x[0].title = f"Disc {x[1]}"
                 x[0].save()
 
     def delete_discs(self):
