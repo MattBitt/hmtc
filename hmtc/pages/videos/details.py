@@ -37,6 +37,17 @@ def parse_url_args():
     return video
 
 
+def download_video(video: Video):
+    results = download_video_file(
+        video.instance.youtube_id, WORKING / video.instance.youtube_id
+    )
+    video.add_file(results[0])
+
+
+def download_info(video: Video):
+    info, files = get_video_info(video.instance.youtube_id)
+
+
 sections = solara.reactive([])
 selected = solara.reactive({})
 refresh_counter = solara.reactive(1)
@@ -142,6 +153,34 @@ def AlbumPanel(album, video):
 
 
 @solara.component
+def SelectedSectionPanel(sections):
+    if len(sections.value) > 0 and len(sections.value) > selected.value:
+        solara.Text(f"Current Section: {sections.value[selected.value]}")
+    else:
+        solara.Text(f"No selected section.")
+
+
+@solara.component
+def FilesPanel(video: Video):
+    with solara.Column():
+        for file in video.file_repo.my_files(video.instance.id):
+            with solara.Row():
+                solara.Markdown(f"### {file['file']}")
+        with solara.Row():
+            solara.Button(
+                f"Download Info",
+                on_click=lambda: download_info(video),
+                classes=["button"],
+            )
+            solara.Button(
+                f"Download Video",
+                on_click=lambda: download_video(video),
+                classes=["button"],
+            )
+        solara.Button(f"Create/Download Audio", classes=["button"])
+
+
+@solara.component
 def Page():
     router = solara.use_router()
     selected = solara.use_reactive(0)
@@ -154,63 +193,37 @@ def Page():
     #             solara.Button("Home", classes=["button"])
     #     return
     video = parse_url_args()
-    if video is None:
-        with solara.Error(f"Video Id not found."):
-            with solara.Link("/"):
-                solara.Button("Home", classes=["button"])
-            return
 
-    sections = solara.use_reactive([Section(s).serialize() for s in video.sections()])
-
-    def download_video():
-        results = download_video_file(
-            video.instance.youtube_id, WORKING / video.instance.youtube_id
-        )
-        video.add_file(results[0])
-
-    def download_info():
-        info, files = get_video_info(video.instance.youtube_id)
-
-    album = solara.use_reactive(video.album())
     if refresh_counter.value > 0:
         with solara.Column(classes=["main-container"]):
-            with solara.Row():
-                with solara.Columns([8, 4]):
-                    with solara.Card():
-                        VideoInfoPanel(video_domain=video)
-                    with solara.Column():
+            if video is None:
+                with solara.Error(f"Video Id not found."):
+                    with solara.Link("/"):
+                        solara.Button("Home", classes=["button"])
+            else:
+                sections = solara.use_reactive(
+                    [Section(s).serialize() for s in video.sections()]
+                )
+                album = solara.use_reactive(video.album())
+                with solara.Row():
+                    with solara.Columns([8, 4]):
                         with solara.Card():
-                            AlbumPanel(
-                                album=album,
-                                video=video,
-                            )
-                        with solara.Card():
-                            if (
-                                len(sections.value) > 0
-                                and len(sections.value) > selected.value
-                            ):
-                                solara.Text(
-                                    f"Current Section: {sections.value[selected.value]}"
+                            VideoInfoPanel(video_domain=video)
+                        with solara.Column():
+                            with solara.Card():
+                                AlbumPanel(
+                                    album=album,
+                                    video=video,
                                 )
-                            else:
-                                solara.Text(f"No selected section.")
+                            with solara.Card():
+                                SelectedSectionPanel(sections=sections)
 
-            with solara.lab.Tabs():
-                with solara.lab.Tab("Sections"):
-                    with solara.Column():
-                        SectionSelector(
-                            video=video, sections=sections, selected=selected
-                        )
-                with solara.lab.Tab("Files"):
-                    for file in video.file_repo.my_files(video.instance.id):
-                        solara.Markdown(f"### {file['file']}")
-                    with solara.Column():
-                        solara.Button(
-                            f"Download Info", on_click=download_info, classes=["button"]
-                        )
-                        solara.Button(
-                            f"Download Video",
-                            on_click=download_video,
-                            classes=["button"],
-                        )
-                        solara.Button(f"Create/Download Audio", classes=["button"])
+                with solara.lab.Tabs():
+                    with solara.lab.Tab("Sections"):
+                        with solara.Column():
+                            SectionSelector(
+                                video=video, sections=sections, selected=selected
+                            )
+                    with solara.lab.Tab("Files"):
+                        with solara.Column():
+                            FilesPanel(video)

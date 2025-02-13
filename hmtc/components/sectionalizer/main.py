@@ -26,7 +26,7 @@ class Topic:
     id: str = field(default_factory=lambda: str(uuid.uuid1()))
 
 
-@solara.component_vue("Timeline.vue")
+@solara.component_vue("Timeline.vue", vuetify=True)
 def Timeline(
     videoTime,
     totalDuration,
@@ -34,6 +34,11 @@ def Timeline(
     event_update_time_cursor,
     event_create_section,
 ):
+    pass
+
+
+@solara.component_vue("BarGraph.vue", vuetify=True)
+def BarGraph(possibles):
     pass
 
 
@@ -51,9 +56,8 @@ def VideoFrame(video: Video, time_cursor):
 
 
 @solara.component
-def SubtitlesCard(time_cursor, subtitles):
+def SubtitlesCard(time_cursor, subtitles, starts_and_ends):
     searching = solara.use_reactive(False)
-    starts_and_ends = solara.use_reactive({})
 
     captions = merge_subtitles(subtitles)
 
@@ -71,26 +75,34 @@ def SubtitlesCard(time_cursor, subtitles):
         logger.error(f"Captions not found in {closest}")
         return
 
-    while len(closest["captions"]) < 5:
+    while len(closest["captions"]) < 9:
         closest["captions"].append({"text": "----", "start": 0, "end": 0})
-    with solara.Column():
-        for index, caption in enumerate(closest["captions"]):
-            if index == closest["highlight_index"]:
-                _classes = ["info--text"]
+    with solara.Columns([8, 4]):
+        with solara.Column():
+            for index, caption in enumerate(closest["captions"]):
+                if index == closest["highlight_index"]:
+                    _classes = ["info--text"]
+                else:
+                    _classes = ["primary--text"]
+                solara.Text(f"{caption['text']}", classes=_classes)
+        with solara.Column():
+            if starts_and_ends.value["starts"] == []:
+                solara.Button(
+                    f"Start/Ends",
+                    on_click=search_for_starts_and_ends,
+                    classes=["button"],
+                )
             else:
-                _classes = ["primary--text"]
-            solara.Text(f"{caption['text']}", classes=_classes)
-        if starts_and_ends.value == {}:
-            solara.Button(
-                f"Search for Start/Ends",
-                on_click=search_for_starts_and_ends,
-                classes=["button"],
-            )
-        else:
-            possibles = []
-            for starts in starts_and_ends.value["starts"]:
-                possibles.append(starts.start)
-            solara.Markdown(f"## Maybe Section Start: {possibles}")
+                possibles = []
+                for starts in starts_and_ends.value["starts"]:
+                    possibles.append(starts.start)
+                seconds = [p.seconds for p in possibles]
+                solara.Text(f"Possibles", classes=["primary--text"])
+                for sec in seconds:
+                    with solara.Row():
+                        solara.Text(
+                            f"{seconds_to_hms(sec)} ({sec})", classes=["info--text"]
+                        )
 
 
 sections = solara.reactive([])
@@ -113,6 +125,8 @@ def Sectionalizer(video, create_section):
     _sections = [s.serialize() for s in _raw_sections]
     sections = solara.use_reactive(_sections)
 
+    possibles = solara.use_reactive({"starts": [], "ends": []})
+
     with solara.Card(video.instance.title):
         with solara.Columns([6, 6]):
             with solara.Column():
@@ -128,7 +142,11 @@ def Sectionalizer(video, create_section):
             with solara.Column():
                 subtitles = video.subtitles()
                 if subtitles is not None:
-                    SubtitlesCard(time_cursor=time_cursor.value, subtitles=subtitles)
+                    SubtitlesCard(
+                        time_cursor=time_cursor.value,
+                        subtitles=subtitles,
+                        starts_and_ends=possibles,
+                    )
                 else:
                     solara.Markdown(f"No subtitles found for {video.instance.title}")
 
@@ -141,10 +159,13 @@ def Sectionalizer(video, create_section):
                 seconds_to_hms(int(time_cursor.value / 1000)),
                 classes=["seven-seg"],
             )
-        Timeline(
-            videoTime=time_cursor.value,
-            totalDuration=video_duration_ms.value,
-            durationString=seconds_to_hms(int(video_duration_ms.value / 1000)),
-            event_update_time_cursor=update_time_cursor,
-            event_create_section=create_section,
-        )
+        with solara.Column():
+            times = [p.start.seconds for p in possibles.value["starts"]]
+            BarGraph(possibles=times)
+            Timeline(
+                videoTime=time_cursor.value,
+                totalDuration=video_duration_ms.value,
+                durationString=seconds_to_hms(int(video_duration_ms.value / 1000)),
+                event_update_time_cursor=update_time_cursor,
+                event_create_section=create_section,
+            )

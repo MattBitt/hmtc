@@ -8,7 +8,7 @@ from thefuzz import fuzz
 
 
 # i generated the following with gpt on 1/27/25
-def find_closest_caption(seconds, captions, n=2):
+def find_closest_caption(seconds, captions, n=4):
     """
     Finds the closest caption to the given timestamp and includes n lines around it.
 
