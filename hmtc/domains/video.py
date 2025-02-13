@@ -82,11 +82,7 @@ class Video(BaseDomain):
         logger.success(f"{_file} deleted")
 
     def sections_paginated(self, current_page, per_page):
-        video_sections = (
-            SectionModel.select()
-            .where(SectionModel.video_id == self.instance.id)
-            .order_by(SectionModel.start)
-        )
+        video_sections = self.sections()
         return paginate(
             query=video_sections, page=current_page.value, per_page=per_page
         )
@@ -97,3 +93,13 @@ class Video(BaseDomain):
             .where(SectionModel.video_id == self.instance.id)
             .order_by(SectionModel.start)
         )
+
+    def album(self):
+        from hmtc.domains.album import Album
+        dv = DiscVideoModel.select().where(DiscVideoModel.video_id == self.instance.id).get_or_none()
+        if dv is None:
+            return None
+
+        return Album(dv.disc.album)
+        
+        

@@ -5,6 +5,7 @@ import solara.lab
 from flask import session
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.section.selector import Page as SectionSelector
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.components.vue_registry import register_vue_components
@@ -13,6 +14,7 @@ from hmtc.domains.album import Album
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
+from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
@@ -30,35 +32,101 @@ def parse_url_args():
 
 sections = solara.reactive([])
 selected = solara.reactive({})
-
+refresh_counter = solara.reactive(1)
 
 @solara.component
-def AlbumPanel(album, update_album_for_video):
-
+def NoAlbum(album, video, choosing_disc):
+    album_title = solara.use_reactive("")
     albums = [
         a.title
         for a in AlbumModel.select(AlbumModel.title).order_by(AlbumModel.title.asc())
     ]
+    reactive_disc = solara.use_reactive(None)
 
-    solara.Text(f"{album} current Album")
-    if album.value == "":
-        with solara.Row(justify="center"):
+    def update_album_for_video(disc_folder_name):
+        from hmtc.domains.disc import Disc
+            
+        logger.debug(f"{disc_folder_name}")
+        _album = Album.get_by(title=album_title.value)
+        if disc_folder_name == "Create New":
+            _album.add_video(video=video.instance)
+        else:
+            _disc = Disc.get_by(folder_name=disc_folder_name)
+            _album.add_video(video=video.instance, existing_disc=_disc)
+        # disc.set(_disc)
+        album.set(_album)
+        choosing_disc.set(False)
+        refresh_counter.set(refresh_counter.value + 1)  
+
+
+    def choose_disc(disc_title):
+        logger.debug(f"{disc_title}")
+      
+        choosing_disc.set(True)
+
+    def cancel():
+        album.set("")
+        choosing_disc.set(False)
+        # reactive_disc.set(None)
+        # reactive_album.set(None)
+
+
+
+    with solara.Row(justify="center"):
+        solara.Select(
+            label="Album",
+            value=album_title,
+            values=albums,
+            on_value=choose_disc,
+        )
+    with solara.Link(f"/api/albums/"):
+        solara.Button(f"Album Table", classes=["button"])
+    new_item = ["Create New"]
+    if choosing_disc.value is True:
+        _album = Album.get_by(title=album_title.value)
+        if _album is None:
+            logger.error(f"{_album} is None for {album_title.value}")
+            return
+        discs = (
+            DiscModel.select()
+            .where(DiscModel.album_id == _album.instance.id)
+            .order_by(DiscModel.folder_name.asc())
+        )
+        if len(discs) == 0:
+            solara.Button(label="Create Disc", icon_name=Icons.DISC.value, on_click=lambda: update_album_for_video(new_item[0]), classes=["button"])
+        else:
+            
+            _disc_list = new_item + [disc.title for disc in discs]
             solara.Select(
-                label="Album",
-                value=album,
-                values=albums,
+                label="Which Disc?",
+                value=reactive_disc,
+                values=_disc_list,
                 on_value=update_album_for_video,
             )
-        with solara.Link(f"/api/albums/"):
-            solara.Button(f"Album Table", classes=["button"])
+        solara.Button(label="Cancel", classes=["button mywarning"], on_click=cancel)
 
+
+
+@solara.component
+def HasAlbum(album, video):
+    _album = Album.get_by(title=album.value.instance.title)
+    if _album is None:
+        solara.Error(f"_album is None!!!!!")
+        return
+    with solara.Link(f"/api/albums/details/{_album.instance.id}"):
+        solara.Button(
+            label=f"{album.value.instance.title}", classes=["button"], icon_name=Icons.ALBUM.value
+        )
+
+
+@solara.component
+def AlbumPanel(album, video):
+    choosing_disc = solara.use_reactive(False)
+
+    if album.value is None or choosing_disc.value:
+        NoAlbum(album=album, video=video, choosing_disc=choosing_disc)
     else:
-        _album = Album.get_by(title=album.value)
-        if _album is None:
-            solara.Error(f"_album is None!!!!!")
-            return
-        with solara.Link(f"/api/albums/details/{_album.instance.id}"):
-            solara.Button(f"{album}", classes=["button"])
+        HasAlbum(album=album, video=video)
 
 
 @solara.component
@@ -94,53 +162,44 @@ def Page():
     def download_info():
         info, files = get_video_info(video.instance.youtube_id)
 
-    dv = DiscVideoModel.select().where(DiscVideoModel.video == video.instance).first()
-    if dv is None:
-        _album_title = ""
-    else:
-        _album_title = dv.disc.album.title
-    current_album_title = solara.use_reactive(_album_title)
 
-    def update_album_for_video(album_title):
-        _album = Album.get_by(title=album_title)
-        _album.add_video(video=video.instance)
-        current_album_title.set(_album.instance.title)
 
-        logger.debug(f"Updating Album For video {album_title}")
+    album = solara.use_reactive(video.album())
+    if refresh_counter.value > 0:
+        with solara.Column(classes=["main-container"]):
+            with solara.Row():
+                with solara.Columns([8, 4]):
+                    with solara.Card():
+                        VideoInfoPanel(video_domain=video)
+                    with solara.Column():
+                        with solara.Card():
+                            AlbumPanel(
+                                album=album,
+                                video=video,
+                            )
+                        with solara.Card():
+                            if (
+                                len(sections.value) > 0
+                                and len(sections.value) > selected.value
+                            ):
+                                solara.Text(
+                                    f"Current Section: {sections.value[selected.value]}"
+                                )
+                            else:
+                                solara.Text(f"No selected section.")
 
-    with solara.Column(classes=["main-container"]):
-        with solara.Row():
-            with solara.Columns([8, 4]):
-                with solara.Card():
-                    VideoInfoPanel(video_domain=video)
-
-                with solara.Card():
-                    AlbumPanel(
-                        album=current_album_title,
-                        update_album_for_video=update_album_for_video,
-                    )
-                    if (
-                        len(sections.value) > 0
-                        and len(sections.value) >= selected.value
-                    ):
-                        solara.Text(
-                            f"Current Section: {sections.value[selected.value]}"
+            with solara.lab.Tabs():
+                with solara.lab.Tab("Sections"):
+                    with solara.Column():
+                        SectionSelector(video=video, sections=sections, selected=selected)
+                with solara.lab.Tab("Files"):
+                    for file in video.file_repo.my_files(video.instance.id):
+                        solara.Markdown(f"### {file['file']}")
+                    with solara.Column():
+                        solara.Button(
+                            f"Download Info", on_click=download_info, classes=["button"]
                         )
-                    else:
-                        solara.Text(f"{len(sections.value)}==>{selected.value}")
-
-        with solara.lab.Tabs():
-            with solara.lab.Tab("Sections"):
-                with solara.Column():
-                    SectionSelector(video=video, sections=sections, selected=selected)
-            with solara.lab.Tab("Files"):
-                for file in video.file_repo.my_files(video.instance.id):
-                    solara.Markdown(f"### {file['file']}")
-                with solara.Column():
-                    solara.Button(
-                        f"Download Info", on_click=download_info, classes=["button"]
-                    )
-                    solara.Button(
-                        f"Download Video", on_click=download_video, classes=["button"]
-                    )
-                    solara.Button(f"Create/Download Audio", classes=["button"])
+                        solara.Button(
+                            f"Download Video", on_click=download_video, classes=["button"]
+                        )
+                        solara.Button(f"Create/Download Audio", classes=["button"])
