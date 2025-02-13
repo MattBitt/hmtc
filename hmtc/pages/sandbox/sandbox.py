@@ -7,6 +7,7 @@ from hmtc.components.sectionalizer import Sectionalizer, StartFrequency
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.transitions.swap import SwapTransition
+
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
 
@@ -33,9 +34,15 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         print("The component render function gets called")
+        with solara.Card():
+            solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
 
-        solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
+            with SwapTransition(show_first=(choosing.value == True), name="fade"):
+                Step1()
+                Step2()
+        with solara.Card():
+            solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
 
-        with SwapTransition(show_first=(choosing.value == True), name="fade"):
-            Step1()
-            Step2()
+            with SwapTransition(show_first=(choosing.value == True), name="slide-fade"):
+                Step2()
+                Step1()

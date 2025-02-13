@@ -12,7 +12,36 @@
     ></jupyter-widget>
   </Transition>
 </template>
-
+<script>
+module.exports = {
+  name: "EmptyComponent",
+  props: {
+    show_first: {
+      type: Boolean,
+      default: true,
+    },
+    children: {
+      type: Array,
+      default: [],
+    },
+    name: {
+      type: String,
+      default: "fade",
+    },
+    mode: {
+      type: String,
+      default: "out-in",
+    },
+  },
+  emits: [],
+  data() {
+    return {};
+  },
+  methods: {},
+  created() {},
+  computed: {},
+};
+</script>
 <style>
 /* name="fade" */
 .fade-enter-active,
