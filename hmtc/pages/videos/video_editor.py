@@ -131,16 +131,18 @@ def VideoEditor():
     vids_without_section = VideoModel.select(VideoModel.id).where(
         VideoModel.id.not_in(vids_with_section)
     )
-    page_query = (
-        VideoModel.select(VideoModel)
-        .where(
-            (
-                VideoModel.id.in_(vids_without_section)
-                & (VideoModel.unique_content == True)
-            )
-        )
-        .order_by(VideoModel.duration.asc())
+    omegle = Album.get_by(title="Omegle Bars")
+    # guerrilla = Album.get_by(title="Guerrilla Bars")
+
+    base_query = VideoModel.select(VideoModel).where(
+        (VideoModel.unique_content == True) & VideoModel.id.in_(vids_without_section)
     )
+    if omegle is not None:
+        base_query = base_query.where(VideoModel.id.in_(omegle.discs_and_videos()))
+    # if guerrilla is not None:
+    #     base_query = base_query.where(VideoModel.id.in_(guerrilla.discs_and_videos()))
+
+    page_query = base_query.order_by(VideoModel.duration.asc())
 
     if len(page_query) == 0:
         solara.Warning(f"No Videos Found meeting these criteria.")
@@ -157,7 +159,9 @@ def VideoEditor():
 
     video = Video(_query.first())
     with solara.Row(justify="center"):
-        solara.Markdown(f"Unique Videos with No Sections (2/13/25)")
+        solara.Markdown(
+            f"Exclusive Omegle and Guerilla Bars Unique Videos with No Sections (2/13/25)"
+        )
     with solara.Row(justify="center"):
         MainRow(video)
     with solara.Row(justify="center"):
