@@ -15,21 +15,21 @@ def SectionSelector(
 
 
 @solara.component
-def Page(video: Video, sections, selected):
+def Page(video: Video, sections):
     new_topic = solara.use_reactive("")
     
-    def create_topic(topic):
-        if topic == "":
+    def create_topic(args):
+        section_id = args['section_id']
+        topic_string = args['topic_string']
+        if topic_string == "":
             logger.error(f"Input too short for a new topic.")
             return
-        #logger.debug(f"{sections=}")
-        #logger.debug(f"{selected=}")
-        #logger.debug(f"Creating {topic} to {sections.value[selected.value]}")
-        ss = Section(sections.value[selected.value]['id'])
-        section_topic = ss.add_topic(topic)
+        logger.error("creating topic")
+        ss = Section(section_id)
+        section_topic = ss.add_topic(topic_string)
         new_section = [ss.serialize()]
         _sections = [x for x in sections.value if x['id'] != ss.instance.id]
-        sections.set(*_sections, new_section)
+        sections.set(_sections +  new_section)
         
         logger.debug(f"Created topic {section_topic.topic.text}")
     
@@ -50,9 +50,6 @@ def Page(video: Video, sections, selected):
         sections.set(sections.value + [_section.serialize()])
         logger.debug(f"After Creating section from {start} to {end}")
 
-    def update_selected(section):
-        selected.set(section)
-
     def remove_section(section):
         _sect = Section.get_by(id=section["id"])
         logger.debug(f"Remove section {_sect}")
@@ -63,11 +60,11 @@ def Page(video: Video, sections, selected):
 
     SectionSelector(
         sections=sections.value,
-        selected=selected.value,
+
         video_duration=video.instance.duration * 1000,
         event_create_section=create_section,
         event_create_topic=create_topic,
-        event_update_selected=update_selected,
+        
         event_remove_section=remove_section,
     )
     

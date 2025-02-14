@@ -17,6 +17,7 @@
           >
             <template v-slot:prepend>
               <span class="tracknumber">{{ (i + 1).toString() }}</span>
+              <span>({{ section.id }})</span>
             </template>
           </v-range-slider>
           <v-row>
@@ -39,9 +40,20 @@
               </h4>
             </v-col>
             <v-col cols="6">
-              <h4 class="primary--text font-weight-bold">
-                {{ section.topics?.map(({ text }) => text).join(", ") }}
-              </h4>
+              <v-row>
+                <v-col cols="12">
+                  <v-chip-group column multiple>
+                    <v-chip
+                      v-for="topic in section.topics.slice(0, 9)"
+                      :key="topic.text"
+                      color="primary"
+                      text-color="white"
+                    >
+                      {{ topic.text }}
+                    </v-chip>
+                  </v-chip-group>
+                </v-col>
+              </v-row>
             </v-col>
             <v-col cols="2">
               <v-btn class="button mywarning" @click="removeSection(section)"
@@ -79,10 +91,6 @@ module.exports = {
     };
   },
   methods: {
-    updateSelected(value) {
-      this.update_selected(value);
-      console.log("Updating to ", value);
-    },
     removeSection(section) {
       console.log("removing section", section);
       this.remove_section(section);
@@ -103,19 +111,19 @@ module.exports = {
       return ret;
     },
     createTopic() {
-      this.create_topic(this.new_topic);
+      const args = {
+        section_id: this.sections[this.selected].id,
+        topic_string: this.new_topic,
+      };
+      console.log("Creating New_topic for section", this.args);
+      this.create_topic(args);
       this.new_topic = "";
-      console.log("Creating New_topic", this.new_topic);
     },
     clearTopic() {
       this.reset();
     },
   },
-  watch: {
-    selected(newValue) {
-      this.updateSelected(newValue);
-    },
-  },
+  watch: {},
   created() {
     console.log("children: ", this.children);
     // console.log(sections, section, selected);

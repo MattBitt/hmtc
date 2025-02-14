@@ -190,7 +190,7 @@ def Tabs(selected, video, sections):
     with solara.lab.Tabs():
         with solara.lab.Tab("Sections"):
             with solara.Column():
-                SectionSelector(video=video, sections=sections, selected=selected)
+                SectionSelector(video=video, sections=sections)
         with solara.lab.Tab("Files"):
             with solara.Column():
                 FilesPanel(video)

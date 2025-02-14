@@ -116,7 +116,7 @@ def BeforeSearch(search_for_starts_and_ends):
 
 
 sections = solara.reactive([])
-selected = solara.reactive({})
+
 
 
 @solara.component
