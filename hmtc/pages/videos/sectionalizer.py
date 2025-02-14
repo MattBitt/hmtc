@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.components.section.selector import Page as SectionSelector
-from hmtc.components.sectionalizer import Sectionalizer
+from hmtc.components.sectionalizer import NewTopicVue, Sectionalizer
 from hmtc.domains.section import Section
 from hmtc.domains.topic import Topic
 from hmtc.domains.video import Video
@@ -28,41 +28,44 @@ def NewTopic(sections, selected):
 
     section = sections.value[selected.value]
 
-    def create_topic():
+    def create_topic(topic_input):
         if error.value != "":
             error.set("")
         if success.value != "":
             success.set("")
-        logger.debug(f"Creating new topic {new_item.value} if possible")
-        if len(new_item.value) <= 1:
-            error.set(f"Value {new_item.value} too short.")
+        logger.debug(f"Creating new topic {topic_input} if possible")
+        if len(topic_input) <= 1:
+            error.set(f"Value {topic_input} too short.")
         else:
             try:
                 _section = Section(section["id"])
-                topic = _section.add_topic(topic=new_item.value)
+                topic = _section.add_topic(topic=topic_input)
+                new_item.set("")
                 success.set(f"{topic} was created!")
                 refresh.set(refresh.value + 1)
 
             except Exception as e:
                 error.set(f"Error {e}")
 
-    def reset():
+    def reset(*args):
         new_item.set("")
         error.set("")
         success.set("")
 
     with solara.Card():
-        with solara.Columns([6, 6]):
-            solara.InputText(label="Topic", value=new_item)
-            with solara.Row():
-                solara.Button(
-                    label="Create Topic", on_click=create_topic, classes=["button"]
-                )
-                solara.Button(label="Reset Form", on_click=reset, classes=["button"])
-        if success.value:
-            solara.Success(f"{success}")
-        elif error.value:
-            solara.Error(f"{error}")
+        NewTopicVue(create=create_topic, reset=reset)
+    # with solara.Card():
+    #     with solara.Columns([6, 6]):
+    #         solara.InputText(label="Topic", value=new_item)
+    #         with solara.Row():
+    #             solara.Button(
+    #                 label="Create Topic", on_click=create_topic, classes=["button"]
+    #             )
+    #             solara.Button(label="Reset Form", on_click=reset, classes=["button"])
+    #     if success.value:
+    #         solara.Success(f"{success}")
+    #     elif error.value:
+    #         solara.Error(f"{error}")
 
 
 @solara.component
