@@ -7,7 +7,6 @@ from hmtc.components.sectionalizer import Sectionalizer, StartFrequency
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.transitions.swap import SwapTransition
-
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
 

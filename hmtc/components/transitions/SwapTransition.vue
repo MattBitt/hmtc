@@ -14,7 +14,7 @@
 </template>
 <script>
 module.exports = {
-  name: "EmptyComponent",
+  name: "SwapTransition",
   props: {
     show_first: {
       type: Boolean,

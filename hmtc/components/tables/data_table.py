@@ -83,6 +83,7 @@ def DataTable(
             base_query = base_query.where(expression)
 
     sort_field = getattr(model, current_sort_field.value)
+
     if current_sort_direction.value == "asc":
         base_query = base_query.order_by(sort_field.asc())
     else:

@@ -34,7 +34,11 @@ class Video(BaseDomain):
             album_title = dv.disc.album.title
         else:
             album_title = ""
-
+        num_sections = (
+            SectionModel.select(fn.COUNT(SectionModel.id))
+            .where(SectionModel.video_id == self.instance.id)
+            .scalar()
+        )
         return {
             "id": self.instance.id,
             "title": self.instance.title,
@@ -49,6 +53,7 @@ class Video(BaseDomain):
             "file_count": self.file_repo.num_files(self.instance.id),
             "album_title": album_title,
             "channel_title": self.instance.channel.title,
+            "num_sections": num_sections,
         }
 
     @classmethod

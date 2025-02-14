@@ -7,6 +7,7 @@ from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
+from hmtc.models import Section as SectionModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFiles as VideoFilesModel
 from hmtc.utils.general import paginate
@@ -43,55 +44,55 @@ def SecondRow(
         video.delete_file("video")
         refresh_counter.set(refresh_counter.value + 1)
 
-    with solara.Columns([8, 4]):
-        with solara.Card("Album"):
-            with solara.ColumnsResponsive():
-                solara.Button(
-                    "Energy Exchange Tour",
-                    on_click=lambda: assign_album("Energy Exchange Tour"),
-                    classes=["button"],
-                )
-                solara.Button(
-                    "Happy Hour",
-                    on_click=lambda: assign_album("Happy Hour"),
-                    classes=["button"],
-                )
-                solara.Button(
-                    "Interviews",
-                    on_click=lambda: assign_album("Interviews"),
-                    classes=["button"],
-                )
-                solara.Button(
-                    "Livestream Highlights",
-                    on_click=lambda: assign_album("Livestream Highlights"),
-                    classes=["button"],
-                )
-                solara.Button(
-                    "No Where Else to Put These",
-                    on_click=lambda: assign_album("No Where Else to Put These"),
-                    classes=["button"],
-                )
-                solara.Button(
-                    "Odyssey Tour",
-                    on_click=lambda: assign_album("Odyssey Tour"),
-                    classes=["button"],
-                )
-                solara.Button(
-                    "On the Street",
-                    on_click=lambda: assign_album("On the Street"),
-                    classes=["button"],
-                )
-            with solara.Row():
-                if error.value != "":
-                    solara.Error(error.value)
-                    solara.Button(
-                        f"Clear", on_click=lambda: error.set(""), classes=["button"]
-                    )
-                elif success.value != "":
-                    solara.Success(success.value)
-                    solara.Button(
-                        f"Clear", on_click=lambda: success.set(""), classes=["button"]
-                    )
+    with solara.Column():
+        # with solara.Card("Album"):
+        #     with solara.ColumnsResponsive():
+        #         solara.Button(
+        #             "Energy Exchange Tour",
+        #             on_click=lambda: assign_album("Energy Exchange Tour"),
+        #             classes=["button"],
+        #         )
+        #         solara.Button(
+        #             "Happy Hour",
+        #             on_click=lambda: assign_album("Happy Hour"),
+        #             classes=["button"],
+        #         )
+        #         solara.Button(
+        #             "Interviews",
+        #             on_click=lambda: assign_album("Interviews"),
+        #             classes=["button"],
+        #         )
+        #         solara.Button(
+        #             "Livestream Highlights",
+        #             on_click=lambda: assign_album("Livestream Highlights"),
+        #             classes=["button"],
+        #         )
+        #         solara.Button(
+        #             "No Where Else to Put These",
+        #             on_click=lambda: assign_album("No Where Else to Put These"),
+        #             classes=["button"],
+        #         )
+        #         solara.Button(
+        #             "Odyssey Tour",
+        #             on_click=lambda: assign_album("Odyssey Tour"),
+        #             classes=["button"],
+        #         )
+        #         solara.Button(
+        #             "On the Street",
+        #             on_click=lambda: assign_album("On the Street"),
+        #             classes=["button"],
+        #         )
+        #     with solara.Row():
+        #         if error.value != "":
+        #             solara.Error(error.value)
+        #             solara.Button(
+        #                 f"Clear", on_click=lambda: error.set(""), classes=["button"]
+        #             )
+        #         elif success.value != "":
+        #             solara.Success(success.value)
+        #             solara.Button(
+        #                 f"Clear", on_click=lambda: success.set(""), classes=["button"]
+        #             )
         with solara.Card("Other"):
 
             with solara.ColumnsResponsive():
@@ -100,13 +101,12 @@ def SecondRow(
                     on_click=toggle_unique,
                     classes=["button"],
                 )
-                solara.Button(
-                    f"Delete Video File",
-                    icon_name=Icons.DELETE.value,
-                    on_click=delete_video_file,
-                    classes=["button mywarning"],
-                    disabled=video.video_file() is None,
-                )
+                with solara.Link(f"/api/videos/sectionalizer/{video.instance.id}"):
+                    solara.Button(
+                        f"Sectionalizer",
+                        icon_name=Icons.SECTION.value,
+                        classes=["button"],
+                    )
 
 
 @solara.component
@@ -116,16 +116,10 @@ def MainRow(video: Video):
             solara.Error("Instance is None...")
             return
     with solara.Card():
-        with solara.Columns([6, 6]):
+        with solara.Columns():
             with solara.Column():
                 solara.Image(video.poster(), width="400px")
 
-            with solara.Column():
-                if video.video_file() is not None:
-                    midpoint_ms = (video.instance.duration / 2) * 1000
-                    VideoFrame(video=video, time_cursor=midpoint_ms)
-                else:
-                    solara.Warning(f"No Video File downloaded for this")
         with solara.Row(justify="center"):
             solara.Text(f"{video.instance.title}")
 
@@ -133,14 +127,19 @@ def MainRow(video: Video):
 @solara.component
 def VideoEditor():
     current_page = solara.use_reactive(1)
-    vids_with_album = DiscVideoModel.select(DiscVideoModel.video_id).distinct()
-    vids_with_videofile = (
-        VideoFilesModel.select(VideoFilesModel.item_id)
-        .where(VideoFilesModel.video.is_null(False))
-        .distinct()
+    vids_with_section = SectionModel.select(SectionModel.video_id).distinct()
+    vids_without_section = VideoModel.select(VideoModel.id).where(
+        VideoModel.id.not_in(vids_with_section)
     )
-    page_query = VideoModel.select(VideoModel).where(
-        (VideoModel.id.in_(vids_with_videofile) & (VideoModel.unique_content == False))
+    page_query = (
+        VideoModel.select(VideoModel)
+        .where(
+            (
+                VideoModel.id.in_(vids_without_section)
+                & (VideoModel.unique_content == True)
+            )
+        )
+        .order_by(VideoModel.duration.asc())
     )
 
     if len(page_query) == 0:
@@ -157,7 +156,8 @@ def VideoEditor():
         current_page.set(num_pages)
 
     video = Video(_query.first())
-
+    with solara.Row(justify="center"):
+        solara.Markdown(f"Unique Videos with No Sections (2/13/25)")
     with solara.Row(justify="center"):
         MainRow(video)
     with solara.Row(justify="center"):

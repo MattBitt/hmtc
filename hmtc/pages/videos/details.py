@@ -78,16 +78,11 @@ def NoAlbum(video, choosing_disc):
         refresh_counter.set(refresh_counter.value + 1)
 
     def choose_disc(disc_title):
-        logger.debug(f"{disc_title}")
-
         choosing_disc.set(True)
 
     def cancel():
-
         choosing_disc.set(False)
         refresh_counter.set(refresh_counter.value + 1)
-        # reactive_disc.set(None)
-        # reactive_album.set(None)
 
     with solara.Row(justify="center"):
         solara.Select(
@@ -164,6 +159,13 @@ def SelectedSectionPanel(sections):
 
 
 @solara.component
+def NoVideoError():
+    with solara.Error(f"Video Id not found."):
+        with solara.Link("/"):
+            solara.Button("Home", classes=["button"])
+
+
+@solara.component
 def FilesPanel(video: Video):
     with solara.Column():
         for file in video.file_repo.my_files(video.instance.id):
@@ -184,6 +186,33 @@ def FilesPanel(video: Video):
 
 
 @solara.component
+def Tabs(selected, video, sections):
+    with solara.lab.Tabs():
+        with solara.lab.Tab("Sections"):
+            with solara.Column():
+                SectionSelector(video=video, sections=sections, selected=selected)
+        with solara.lab.Tab("Files"):
+            with solara.Column():
+                FilesPanel(video)
+
+
+@solara.component
+def TopRow(video, sections, album):
+    with solara.Row():
+        with solara.Columns([8, 4]):
+            with solara.Card():
+                VideoInfoPanel(video_domain=video)
+            with solara.Column():
+                with solara.Card():
+                    AlbumPanel(
+                        album=album,
+                        video=video,
+                    )
+                with solara.Card():
+                    SelectedSectionPanel(sections=sections)
+
+
+@solara.component
 def Page():
     router = solara.use_router()
     selected = solara.use_reactive(0)
@@ -200,33 +229,11 @@ def Page():
     if refresh_counter.value > 0:
         with solara.Column(classes=["main-container"]):
             if video is None:
-                with solara.Error(f"Video Id not found."):
-                    with solara.Link("/"):
-                        solara.Button("Home", classes=["button"])
+                NoVideoError()
             else:
                 sections = solara.use_reactive(
                     [Section(s).serialize() for s in video.sections()]
                 )
                 album = solara.use_reactive(video.album())
-                with solara.Row():
-                    with solara.Columns([8, 4]):
-                        with solara.Card():
-                            VideoInfoPanel(video_domain=video)
-                        with solara.Column():
-                            with solara.Card():
-                                AlbumPanel(
-                                    album=album,
-                                    video=video,
-                                )
-                            with solara.Card():
-                                SelectedSectionPanel(sections=sections)
-
-                with solara.lab.Tabs():
-                    with solara.lab.Tab("Sections"):
-                        with solara.Column():
-                            SectionSelector(
-                                video=video, sections=sections, selected=selected
-                            )
-                    with solara.lab.Tab("Files"):
-                        with solara.Column():
-                            FilesPanel(video)
+                TopRow(video, sections, album)
+                Tabs(selected, video, sections)

@@ -98,6 +98,7 @@ def VideosPage():
         # {"text": "ID", "value": "id", "sortable": True, "align": "right"},
         {"text": "Uploaded", "value": "upload_date", "sortable": True, "width": "10%"},
         {"text": "Title", "value": "title", "width": "30%"},
+        {"text": "Sections", "value": "num_sections", "sortable": False},
         # {"text": "Album", "value": "album_title", "sortable": False},
         # {"text": "Channel", "value": "channel_title", "sortable": False},
         {"text": "Duration", "value": "duration", "sortable": True},
