@@ -118,7 +118,6 @@ def BeforeSearch(search_for_starts_and_ends):
 sections = solara.reactive([])
 
 
-
 @solara.component
 def Sectionalizer(video, create_section):
     # session = solara.get_session_id()

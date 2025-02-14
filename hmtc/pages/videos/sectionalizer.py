@@ -1,7 +1,7 @@
 import solara
 from loguru import logger
 
-from hmtc.components.section.selector import Page as SectionSelector
+from hmtc.components.section.selector import SectionSelector
 from hmtc.components.sectionalizer import Sectionalizer
 from hmtc.domains.section import Section
 from hmtc.domains.topic import Topic
@@ -29,7 +29,6 @@ def Page():
         current_page=current_page, per_page=per_page
     )
     sections = solara.use_reactive([Section(x).serialize() for x in _sections])
-    selected = solara.use_reactive(0)
 
     def create_section(section):
         logger.debug(f"Creating a section for {video} using args {section}")
@@ -46,10 +45,9 @@ def Page():
         )
 
         sections.set(sections.value + [_section.serialize()])
-        selected.set(len(sections.value))
         logger.debug(f"After Creating section from {start} to {end}")
 
-    with solara.Column(classes=["main-container"]):
-        Sectionalizer(video=video, create_section=create_section)
-        SectionSelector(video=video, sections=sections)
-
+    if refresh.value > 0:
+        with solara.Column(classes=["main-container"]):
+            Sectionalizer(video=video, create_section=create_section)
+            SectionSelector(video=video, sections=sections)

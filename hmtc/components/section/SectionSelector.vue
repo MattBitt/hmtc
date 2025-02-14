@@ -19,6 +19,11 @@
               <span class="tracknumber">{{ (i + 1).toString() }}</span>
               <span>({{ section.id }})</span>
             </template>
+            <template v-slot:append>
+              <h4 class="primary--text font-weight-bold">
+                {{ durationString(section.end - section.start) }}
+              </h4>
+            </template>
           </v-range-slider>
           <v-row>
             <v-col cols="4">
@@ -32,22 +37,17 @@
                 @keyup.enter="createTopic(new_topic)"
               ></v-text-field>
             </v-col>
-          </v-row>
-          <v-row justify="center">
-            <v-col cols="2">
-              <h4 class="primary--text font-weight-bold">
-                {{ durationString(section.end - section.start) }}
-              </h4>
-            </v-col>
             <v-col cols="6">
               <v-row>
                 <v-col cols="12">
                   <v-chip-group column multiple>
                     <v-chip
                       v-for="topic in section.topics.slice(0, 9)"
+                      close
                       :key="topic.text"
                       color="primary"
                       text-color="white"
+                      @click:close="removeTopic(topic.id)"
                     >
                       {{ topic.text }}
                     </v-chip>
@@ -55,6 +55,8 @@
                 </v-col>
               </v-row>
             </v-col>
+          </v-row>
+          <v-row justify="start">
             <v-col cols="2">
               <v-btn class="button mywarning" @click="removeSection(section)"
                 ><v-icon>mdi-delete</v-icon>Delete</v-btn
@@ -74,10 +76,6 @@ module.exports = {
       type: Array,
       required: true,
     },
-    selected: {
-      type: Object,
-      required: true,
-    },
     video_duration: {
       type: Number,
       required: true,
@@ -88,6 +86,7 @@ module.exports = {
     return {
       children: [],
       new_topic: "",
+      selected: 0,
     };
   },
   methods: {
@@ -121,6 +120,14 @@ module.exports = {
     },
     clearTopic() {
       this.reset();
+    },
+    removeTopic(topic_id) {
+      const args = {
+        section_id: this.sections[this.selected].id,
+        topic_id: topic_id,
+      };
+      this.remove_topic(args);
+      console.log("Removing topic", args);
     },
   },
   watch: {},

@@ -6,9 +6,8 @@ from flask import session
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.section.selector import Page as SectionSelector
+from hmtc.components.section.selector import SectionSelector
 from hmtc.components.video.video_info_panel import VideoInfoPanel
-from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
 from hmtc.domains.album import Album
 from hmtc.domains.section import Section

@@ -53,6 +53,10 @@ class Section(BaseDomain):
         )
         return st
 
+    def remove_topic(self, topic_id):
+        topic = TopicModel.get_by_id(topic_id)
+        topic.delete_instance()
+
     def num_topics(self):
         return (
             TopicModel.select()
