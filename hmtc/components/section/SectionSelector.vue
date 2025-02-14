@@ -19,6 +19,19 @@
               <span class="tracknumber">{{ (i + 1).toString() }}</span>
             </template>
           </v-range-slider>
+          <v-row>
+            <v-col cols="4">
+              <v-text-field
+                v-model="new_topic"
+                label="Create New Topic"
+                single-line
+                hide-details
+                clearable
+                @click:clear="clearTopic"
+                @keyup.enter="createTopic(new_topic)"
+              ></v-text-field>
+            </v-col>
+          </v-row>
           <v-row justify="center">
             <v-col cols="2">
               <h4 class="primary--text font-weight-bold">
@@ -62,6 +75,7 @@ module.exports = {
   data() {
     return {
       children: [],
+      new_topic: "",
     };
   },
   methods: {
@@ -87,6 +101,14 @@ module.exports = {
       ret += "" + secs;
       // console.log("calculated: ", ret);
       return ret;
+    },
+    createTopic() {
+      this.create_topic(this.new_topic);
+      this.new_topic = "";
+      console.log("Creating New_topic", this.new_topic);
+    },
+    clearTopic() {
+      this.reset();
     },
   },
   watch: {

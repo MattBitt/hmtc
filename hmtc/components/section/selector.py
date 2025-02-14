@@ -9,14 +9,30 @@ from hmtc.domains.video import Video
 
 @solara.component_vue("./SectionSelector.vue", vuetify=True)
 def SectionSelector(
-    sections, selected, video_duration, event_remove_section, event_update_selected
+    sections, selected, video_duration, event_remove_section, event_create_topic, event_update_selected
 ):
     pass
 
 
 @solara.component
 def Page(video: Video, sections, selected):
-
+    new_topic = solara.use_reactive("")
+    
+    def create_topic(topic):
+        if topic == "":
+            logger.error(f"Input too short for a new topic.")
+            return
+        #logger.debug(f"{sections=}")
+        #logger.debug(f"{selected=}")
+        #logger.debug(f"Creating {topic} to {sections.value[selected.value]}")
+        ss = Section(sections.value[selected.value]['id'])
+        section_topic = ss.add_topic(topic)
+        new_section = [ss.serialize()]
+        _sections = [x for x in sections.value if x['id'] != ss.instance.id]
+        sections.set(*_sections, new_section)
+        
+        logger.debug(f"Created topic {section_topic.topic.text}")
+    
     def create_section(section):
         logger.debug(f"Creating a section for {video} using args {section}")
         start = section["start"]
@@ -50,6 +66,10 @@ def Page(video: Video, sections, selected):
         selected=selected.value,
         video_duration=video.instance.duration * 1000,
         event_create_section=create_section,
+        event_create_topic=create_topic,
         event_update_selected=update_selected,
         event_remove_section=remove_section,
     )
+    
+    if new_topic.value != "":
+        logger.debug(f"New topic updated {new_topic.value}")
