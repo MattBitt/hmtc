@@ -238,7 +238,7 @@ def process_file(file, target, stem):
 
             if ".en.vtt" in str(file):
                 logger.debug(f'Converting subtitle {str(file_dict["path"])}')
-                srt_path = Path(file_dict["path"].with_suffix(".srt"))
+                srt_path = Path(file.with_suffix(".srt"))
 
                 _final_path = convert_vtt_to_srt(file, srt_path)
 
@@ -246,6 +246,7 @@ def process_file(file, target, stem):
                     logger.error(f"Error Converting subtitles. Skipping")
                     return None
                 final_path = Path(_final_path)
+                MOVE_FILE(srt_path, final_path)
             else:
                 logger.debug("SRT File")
                 final_path = Path(file_dict["path"].with_suffix(".srt"))
