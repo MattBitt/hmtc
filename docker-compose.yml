@@ -46,6 +46,7 @@ services:
     restart: 'unless-stopped'
     # Optional - alternative address used for autodiscovery
 
+
 networks:
   default:
     name: myinternalnetwork

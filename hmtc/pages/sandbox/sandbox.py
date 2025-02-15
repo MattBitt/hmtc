@@ -10,7 +10,7 @@ from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
-from hmtc.utils.jellyfin_functions import can_ping_server
+from hmtc.utils.jellyfin_functions import can_ping_server, get_user_libraries, get_user_id, search_for_media, load_media_item, jf_seek_to, jf_playpause
 
 choosing = solara.reactive(False)
 
@@ -33,20 +33,31 @@ def Page():
     def toggle_choose():
         choosing.set(not choosing.value)
 
+    def load_item():
+        res = search_for_media('videos', 'mgYKadMOwho')
+        load_media_item(res['Id'])
+
+    def seek():
+        jf_seek_to(1000)
+        
+    def play():
+        jf_playpause()
+
     with solara.Column(classes=["main-container"]):
 
         video = Video.get_by(id=1)
-        JFPanel(video)
-        solara.Markdown(f"{can_ping_server()}")
         with solara.Card():
-            solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
-
-            with SwapTransition(show_first=(choosing.value == True), name="fade"):
-                Step1()
-                Step2()
+            JFPanel(video)
+        
         with solara.Card():
-            solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
+            
+            user_id = get_user_id('user1')
+            logger.debug(f"jf user id: {user_id}")
+            logger.debug(get_user_libraries())
+            solara.Button(f"Load Item", on_click=load_item, classes="button")
+            solara.Button(f"Seek", on_click=seek, classes="button")
+            solara.Button(f"Play", on_click=play, classes="button")
 
-            with SwapTransition(show_first=(choosing.value == True), name="slide-fade"):
-                Step2()
-                Step1()
+        
+        
+

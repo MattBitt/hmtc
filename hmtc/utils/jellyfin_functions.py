@@ -48,6 +48,8 @@ def jf_user_request(method, _url, params=None, data=None):
     if resp.status_code == 200:
         data = resp.json()
         return data
+    elif resp.status_code == 204:
+        return 204
     else:
         print("An error occurred while attempting to retrieve data from the API.")
         return None
@@ -257,7 +259,7 @@ def get_playlist_items(playlist_id):
 def sources_library_id():
     libraries = get_user_libraries()
     for lib in libraries:
-        if lib["Name"] == "HarryMackSources":
+        if lib["Name"] == "DownloadedVideos":
             return lib["Id"]
     return None
 
@@ -322,6 +324,14 @@ def jf_stop():
     res = jf_post(url)
     return res
 
+def jf_seek_to(position):
+    session = get_user_session()
+    video_id = get_currently_playing()
+    
+    url = f"/Sessions/{session['Id']}/Playing/Seek?seekPostitionTicks=1000000"
+    logger.debug(url)
+    res = jf_user_post(url)
+    return res
 
 def refresh_library():
     url = f"/Library/Refresh"
