@@ -235,14 +235,13 @@ def process_file(file, target, stem):
             new_file = LyricFile.create(**file_dict)
 
         case "subtitle":
-            
+
             if ".en.vtt" in str(file):
                 logger.debug(f'Converting subtitle {str(file_dict["path"])}')
                 srt_path = Path(file_dict["path"].with_suffix(".srt"))
-                
-                
+
                 _final_path = convert_vtt_to_srt(file, srt_path)
-                
+
                 if _final_path is None:
                     logger.error(f"Error Converting subtitles. Skipping")
                     return None

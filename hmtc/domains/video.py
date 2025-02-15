@@ -14,9 +14,11 @@ from hmtc.models import VideoFiles
 from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.video_repo import VideoRepo
 from hmtc.utils.general import paginate
+from hmtc.utils.youtube_functions import get_video_info
 
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "videos"
+WORKING = Path(config["WORKING"])
 
 
 class Video(BaseDomain):
@@ -111,3 +113,16 @@ class Video(BaseDomain):
             return None
 
         return Album(dv.disc.album)
+
+    @classmethod
+    def create_from_url(cls, url: str):
+        from hmtc.utils.importer.existing_files import create_video_from_folder
+
+        youtube_id = url[-11:]
+        get_video_info(youtube_id, WORKING / youtube_id)
+        create_video_from_folder(WORKING / youtube_id)
+        new_vid = VideoModel.select().where(VideoModel.youtube_id == youtube_id).get()
+        # if im creating it here,assume its unique
+        new_vid.unique_content = True
+        new_vid.save()
+        return cls(new_vid.id)

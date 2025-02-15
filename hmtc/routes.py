@@ -1,5 +1,5 @@
 import solara
-from hmtc.pages.videos.fine_tuner import Page as FineTunerPage
+
 from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.old_pages.dashboards.files import Page as FilesDashboard
 from hmtc.old_pages.utils.settings import Page as SettingsPage
@@ -22,6 +22,7 @@ from hmtc.pages.tables.videos import VideosPage
 from hmtc.pages.tables.youtube_series import Page as YoutubeSeriesesPage
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.pages.videos.details import Page as VideoDetails
+from hmtc.pages.videos.fine_tuner import Page as FineTunerPage
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
 from hmtc.pages.videos.video_editor import Page as VideoEditor
 

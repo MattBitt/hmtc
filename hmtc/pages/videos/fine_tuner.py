@@ -1,7 +1,9 @@
 import solara
 from loguru import logger
+
 from hmtc.components.fine_tuner import FineTuner
 from hmtc.domains.video import Video
+
 
 def parse_url_args():
     router = solara.use_router()
@@ -16,6 +18,7 @@ def parse_url_args():
         logger.error(f"Exception {e}")
 
     return video
+
 
 @solara.component
 def Page():

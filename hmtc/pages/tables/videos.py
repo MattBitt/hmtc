@@ -1,3 +1,4 @@
+from datetime import date
 from time import perf_counter
 from typing import Callable
 
@@ -10,6 +11,7 @@ from peewee import fn
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.video_table import VideoTable
 from hmtc.domains.channel import Channel
+from hmtc.domains.video import Video
 from hmtc.models import (
     Album as AlbumModel,
 )
@@ -89,6 +91,42 @@ def FilterBar():
 
 
 @solara.component
+def NewVideo():
+    new_item = solara.use_reactive("")
+    error = solara.use_reactive("")
+    success = solara.use_reactive("")
+
+    def create_video():
+        logger.debug(f"Creating new video {new_item.value} if possible")
+        if len(new_item.value) <= 1:
+            error.set(f"Value {new_item.value} too short.")
+        else:
+            try:
+                new_video = Video.create_from_url(new_item.value)
+                success.set(f"{new_video} was created!")
+            except Exception as e:
+                error.set(f"Error {e}")
+
+    def reset():
+        new_item.set("")
+        error.set("")
+        success.set("")
+
+    with solara.Card():
+        with solara.Columns([6, 6]):
+            solara.InputText(label="Video Title", value=new_item)
+            with solara.Row():
+                solara.Button(
+                    label="Create Video", on_click=create_video, classes=["button"]
+                )
+                solara.Button(label="Reset Form", on_click=reset, classes=["button"])
+        if success.value:
+            solara.Success(f"{success}")
+        elif error.value:
+            solara.Error(f"{error}")
+
+
+@solara.component
 def VideosPage():
     router = solara.use_router()
 
@@ -145,6 +183,7 @@ def VideosPage():
     ]
 
     search_fields = [VideoModel.youtube_id, VideoModel.title]
+    NewVideo()
     FilterBar()
     VideoTable(
         router=router,

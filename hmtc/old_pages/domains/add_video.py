@@ -43,7 +43,7 @@ def add_video():
         status.set("Video already exists in DB")
         return
 
-    vid_info = VideoItem.grab_info_from_youtube(id)
+    vid_info = None  # VideoItem.grab_info_from_youtube(id)
     channel_id = vid_info["channel_id"]
     channel = ChannelItem.grab_by_youtube_id(channel_id)
 
@@ -154,7 +154,7 @@ def add_channel():
 def add_video_to_db():
     logger.debug("Adding video to db")
 
-    VideoItem.create_from_youtube_id(video_url.value.split("v=")[1])
+    # VideoItem.create_from_youtube_id(video_url.value.split("v=")[1])
 
 
 @solara.component

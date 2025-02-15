@@ -137,7 +137,7 @@ def VideoInfoPanel(video_domain):
                     icon_name=Icons.SECTION.value,
                     classes=["button"],
                 )
-        
+
             with solara.Link(f"/api/videos/finetuner/{video.id}"):
                 solara.Button(
                     label=f"Fine Tuner",
