@@ -9,6 +9,7 @@ from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Section as SectionModel
+from hmtc.models import Thumbnail as ThumbnailModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFiles
 from hmtc.repos.file_repo import FileRepo
@@ -83,6 +84,29 @@ class Video(BaseDomain):
             .where(VideoModel.unique_content == True)
             .scalar()
         )
+
+    def delete(self):
+        # added this on 2/15/25. didn't want to try to
+        # dig into the 'chicago' file classes...
+        logger.debug("deleting from the Video domain class")
+        vf = VideoFiles.select().where(VideoFiles.item_id == self.instance.id).get()
+        for ft in VideoFiles.FILETYPES:
+            file_model = getattr(vf, ft)
+            if file_model is not None:
+                if ft == "poster":
+                    thumb = (
+                        ThumbnailModel.select()
+                        .where(ThumbnailModel.image_id == file_model.id)
+                        .get()
+                    )
+                    Path(thumb.path).unlink()
+                    thumb.delete_instance()
+                Path(file_model.path).unlink()
+                setattr(vf, ft, None)
+                vf.save()
+                file_model.delete_instance()
+        vf.delete_instance()
+        self.instance.delete_instance()
 
     def delete_file(self, filetype) -> Path | None:
         _file = self.file_repo.delete(item_id=self.instance.id, filetype=filetype)
