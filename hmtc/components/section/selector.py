@@ -84,6 +84,3 @@ def SectionSelector(video: Video, sections):
         event_remove_section=remove_section,
         event_remove_topic=remove_topic,
     )
-
-    if new_topic.value != "":
-        logger.debug(f"New topic updated {new_topic.value}")

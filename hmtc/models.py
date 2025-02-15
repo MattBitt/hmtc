@@ -205,11 +205,9 @@ class YoutubeSeriesVideo(BaseModel):
 class Section(BaseModel):
     start = IntegerField()
     end = IntegerField()
-    # 1/27/25 clip_number shouldn't be part of a section definition
-    # thats going to depend on how we're 'counting' sections
-
     section_type = CharField()
-
+    fine_tuned = BooleanField(default=False)
+    title = CharField(null=True)
     video = ForeignKeyField(Video, backref="sections", on_delete="CASCADE")
 
     def __repr__(self):

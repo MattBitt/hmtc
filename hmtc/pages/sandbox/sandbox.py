@@ -7,8 +7,10 @@ from hmtc.components.sectionalizer import Sectionalizer, StartFrequency
 from hmtc.components.shared.ok_cancel import OkCancel
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.transitions.swap import SwapTransition
+from hmtc.components.video.jf_panel import JFPanel
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video
+from hmtc.utils.jellyfin_functions import can_ping_server
 
 choosing = solara.reactive(False)
 
@@ -32,7 +34,10 @@ def Page():
         choosing.set(not choosing.value)
 
     with solara.Column(classes=["main-container"]):
-        print("The component render function gets called")
+
+        video = Video.get_by(id=1)
+        JFPanel(video)
+        solara.Markdown(f"{can_ping_server()}")
         with solara.Card():
             solara.Button(label=f"Choose", on_click=toggle_choose, classes=["button"])
 

@@ -56,11 +56,11 @@ def JFPanel(
 
     connected = solara.use_reactive(can_ping_server())
     jellyfin_status_dict = solara.use_reactive(get_user_session())
-
+    solara.Markdown(f"## Jellyfin Control Panel")
     JellyfinControlPanel(
         enable_live_updating=connected.value,
         jellyfin_status=jellyfin_status_dict.value,
-        page_jellyfin_id=video.jellyfin_id,
+        page_jellyfin_id=video.instance.jellyfin_id,
         api_key=config["jellyfin"]["api"],
         event_update_play_state=refresh_from_jellyfin,
     )

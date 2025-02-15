@@ -180,7 +180,7 @@ def AlbumDetails(album: Album):
 
     with solara.Card():
         with solara.Row(justify="center"):
-            solara.Markdown(f"## {album.instance.title}")
+            solara.Markdown(f"## {album.instance.title[:80]}")
 
 
 @solara.component

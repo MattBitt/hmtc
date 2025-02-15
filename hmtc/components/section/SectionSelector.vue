@@ -26,7 +26,7 @@
             </template>
           </v-range-slider>
           <v-row>
-            <v-col cols="4">
+            <v-col cols="6">
               <v-text-field
                 v-model="new_topic"
                 label="Create New Topic"

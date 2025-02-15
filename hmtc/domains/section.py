@@ -32,6 +32,16 @@ class Section(BaseDomain):
         ]
 
     def delete(self):
+        secttopics = SectionTopicModel.select().where(
+            SectionTopicModel.section_id == self.instance.id
+        )
+        for st in secttopics:
+            if len(st.topic.sections) == 1:
+                t = st.topic
+                t.delete_instance()
+            else:
+                st.delete_instance()
+
         self.instance.delete_instance()
 
     def add_topic(self, topic: str):

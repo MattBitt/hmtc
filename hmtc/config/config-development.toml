@@ -24,11 +24,11 @@ password = "postgres"
 port = 5432
 
 [jellyfin]
-api = "d035af26e54542e9a3a31785ec260e14"
+api = "94c170f122df415297cf4ac3bd1430dc"
 url = "http://localhost:8096"
-user = "admin"
+user = "user1"
 user_id = "f6f0fa8013a94ee3a1161bae8af59733"
-password = "admin"
+password = "user1"
 client="hmtc-dev"
 device="cronus"
 device_id="cronus-dev"
