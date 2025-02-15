@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-row justify="center" class="mb-6">
-      <span class="seven-seg myprimary">{{ timeString }}</span>
+      <span class="seven-seg myprimary">{{ initialTime }}</span>
       <v-row justify="end">
         <v-col cols="3">
           <v-btn fab :class="[isEditing ? 'mywarning' : 'button']" @click="toggleEditMode"
@@ -17,15 +17,6 @@
         <v-col cols="3">
           <v-btn fab class="button" @click="loopJellyfinAt">
             <v-icon> mdi-play </v-icon>
-          </v-btn>
-        </v-col>
-        <v-col cols="3">
-          <v-btn
-            fab
-            class="button"
-            @click="updateSectionTimeFromJellyfin(item.id, 'start')"
-          >
-            <v-icon>mdi-sync</v-icon>
           </v-btn>
         </v-col>
       </v-row>
@@ -68,12 +59,14 @@
 <script>
 module.exports = {
   name: "SectionTimePanel",
-  props: { initialTime: Number, sectionID: Number, video_duration: Number },
-
-  emits: ["updateTime", "loopJellyfin", "updateSectionTimeFromJellyfin"],
+  props: { video_duration: Number },
+  emits: [],
   methods: {
     updateTime() {
-      this.$emit("updateTime", this.sectionID, this.time);
+      const args = {
+        time: this.initialTime,
+      };
+      this.update_time(args);
       this.isEditing = false;
       this.isDirty = false;
     },
@@ -89,29 +82,21 @@ module.exports = {
     },
 
     loopJellyfinAt() {
-      this.$emit("loopJellyfin", this.time);
+      console.log("Looping jellyfin at", this.initialTime);
     },
 
     adjustTime(value) {
-      const tmp_time = this.time + value;
+      console.log("adjusting time (", this.initialTime, ") by ", value);
+      const tmp_time = this.initialTime + value;
       const durationMS = this.video_duration * 1000;
       if (tmp_time < 0) {
-        this.time = durationMS; // Loop to end
+        this.initialTime = durationMS; // Loop to end
       } else if (tmp_time > durationMS) {
-        this.time = 0;
+        this.initialTime = 0;
       } else {
-        this.time = tmp_time;
+        this.initialTime = tmp_time;
       }
       this.isDirty = true;
-    },
-
-    updateSectionTimeFromJellyfin(item_id, time) {
-      console.log("Updating time from Jellyfin", item_id, time);
-      const args = {
-        item_id: item_id,
-        time: time,
-      };
-      this.$emit("updateSectionTimeFromJellyfin", args);
     },
   },
   computed: {
@@ -119,6 +104,9 @@ module.exports = {
       //return new Date(this.time).toISOString().slice(11, 19);
       return "some string";
     },
+  },
+  created() {
+    console.log("Initial time:", this.initialTime);
   },
 
   data() {
