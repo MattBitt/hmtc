@@ -116,7 +116,8 @@ module.exports = {
   },
   computed: {
     timeString() {
-      return new Date(this.time).toISOString().slice(11, 19);
+      //return new Date(this.time).toISOString().slice(11, 19);
+      return "some string";
     },
   },
 

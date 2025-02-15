@@ -235,17 +235,21 @@ def process_file(file, target, stem):
             new_file = LyricFile.create(**file_dict)
 
         case "subtitle":
-            if ".en.vtt" in str(file_dict["path"]):
+            
+            if ".en.vtt" in str(file):
                 logger.debug(f'Converting subtitle {str(file_dict["path"])}')
-                _final_path = file_dict["path"].with_suffix(".en.vtt")
-                srt_path = str(_final_path).replace(".en.vtt", ".srt")
-                final_path = convert_vtt_to_srt(final_path, srt_path)
+                srt_path = Path(file_dict["path"].with_suffix(".srt"))
+                
+                
+                _final_path = convert_vtt_to_srt(file, srt_path)
+                
+                if _final_path is None:
+                    logger.error(f"Error Converting subtitles. Skipping")
+                    return None
+                final_path = Path(_final_path)
             else:
                 logger.debug("SRT File")
-                final_path = file_dict["path"].with_suffix(".srt")
-
-            if file.parent != target.parent:
-                MOVE_FILE(file, final_path)
+                final_path = Path(file_dict["path"].with_suffix(".srt"))
 
             file_dict["path"] = final_path
 

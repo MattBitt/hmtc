@@ -1,5 +1,5 @@
 import solara
-
+from hmtc.pages.videos.fine_tuner import Page as FineTunerPage
 from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.old_pages.dashboards.files import Page as FilesDashboard
 from hmtc.old_pages.utils.settings import Page as SettingsPage
@@ -67,6 +67,11 @@ def api_routes():
                         path="sectionalizer",
                         component=VideoSectionalizer,
                         label="Sectionalizer",
+                    ),
+                    solara.Route(
+                        path="finetuner",
+                        component=FineTunerPage,
+                        label="Video Sections Fine Tuner",
                     ),
                 ],
             ),

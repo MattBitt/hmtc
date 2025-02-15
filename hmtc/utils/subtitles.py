@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-
+from pathlib import Path
 import ffmpeg
 import srt
 from loguru import logger
@@ -103,18 +103,23 @@ def find_substantial_phrase_lines(captions, phrases, threshold=0.4):
 
 def convert_vtt_to_srt(input_vtt, output_srt):
     """Converts a VTT subtitle file to SRT format using ffmpeg."""
-
+    
+#    try:
+    if not input_vtt.exists():
+        logger.error(f"Input File DOES NOT EXIST")
+        return
+    elif output_srt.exists():
+        logger.error(f"OUTPUT File ALREADY EXISTS")
+        return
+    
     try:
-        (
-            ffmpeg.input(input_vtt)
-            .output(output_srt, format="srt")
-            .run(capture_stdout=False, capture_stderr=False)
-        )
-        logger.debug(f"Successfully converted {input_vtt} to {output_srt}")
-        return output_srt
-    except ffmpeg.Error as e:
-        logger.error(f"Error converting subtitles: {e.stderr.decode()}")
-        return None
+        input = ffmpeg.input(str(input_vtt))
+        input.output(str(output_srt), format="srt", loglevel="verbose").run()
+    except Exception as e:
+        logger.error(f"FFMPEG ERROR: {e} {e.stderr.decode()}")
+    input_vtt.unlink()
+    return output_srt
+
 
 
 def read_srt_file(file):

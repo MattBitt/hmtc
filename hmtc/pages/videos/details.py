@@ -91,7 +91,7 @@ def NoAlbum(video, choosing_disc):
             on_value=choose_disc,
         )
     with solara.Link(f"/api/albums/"):
-        solara.Button(f"Album Table", classes=["button"])
+        solara.Button(f"Album Table", classes=["button"], icon_name=Icons.ALBUM.value)
     new_item = ["Create New"]
     if choosing_disc.value is True:
         _album = Album.get_by(title=album_title.value)

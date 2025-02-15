@@ -59,7 +59,7 @@ def main(config):
         run_migrations(db_instance)
         seed_database_from_json(db_instance)
         import_existing_video_files_to_db(_STORAGE)
-        rename_vids_for_albums(db_instance)
+        # rename_vids_for_albums(db_instance)
 
     else:
         create_tables(db_instance)

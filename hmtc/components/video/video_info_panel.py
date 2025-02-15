@@ -92,48 +92,55 @@ def VideoInfoPanel(video_domain):
                             f"UNIQUE", on_click=mark_unique, classes=["button"]
                         )
         with solara.Column():
-            if len(section_durations) > 0:
-                solara.Markdown(
-                    f"Sections: {len(section_durations)} ({section_percentage:.2f}%)"
-                )
+            # if len(section_durations) > 0:
+            #     solara.Markdown(
+            #         f"Sections: {len(section_durations)} ({section_percentage:.2f}%)"
+            #     )
 
-            with solara.Link(f"utils/frame-analyzer/{video.id}"):
-                solara.Button(
-                    label="Frame Analyzer",
-                    classes=["button"],
-                )
-            with solara.Link(f"/superchat-fine-tuner/{video.id}"):
-                solara.Button(
-                    label="Superchat Fine Tuner",
-                    icon_name=Icons.SUPERCHAT.value,
-                    classes=["button"],
-                )
+            # with solara.Link(f"utils/frame-analyzer/{video.id}"):
+            #     solara.Button(
+            #         label="Frame Analyzer",
+            #         classes=["button"],
+            #     )
+            # with solara.Link(f"/superchat-fine-tuner/{video.id}"):
+            #     solara.Button(
+            #         label="Superchat Fine Tuner",
+            #         icon_name=Icons.SUPERCHAT.value,
+            #         classes=["button"],
+            #     )
 
-            with solara.Link(f"/domains/superchat-control-panel/{video.id}"):
-                solara.Button(
-                    label="Search for Superchats",
-                    icon_name=Icons.SEARCH.value,
-                    classes=["button"],
-                )
+            # with solara.Link(f"/domains/superchat-control-panel/{video.id}"):
+            #     solara.Button(
+            #         label="Search for Superchats",
+            #         icon_name=Icons.SEARCH.value,
+            #         classes=["button"],
+            #     )
 
-            if len(video.superchats) > 0:
-                with solara.Link(f"/superchat-segments/{video.id}"):
-                    solara.Button(
-                        label=f"Segments ({num_segments})",
-                        icon_name=Icons.SUPERCHAT_SEGMENT.value,
-                        classes=["button"],
-                    )
+            # if len(video.superchats) > 0:
+            #     with solara.Link(f"/superchat-segments/{video.id}"):
+            #         solara.Button(
+            #             label=f"Segments ({num_segments})",
+            #             icon_name=Icons.SUPERCHAT_SEGMENT.value,
+            #             classes=["button"],
+            #         )
 
-            if len(video.superchats) > 0:
-                with solara.Link(f"/superchat-segments/long-enough/{video.id}"):
-                    solara.Button(
-                        label=f"Segments (Long Enough)",
-                        icon_name=Icons.SUPERCHAT_SEGMENT.value,
-                        classes=["button"],
-                    )
+            # if len(video.superchats) > 0:
+            #     with solara.Link(f"/superchat-segments/long-enough/{video.id}"):
+            #         solara.Button(
+            #             label=f"Segments (Long Enough)",
+            #             icon_name=Icons.SUPERCHAT_SEGMENT.value,
+            #             classes=["button"],
+            #         )
             with solara.Link(f"/api/videos/sectionalizer/{video.id}"):
                 solara.Button(
                     label=f"Sectionalizer",
                     icon_name=Icons.SECTION.value,
+                    classes=["button"],
+                )
+        
+            with solara.Link(f"/api/videos/finetuner/{video.id}"):
+                solara.Button(
+                    label=f"Fine Tuner",
+                    icon_name=Icons.FINETUNER.value,
                     classes=["button"],
                 )

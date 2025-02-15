@@ -26,7 +26,7 @@ class Icons(Enum):
     YOUTUBE_SERIES = "mdi-youtube"
     UP_BOX = "mdi-arrow-up-box"
     DOWN_BOX = "mdi-arrow-down-box"
-
+    FINETUNER = "mdi-glasses"
     def __str__(self):
         return str(self.value)
 

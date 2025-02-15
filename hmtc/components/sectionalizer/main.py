@@ -27,8 +27,8 @@ class Topic:
     id: str = field(default_factory=lambda: str(uuid.uuid1()))
 
 
-@solara.component_vue("Timeline.vue", vuetify=True)
-def Timeline(
+@solara.component_vue("CoarseAdjust.vue", vuetify=True)
+def CoarseAdjust(
     videoTime,
     totalDuration,
     durationString,
@@ -173,7 +173,7 @@ def Sectionalizer(video, create_section):
             with SwapTransition(show_first=(len(times) > 0), name="slide-fade"):
                 BarGraph(possibles=times)
                 solara.Text(f"No search performed yet.")
-            Timeline(
+            CoarseAdjust(
                 videoTime=time_cursor.value,
                 totalDuration=video_duration_ms.value,
                 durationString=seconds_to_hms(int(video_duration_ms.value / 1000)),

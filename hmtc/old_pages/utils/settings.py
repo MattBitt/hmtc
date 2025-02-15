@@ -273,7 +273,7 @@ def SectionsControls():
                 )
 
                 solara.Button(
-                    f"Download video Files for Unique Videos  {vids_missing_video}",
+                    f"Download video Files for Unique Videos",
                     on_click=download_unique,
                     classes=["button"],
                 )
