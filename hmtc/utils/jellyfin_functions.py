@@ -324,14 +324,16 @@ def jf_stop():
     res = jf_post(url)
     return res
 
+
 def jf_seek_to(position):
     session = get_user_session()
     video_id = get_currently_playing()
-    
+
     url = f"/Sessions/{session['Id']}/Playing/Seek?seekPostitionTicks=1000000"
     logger.debug(url)
     res = jf_user_post(url)
     return res
+
 
 def refresh_library():
     url = f"/Library/Refresh"

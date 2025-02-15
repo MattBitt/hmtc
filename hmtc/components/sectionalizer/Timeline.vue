@@ -33,7 +33,7 @@
       <v-col cols="2">
         <span class="seven-seg">{{ videoTime / 1000 }}</span>
       </v-col>
-      <v-col cols="5">
+      <v-col v-if="totalDuration < 300000" cols="5">
         <v-row justify="end">
           <v-btn medium fab class="button" @click="adjustTime(-5000)">
             <v-icon>mdi-rewind-5</v-icon>
@@ -41,17 +41,27 @@
           <v-btn medium fab class="button" @click="adjustTime(-1000)">
             <v-icon>mdi-rewind</v-icon>
           </v-btn>
-          <!-- <v-btn medium fab class="button" @click="adjustTime(-250)">
-        <v-icon>mdi-step-backward</v-icon>
-      </v-btn>
-      <v-btn medium fab class="button" @click="adjustTime(250)">
-        <v-icon>mdi-step-forward</v-icon>
-      </v-btn> -->
           <v-btn medium fab class="button" @click="adjustTime(1000)">
             <v-icon>mdi-fast-forward</v-icon>
           </v-btn>
           <v-btn medium fab class="button" @click="adjustTime(5000)">
             <v-icon>mdi-fast-forward-5</v-icon>
+          </v-btn>
+        </v-row>
+      </v-col>
+      <v-col v-else cols="5">
+        <v-row justify="end">
+          <v-btn medium fab class="button" @click="adjustTime(-30000)">
+            <v-icon>mdi-rewind-30</v-icon>
+          </v-btn>
+          <v-btn medium fab class="button" @click="adjustTime(-10000)">
+            <v-icon>mdi-rewind-10</v-icon>
+          </v-btn>
+          <v-btn medium fab class="button" @click="adjustTime(10000)">
+            <v-icon>mdi-fast-forward-10</v-icon>
+          </v-btn>
+          <v-btn medium fab class="button" @click="adjustTime(30000)">
+            <v-icon>mdi-fast-forward-30</v-icon>
           </v-btn>
         </v-row>
       </v-col>
@@ -90,6 +100,9 @@ export default {
     timeCursor(newValue) {
       this.localTimeCursor = newValue;
     },
+  },
+  created() {
+    console.log("Total duration:", this.totalDuration);
   },
 
   computed: {},
