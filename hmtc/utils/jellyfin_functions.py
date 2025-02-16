@@ -260,8 +260,9 @@ def get_playlist_items(playlist_id):
 
 def sources_library_id():
     libraries = get_user_libraries()
+    source = config["jellyfin"]["sources_library"]
     for lib in libraries:
-        if lib["Name"] == "DownloadedVideos":
+        if lib["Name"] == source:
             return lib["Id"]
     return None
 
@@ -282,23 +283,25 @@ def search_for_media(library, title):
 
     url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
     res = jf_get(url)
-    
-    resp_json = res.json()
+
     if res.status_code != 200:
         logger.error(f"Error searching for media: {res.status_code}")
         return None
+    resp_json = res.json()
 
-    elif resp_json["TotalRecordCount"] == 0:
+    if resp_json["TotalRecordCount"] == 0:
         logger.error(f"No results for {title}")
         return None
-    elif res.json()["TotalRecordCount"] > 1:
-        # logger.error("More than one media found")
-        logger.error(f"Too many results {title}")
-        return None
     else:
-        logger.debug(f"Only 1 result found! {res.json()}")
-        
-        return res.json()["Items"][0]
+        items = [item for item in resp_json["Items"] if not item["IsFolder"]]
+        if items == []:
+            logger.error(f"No non-folder results for {title}")
+            return None
+        if len(items) > 1:
+            logger.error(f"{len(items)} folder results for {title}")
+            return None
+
+        return items[0]
 
 
 def jf_playpause():
@@ -333,7 +336,6 @@ def jf_seek_to(position):
     session = get_user_session()
     video_id = get_currently_playing()
     url = f"/Sessions/{session['Id']}/Playing/Seek?seekPositionTicks={position}"
-   
 
     res = jf_user_post(url)
     return res
@@ -368,10 +370,10 @@ def load_media_item(media_id):
 
 
 if __name__ == "__main__":
-    
-    user_id = get_user_id('user1')
+
+    user_id = get_user_id("user1")
     print(user_id)
     print(get_current_user_timestamp())
     time.sleep(1)
-    jf_seek_to(500_000_000) # 500 million = 50 seconds
+    jf_seek_to(500_000_000)  # 500 million = 50 seconds
     jf_play()

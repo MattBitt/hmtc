@@ -80,7 +80,7 @@ a {
 }
 .myprimary:hover {
   color: var(--on-primary) !important;
-  background-color: var(--dark) !important;
+  background-color: var(--secondary) !important;
 }
 
 .myprimary-inverted {
@@ -92,6 +92,11 @@ a {
 .mywarning {
   color: var(--on-warning) !important;
   background-color: var(--warning) !important;
+}
+
+.mywarning:hover {
+  color: var(--on-warning) !important;
+  background-color: var(--secondary) !important;
 }
 
 .myerror {

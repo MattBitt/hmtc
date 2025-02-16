@@ -26,10 +26,12 @@ port = 5432
 
 [jellyfin]
 api = "d035af26e54542e9a3a31785ec260e14"
-url = "http://192.168.0.202:8096"
+url = "http://localhost:8096"
 user_id = "f6f0fa8013a94ee3a1161bae8af59733"
 user = "user1"
 password = "User1"
 client="hmtc-testing"
 device="cronus"
 device_id="cronus-testing"
+sources_library="DownloadedVideos"
+tracks_library="HarryMackTracks"
