@@ -55,12 +55,14 @@ def NotCompletedSectionCard(section):
     with solara.Columns():
         TimePanel(
             initialTime=section.instance.start,
+            video_duration=section.instance.video.duration,
             enable_jellyfin=True,
             event_update_time=lambda x: update_time("start", x),
             event_loop_jellyfin_at=loop_jellyfin,
         )
         TimePanel(
             initialTime=section.instance.end,
+            video_duration=section.instance.video.duration,
             enable_jellyfin=True,
             event_update_time=lambda x: update_time("end", x),
             event_loop_jellyfin_at=loop_jellyfin,

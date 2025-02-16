@@ -100,9 +100,9 @@ module.exports = {
       console.log(`Current time: ${this.localTime} milliseconds.`);
       console.log(`Duration: ${durationMS} milliseconds.`);
       if (tmp_time < 0) {
-        this.localTime = durationMS;
-      } else if (tmp_time > durationMS) {
         this.localTime = 0;
+      } else if (tmp_time > durationMS) {
+        this.localTime = durationMS;
       } else {
         this.localTime = tmp_time;
       }
@@ -127,6 +127,7 @@ module.exports = {
   },
   created() {
     this.localTime = this.initialTime;
+    console.log(`${this.video_duration} is the duration upon creation`);
   },
 
   data() {
