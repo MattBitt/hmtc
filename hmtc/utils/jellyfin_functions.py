@@ -168,17 +168,23 @@ def all_sessions():
         return res.json()
     except Exception as e:
         logger.error(e)
+
         return None
+
+
+default_session = {
+    "Id": "",
+    "PlayState": {"PositionTicks": 0},
+    "NowPlayingItem": {"Id": 0, "Name": "", "RunTimeTicks": 0},
+    "UserName": user,
+    "DeviceName": "no-device",
+}
 
 
 def get_user_session():
     x = all_sessions()
-    if x is None:
-        logger.error("No jellyfin sessions found")
-        return None
-    if len(x) == 0:
-        logger.debug(f"all_sessions: returned 0")
-        return None
+    if x is None or len(x) == 0:
+        return default_session
 
     session = [
         x
@@ -186,14 +192,7 @@ def get_user_session():
         if ("hmtc" not in x["Client"] and x.get("UserName", "") == user)
     ]
     if len(session) == 0:
-        # logger.error("No sessions found")
-        return {
-            "Id": "",
-            "PlayState": {"PositionTicks": 0},
-            "NowPlayingItem": {"Id": 0, "Name": "", "RunTimeTicks": 0},
-            "UserName": user,
-            "DeviceName": "no-device",
-        }
+        return default_session
     else:
         if len(session) > 1:
             _sess = session[0]

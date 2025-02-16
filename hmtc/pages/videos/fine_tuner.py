@@ -3,6 +3,7 @@ from loguru import logger
 
 from hmtc.components.fine_tuner import FineTuner
 from hmtc.domains.video import Video
+from hmtc.utils.jellyfin_functions import load_media_item, search_for_media
 
 
 def parse_url_args():
@@ -22,7 +23,12 @@ def parse_url_args():
 
 @solara.component
 def Page():
-
+    # using this page to fine tune sections
+    # auto load the video in jellyfin if possible
     video = parse_url_args()
+
+    media = search_for_media("videos", video.instance.youtube_id)
+    load_media_item(media["Id"])
+
     with solara.Column(classes=["main-container"]):
         FineTuner(video)

@@ -12,28 +12,32 @@ from hmtc.models import Video as VideoModel
 
 
 @solara.component_vue("./SectionStats.vue", vuetify=True)
-def _SectionStats(title: str = "Domain Card", icon: str = Icons.USER.value, stats={}):
+def _SectionStats(title: str = "_SectionStats", icon: str = Icons.USER.value, stats={}):
     pass
 
 
 @solara.component
 def SectionStats():
-    video_seconds = 0
-    sections_ms = 0
-    ft_sections_ms = 0
-
     video_seconds = (
         VideoModel.select(fn.SUM(VideoModel.duration))
         .where(VideoModel.unique_content == True)
         .scalar()
     )
-    video_hours = video_seconds // 3600
+
+    if video_seconds is not None:
+        video_hours = video_seconds // 1000 // 3600
+    else:
+        video_hours = 0
+
     logger.debug(f"{video_hours}")
 
     sections_ms = SectionModel.select(
         fn.SUM(SectionModel.end - SectionModel.start)
     ).scalar()
-    section_hours = sections_ms // 1000 // 3600
+    if sections_ms is not None:
+        section_hours = sections_ms // 1000 // 3600
+    else:
+        section_hours = 0
     logger.debug(f"{section_hours}")
 
     ft_sections_ms = (
@@ -41,7 +45,10 @@ def SectionStats():
         .where(SectionModel.fine_tuned == True)
         .scalar()
     )
-    ft_section_hours = ft_sections_ms // 1000 // 3600
+    if ft_sections_ms is not None:
+        ft_section_hours = ft_sections_ms // 1000 // 3600
+    else:
+        ft_section_hours = 0
     logger.debug(f"{ft_section_hours}")
 
     stats = {
