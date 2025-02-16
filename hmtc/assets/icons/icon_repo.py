@@ -27,6 +27,8 @@ class Icons(Enum):
     UP_BOX = "mdi-arrow-up-box"
     DOWN_BOX = "mdi-arrow-down-box"
     FINETUNER = "mdi-glasses"
+    UNLOCK = 'mdi-axe'
+    LOCK = 'mdi-bookmark-check-outline'
 
     def __str__(self):
         return str(self.value)

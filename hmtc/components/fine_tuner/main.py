@@ -1,11 +1,11 @@
 import solara
 from loguru import logger
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.utils.time_functions import seconds_to_hms
-
+from hmtc.components.transitions.swap import SwapTransition
 
 @solara.component_vue("./TimePanel.vue", vuetify=True)
 def TimePanel(
@@ -34,31 +34,48 @@ def NotCompletedSectionCard(section):
 
 @solara.component
 def CompletedSectionCard(section):
-    with solara.Card():
-        with solara.Row(justify="center"):
-            start = seconds_to_hms(section.instance.start // 1000)
-            end = seconds_to_hms(section.instance.end // 1000)
-            solara.Text(f"{start} - {end}", classes=["seven-seg myprimary"])
+    
+    with solara.Row(justify="center"):
+        start = seconds_to_hms(section.instance.start // 1000)
+        end = seconds_to_hms(section.instance.end // 1000)
+        solara.Text(f"{start} - {end}", classes=["seven-seg myprimary"])
 
 
 @solara.component
 def SectionCard(section):
     fine_tuned = solara.use_reactive(section.instance.fine_tuned)
 
-    def toggle_fine_tuned():
-        section.instance.fine_tuned = not fine_tuned.value
+    def lock():
+        section.instance.fine_tuned = True
         section.instance.save()
-        fine_tuned.set(not fine_tuned.value)
+        fine_tuned.set(True)
+    
+    def unlock():
+        logger.debug(f"If there are tracks then theyll need to be deleted.")
+        section.instance.fine_tuned = False
+        section.instance.save()
+        fine_tuned.set(False)
 
-    if fine_tuned.value:
+
+
+    with SwapTransition(show_first=fine_tuned.value, name="fade"):
         CompletedSectionCard(section)
-    else:
         NotCompletedSectionCard(section)
+    
     with solara.Row(justify="center"):
-        solara.Button(
-            label=f"Mark Completed {section.instance.fine_tuned}",
-            classes=["button"],
-            on_click=toggle_fine_tuned,
+        if fine_tuned.value:
+            solara.Button(
+            label="Unlock",
+            classes=['mywarning'],
+            on_click=unlock,
+            icon_name=Icons.UNLOCK.value,
+        )
+        else:
+            solara.Button(
+            label="Finished",
+            classes=['myprimary'],
+            on_click=lock,
+            icon_name=Icons.LOCK.value,
         )
 
 
@@ -66,8 +83,7 @@ def SectionCard(section):
 def FineTuner(video: Video):
     current_page = solara.use_reactive(1)
     per_page = 3
-    solara.Markdown(f"Video Fine Tuner")
-    solara.Markdown(f"{video.instance.title}")
+    solara.Markdown(f"## {video.instance.title}")
     sections, num_sections, num_pages = video.sections_paginated(
         current_page=current_page, per_page=per_page
     )

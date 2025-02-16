@@ -22,6 +22,7 @@ def parse_url_args():
 
 @solara.component
 def Page():
-    solara.Markdown(f"Fine Tuner appears below")
+
     video = parse_url_args()
-    FineTuner(video)
+    with solara.Column(classes=["main-container"]):
+        FineTuner(video)
