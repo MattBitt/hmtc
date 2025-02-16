@@ -1,9 +1,11 @@
+import time
+
 import solara
 from loguru import logger
 
 from hmtc.components.fine_tuner import FineTuner
 from hmtc.domains.video import Video
-from hmtc.utils.jellyfin_functions import load_media_item, search_for_media
+from hmtc.utils.jellyfin_functions import jf_pause, load_media_item, search_for_media
 
 
 def parse_url_args():
@@ -29,6 +31,8 @@ def Page():
 
     media = search_for_media("videos", video.instance.youtube_id)
     load_media_item(media["Id"])
+    time.sleep(0.1)
+    jf_pause()
 
     with solara.Column(classes=["main-container"]):
         FineTuner(video)
