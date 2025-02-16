@@ -150,6 +150,18 @@ def can_ping_server():
         return False
 
 
+def get_list_of_users():
+    url = f"/Users"
+    res = jf_get(url=url)
+    if res.status_code != 200:
+        logger.error(f"Error getting users {res}")
+        return None
+    resp_dict = res.json()
+
+    items = [(x["Name"], x["Id"]) for x in resp_dict]
+    return items
+
+
 def all_sessions():
     try:
         res = jf_get("/Sessions")
@@ -232,8 +244,12 @@ def get_user_libraries():
     try:
         res = jf_get(url=url)
     except Exception as e:
-        return None
-    libraries = [x for x in res.json()["Items"]]
+        raise e
+    if res.status_code != 200:
+        logger.error(f"Error gettings user libraries {res}")
+        return []
+    resp_dict = res.json()
+    libraries = [x for x in resp_dict["Items"]]
     return libraries
 
 
@@ -277,10 +293,14 @@ def tracks_library_id():
 
 def search_for_media(library, title):
     if library == "videos":
+        logger.debug(f"searching for sources library {library} {title}")
         library_id = sources_library_id()
     else:
+        logger.debug(f"searching for tracks library {library} {title}")
         library_id = tracks_library_id()
 
+    if library_id is None:
+        logger.error(f"{library} library not found")
     url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
     res = jf_get(url)
 
@@ -354,6 +374,9 @@ def get_user_id(user_name):
     if res.status_code != 200:
         logger.error(f"Error getting user ids: {res.status_code}")
         return None
+    if res.json() == []:
+        logger.error(f"Error getting user id: {user_name} not found")
+        return None
     for item in res.json():
         if item["Name"] == user_name:
             return item["Id"]
@@ -370,10 +393,6 @@ def load_media_item(media_id):
 
 
 if __name__ == "__main__":
-
-    user_id = get_user_id("user1")
-    print(user_id)
-    print(get_current_user_timestamp())
-    time.sleep(1)
-    jf_seek_to(500_000_000)  # 500 million = 50 seconds
-    jf_play()
+    print(get_list_of_users())
+    print(can_ping_server())
+    print(search_for_media("videos", "gLgvIQaOwIo"))
