@@ -37,7 +37,7 @@ def loop_jellyfin(args):
     jf_seek_to(args * 10000)
     time.sleep(0.250)
     jf_playpause()
-    time.sleep(1.50)
+    time.sleep(0.8)
     jf_playpause()
     time.sleep(0.250)
     jf_seek_to(args * 10000)
