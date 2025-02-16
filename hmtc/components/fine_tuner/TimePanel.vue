@@ -1,23 +1,32 @@
 <template>
   <div>
     <v-row justify="center" class="mb-6">
-      <span class="seven-seg myprimary">{{ formatTime(initialTime) }}</span>
-
-      <v-col cols="3">
-        <v-btn fab :class="[isEditing ? 'mywarning' : 'button']" @click="toggleEditMode"
-          ><span v-if="isEditing"><v-icon>mdi-cancel</v-icon></span>
-          <span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
-        >
+      <v-col cols="6">
+        <span class="seven-seg myprimary">{{ formatTime(initialTime) }}</span>
       </v-col>
-      <v-col v-if="isDirty" cols="3">
-        <v-btn fab class="button" @click="updateTime">
-          <v-icon> mdi-content-save </v-icon>
+    </v-row>
+    <v-row justify="center" class="mb-6">
+      <v-col cols="3">
+        <v-btn fab class="button" @click="toggleEditMode" v-if="!isEditing">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn fab class="mywarning" @click="toggleEditMode" v-else>
+          <v-icon>mdi-cancel</v-icon>
         </v-btn>
       </v-col>
       <v-col cols="3">
         <v-btn fab class="button" @click="loopJellyfinAt">
           <v-icon> mdi-play </v-icon>
         </v-btn>
+      </v-col>
+
+      <v-col v-if="isDirty" cols="3">
+        <v-btn fab class="button" @click="updateTime">
+          <v-icon> mdi-content-save </v-icon>
+        </v-btn>
+      </v-col>
+      <v-col v-else cols="3">
+        <div></div>
       </v-col>
     </v-row>
 

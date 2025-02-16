@@ -89,7 +89,11 @@ class Video(BaseDomain):
         # added this on 2/15/25. didn't want to try to
         # dig into the 'chicago' file classes...
         logger.debug("deleting from the Video domain class")
-        vf = VideoFiles.select().where(VideoFiles.item_id == self.instance.id).get_or_none()
+        vf = (
+            VideoFiles.select()
+            .where(VideoFiles.item_id == self.instance.id)
+            .get_or_none()
+        )
         if vf is not None:
             for ft in VideoFiles.FILETYPES:
                 file_model = getattr(vf, ft)
