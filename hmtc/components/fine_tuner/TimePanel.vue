@@ -1,26 +1,26 @@
 <template>
   <div>
     <v-row justify="center" class="mb-6">
-      <span class="seven-seg myprimary">{{ initialTime }}</span>
-      <v-row justify="end">
-        <v-col cols="3">
-          <v-btn fab :class="[isEditing ? 'mywarning' : 'button']" @click="toggleEditMode"
-            ><span v-if="isEditing"><v-icon>mdi-cancel</v-icon></span>
-            <span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
-          >
-        </v-col>
-        <v-col v-if="isDirty" cols="3">
-          <v-btn fab class="button" @click="updateTime">
-            <v-icon> mdi-content-save </v-icon>
-          </v-btn>
-        </v-col>
-        <v-col cols="3">
-          <v-btn fab class="button" @click="loopJellyfinAt">
-            <v-icon> mdi-play </v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
+      <span class="seven-seg myprimary">{{ formatTime(initialTime) }}</span>
+
+      <v-col cols="3">
+        <v-btn fab :class="[isEditing ? 'mywarning' : 'button']" @click="toggleEditMode"
+          ><span v-if="isEditing"><v-icon>mdi-cancel</v-icon></span>
+          <span v-else><v-icon>mdi-pencil</v-icon></span></v-btn
+        >
+      </v-col>
+      <v-col v-if="isDirty" cols="3">
+        <v-btn fab class="button" @click="updateTime">
+          <v-icon> mdi-content-save </v-icon>
+        </v-btn>
+      </v-col>
+      <v-col cols="3">
+        <v-btn fab class="button" @click="loopJellyfinAt">
+          <v-icon> mdi-play </v-icon>
+        </v-btn>
+      </v-col>
     </v-row>
+
     <v-row v-if="isEditing" justify="center" class="mt-4">
       <v-btn medium fab class="button" @click="adjustTime(-60_000)">
         <v-icon>mdi-menu-left</v-icon><span>60</span>
@@ -56,6 +56,7 @@
     </v-row>
   </div>
 </template>
+
 <script>
 module.exports = {
   name: "SectionTimePanel",
@@ -98,20 +99,25 @@ module.exports = {
       }
       this.isDirty = true;
     },
-  },
-  computed: {
-    timeString() {
-      //return new Date(this.time).toISOString().slice(11, 19);
-      return "some string";
+
+    formatTime(milliseconds) {
+      const seconds = milliseconds / 1000;
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+        2,
+        "0"
+      )}:${String(secs).padStart(2, "0")}`;
     },
   },
-  created() {
-    console.log("Initial time:", this.initialTime);
-  },
+  computed: {},
+  created() {},
 
   data() {
     return {
       time: this.initialTime,
+
       isEditing: false,
       isDirty: false,
     };
