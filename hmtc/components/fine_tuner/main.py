@@ -139,7 +139,10 @@ def HeaderRow(video):
     with solara.Row():
         with solara.Columns([3, 9]):
             with solara.Row(justify="center"):
-                solara.Markdown(f"##### {video.instance.title[:80]}")
+                with solara.Column():
+                    solara.Markdown(f"##### {video.instance.title[:80]}")
+                    solara.Markdown(f"###### {video.instance.duration}")
+                    solara.Markdown(f"###### {seconds_to_hms(video.instance.duration)}")
             with solara.Row(justify="end"):
                 solara.Button(
                     label="Load",
