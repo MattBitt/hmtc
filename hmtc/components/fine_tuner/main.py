@@ -8,7 +8,7 @@ from hmtc.domains.video import Video
 from hmtc.utils.time_functions import seconds_to_hms
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.jf_panel import JFPanel
-from hmtc.utils.jellyfin_functions import search_for_media, load_media_item, jf_seek_to, jf_play, jf_pause, jf_playpause
+from hmtc.utils.jellyfin_functions import search_for_media, load_media_item, jf_seek_to, jf_play, jf_pause, jf_playpause, refresh_library
 
 @solara.component_vue("./TimePanel.vue", vuetify=True)
 def TimePanel(
@@ -110,20 +110,23 @@ def HeaderRow(video):
             logger.error(f"{video.instance.youtube_id} not found.")
             return
         load_media_item(media['Id'])
-        
+    
+    def jellyfin_refresh_library():
+        refresh_library()
     
     with solara.Row():
-        with solara.Columns([9,3]):
+        with solara.Columns([6,6]):
             with solara.Row(justify="center"):
-                solara.Markdown(f"##{video.instance.title[:40]}")
+                solara.Markdown(f"#### {video.instance.title[:40]}")
             with solara.Row(justify="end"):
-                solara.Button(label="Load in Jellyfin", icon_name=Icons.LOAD_MEDIA.value, on_click=load_in_jellyfin)
+                solara.Button(label="Load", icon_name=Icons.LOAD_MEDIA.value, on_click=load_in_jellyfin, classes=['button'])
+                solara.Button(label="Refresh", icon_name=Icons.REFRESH.value, on_click=jellyfin_refresh_library, classes=['button'])
                 JFPanel(video)
 
 @solara.component
 def FineTuner(video: Video):
     current_page = solara.use_reactive(1)
-    per_page = 3
+    per_page = 2
     HeaderRow(video)
     sections, num_sections, num_pages = video.sections_paginated(
         current_page=current_page, per_page=per_page

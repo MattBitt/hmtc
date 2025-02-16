@@ -282,12 +282,13 @@ def search_for_media(library, title):
 
     url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
     res = jf_get(url)
-    # YX5FD4jbBts
+    
+    resp_json = res.json()
     if res.status_code != 200:
         logger.error(f"Error searching for media: {res.status_code}")
         return None
 
-    elif res.json()["TotalRecordCount"] == 0:
+    elif resp_json["TotalRecordCount"] == 0:
         logger.error(f"No results for {title}")
         return None
     elif res.json()["TotalRecordCount"] > 1:
@@ -296,6 +297,7 @@ def search_for_media(library, title):
         return None
     else:
         logger.debug(f"Only 1 result found! {res.json()}")
+        
         return res.json()["Items"][0]
 
 

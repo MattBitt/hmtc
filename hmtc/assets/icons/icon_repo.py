@@ -9,9 +9,14 @@ class Icons(Enum):
     DELETE = "mdi-delete"
     DISC = "mdi-disc"
     DOMAIN = "mdi-google-circles-extended"
+    DOWN_BOX = "mdi-arrow-down-box"
     EDIT = "mdi-pencil"
     FILE = "mdi-folder"
+    FINETUNER = "mdi-glasses"
     HOME = "mdi-home"
+    LOAD_MEDIA = 'mdi-cards-playing-outline'
+    LOCK = 'mdi-bookmark-check-outline'
+    REFRESH = 'mdi-refresh'
     SANDBOX = "mdi-shovel"
     SEARCH = "mdi-magnify"
     SECTION = "mdi-rhombus-split"
@@ -21,15 +26,12 @@ class Icons(Enum):
     SUPERCHAT_SEGMENT = "mdi-segment"
     TOPIC = "mdi-book-open"
     TRACK = "mdi-music-clef-treble"
+    UNLOCK = 'mdi-axe'
+    UP_BOX = "mdi-arrow-up-box"
     USER = "mdi-account"
     VIDEO = "mdi-video"
     YOUTUBE_SERIES = "mdi-youtube"
-    UP_BOX = "mdi-arrow-up-box"
-    DOWN_BOX = "mdi-arrow-down-box"
-    FINETUNER = "mdi-glasses"
-    UNLOCK = 'mdi-axe'
-    LOCK = 'mdi-bookmark-check-outline'
-    LOAD_MEDIA = 'mdi-cards-playing-outline'
+    
     def __str__(self):
         return str(self.value)
 

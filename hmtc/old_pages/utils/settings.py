@@ -96,7 +96,7 @@ def refresh_from_youtube():
         logger.debug(f"Found {len(ids)} videos at {channel}")
         logger.debug(f"{len(not_in_db)} of them need to be added.")
         if config["general"]["environment"] == "development":
-            items = not_in_db[:5]
+            items = not_in_db[:1]
         else:
             items = not_in_db
         for youtube_id in items:
