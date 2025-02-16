@@ -1,7 +1,7 @@
 import solara
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.shared.sidebar import MySidebar
+from hmtc.components.charts.section_stats import SectionStats
 from hmtc.domains import (
     Album,
     Artist,
@@ -29,6 +29,7 @@ def DomainCard(
 
 @solara.component
 def Dashboard():
+
     with solara.Columns([6, 6]):
         with solara.Card():
             with solara.Columns([6, 6]):
@@ -49,10 +50,9 @@ def Dashboard():
                         icon=Icons.SECTION.value,
                         value=Section.repo.count(),
                     )
-                with solara.Link(f"/api/topics"):
-                    DomainCard(
-                        title="Topics", icon=Icons.TOPIC.value, value=Topic.repo.count()
-                    )
+                with solara.Column():
+                    SectionStats()
+
             with solara.Columns([6, 6]):
                 with solara.Link(f"/api/superchats"):
                     DomainCard(
@@ -91,6 +91,8 @@ def Dashboard():
             DomainCard(
                 title="Series", icon=Icons.SERIES.value, value=Series.repo.count()
             )
+        with solara.Link(f"/api/topics"):
+            DomainCard(title="Topics", icon=Icons.TOPIC.value, value=Topic.repo.count())
         with solara.Link(f"/api/youtubeserieses"):
             DomainCard(
                 title="Youtube Series",

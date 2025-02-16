@@ -32,6 +32,7 @@ class Icons(Enum):
     USER = "mdi-account"
     VIDEO = "mdi-video"
     YOUTUBE_SERIES = "mdi-youtube"
+    STATS = "mdi-space-station"
 
     def __str__(self):
         return str(self.value)
