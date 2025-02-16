@@ -107,6 +107,12 @@ def SecondRow(
                         icon_name=Icons.SECTION.value,
                         classes=["button"],
                     )
+                with solara.Link(f"/api/videos/finetuner/{video.instance.id}"):
+                    solara.Button(
+                        f"Fine Tuner",
+                        icon_name=Icons.FINETUNER.value,
+                        classes=["button"],
+                    )
 
 
 @solara.component
@@ -127,20 +133,26 @@ def MainRow(video: Video):
 @solara.component
 def VideoEditor():
     current_page = solara.use_reactive(1)
-    vids_with_section = SectionModel.select(SectionModel.video_id).distinct()
-    vids_without_section = VideoModel.select(VideoModel.id).where(
-        VideoModel.id.not_in(vids_with_section)
+    vids_with_unfinshed_sections = (
+        SectionModel.select(SectionModel.video_id)
+        .where(SectionModel.fine_tuned == False)
+        .distinct()
     )
+
+    # vids_without_section = VideoModel.select(VideoModel.id).where(
+    #     VideoModel.id.not_in(vids_with_section)
+    # )
     # omegle = Album.get_by(title="Omegle Bars")
     guerrilla = Album.get_by(title="Guerrilla Bars")
 
     base_query = VideoModel.select(VideoModel).where(
-        (VideoModel.unique_content == True) & VideoModel.id.in_(vids_without_section)
+        (VideoModel.unique_content == True)
+        & VideoModel.id.in_(vids_with_unfinshed_sections)
     )
     # if omegle is not None:
     #    base_query = base_query.where(VideoModel.id.in_(omegle.discs_and_videos()))
-    if guerrilla is not None:
-        base_query = base_query.where(VideoModel.id.in_(guerrilla.discs_and_videos()))
+    # if guerrilla is not None:
+    #     base_query = base_query.where(VideoModel.id.in_(guerrilla.discs_and_videos()))
 
     page_query = base_query.order_by(VideoModel.duration.asc())
 

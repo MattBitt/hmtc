@@ -25,21 +25,21 @@ port = 5432
 
 [jellyfin]
 
-api = "44aadcfebc164ea7a80e67288ce7618b"
-password = "bizzle"
-url = "http://192.168.0.202:8095"
-user = "mizzle"
-user_id = "7a3d70b6fce444e1bcaf28a99e22a346"
-sources_library="Music Videos"
-tracks_library="HarryMackTracks"
+prod_api = "44aadcfebc164ea7a80e67288ce7618b"
+prod_password = "bizzle"
+prod_url = "http://192.168.0.202:8095"
+prod_user = "mizzle"
+prod_user_id = "7a3d70b6fce444e1bcaf28a99e22a346"
+prod_sources_library="Music Videos"
+prod_tracks_library="HarryMackTracks"
 
-dev_api = "94c170f122df415297cf4ac3bd1430dc"
-dev_password = "user1"
-dev_url = "http://localhost:8096"
-dev_user = "user1"
-dev_user_id = "de68cdfc4f5842aaa7b56338a378a2a6"
-dev_sources_library="DownloadedVideos"
-dev_tracks_library="HarryMackTracks"
+api = "94c170f122df415297cf4ac3bd1430dc"
+password = "user1"
+url = "http://localhost:8096"
+user = "user1"
+user_id = "de68cdfc4f5842aaa7b56338a378a2a6"
+sources_library="DownloadedVideos"
+tracks_library="HarryMackTracks"
 
 
 
