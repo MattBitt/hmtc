@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-row justify="center" class="mb-6">
-      <span class="seven-seg myprimary">{{ formatTime(initialTime) }}</span>
+      <span class="seven-seg myprimary">{{ formattedTime }}</span>
     </v-row>
     <v-row justify="center" class="mb-6">
       <v-col cols="3">
@@ -67,12 +67,12 @@
 <script>
 module.exports = {
   name: "SectionTimePanel",
-  props: { video_duration: Number },
+  props: { video_duration: Number, initialTime: Number },
   emits: [],
   methods: {
     updateTime() {
       const args = {
-        time: this.initialTime,
+        time: this.localTime,
       };
       this.update_time(args);
       this.isEditing = false;
@@ -82,7 +82,7 @@ module.exports = {
     toggleEditMode() {
       if (this.isEditing) {
         if (this.isDirty) {
-          this.time = this.initialTime;
+          this.localTime = this.initialTime;
           this.isDirty = false;
         }
       }
@@ -90,20 +90,18 @@ module.exports = {
     },
 
     loopJellyfinAt() {
-      console.log("Looping jellyfin at", this.initialTime);
-      this.loop_jellyfin_at(this.initialTime);
+      this.loop_jellyfin_at(this.localTime);
     },
 
     adjustTime(value) {
-      console.log("adjusting time (", this.initialTime, ") by ", value);
-      const tmp_time = this.initialTime + value;
+      const tmp_time = this.localTime + value;
       const durationMS = this.video_duration * 1000;
       if (tmp_time < 0) {
-        this.initialTime = durationMS; // Loop to end
+        this.localTime = durationMS;
       } else if (tmp_time > durationMS) {
-        this.initialTime = 0;
+        this.localTime = 0;
       } else {
-        this.initialTime = tmp_time;
+        this.localTime = tmp_time;
       }
       this.isDirty = true;
     },
@@ -119,16 +117,27 @@ module.exports = {
       )}:${String(secs).padStart(2, "0")}`;
     },
   },
-  computed: {},
-  created() {},
+  computed: {
+    formattedTime() {
+      return this.formatTime(this.localTime);
+    },
+  },
+  created() {
+    this.localTime = this.initialTime;
+  },
 
   data() {
     return {
-      time: this.initialTime,
-
+      localTime: this.initialTime,
       isEditing: false,
       isDirty: false,
     };
+  },
+
+  watch: {
+    localTime(newVal) {
+      // You can keep this if you want to track changes without console logs
+    },
   },
 };
 </script>
