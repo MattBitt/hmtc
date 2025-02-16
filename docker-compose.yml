@@ -42,6 +42,9 @@ services:
       - type: bind
         source: ~/apps/data_for_development/jellyfin_libraries
         target: /media
+      - type: bind
+        source: ~/apps/data_for_development/hmtc/development/storage/
+        target: /hmtc_storage/
 
     restart: 'unless-stopped'
     # Optional - alternative address used for autodiscovery

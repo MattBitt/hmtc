@@ -56,7 +56,7 @@ def JFPanel(
 
     connected = solara.use_reactive(can_ping_server())
     jellyfin_status_dict = solara.use_reactive(get_user_session())
-    solara.Markdown(f"## Jellyfin Control Panel")
+
     JellyfinControlPanel(
         enable_live_updating=connected.value,
         jellyfin_status=jellyfin_status_dict.value,

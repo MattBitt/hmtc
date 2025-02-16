@@ -29,7 +29,7 @@ class Icons(Enum):
     FINETUNER = "mdi-glasses"
     UNLOCK = 'mdi-axe'
     LOCK = 'mdi-bookmark-check-outline'
-
+    LOAD_MEDIA = 'mdi-cards-playing-outline'
     def __str__(self):
         return str(self.value)
 

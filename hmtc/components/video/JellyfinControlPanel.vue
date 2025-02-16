@@ -49,9 +49,7 @@
                 <v-list-item-content>
                   <v-list-item-title
                     >JF Session Id:
-                    <strong>
-                      {{ jellyfin_status.Id }}</strong
-                    ></v-list-item-title
+                    <strong> {{ jellyfin_status.Id }}</strong></v-list-item-title
                   >
                 </v-list-item-content>
               </v-list-item>
@@ -218,9 +216,7 @@ module.exports = {
       }
     },
     timeString() {
-      return new Date(this.currentPosition * 1000)
-        .toISOString()
-        .substring(11, 19);
+      return new Date(this.currentPosition * 1000).toISOString().substring(11, 19);
     },
   },
 };

@@ -1,9 +1,7 @@
 <template>
   <div>
     <v-row justify="center" class="mb-6">
-      <v-col cols="6">
-        <span class="seven-seg myprimary">{{ formatTime(initialTime) }}</span>
-      </v-col>
+      <span class="seven-seg myprimary">{{ formatTime(initialTime) }}</span>
     </v-row>
     <v-row justify="center" class="mb-6">
       <v-col cols="3">
@@ -93,6 +91,7 @@ module.exports = {
 
     loopJellyfinAt() {
       console.log("Looping jellyfin at", this.initialTime);
+      this.loop_jellyfin_at(this.initialTime);
     },
 
     adjustTime(value) {

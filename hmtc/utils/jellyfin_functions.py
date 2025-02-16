@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from urllib.parse import quote
 
 import requests
@@ -52,6 +53,7 @@ def jf_user_request(method, _url, params=None, data=None):
         return 204
     else:
         print("An error occurred while attempting to retrieve data from the API.")
+        logger.error(resp.json())
         return None
 
 
@@ -280,7 +282,7 @@ def search_for_media(library, title):
 
     url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
     res = jf_get(url)
-
+    # YX5FD4jbBts
     if res.status_code != 200:
         logger.error(f"Error searching for media: {res.status_code}")
         return None
@@ -328,9 +330,9 @@ def jf_stop():
 def jf_seek_to(position):
     session = get_user_session()
     video_id = get_currently_playing()
+    url = f"/Sessions/{session['Id']}/Playing/Seek?seekPositionTicks={position}"
+   
 
-    url = f"/Sessions/{session['Id']}/Playing/Seek?seekPostitionTicks=1000000"
-    logger.debug(url)
     res = jf_user_post(url)
     return res
 
@@ -358,22 +360,16 @@ def load_media_item(media_id):
     url = f"/Sessions/{session['Id']}/Playing?playCommand=PlayNow&itemIds={media_id}"
     res = jf_post(url)
     if res.status_code == 204:
-        logger.error(f"Loaded {media_id} successfully")
+        logger.debug(f"Loaded {media_id} successfully")
     else:
         logger.error(f"Error loading {res.status_code}")
 
 
 if __name__ == "__main__":
-    playlists = get_user_playlists()
-    if len(playlists) == 0:
-        print("No playlists found")
-    else:
-        logger.error(f"Found {len(playlists)} playlists")
-        for p in playlists:
-            items = get_playlist_items(p["Id"])
-            if items is None:
-                logger.error(f"Error getting playlist items for {p['Name']}")
-                continue
-            print(f"Playlist: {p['Name']}")
-            print(f"Items: {len(items)}")
-    # create_jellyfin_playlist("MyFavs1114")
+    
+    user_id = get_user_id('user1')
+    print(user_id)
+    print(get_current_user_timestamp())
+    time.sleep(1)
+    jf_seek_to(500_000_000) # 500 million = 50 seconds
+    jf_play()
