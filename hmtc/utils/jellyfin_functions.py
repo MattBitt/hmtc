@@ -301,19 +301,22 @@ def search_for_media(library, title):
 
     if library_id is None:
         logger.error(f"{library} library not found")
+        return None
+
     url = f"/Users/{user_jf_id}/Items?Recursive=true&ParentId={library_id}&SearchTerm={title}"
     res = jf_get(url)
 
     if res.status_code != 200:
         logger.error(f"Error searching for media: {res.status_code}")
         return None
-    resp_json = res.json()
 
-    if resp_json["TotalRecordCount"] == 0:
+    resp_dict = res.json()
+
+    if resp_dict["TotalRecordCount"] == 0:
         logger.error(f"No results for {title}")
         return None
     else:
-        items = [item for item in resp_json["Items"] if not item["IsFolder"]]
+        items = [item for item in resp_dict["Items"] if not item["IsFolder"]]
         if items == []:
             logger.error(f"No non-folder results for {title}")
             return None
@@ -386,13 +389,13 @@ def load_media_item(media_id):
     session = get_user_session()
     url = f"/Sessions/{session['Id']}/Playing?playCommand=PlayNow&itemIds={media_id}"
     res = jf_post(url)
-    if res.status_code == 204:
-        logger.debug(f"Loaded {media_id} successfully")
-    else:
-        logger.error(f"Error loading {res.status_code}")
+    if res.status_code != 204:
+        logger.error(f"Error loading media item {res}")
+        return None
+    logger.success(f"Loading media_id {media_id} succeeded")
 
 
 if __name__ == "__main__":
-    print(get_list_of_users())
-    print(can_ping_server())
-    print(search_for_media("videos", "gLgvIQaOwIo"))
+
+    media = search_for_media("videos", "lZutXgamSZI")
+    load_media_item(media["Id"])
