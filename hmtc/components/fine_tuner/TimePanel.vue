@@ -96,6 +96,9 @@ module.exports = {
     adjustTime(value) {
       const tmp_time = this.localTime + value;
       const durationMS = this.video_duration * 1000;
+      console.log(`Attempting to adjust time by ${value} milliseconds.`);
+      console.log(`Current time: ${this.localTime} milliseconds.`);
+      console.log(`Duration: ${durationMS} milliseconds.`);
       if (tmp_time < 0) {
         this.localTime = durationMS;
       } else if (tmp_time > durationMS) {
