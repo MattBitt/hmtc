@@ -19,7 +19,7 @@ from hmtc.utils.subtitles import (
     read_srt_file,
 )
 from hmtc.utils.time_functions import seconds_to_hms
-
+from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 
 @dataclass
 class Topic:
@@ -113,6 +113,7 @@ def BeforeSearch(search_for_starts_and_ends):
 sections = solara.reactive([])
 
 
+
 @solara.component
 def Sectionalizer(video, create_section):
     # session = solara.get_session_id()
@@ -121,9 +122,22 @@ def Sectionalizer(video, create_section):
     video_duration_ms = solara.use_reactive(
         video.instance.duration * 1000
     )  # Total duration of the video
-
+    jellyfin_cursor = solara.use_reactive(0)
+    
     def update_time_cursor(new_time: float):
         time_cursor.value = new_time
+
+    def update_jellyfin_cursor(new_time: float):
+        jellyfin_cursor.value = new_time
+
+    def jump_to_jellyfin():
+        jf_time = get_current_user_timestamp()
+        if jf_time is None:
+            logger.error(f"Can't get user timestamp to Jellyfin")
+            return
+        update_jellyfin_cursor(jf_time * 1000)
+        
+
 
     _raw_sections = Section.get_for_video(video.instance.id)
     _sections = [s.serialize() for s in _raw_sections]
@@ -154,15 +168,20 @@ def Sectionalizer(video, create_section):
                 else:
                     solara.Markdown(f"No subtitles found for {video.instance.title}")
 
-        with solara.Row(justify="center"):
-            SectionDialogButton(
-                video=video,
-                reactive_sections=sections,
-            )
-            solara.Text(
-                seconds_to_hms(int(time_cursor.value / 1000)),
-                classes=["seven-seg"],
-            )
+        with solara.Columns([6,6]):
+            with solara.Row():
+                solara.Text(f"{jellyfin_cursor.value}")
+                solara.Button(f"Jump to Jellyfin", on_click=jump_to_jellyfin, classes=['button'])
+            with solara.Row():
+            
+                SectionDialogButton(
+                    video=video,
+                    reactive_sections=sections,
+                )
+                solara.Text(
+                    seconds_to_hms(int(time_cursor.value / 1000)),
+                    classes=["seven-seg"],
+                )
         with solara.Column():
             times = [p.start.seconds for p in possibles.value["starts"]]
 
