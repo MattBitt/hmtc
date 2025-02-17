@@ -1,8 +1,8 @@
 import solara
 
-from hmtc.archive.files import Page as FilesDashboard
 from hmtc.pages.albums.details import Page as AlbumDetails
 from hmtc.pages.dashboards.domains import Page as DomainsDashboard
+from hmtc.pages.dashboards.files import Page as FilesDashboard
 from hmtc.pages.discs.details import Page as DiscDetails
 from hmtc.pages.sandbox.main import Sandbox
 from hmtc.pages.tables.albums import Page as AlbumsPage
