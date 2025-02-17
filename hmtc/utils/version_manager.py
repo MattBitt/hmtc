@@ -21,4 +21,4 @@ def increment_version():
 
 if __name__ == "__main__":
     increment_version()
-    logger.info(f"Version updated to {get_version()}")
+    print(f"Version updated to {get_version()}")
