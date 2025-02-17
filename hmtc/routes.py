@@ -23,8 +23,9 @@ from hmtc.pages.tables.youtube_series import Page as YoutubeSeriesesPage
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.pages.videos.details import Page as VideoDetails
 from hmtc.pages.videos.fine_tuner import Page as FineTunerPage
+from hmtc.pages.videos.pipelines.vids_to_finetune import Page as VidstoFineTune
+from hmtc.pages.videos.pipelines.vids_to_sectionalize import Page as VidstoSectionalize
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
-from hmtc.pages.videos.video_editor import Page as VideoEditor
 
 
 def api_routes():
@@ -60,11 +61,6 @@ def api_routes():
                         label="Video Details",
                     ),
                     solara.Route(
-                        path="editor",
-                        component=VideoEditor,
-                        label="Video Editor",
-                    ),
-                    solara.Route(
                         path="sectionalizer",
                         component=VideoSectionalizer,
                         label="Sectionalizer",
@@ -73,6 +69,22 @@ def api_routes():
                         path="finetuner",
                         component=FineTunerPage,
                         label="Video Sections Fine Tuner",
+                    ),
+                    solara.Route(
+                        path="pipeline",
+                        label="Video Sections Fine Tuner",
+                        children=[
+                            solara.Route(
+                                path="finetune",
+                                component=VidstoFineTune,
+                                label="Fine Tuner Pipeline",
+                            ),
+                            solara.Route(
+                                path="sectionalize",
+                                component=VidstoSectionalize,
+                                label="Sectionalizer Pipeline",
+                            ),
+                        ],
                     ),
                 ],
             ),

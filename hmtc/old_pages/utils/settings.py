@@ -4,6 +4,7 @@ import peewee
 import solara
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains.album import Album
@@ -282,8 +283,20 @@ def SectionsControls():
                     on_click=refresh_from_youtube,
                     classes=["button"],
                 )
-                with solara.Link(f"/api/videos/editor"):
-                    solara.Button("Video Item Editor", classes=["button"])
+                with solara.Columns():
+                    with solara.Link(f"/api/videos/pipeline/sectionalize"):
+                        solara.Button(
+                            "Sectionalize",
+                            icon_name=Icons.SECTION.value,
+                            classes=["button"],
+                        )
+                    with solara.Link(f"/api/videos/pipeline/finetune"):
+                        solara.Button(
+                            "Fine Tune",
+                            icon_name=Icons.FINETUNER.value,
+                            classes=["button"],
+                        )
+
         with solara.Card("Sections"):
             with solara.Column():
                 solara.Text(f"These controls are for creating the")

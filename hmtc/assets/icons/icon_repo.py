@@ -28,6 +28,7 @@ class Icons(Enum):
     TOPIC = "mdi-book-open"
     TRACK = "mdi-music-clef-treble"
     UNLOCK = "mdi-axe"
+    UNIQUE = "mdi-cookie"
     UP_BOX = "mdi-arrow-up-box"
     USER = "mdi-account"
     VIDEO = "mdi-video"
