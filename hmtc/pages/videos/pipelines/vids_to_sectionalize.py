@@ -47,12 +47,12 @@ def SecondRow(
                         icon_name=Icons.SECTION.value,
                         classes=["button"],
                     )
-                # with solara.Link(f"/api/videos/finetuner/{video.instance.id}"):
-                #     solara.Button(
-                #         f"Fine Tuner",
-                #         icon_name=Icons.FINETUNER.value,
-                #         classes=["button"],
-                #     )
+                with solara.Link(f"/api/videos/finetuner/{video.instance.id}"):
+                    solara.Button(
+                        f"Fine Tuner",
+                        icon_name=Icons.FINETUNER.value,
+                        classes=["button"],
+                    )
 
 
 @solara.component
