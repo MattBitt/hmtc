@@ -25,7 +25,7 @@ def SectionStats():
     )
 
     if video_seconds is not None:
-        video_hours = video_seconds // 1000 // 3600
+        video_hours = video_seconds // 3600
     else:
         video_hours = 0
 
