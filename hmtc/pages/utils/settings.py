@@ -66,8 +66,8 @@ def create_short_sections():
     short_vids_with_no_sections = VideoModel.select().where(
         (
             VideoModel.id.not_in(vids_with_sections)
-            & (VideoModel.duration < 600) * VideoModel.unique_content
-            == True
+            & (VideoModel.duration < 600)
+            & (VideoModel.unique_content == True)
         )
     )
 
