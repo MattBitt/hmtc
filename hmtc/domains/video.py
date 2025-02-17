@@ -155,3 +155,15 @@ class Video(BaseDomain):
         new_vid.unique_content = True
         new_vid.save()
         return cls(new_vid.id)
+
+    def create_single_section(self):
+        from hmtc.domains.section import Section
+
+        return Section.create(
+            {
+                "start": 0,
+                "end": self.instance.duration * 1000,
+                "section_type": "instrumental",
+                "video_id": self.instance.id,
+            }
+        )

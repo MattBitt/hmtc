@@ -11,6 +11,7 @@ from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.section_dialog_button import SectionDialogButton
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
+from hmtc.utils.jellyfin_functions import get_current_user_timestamp
 from hmtc.utils.opencv.image_extractor import ImageExtractor
 from hmtc.utils.subtitles import (
     find_closest_caption,
@@ -19,7 +20,7 @@ from hmtc.utils.subtitles import (
     read_srt_file,
 )
 from hmtc.utils.time_functions import seconds_to_hms
-from hmtc.utils.jellyfin_functions import get_current_user_timestamp
+
 
 @dataclass
 class Topic:
@@ -113,17 +114,14 @@ def BeforeSearch(search_for_starts_and_ends):
 sections = solara.reactive([])
 
 
-
 @solara.component
 def Sectionalizer(video, create_section):
     # session = solara.get_session_id()
     # logger.debug(f"Loading sectionalizer. Current session {session}")
     time_cursor = solara.use_reactive(0)  # Current video time
-    video_duration_ms = solara.use_reactive(
-        video.instance.duration * 1000
-    )  # Total duration of the video
+    video_duration_ms = solara.use_reactive(video.instance.duration * 1000)
     jellyfin_cursor = solara.use_reactive(0)
-    
+
     def update_time_cursor(new_time: float):
         time_cursor.value = new_time
 
@@ -136,8 +134,6 @@ def Sectionalizer(video, create_section):
             logger.error(f"Can't get user timestamp to Jellyfin")
             return
         update_jellyfin_cursor(jf_time * 1000)
-        
-
 
     _raw_sections = Section.get_for_video(video.instance.id)
     _sections = [s.serialize() for s in _raw_sections]
@@ -154,26 +150,25 @@ def Sectionalizer(video, create_section):
                             VideoFrame(video=video, time_cursor=time_cursor.value)
 
                 else:
-                    solara.Markdown(
-                        f"## No Video (think mkv) file Found for {video.instance}"
-                    )
+                    solara.Markdown(f"## No Video file Found for {video.instance}")
             with solara.Column():
-                subtitles = video.subtitles()
-                if subtitles is not None:
+                if video.subtitles() is not None:
                     SubtitlesCard(
                         time_cursor=time_cursor.value,
-                        subtitles=subtitles,
+                        subtitles=video.subtitles(),
                         starts_and_ends=possibles,
                     )
                 else:
                     solara.Markdown(f"No subtitles found for {video.instance.title}")
 
-        with solara.Columns([6,6]):
+        with solara.Columns([6, 6]):
             with solara.Row():
                 solara.Text(f"{jellyfin_cursor.value}")
-                solara.Button(f"Jump to Jellyfin", on_click=jump_to_jellyfin, classes=['button'])
+                solara.Button(
+                    f"Jump to Jellyfin", on_click=jump_to_jellyfin, classes=["button"]
+                )
             with solara.Row():
-            
+
                 SectionDialogButton(
                     video=video,
                     reactive_sections=sections,

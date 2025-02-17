@@ -15,6 +15,7 @@ from hmtc.models import Channel as ChannelModel
 from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
+from hmtc.models import Section as SectionModel
 from hmtc.models import SubtitleFile as SubtitleFileModel
 from hmtc.models import Topic as TopicModel
 from hmtc.models import Video as VideoModel
@@ -60,6 +61,19 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
 
+def create_short_sections():
+    vids_with_sections = SectionModel.select(SectionModel.video_id).distinct()
+    short_vids_with_no_sections = VideoModel.select().where(
+        (VideoModel.id.not_in(vids_with_sections) & (VideoModel.duration < 600))
+    )
+
+    for vid in short_vids_with_no_sections:
+        video = Video(vid)
+        video.create_single_section()
+
+    logger.success(f"Finished creating {len(short_vids_with_no_sections)} sections.")
+
+
 @solara.component
 def SectionsControls():
     with solara.Columns([6, 6]):
@@ -69,6 +83,12 @@ def SectionsControls():
                     "Check for New Videos",
                     on_click=refresh_from_youtube,
                     icon_name=Icons.DOWNLOAD.value,
+                    classes=["button"],
+                )
+                solara.Button(
+                    "Create Short Sections",
+                    on_click=create_short_sections,
+                    icon_name=Icons.SECTION.value,
                     classes=["button"],
                 )
         with solara.Card("Pipelines"):
