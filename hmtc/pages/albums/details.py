@@ -7,19 +7,10 @@ from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
-from hmtc.models import (
-    Album as AlbumModel,
-)
-from hmtc.models import (
-    Disc as DiscModel,
-)
+
 from hmtc.models import (
     DiscVideo as DiscVideoModel,
 )
-from hmtc.models import (
-    Video as VideoModel,
-)
-from hmtc.utils.general import paginate
 
 selected_videos = solara.reactive([])
 
