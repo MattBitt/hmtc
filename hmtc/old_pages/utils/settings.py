@@ -257,6 +257,21 @@ def create_topics_from_omegle():
         # logger.debug(data[:10])
 
 
+def create_sections():
+    vids = VideoModel.select().where(
+        (VideoModel.duration < 600) & (VideoModel.unique_content == True)
+    )
+    for vid in vids:
+        _section = Section.create(
+            {
+                "start": 0,
+                "end": vid.duration * 1000,
+                "section_type": "instrumental",
+                "video_id": vid.id,
+            }
+        )
+
+
 @solara.component
 def SectionsControls():
     num_sections = OmegleSection.select().count()
@@ -308,7 +323,9 @@ def SectionsControls():
                 )
                 solara.Button(
                     "Create Sections for Videos",
-                    on_click=create_omegle_sections,
+                    on_click=create_sections,
+                    # commented out on 2/16/25 to create sections for short videos
+                    # on_click=create_omegle_sections,
                     classes=["button"],
                 )
                 solara.Button(
