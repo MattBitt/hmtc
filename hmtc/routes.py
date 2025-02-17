@@ -1,11 +1,10 @@
 import solara
 
-from hmtc.old_pages.dashboards.domains import Page as DomainsDashboard
-from hmtc.old_pages.dashboards.files import Page as FilesDashboard
-from hmtc.old_pages.utils.settings import Page as SettingsPage
+from hmtc.archive.files import Page as FilesDashboard
 from hmtc.pages.albums.details import Page as AlbumDetails
+from hmtc.pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.pages.discs.details import Page as DiscDetails
-from hmtc.pages.sandbox.sandbox import Page as Sandbox
+from hmtc.pages.sandbox.main import Sandbox
 from hmtc.pages.tables.albums import Page as AlbumsPage
 from hmtc.pages.tables.artists import Page as ArtistsPage
 from hmtc.pages.tables.beats import Page as BeatsPage
@@ -21,6 +20,7 @@ from hmtc.pages.tables.users import Page as UsersPage
 from hmtc.pages.tables.videos import VideosPage
 from hmtc.pages.tables.youtube_series import Page as YoutubeSeriesesPage
 from hmtc.pages.users.main import UsersHomePage
+from hmtc.pages.utils.settings import Page as SettingsPage
 from hmtc.pages.videos.details import Page as VideoDetails
 from hmtc.pages.videos.fine_tuner import Page as FineTunerPage
 from hmtc.pages.videos.pipelines.vids_to_finetune import Page as VidstoFineTune

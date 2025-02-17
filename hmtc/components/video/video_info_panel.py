@@ -6,13 +6,6 @@ from loguru import logger
 
 from hmtc.assets.colors import Colors
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
-from hmtc.components.shared.my_spinner import MySpinner
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.components.vue_registry import register_vue_components
-from hmtc.config import init_config
-from hmtc.domains.video import Video
-from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel
 from hmtc.utils.time_functions import seconds_to_hms, time_ago_string
 
@@ -25,8 +18,6 @@ def ProcessingCard():
         classes=["processing-card"],
         style={"background-color": Colors.dark_gray},
     ):
-        with solara.Row(justify="center"):
-            MySpinner()
         with solara.Row(justify="center"):
             solara.Text("Processing...", classes=["processing-text"])
 

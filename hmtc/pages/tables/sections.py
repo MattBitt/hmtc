@@ -6,7 +6,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.section_table import SectionTable
 from hmtc.models import Section as SectionModel
 
@@ -18,7 +17,6 @@ def view_details(router, item):
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router)
 
     base_query = SectionModel.select(SectionModel).order_by(SectionModel.id.asc())
 

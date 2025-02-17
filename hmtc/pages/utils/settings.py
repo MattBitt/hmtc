@@ -5,7 +5,6 @@ import solara
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.config import init_config
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
@@ -63,7 +62,7 @@ def refresh_from_youtube():
 
 @solara.component
 def SectionsControls():
-    with solara.Columns([6,6]):
+    with solara.Columns([6, 6]):
         with solara.Card("Videos"):
             with solara.Column():
                 solara.Button(

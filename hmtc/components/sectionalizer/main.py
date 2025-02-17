@@ -38,11 +38,6 @@ def CoarseAdjust(
     pass
 
 
-@solara.component_vue("BarGraph.vue", vuetify=True)
-def BarGraph(possibles):
-    pass
-
-
 @solara.component
 def VideoFrame(video: Video, time_cursor):
     vid_file = video.video_file()
@@ -170,9 +165,7 @@ def Sectionalizer(video, create_section):
             )
         with solara.Column():
             times = [p.start.seconds for p in possibles.value["starts"]]
-            with SwapTransition(show_first=(len(times) > 0), name="slide-fade"):
-                BarGraph(possibles=times)
-                solara.Text(f"No search performed yet.")
+
             CoarseAdjust(
                 videoTime=time_cursor.value,
                 totalDuration=video_duration_ms.value,

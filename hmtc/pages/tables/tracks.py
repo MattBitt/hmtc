@@ -6,7 +6,6 @@ import peewee
 import solara
 from loguru import logger
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.track_table import TrackTable
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Track as TrackModel
@@ -21,7 +20,6 @@ from hmtc.router import parse_url_args
 def Page():
 
     router = solara.use_router()
-    MySidebar(router)
 
     parse_url_args()
     base_query = TrackModel.select()

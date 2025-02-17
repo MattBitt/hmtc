@@ -6,7 +6,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.series_table import SeriesTable
 from hmtc.domains.series import Series as SeriesItem
 from hmtc.models import Series as SeriesModel
@@ -15,7 +14,6 @@ from hmtc.models import Series as SeriesModel
 @solara.component
 def Page():
     router = solara.use_router()
-    MySidebar(router)
 
     base_query = SeriesModel.select()
 

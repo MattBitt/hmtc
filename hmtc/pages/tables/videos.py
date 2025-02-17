@@ -8,7 +8,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.video_table import VideoTable
 from hmtc.domains.channel import Channel
 from hmtc.domains.video import Video

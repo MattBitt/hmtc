@@ -9,10 +9,14 @@ def get_version():
 
 
 def increment_version():
+    version = ""
     with open(VERSION_FILE, "r") as f:
-        version = int(f.read().strip())
+        version = f.read().strip()
+
+    a, b, c = version.split(".")
+    new_version = f"{a}.{b}.{int(c) + 1}"
     with open(VERSION_FILE, "w") as f:
-        f.write(str(version + 1))
+        f.write(str(new_version))
 
 
 if __name__ == "__main__":

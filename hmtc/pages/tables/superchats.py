@@ -8,7 +8,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.superchat_table import SuperchatTable
 from hmtc.models import Superchat as SuperchatModel
 
@@ -29,7 +28,6 @@ def view_details(router, item):
 def Page():
 
     router = solara.use_router()
-    MySidebar(router)
 
     parse_url_args()
 

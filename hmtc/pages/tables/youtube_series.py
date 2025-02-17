@@ -6,7 +6,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.youtube_series_table import YoutubeSeriesTable
 from hmtc.models import Series as SeriesModel
 from hmtc.models import Video as VideoModel
@@ -20,7 +19,7 @@ def Page():
         YoutubeSeries.id, YoutubeSeries.title, YoutubeSeries.series_id
     ).order_by(YoutubeSeries.title)
     router = solara.use_router()
-    MySidebar(router)
+
     args = parse_url_args()
     headers = [
         {"text": "ID", "value": "id"},

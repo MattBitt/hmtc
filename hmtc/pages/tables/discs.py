@@ -6,7 +6,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.disc_table import DiscTable
 from hmtc.models import Disc
 from hmtc.models import Series as SeriesModel
@@ -18,7 +17,6 @@ from hmtc.router import parse_url_args
 def Page():
     base_query = Disc.select(Disc.id, Disc.title).order_by(Disc.title)
     router = solara.use_router()
-    MySidebar(router)
 
     headers = [
         {"text": "ID", "value": "id"},

@@ -7,7 +7,6 @@ from hmtc.components.shared.pagination_controls import PaginationControls
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
-
 from hmtc.models import (
     DiscVideo as DiscVideoModel,
 )

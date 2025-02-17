@@ -9,7 +9,6 @@ import solara
 from loguru import logger
 from peewee import fn
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.album_table import AlbumTable
 from hmtc.domains.album import Album
 from hmtc.models import Album as AlbumModel

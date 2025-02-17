@@ -10,7 +10,7 @@ class Icons(Enum):
     DISC = "mdi-disc"
     DOMAIN = "mdi-google-circles-extended"
     DOWN_BOX = "mdi-arrow-down-box"
-    DOWNLOAD = 'mdi-download'
+    DOWNLOAD = "mdi-download"
     EDIT = "mdi-pencil"
     FILE = "mdi-folder"
     FINETUNER = "mdi-glasses"

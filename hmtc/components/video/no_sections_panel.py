@@ -6,9 +6,6 @@ from loguru import logger
 
 from hmtc.assets.colors import Colors
 from hmtc.components.GOBY.example_plotly_fig import PlotlyFigureComponent
-from hmtc.components.shared.my_spinner import MySpinner
-from hmtc.components.shared.sidebar import MySidebar
-from hmtc.components.vue_registry import register_vue_components
 from hmtc.config import init_config
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Section as SectionModel

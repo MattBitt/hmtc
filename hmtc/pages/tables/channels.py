@@ -4,7 +4,6 @@ import pandas as pd
 import solara
 from loguru import logger
 
-from hmtc.components.shared.sidebar import MySidebar
 from hmtc.components.tables.channel_table import ChannelTable
 from hmtc.models import Channel as ChannelModel
 
@@ -15,7 +14,6 @@ force_update_counter = solara.reactive(0)
 def Page():
     base_query = ChannelModel.select()
     router = solara.use_router()
-    MySidebar(router)
 
     headers = [
         {"text": "Title", "value": "title"},
