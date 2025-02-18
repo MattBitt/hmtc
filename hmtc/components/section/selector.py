@@ -10,12 +10,15 @@ from hmtc.domains.video import Video
 @solara.component_vue("./SectionSelector.vue", vuetify=True)
 def SectionSelectorVue(
     sections,
-    selected,
     video_duration,
-    event_remove_section,
+    event_create_section,
     event_create_topic,
-    event_update_selected,
+    event_create_title,
+    event_create_comment,
+    event_remove_section,
     event_remove_topic,
+    event_remove_title,
+    event_remove_comments,
 ):
     pass
 
@@ -76,11 +79,39 @@ def SectionSelector(video: Video, sections):
         a[:] = [d for d in sections.value if d.get("id") != section["id"]]
         sections.set(a)
 
+    def create_title(args):
+        logger.debug(f"creating title args = {args}")
+        section_id = args["section_id"]
+        title_string = args["title_string"]
+        sect = Section.get_by(id=section_id)
+        sect.instance.title = title_string
+        sect.instance.save()
+        
+    def remove_title(args):
+        logger.debug(f"removing title args = {args}")
+
+    def create_comment(args):
+        logger.debug(f"creating comment args = {args}")
+        section_id = args["section_id"]
+        comment_string = args["comment_string"]
+        sect = Section.get_by(id=section_id)
+        sect.instance.comment = comment_string
+        sect.instance.save()
+    
+    def remove_comments(args):
+        logger.debug(f"removing comment args = {args}")
+
+
     SectionSelectorVue(
         sections=sections.value,
         video_duration=video.instance.duration * 1000,
         event_create_section=create_section,
         event_create_topic=create_topic,
+        event_create_title=create_title,
+        event_create_comment=create_comment,
         event_remove_section=remove_section,
         event_remove_topic=remove_topic,
+        event_remove_title=remove_title,
+        event_remove_comments=remove_comments,
+        
     )

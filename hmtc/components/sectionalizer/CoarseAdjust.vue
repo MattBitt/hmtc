@@ -1,5 +1,5 @@
 <template>
-  <v-card tabindex="0" ref="timelineCard" class="timeline-card">
+  <v-card tabindex="0" ref="timelineCard" class="timeline-card mt-10">
     <div class="timeline-container">
       <v-slider
         v-model="localTimeCursor"

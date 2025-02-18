@@ -208,6 +208,7 @@ class Section(BaseModel):
     section_type = CharField()
     fine_tuned = BooleanField(default=False)
     title = CharField(null=True)
+    comments = CharField(null=True)
     video = ForeignKeyField(Video, backref="sections", on_delete="CASCADE")
 
     def __repr__(self):
