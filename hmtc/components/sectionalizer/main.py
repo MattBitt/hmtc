@@ -92,10 +92,24 @@ def Sectionalizer(video: Video, create_section: callable, time_cursor: solara.Re
             return
         load_media_item(media["Id"])
 
+    def new_section_at_jellyfin():
+        jf_time = get_current_user_timestamp()
+        if jf_time is None:
+            logger.error(f"Can't get user timestamp to Jellyfin")
+            return
+        if jf_time > video.instance.duration:
+            logger.error(f"Jellyfin timestamp ({jf_time} is larger than the videos duration {video.instance.duration})")
+
+        
+        time_cursor.set(int(jf_time))
+
+    
+    
+    
     _raw_sections = Section.get_for_video(video.instance.id)
     _sections = [s.serialize() for s in _raw_sections]
     sections = solara.use_reactive(_sections)
-
+    
     with solara.Card():
         with solara.Columns([9, 3]):
             with solara.Row(justify="center"):
@@ -142,6 +156,13 @@ def Sectionalizer(video: Video, create_section: callable, time_cursor: solara.Re
                     icon_name=Icons.JELLYFISH.value,
                     classes=["button"],
                 )
+                solara.Button(
+                    f"Create Section @Jellyfin",
+                    on_click=new_section_at_jellyfin,
+                    icon_name=Icons.JELLYFISH.value,
+                    classes=["button"],
+                )
+  
 
                 solara.Text(
                     f"Current Time: {seconds_to_hms(int(time_cursor.value))}",

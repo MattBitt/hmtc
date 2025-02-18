@@ -1,0 +1,16 @@
+2/17/25
+on production
+
+
+delete billboards from 3676
+delete GPU from 3098
+
+improvements
+
+add title and comments field to the section selector
+
+
+bug:
+portrait (other aspect ratios) images mess up the layout flow
+
+topics should be case insensitive

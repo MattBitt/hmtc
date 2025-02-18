@@ -3,15 +3,19 @@
     <div class="timeline-container">
       <v-slider
         v-model="localTimeCursor"
+        thumb-label="always"
+        thumb-size="48"
         :max="totalDuration"
         :min="0"
         step="1"
         @input="onSliderInput"
         class="slider"
-        hide-details
       >
         <template v-slot:append>
           <span>{{ durationString }}</span>
+        </template>
+        <template v-slot:thumb-label>
+          <span>{{ formattedTime }}</span>
         </template>
       </v-slider>
     </div>
@@ -20,7 +24,8 @@
       <v-col cols="5">
         <v-row justify="center">
           <span v-if="isEditingMode">
-            <v-btn @click="isEditingMode = false" class="button mywarning">Cancel</v-btn>
+            <v-btn @click="cancelMarkStart" class="button mywarning">Cancel</v-btn>
+            <span>Section started at {{ startTime }}</span>
           </span>
           <span v-else>
             <v-btn @click="markStart" class="button">Mark Start</v-btn>
@@ -106,7 +111,22 @@ export default {
     console.log("Total duration:", this.totalDuration);
   },
 
-  computed: {},
+  computed: {
+    formattedTime() {
+      const totalSeconds = this.localTimeCursor;
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      if (hours > 0) {
+        return `${hours}:${minutes < 10 ? "0" : ""}${minutes}:${
+          seconds < 10 ? "0" : ""
+        }${seconds}`;
+      } else {
+        return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+      }
+    },
+  },
 
   methods: {
     markStart() {
@@ -121,6 +141,10 @@ export default {
       console.log("End time marked at:", endTime);
 
       this.create_section({ start: this.startTime, end: endTime });
+    },
+
+    cancelMarkStart() {
+      this.isEditingMode = false;
     },
 
     onSliderInput(newTime) {
