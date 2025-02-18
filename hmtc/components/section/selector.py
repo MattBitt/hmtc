@@ -86,7 +86,7 @@ def SectionSelector(video: Video, sections):
         sect = Section.get_by(id=section_id)
         sect.instance.title = title_string
         sect.instance.save()
-        
+
     def remove_title(args):
         logger.debug(f"removing title args = {args}")
 
@@ -97,10 +97,9 @@ def SectionSelector(video: Video, sections):
         sect = Section.get_by(id=section_id)
         sect.instance.comment = comment_string
         sect.instance.save()
-    
+
     def remove_comments(args):
         logger.debug(f"removing comment args = {args}")
-
 
     SectionSelectorVue(
         sections=sections.value,
@@ -113,5 +112,4 @@ def SectionSelector(video: Video, sections):
         event_remove_topic=remove_topic,
         event_remove_title=remove_title,
         event_remove_comments=remove_comments,
-        
     )
