@@ -39,16 +39,16 @@ class ImageExtractor:
             raise Exception("Error: Could not open the video.")
 
     def extract_frame(self, seconds: int):
-        frame = seconds * self.fps
-        frame = self.grab_frame(frame)
-        return frame
+        _frame = seconds * self.fps
+        _frame = self.grab_frame(_frame)
+        return _frame
 
     def extract_frame_sequence(self, start_time, end_time, interval):
         for timestamp in range(start_time, end_time, interval):
-            frame = timestamp * self.fps
-            frame = self.grab_frame(frame)
+            _frame = timestamp * self.fps
+            _frame = self.grab_frame(_frame)
             logger.error(f"Extracted frame at {timestamp}")
-            yield frame
+            yield _frame
 
     def grab_frame(self, frame) -> NDArray:
         if frame < 0:
@@ -61,11 +61,11 @@ class ImageExtractor:
             )
 
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
-        ret, frame = self.cap.read()
+        ret, _frame = self.cap.read()
         if not ret:
-            logger.error(f"Could not read frame at frame {frame}")
-            raise Exception(f"Could not read frame at frame {frame}")
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            logger.error(f"Could not read frame at frame {_frame}")
+            return None
+        return cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
 
     def save_image(self, image_filename, frame):
         if self.output_folder is None:

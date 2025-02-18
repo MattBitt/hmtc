@@ -29,10 +29,10 @@ def parse_url_args():
 
 @solara.component
 def Page():
+
+    video = parse_url_args()
     # using this page to fine tune sections
     # auto load the video in jellyfin if possible
-    video = parse_url_args()
-
     media = search_for_media("videos", video.instance.youtube_id)
     load_media_item(media["Id"])
     time.sleep(0.1)

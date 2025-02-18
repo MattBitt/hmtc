@@ -9,7 +9,7 @@ T = TypeVar("T", bound="BaseDomain")
 
 
 class BaseDomain:
-    model = None
+    model: Model = None
     repo = None
     file_repo = NotImplementedError("file_repo not implemented")
 

@@ -5,7 +5,7 @@
         v-model="localTimeCursor"
         :max="totalDuration"
         :min="0"
-        step="1000"
+        step="1"
         @input="onSliderInput"
         class="slider"
         hide-details
@@ -31,36 +31,36 @@
         </v-row>
       </v-col>
       <v-col cols="2">
-        <span class="seven-seg">{{ videoTime / 1000 }}</span>
+        <span class="seven-seg">{{ timeCursor }}</span>
       </v-col>
-      <v-col v-if="totalDuration < 300000" cols="5">
+      <v-col v-if="totalDuration < 300" cols="5">
         <v-row justify="end">
-          <v-btn medium fab class="button" @click="adjustTime(-5000)">
+          <v-btn medium fab class="button" @click="adjustTime(-5)">
             <v-icon>mdi-rewind-5</v-icon>
           </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(-1000)">
+          <v-btn medium fab class="button" @click="adjustTime(-1)">
             <v-icon>mdi-rewind</v-icon>
           </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(1000)">
+          <v-btn medium fab class="button" @click="adjustTime(1)">
             <v-icon>mdi-fast-forward</v-icon>
           </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(5000)">
+          <v-btn medium fab class="button" @click="adjustTime(5)">
             <v-icon>mdi-fast-forward-5</v-icon>
           </v-btn>
         </v-row>
       </v-col>
       <v-col v-else cols="5">
         <v-row justify="end">
-          <v-btn medium fab class="button" @click="adjustTime(-30000)">
+          <v-btn medium fab class="button" @click="adjustTime(-30)">
             <v-icon>mdi-rewind-30</v-icon>
           </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(-10000)">
+          <v-btn medium fab class="button" @click="adjustTime(-10)">
             <v-icon>mdi-rewind-10</v-icon>
           </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(10000)">
+          <v-btn medium fab class="button" @click="adjustTime(10)">
             <v-icon>mdi-fast-forward-10</v-icon>
           </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(30000)">
+          <v-btn medium fab class="button" @click="adjustTime(30)">
             <v-icon>mdi-fast-forward-30</v-icon>
           </v-btn>
         </v-row>
@@ -98,6 +98,7 @@ export default {
 
   watch: {
     timeCursor(newValue) {
+      console.log("updating to ", newValue);
       this.localTimeCursor = newValue;
     },
   },

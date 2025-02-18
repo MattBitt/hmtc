@@ -15,6 +15,7 @@ class Icons(Enum):
     FILE = "mdi-folder"
     FINETUNER = "mdi-glasses"
     HOME = "mdi-home"
+    JELLYFISH = "mdi-jellyfish"
     LOAD_MEDIA = "mdi-cards-playing-outline"
     LOCK = "mdi-bookmark-check-outline"
     PLAYPAUSE = "mdi-play-pause"

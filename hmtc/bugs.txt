@@ -1,6 +1,0 @@
-2/16/25
-created sections for videos under 10 minutes.
-didn't take into account sections that i already created,
-so they doubled up. need to remove them from prod
-
-on the sections table, action icon takes it to a 404

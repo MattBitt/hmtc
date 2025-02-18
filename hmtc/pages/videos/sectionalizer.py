@@ -18,6 +18,9 @@ def parse_url_args():
     return _id
 
 
+time_cursor = solara.reactive(0)
+
+
 @solara.component
 def Page():
 
@@ -30,11 +33,10 @@ def Page():
     )
     sections = solara.use_reactive([Section(x).serialize() for x in _sections])
 
+    # Current video time
     def create_section(section):
-        logger.debug(f"Creating a section for {video} using args {section}")
-        start = section["start"]
-        end = section["end"]
-        logger.debug(f"Creating section from {start} to {end}")
+        start = section["start"] * 1000
+        end = section["end"] * 1000
         _section = Section.create(
             {
                 "start": start,
@@ -45,9 +47,11 @@ def Page():
         )
 
         sections.set(sections.value + [_section.serialize()])
-        logger.debug(f"After Creating section from {start} to {end}")
+        logger.success(f"Created section for {video} from {start} to {end}")
 
     if refresh.value > 0:
         with solara.Column(classes=["main-container"]):
-            Sectionalizer(video=video, create_section=create_section)
+            Sectionalizer(
+                video=video, create_section=create_section, time_cursor=time_cursor
+            )
             SectionSelector(video=video, sections=sections)
