@@ -31,28 +31,117 @@ from hmtc.utils.time_functions import seconds_to_hms
 
 sections = solara.reactive([])
 
-@solara.component_vue('./TimeSlider.vue', vuetify=True)
-def TimeSlider():
+
+def load_in_jellyfin(video: Video):
+    logger.debug(f"Searching for {video.instance.youtube_id}")
+    media = search_for_media("videos", video.instance.youtube_id)
+    if media is None:
+        logger.error(f"{video.instance.youtube_id} not found.")
+        return
+    load_media_item(media["Id"])
+
+
+@solara.component_vue("./TimeSlider.vue", vuetify=True)
+def TimeSlider(timeCursor, totalDuration, durationString, event_update_time_cursor):
     pass
 
+
 @solara.component
-def CoarseAdjust(
-    timeCursor,
-    totalDuration,
-    durationString,
+def ControlPanel(
+    video: Video,
+    sections,
+    time_cursor: solara.Reactive,
+    totalDuration: int,
+    durationString: str,
     event_update_time_cursor,
     event_create_section,
 ):
-    editing = solara.use_reactive(False)
+
+    start_time = solara.use_reactive(None)
+
+    def create_section(start, end):
+        logger.debug(f"creating section {start} {end} for {video}")
+ 
+        
+    def mark_start():
+        start_time.set(time_cursor.value)
+
+    def mark_end():
+        new_section = video.create_section(start_time.value, time_cursor.value)
+        sections.set(sections.value + [new_section.serialize()])
+        start_time.set(None)
+
+    def cancel():
+        start_time.set(None)
+
+    def jump_to_jellyfin():
+        jf_time = get_current_user_timestamp()
+        if jf_time is None:
+            logger.error(f"Can't get user timestamp to Jellyfin")
+            return
+        time_cursor.set(int(jf_time))
+
+    def new_section():
+        jf_time = get_current_user_timestamp()
+        if jf_time is None:
+            logger.error(f"Can't get user timestamp to Jellyfin")
+            return
+        if jf_time > video.instance.duration:
+            logger.error(
+                f"Jellyfin timestamp ({jf_time} is larger than the videos duration {video.instance.duration})"
+            )
+
+        time_cursor.set(int(jf_time))
+        start_time.set(int(jf_time))
+
+    def can_finish_section():
+        if start_time.value is None:
+            return False
+
+        return (time_cursor.value - start_time.value) > 10
+
     with solara.Card():
 
+        with solara.Column():
+            TimeSlider(
+                timeCursor=time_cursor.value,
+                totalDuration=totalDuration,
+                durationString=durationString,
+                event_update_time_cursor=event_update_time_cursor,
+            )
+
         with solara.Row():
-            with solara.Column():
-                solara.Button("Mark Start", on_click=lambda: logger.debug("mark start"))
-                solara.Button("Mark End", on_click=lambda: logger.debug("mark end"))
-            with solara.Column():
-                solara.Button("Cancel", on_click=lambda: logger.debug("mark cancel"))
-                solara.Text(f"Section started at")  # Adjust as needed
+            solara.Button(
+                f"Jump to Jellyfin",
+                on_click=jump_to_jellyfin,
+                icon_name=Icons.JELLYFISH.value,
+                classes=["button"],
+            )
+
+            with SwapTransition(show_first=(start_time.value is None), name="fade"):
+                with solara.Column():
+                    with solara.Row():
+                        solara.Button(
+                            "Mark Start", on_click=mark_start, classes=["button"]
+                        )
+                        solara.Button(
+                            f"Mark Start @Jellyfin",
+                            on_click=new_section,
+                            icon_name=Icons.JELLYFISH.value,
+                            classes=["button"],
+                        )
+                with solara.Column():
+                    with solara.Row():
+                        solara.Button(
+                            "Cancel", on_click=cancel, classes=["button mywarning"]
+                        )
+                        solara.Button(
+                            "Mark End",
+                            on_click=mark_end,
+                            classes=["button"],
+                            disabled=(not can_finish_section()),
+                        )
+                        solara.Text(f"Section started at {start_time}")
 
 
 @solara.component
@@ -82,110 +171,70 @@ def NoSubtitlesCard(video: Video):
     solara.Markdown(f"## No subtitles found for {video}")
 
 
-def JellyfinControls(jump_to_jellyfin, new_section_at_jellyfin):
-    solara.Button(
-                f"Jump to Jellyfin",
-                on_click=jump_to_jellyfin,
-                icon_name=Icons.JELLYFISH.value,
-                classes=["button"],
-            )
-    solara.Button(
-                f"Create Section @Jellyfin",
-                on_click=new_section_at_jellyfin,
-                icon_name=Icons.JELLYFISH.value,
-                classes=["button"],
-            )
-
+@solara.component
 def Subtitles(video, time_cursor):
     with solara.Column():
         if video.subtitles() is not None:
             SubtitlesCard(
-                            time_cursor=time_cursor.value,
-                            subtitles=video.subtitles(),
-                        )
+                time_cursor=time_cursor.value,
+                subtitles=video.subtitles(),
+            )
         else:
             NoSubtitlesCard(video)
 
+
+@solara.component
 def JellyfinPanel(video, load_in_jellyfin, sections):
     with solara.Column():
         SectionDialogButton(
-                        video=video,
-                        reactive_sections=sections,
-                    )
+            video=video,
+            reactive_sections=sections,
+        )
 
         JFPanel(video)
         solara.Button(
-                        label="Load",
-                        icon_name=Icons.LOAD_MEDIA.value,
-                        on_click=load_in_jellyfin,
-                        classes=["button"],
-                    )
+            label="Load",
+            icon_name=Icons.LOAD_MEDIA.value,
+            on_click=load_in_jellyfin,
+            classes=["button"],
+        )
         solara.Button(
-                        label="Refresh",
-                        icon_name=Icons.REFRESH.value,
-                        on_click=refresh_library,
-                        classes=["button"],
-                    )
+            label="Refresh",
+            icon_name=Icons.REFRESH.value,
+            on_click=refresh_library,
+            classes=["button"],
+        )
         solara.Button(
-                        icon_name=Icons.PLAYPAUSE.value,
-                        on_click=lambda: jf_playpause(),
-                        classes=["button"],
-                    )
-
+            icon_name=Icons.PLAYPAUSE.value,
+            on_click=jf_playpause,
+            classes=["button"],
+        )
 
 
 @solara.component
-def Sectionalizer(video: Video, create_section: callable, time_cursor: solara.Reactive):
+def Sectionalizer(video: Video, sections, create_section, time_cursor: solara.Reactive):
 
     def update_time_cursor(new_time: float):
         logger.debug(f"Updating time cursor to {time_cursor.value}")
         time_cursor.set(int(new_time))
 
-    def jump_to_jellyfin():
-        jf_time = get_current_user_timestamp()
-        if jf_time is None:
-            logger.error(f"Can't get user timestamp to Jellyfin")
-            return
-        time_cursor.set(int(jf_time))
 
-    def load_in_jellyfin():
-        logger.error(f"Searching for {video.instance.youtube_id}")
-        media = search_for_media("videos", video.instance.youtube_id)
-        if media is None:
-            logger.error(f"{video.instance.youtube_id} not found.")
-            return
-        load_media_item(media["Id"])
 
-    def new_section_at_jellyfin():
-        jf_time = get_current_user_timestamp()
-        if jf_time is None:
-            logger.error(f"Can't get user timestamp to Jellyfin")
-            return
-        if jf_time > video.instance.duration:
-            logger.error(
-                f"Jellyfin timestamp ({jf_time} is larger than the videos duration {video.instance.duration})"
-            )
-
-        time_cursor.set(int(jf_time))
-
-    sections = solara.use_reactive([s.serialize() for s in Section.get_for_video(video.instance.id)])
 
     with solara.Card():
         with solara.Columns([9, 3]):
             with solara.Row(justify="center"):
                 Subtitles(video, time_cursor)
             with solara.Row(justify="end"):
-                JellyfinPanel(video, load_in_jellyfin, sections)
+                JellyfinPanel(video, lambda: load_in_jellyfin(video), sections)
 
-        with solara.Row():
-            JellyfinControls(jump_to_jellyfin, new_section_at_jellyfin)
         with solara.Column():
-
-            CoarseAdjust(
-                timeCursor=time_cursor.value,
+            ControlPanel(
+                video=video,
+                sections=sections,
+                time_cursor=time_cursor,
                 totalDuration=video.instance.duration,
                 durationString=seconds_to_hms(video.instance.duration),
                 event_update_time_cursor=update_time_cursor,
                 event_create_section=create_section,
             )
-

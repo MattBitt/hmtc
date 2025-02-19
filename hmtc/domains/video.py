@@ -167,3 +167,17 @@ class Video(BaseDomain):
                 "video_id": self.instance.id,
             }
         )
+
+    def create_section(self, start, end, section_type="instrumental"):
+        from hmtc.domains.section import Section
+        if end > self.instance.duration:
+            raise ValueError(f"{end} is greater than the duration {self.instance.duration}")
+        
+        return Section.create(
+            {
+                "start": start * 1000,
+                "end": end * 1000,
+                "section_type": section_type,
+                "video_id": self.instance.id,
+            }
+        )

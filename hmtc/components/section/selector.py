@@ -2,16 +2,17 @@ from typing import Callable
 
 import solara
 from loguru import logger
-
+from hmtc.components.shared import InputAndDisplay
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 
 
 @solara.component_vue("./SectionSelector.vue", vuetify=True)
-def SectionSelectorVue(
-    sections,
+def SectionDetailsVue(
+    section,
     video_duration,
     event_remove_section,
+    
 ):
     pass
 
@@ -19,23 +20,10 @@ def SectionSelectorVue(
 @solara.component
 def SectionSelector(video: Video, sections):
     new_topic = solara.use_reactive("")
+    new_comment = solara.use_reactive("")
+    new_title = solara.use_reactive("")
+    
 
-    def create_topic(args):
-        section_id = args["section_id"]
-        topic_string = args["topic_string"]
-        if topic_string == "":
-            logger.error(f"Input too short for a new topic.")
-            return
-        ss = Section(section_id)
-        section_topic = ss.add_topic(topic_string)
-        new_section = [ss.serialize()]
-        _sections = [
-            x for x in sections.value if x["id"] != ss.instance.id
-        ] + new_section
-        sorted_sections = sorted(_sections, key=lambda d: d["start"])
-        sections.set(sorted_sections)
-
-        logger.debug(f"Created topic {section_topic.topic.text}")
 
     def remove_topic(args):
         section_id = args["section_id"]
@@ -94,9 +82,26 @@ def SectionSelector(video: Video, sections):
     def remove_comments(args):
         logger.debug(f"removing comment args = {args}")
 
-    SectionSelectorVue(
-        sections=sections.value,
-        video_duration=video.instance.duration * 1000,
-        event_remove_section=remove_section,
+    for sect in sections.value:
+        
+        def create_topic(topic_string):
+            if topic_string == "":
+                logger.error(f"Input too short for a new topic.")
+                return
+            ss = Section(sect['id'])
+            section_topic = ss.add_topic(topic_string)
+            new_section = [ss.serialize()]
+            _sections = [
+                x for x in sections.value if x["id"] != ss.instance.id
+            ] + new_section
+            sorted_sections = sorted(_sections, key=lambda d: d["start"])
+            sections.set(sorted_sections)
 
-    )
+            logger.debug(f"Created topic {section_topic.topic.text} for sec")
+            
+        with solara.Card(): 
+            SectionDetailsVue(
+                section=sect,
+                video_duration=video.instance.duration * 1000,
+                event_remove_section=remove_section)
+            InputAndDisplay(new_topic, "Topic", create=create_topic, remove=remove_topic)

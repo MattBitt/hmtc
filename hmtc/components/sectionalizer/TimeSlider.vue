@@ -19,10 +19,6 @@
         </template>
       </v-slider>
     </div>
-
-    <v-row>
-      <!-- Removed all button controls -->
-    </v-row>
   </v-card>
 </template>
 
@@ -45,7 +41,6 @@ export default {
   data() {
     return {
       localTimeCursor: this.timeCursor,
-      isEditingMode: false,
       startTime: null,
       debounceTimeout: null,
       debounceTime: 100,
@@ -81,24 +76,6 @@ export default {
   },
 
   methods: {
-    markStart() {
-      this.isEditingMode = true;
-      this.startTime = this.localTimeCursor;
-      console.log("Start time marked at:", this.startTime);
-    },
-
-    markEnd() {
-      this.isEditingMode = false;
-      const endTime = this.localTimeCursor;
-      console.log("End time marked at:", endTime);
-
-      this.create_section({ start: this.startTime, end: endTime });
-    },
-
-    cancelMarkStart() {
-      this.isEditingMode = false;
-    },
-
     onSliderInput(newTime) {
       if (this.debounceTimeout) {
         clearTimeout(this.debounceTimeout);
@@ -112,10 +89,6 @@ export default {
         this.localTimeCursor = newTime;
         this.update_time_cursor(newTime);
       }, debounceDuration);
-    },
-    canMarkEnd() {
-      const enabled = this.isEditingMode && this.localTimeCursor - this.startTime > 5;
-      return enabled;
     },
     adjustTime(delta) {
       this.onSliderInput(this.localTimeCursor + delta);

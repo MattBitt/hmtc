@@ -52,6 +52,6 @@ def Page():
     if refresh.value > 0:
         with solara.Column(classes=["main-container"]):
             Sectionalizer(
-                video=video, create_section=create_section, time_cursor=time_cursor
+                video=video, sections=sections, create_section=create_section, time_cursor=time_cursor
             )
             SectionSelector(video=video, sections=sections)
