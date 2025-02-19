@@ -61,14 +61,13 @@ def ControlPanel(
 
     def create_section(start, end):
         logger.debug(f"creating section {start} {end} for {video}")
- 
-        
+
     def mark_start():
         start_time.set(time_cursor.value)
 
     def mark_end():
         new_section = video.create_section(start_time.value, time_cursor.value)
-        sections.set(sections.value + [new_section.serialize()])
+        sections.set(sections.value + [new_section])
         start_time.set(None)
 
     def cancel():
@@ -217,9 +216,6 @@ def Sectionalizer(video: Video, sections, create_section, time_cursor: solara.Re
     def update_time_cursor(new_time: float):
         logger.debug(f"Updating time cursor to {time_cursor.value}")
         time_cursor.set(int(new_time))
-
-
-
 
     with solara.Card():
         with solara.Columns([9, 3]):

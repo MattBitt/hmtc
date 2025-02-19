@@ -20,14 +20,6 @@
           </h4>
         </template>
       </v-range-slider>
-
-      <v-row justify="start">
-        <v-col cols="2">
-          <v-btn class="button mywarning" @click="removeSection(section)"
-            ><v-icon>mdi-delete</v-icon>Delete</v-btn
-          >
-        </v-col>
-      </v-row>
     </v-container>
   </div>
 </template>
