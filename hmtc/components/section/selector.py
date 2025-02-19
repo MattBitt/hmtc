@@ -11,14 +11,7 @@ from hmtc.domains.video import Video
 def SectionSelectorVue(
     sections,
     video_duration,
-    event_create_section,
-    event_create_topic,
-    event_create_title,
-    event_create_comment,
     event_remove_section,
-    event_remove_topic,
-    event_remove_title,
-    event_remove_comments,
 ):
     pass
 
@@ -104,12 +97,6 @@ def SectionSelector(video: Video, sections):
     SectionSelectorVue(
         sections=sections.value,
         video_duration=video.instance.duration * 1000,
-        event_create_section=create_section,
-        event_create_topic=create_topic,
-        event_create_title=create_title,
-        event_create_comment=create_comment,
         event_remove_section=remove_section,
-        event_remove_topic=remove_topic,
-        event_remove_title=remove_title,
-        event_remove_comments=remove_comments,
+
     )

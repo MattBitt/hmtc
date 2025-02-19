@@ -2,7 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.shared.pagination_controls import PaginationControls
+from hmtc.components.shared import PaginationControls
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel

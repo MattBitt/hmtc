@@ -31,8 +31,11 @@ from hmtc.utils.time_functions import seconds_to_hms
 
 sections = solara.reactive([])
 
+@solara.component_vue('./TimeSlider.vue', vuetify=True)
+def TimeSlider():
+    pass
 
-@solara.component_vue("CoarseAdjust.vue", vuetify=True)
+@solara.component
 def CoarseAdjust(
     timeCursor,
     totalDuration,
@@ -40,7 +43,16 @@ def CoarseAdjust(
     event_update_time_cursor,
     event_create_section,
 ):
-    pass
+    editing = solara.use_reactive(False)
+    with solara.Card():
+
+        with solara.Row():
+            with solara.Column():
+                solara.Button("Mark Start", on_click=lambda: logger.debug("mark start"))
+                solara.Button("Mark End", on_click=lambda: logger.debug("mark end"))
+            with solara.Column():
+                solara.Button("Cancel", on_click=lambda: logger.debug("mark cancel"))
+                solara.Text(f"Section started at")  # Adjust as needed
 
 
 @solara.component
@@ -68,6 +80,58 @@ def SubtitlesCard(time_cursor, subtitles):
 @solara.component
 def NoSubtitlesCard(video: Video):
     solara.Markdown(f"## No subtitles found for {video}")
+
+
+def JellyfinControls(jump_to_jellyfin, new_section_at_jellyfin):
+    solara.Button(
+                f"Jump to Jellyfin",
+                on_click=jump_to_jellyfin,
+                icon_name=Icons.JELLYFISH.value,
+                classes=["button"],
+            )
+    solara.Button(
+                f"Create Section @Jellyfin",
+                on_click=new_section_at_jellyfin,
+                icon_name=Icons.JELLYFISH.value,
+                classes=["button"],
+            )
+
+def Subtitles(video, time_cursor):
+    with solara.Column():
+        if video.subtitles() is not None:
+            SubtitlesCard(
+                            time_cursor=time_cursor.value,
+                            subtitles=video.subtitles(),
+                        )
+        else:
+            NoSubtitlesCard(video)
+
+def JellyfinPanel(video, load_in_jellyfin, sections):
+    with solara.Column():
+        SectionDialogButton(
+                        video=video,
+                        reactive_sections=sections,
+                    )
+
+        JFPanel(video)
+        solara.Button(
+                        label="Load",
+                        icon_name=Icons.LOAD_MEDIA.value,
+                        on_click=load_in_jellyfin,
+                        classes=["button"],
+                    )
+        solara.Button(
+                        label="Refresh",
+                        icon_name=Icons.REFRESH.value,
+                        on_click=refresh_library,
+                        classes=["button"],
+                    )
+        solara.Button(
+                        icon_name=Icons.PLAYPAUSE.value,
+                        on_click=lambda: jf_playpause(),
+                        classes=["button"],
+                    )
+
 
 
 @solara.component
@@ -104,67 +168,17 @@ def Sectionalizer(video: Video, create_section: callable, time_cursor: solara.Re
 
         time_cursor.set(int(jf_time))
 
-    _raw_sections = Section.get_for_video(video.instance.id)
-    _sections = [s.serialize() for s in _raw_sections]
-    sections = solara.use_reactive(_sections)
+    sections = solara.use_reactive([s.serialize() for s in Section.get_for_video(video.instance.id)])
 
     with solara.Card():
         with solara.Columns([9, 3]):
             with solara.Row(justify="center"):
-                with solara.Column():
-                    if video.subtitles() is not None:
-                        SubtitlesCard(
-                            time_cursor=time_cursor.value,
-                            subtitles=video.subtitles(),
-                        )
-                    else:
-                        NoSubtitlesCard(video)
+                Subtitles(video, time_cursor)
             with solara.Row(justify="end"):
-                with solara.Column():
-                    SectionDialogButton(
-                        video=video,
-                        reactive_sections=sections,
-                    )
+                JellyfinPanel(video, load_in_jellyfin, sections)
 
-                    JFPanel(video)
-                    solara.Button(
-                        label="Load",
-                        icon_name=Icons.LOAD_MEDIA.value,
-                        on_click=load_in_jellyfin,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        label="Refresh",
-                        icon_name=Icons.REFRESH.value,
-                        on_click=refresh_library,
-                        classes=["button"],
-                    )
-                    solara.Button(
-                        icon_name=Icons.PLAYPAUSE.value,
-                        on_click=lambda: jf_playpause(),
-                        classes=["button"],
-                    )
-
-        with solara.Columns([6, 6]):
-            with solara.Row(justify="space-between"):
-
-                solara.Button(
-                    f"Jump to Jellyfin",
-                    on_click=jump_to_jellyfin,
-                    icon_name=Icons.JELLYFISH.value,
-                    classes=["button"],
-                )
-                solara.Button(
-                    f"Create Section @Jellyfin",
-                    on_click=new_section_at_jellyfin,
-                    icon_name=Icons.JELLYFISH.value,
-                    classes=["button"],
-                )
-
-                solara.Text(
-                    f"Current Time: {seconds_to_hms(int(time_cursor.value))}",
-                    classes=["seven-seg"],
-                )
+        with solara.Row():
+            JellyfinControls(jump_to_jellyfin, new_section_at_jellyfin)
         with solara.Column():
 
             CoarseAdjust(
@@ -174,3 +188,4 @@ def Sectionalizer(video: Video, create_section: callable, time_cursor: solara.Re
                 event_update_time_cursor=update_time_cursor,
                 event_create_section=create_section,
             )
+

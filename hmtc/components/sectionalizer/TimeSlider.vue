@@ -21,55 +21,7 @@
     </div>
 
     <v-row>
-      <v-col cols="5">
-        <v-row justify="center">
-          <span v-if="isEditingMode">
-            <v-btn @click="cancelMarkStart" class="button mywarning">Cancel</v-btn>
-            <span>Section started at {{ startTime }}</span>
-          </span>
-          <span v-else>
-            <v-btn @click="markStart" class="button">Mark Start</v-btn>
-          </span>
-          <v-btn @click="markEnd" :disabled="!canMarkEnd()" class="button"
-            >Mark End</v-btn
-          >
-        </v-row>
-      </v-col>
-      <v-col cols="2">
-        <span class="seven-seg">{{ timeCursor }}</span>
-      </v-col>
-      <v-col v-if="totalDuration < 300" cols="5">
-        <v-row justify="end">
-          <v-btn medium fab class="button" @click="adjustTime(-5)">
-            <v-icon>mdi-rewind-5</v-icon>
-          </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(-1)">
-            <v-icon>mdi-rewind</v-icon>
-          </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(1)">
-            <v-icon>mdi-fast-forward</v-icon>
-          </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(5)">
-            <v-icon>mdi-fast-forward-5</v-icon>
-          </v-btn>
-        </v-row>
-      </v-col>
-      <v-col v-else cols="5">
-        <v-row justify="end">
-          <v-btn medium fab class="button" @click="adjustTime(-30)">
-            <v-icon>mdi-rewind-30</v-icon>
-          </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(-10)">
-            <v-icon>mdi-rewind-10</v-icon>
-          </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(10)">
-            <v-icon>mdi-fast-forward-10</v-icon>
-          </v-btn>
-          <v-btn medium fab class="button" @click="adjustTime(30)">
-            <v-icon>mdi-fast-forward-30</v-icon>
-          </v-btn>
-        </v-row>
-      </v-col>
+      <!-- Removed all button controls -->
     </v-row>
   </v-card>
 </template>
@@ -163,8 +115,6 @@ export default {
     },
     canMarkEnd() {
       const enabled = this.isEditingMode && this.localTimeCursor - this.startTime > 5;
-      // console.log("in canMarkEnd", this.startTime, this.localTimeCursor);
-      // console.log(enabled);
       return enabled;
     },
     adjustTime(delta) {

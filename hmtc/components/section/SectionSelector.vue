@@ -26,56 +26,7 @@
             </template>
           </v-range-slider>
           <v-row>
-            <v-col cols="6">
-              <span>
-                <v-text-field
-                  v-model="new_title"
-                  label="Title"
-                  single-line
-                  clearable
-                  @click:clear="clearTitle"
-                  @keyup.enter="createTitle(new_title)"
-                ></v-text-field
-              ></span>
-
-              <span
-                ><v-text-field
-                  v-model="new_comment"
-                  label="Comment"
-                  single-line
-                  clearable
-                  @click:clear="clearComment"
-                  @keyup.enter="createComment(new_comment)"
-                ></v-text-field
-              ></span>
-            </v-col>
-            <v-col cols="6">
-              <v-row>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="new_topic"
-                    label="Create New Topic"
-                    single-line
-                    hide-details
-                    clearable
-                    @click:clear="clearTopic"
-                    @keyup.enter="createTopic(new_topic)"
-                  ></v-text-field>
-                  <v-chip-group column multiple>
-                    <v-chip
-                      v-for="topic in section.topics.slice(0, 9)"
-                      close
-                      :key="topic.text"
-                      color="primary"
-                      text-color="white"
-                      @click:close="removeTopic(topic.id)"
-                    >
-                      {{ topic.text }}
-                    </v-chip>
-                  </v-chip-group>
-                </v-col>
-              </v-row>
-            </v-col>
+            <v-col cols="6"> </v-col>
           </v-row>
           <v-row justify="start">
             <v-col cols="2">
@@ -91,7 +42,7 @@
 </template>
 <script>
 module.exports = {
-  name: "Sectionalizer",
+  name: "Section Selector",
   props: {
     sections: {
       type: Array,
@@ -143,54 +94,6 @@ module.exports = {
     },
     clearTopic() {
       this.reset();
-    },
-    removeTopic(topic_id) {
-      const args = {
-        section_id: this.sections[this.selected].id,
-        topic_id: topic_id,
-      };
-      this.remove_topic(args);
-      console.log("Removing topic", args);
-    },
-    createTitle() {
-      const args = {
-        section_id: this.sections[this.selected].id,
-        title_string: this.new_title,
-      };
-      console.log("Creating New_title for section", this.args);
-      this.create_title(args);
-      this.new_title = "";
-    },
-    clearTitle() {
-      this.reset();
-    },
-    removeTitle(title_id) {
-      const args = {
-        section_id: this.sections[this.selected].id,
-        title_id: title_id,
-      };
-      this.remove_title(args);
-      console.log("Removing title", args);
-    },
-    createComment() {
-      const args = {
-        section_id: this.sections[this.selected].id,
-        comment_string: this.new_comment,
-      };
-      console.log("Creating New_comment for section", this.args);
-      this.create_comment(args);
-      this.new_comment = "";
-    },
-    clearComment() {
-      this.reset();
-    },
-    removeComment(comment_id) {
-      const args = {
-        section_id: this.sections[this.selected].id,
-        comment_id: comment_id,
-      };
-      this.remove_comment(args);
-      console.log("Removing comment", args);
     },
   },
   watch: {},

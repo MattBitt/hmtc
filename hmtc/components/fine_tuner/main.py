@@ -4,7 +4,7 @@ import solara
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.shared.pagination_controls import PaginationControls
+from hmtc.components.shared import PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.domains.section import Section
