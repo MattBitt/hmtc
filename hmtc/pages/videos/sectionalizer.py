@@ -24,7 +24,7 @@ time_cursor = solara.reactive(0)
 
 @solara.component
 def Page():
-
+    router = solara.use_router()
     video_id = parse_url_args()
     video = Video(video_id)
     current_page = solara.use_reactive(1)
@@ -59,7 +59,7 @@ def Page():
                 time_cursor=time_cursor,
             )
             
-            SectionPages(video=video, sections=sections)
+            SectionPages(video=video, sections=sections, router=router)
             PaginationControls(
                 current_page=current_page, num_pages=num_pages, num_items=num_items
             )

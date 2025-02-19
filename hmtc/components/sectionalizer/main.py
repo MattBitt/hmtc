@@ -197,24 +197,23 @@ def JellyfinPanel(video, load_in_jellyfin, sections):
             on_click=load_in_jellyfin,
             classes=["button"],
         )
-        solara.Button(
-            label="Refresh",
-            icon_name=Icons.REFRESH.value,
-            on_click=refresh_library,
-            classes=["button"],
-        )
-        solara.Button(
-            icon_name=Icons.PLAYPAUSE.value,
-            on_click=jf_playpause,
-            classes=["button"],
-        )
+        with solara.Columns([1,1]):
+            solara.Button(
+                icon_name=Icons.REFRESH.value,
+                on_click=refresh_library,
+                classes=["button"],
+            )
+            solara.Button(
+                icon_name=Icons.PLAYPAUSE.value,
+                on_click=jf_playpause,
+                classes=["button"],
+            )
 
 
 @solara.component
 def Sectionalizer(video: Video, sections, create_section, time_cursor: solara.Reactive):
 
     def update_time_cursor(new_time: float):
-        logger.debug(f"Updating time cursor to {time_cursor.value}")
         time_cursor.set(int(new_time))
 
     with solara.Card():

@@ -19,7 +19,7 @@ def SectionDetailsVue(
 
 
 @solara.component
-def SectionDetails(sect, video, sections, remove_section):
+def SectionDetails(sect, video, sections, remove_section, router):
 
     new_topic = solara.use_reactive("")
     if sect.instance.comments is not None:
@@ -29,6 +29,7 @@ def SectionDetails(sect, video, sections, remove_section):
     comment = solara.use_reactive(c)
     new_title = solara.use_reactive("")
     _section_id = sect.instance.id
+    _video_id = video.instance.id
 
     def create_topic(topic_string):
         if topic_string == "":
@@ -77,6 +78,10 @@ def SectionDetails(sect, video, sections, remove_section):
         sect.instance.save()
         comment.set("")
 
+    def edit_section():
+
+        router.push(f'/api/videos/finetuner/{_video_id}')
+
     with solara.Card():
         SectionDetailsVue(
             section=sect.serialize(),
@@ -91,14 +96,16 @@ def SectionDetails(sect, video, sections, remove_section):
                     classes=["button mywarning"],
                     on_click=remove_section,
                 )
-            with solara.Row(justify="center"):
+            with solara.Column(align="center", margin=0):
                 InputAndDisplay(
                     comment, "Comments", create=create_comment, remove=remove_comment
                 )
+            with solara.Column(align="center", margin=4):
+                solara.Button(f"Edit Section", icon_name=Icons.SECTION.value, on_click=edit_section, classes=["button"])
 
 
 @solara.component
-def SectionPages(video: Video, sections):
+def SectionPages(video: Video, sections, router):
 
     def remove_section(section):
         _id = section.instance.id
@@ -113,4 +120,5 @@ def SectionPages(video: Video, sections):
             video=video,
             sections=sections,
             remove_section=lambda: remove_section(sect),
+            router=router,
         )
