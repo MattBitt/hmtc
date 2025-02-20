@@ -76,6 +76,7 @@ def PaginatedVideos():
     guerrilla = Album.get_by(title="Guerrilla Bars")
     base_query = VideoModel.select(VideoModel).where(
         (VideoModel.unique_content == True)
+        & (VideoModel.duration < 4000)
         & VideoModel.id.not_in(SectionModel.select(SectionModel.video_id).distinct())
     )
     # if omegle is not None:
