@@ -76,12 +76,15 @@ class Section(BaseDomain):
         )
 
     def topics_serialized(self):
-        from hmtc.domains.topic import Topic
+        return [t.serialize() for t in self.topics]
 
+    def topics(self):
+        from hmtc.domains.topic import Topic
+        
         _topics = (
             TopicModel.select()
             .join(SectionTopicModel, on=(TopicModel.id == SectionTopicModel.topic_id))
             .where(SectionTopicModel.section_id == self.instance.id)
             .order_by(SectionTopicModel.order)
         )
-        return [Topic(t).serialize() for t in _topics]
+        return [Topic(t) for t in _topics]

@@ -59,7 +59,7 @@ def Page():
                 time_cursor=time_cursor,
             )
             
-            SectionPages(video=video, sections=sections, router=router)
+            SectionPages(video=video, sections=sections)
             PaginationControls(
                 current_page=current_page, num_pages=num_pages, num_items=num_items
             )

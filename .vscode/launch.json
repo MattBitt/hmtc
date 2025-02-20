@@ -6,7 +6,7 @@
     "configurations": [
         {
             // Use IntelliSense to learn about possible attributes.
-            "name": "Solara: Launch",
+            "name": "Solara: Launch Main",
             "type": "debugpy",
             "request": "launch",
             "program": ".venv/bin/solara",

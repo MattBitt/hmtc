@@ -19,7 +19,7 @@ def SectionDetailsVue(
 
 
 @solara.component
-def SectionDetails(sect, video, sections, remove_section, router):
+def SectionDetails(sect, video, sections, remove_section):
 
     new_topic = solara.use_reactive("")
     if sect.instance.comments is not None:
@@ -78,34 +78,29 @@ def SectionDetails(sect, video, sections, remove_section, router):
         sect.instance.save()
         comment.set("")
 
-    def edit_section():
-
-        router.push(f'/api/videos/finetuner/{_video_id}')
-
     with solara.Card():
         SectionDetailsVue(
             section=sect.serialize(),
             video_duration=video.instance.duration * 1000,
             event_remove_section=remove_section,
         )
-        with solara.Columns([3, 9]):
-            with solara.Row(justify="center"):
-                solara.Button(
-                    label="Delete",
-                    icon_name=Icons.DELETE.value,
-                    classes=["button mywarning"],
-                    on_click=remove_section,
-                )
-            with solara.Column(align="center", margin=0):
+        
+        with solara.Row(justify="space-around"):
+            solara.Button(
+                label="Delete",
+                icon_name=Icons.DELETE.value,
+                classes=["button mywarning"],
+                on_click=remove_section,
+            )
+            with solara.Column(margin=1):
                 InputAndDisplay(
-                    comment, "Comments", create=create_comment, remove=remove_comment
-                )
-            with solara.Column(align="center", margin=4):
-                solara.Button(f"Edit Section", icon_name=Icons.SECTION.value, on_click=edit_section, classes=["button"])
+                comment, "Comments", create=create_comment, remove=remove_comment
+            )
+
 
 
 @solara.component
-def SectionPages(video: Video, sections, router):
+def SectionPages(video: Video, sections):
 
     def remove_section(section):
         _id = section.instance.id
@@ -120,5 +115,4 @@ def SectionPages(video: Video, sections, router):
             video=video,
             sections=sections,
             remove_section=lambda: remove_section(sect),
-            router=router,
         )
