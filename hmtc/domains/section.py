@@ -45,6 +45,11 @@ class Section(BaseDomain):
         self.instance.delete_instance()
 
     def add_topic(self, topic: str):
+        if topic == "":
+            # this occurs due to the reactive text box being cleared
+            # probably a good way to avoid it, but i'm just
+            # returning None
+            return None
         section_number = self.num_topics() + 1
         topic, created = TopicModel.get_or_create(text=topic)
         existing = (
@@ -63,9 +68,28 @@ class Section(BaseDomain):
         )
         return st
 
-    def remove_topic(self, topic_id):
-        topic = TopicModel.get_by_id(topic_id)
-        topic.delete_instance()
+    def remove_topic(self, topic):
+        section_id = self.instance.id
+        logger.debug(f"remove_topic: {topic} from seciton {section_id}")
+
+        t = TopicModel.select().where(TopicModel.text == topic).get_or_none()
+        if t is None:
+            logger.error(f"Topic {topic} not found")
+            return
+
+        SectionTopicModel.delete().where(
+            (SectionTopicModel.section_id == section_id)
+            & (SectionTopicModel.topic_id == t.id)
+        ).execute()
+
+        topic_still_needed = SectionTopicModel.get_or_none(
+            SectionTopicModel.topic_id == t.id
+        )
+        if topic_still_needed is None:
+            logger.debug(f"Topic no longer needed {t.text} ({t.id}). Removing.")
+            t.delete_instance()
+
+        logger.error(f"Removed topic {t.text} ({t.id}) from section {section_id}")
 
     def num_topics(self):
         return (
@@ -76,11 +100,11 @@ class Section(BaseDomain):
         )
 
     def topics_serialized(self):
-        return [t.serialize() for t in self.topics]
+        return [t.serialize() for t in self.topics()]
 
     def topics(self):
         from hmtc.domains.topic import Topic
-        
+
         _topics = (
             TopicModel.select()
             .join(SectionTopicModel, on=(TopicModel.id == SectionTopicModel.topic_id))

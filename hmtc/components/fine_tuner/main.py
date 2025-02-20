@@ -4,7 +4,7 @@ import solara
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.shared import PaginationControls, InputAndDisplay
+from hmtc.components.shared import Chip, InputAndDisplay, PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.jf_panel import JFPanel
 from hmtc.domains.section import Section
@@ -49,44 +49,48 @@ def NotCompletedSectionCard(reactive_section: solara.Reactive):
     section: Section = reactive_section.value
     t = section.instance.title if section.instance.title is not None else ""
     c = section.instance.comments if section.instance.comments is not None else ""
-    topics = solara.use_reactive(section.topics())
     title = solara.use_reactive(t)
     comments = solara.use_reactive(c)
-    new_topic = solara.use_reactive("")
+    topic_input = solara.use_reactive("")
 
     def update_time(start_or_end, data):
-        
+
         setattr(section.instance, start_or_end, data["time"])
         section.instance.save()
-        
-        
+
     def new_title(title):
         section.instance.title = title
         section.instance.save()
-        reactive_section.set(Section(section.instance.id))      
-        
+        reactive_section.set(Section(section.instance.id))
+
     def clear_title():
         section.instance.title = None
         section.instance.save()
         reactive_section.set(Section(section.instance.id))
-    
+
     def new_comments(comments):
         section.instance.comments = comments
         section.instance.save()
         reactive_section.set(Section(section.instance.id))
-    
+
     def clear_comments():
         section.instance.comments = None
         section.instance.save()
-        reactive_section.set(Section(section.instance.id))  
-        
+        reactive_section.set(Section(section.instance.id))
+
     def add_topic_to_section(topic_string):
         st = section.add_topic(topic_string)
         if st is None:
             logger.error(f"Error adding topic.")
             return
+
         reactive_section.set(Section(section.instance.id))
-        
+        topic_input.set("")
+
+    def remove_topic(topic):
+        section.remove_topic(topic)
+        reactive_section.set(Section(section.instance.id))
+
     with solara.Columns():
         TimePanel(
             initialTime=section.instance.start,
@@ -104,17 +108,27 @@ def NotCompletedSectionCard(reactive_section: solara.Reactive):
         )
     with solara.Columns([6, 6]):
         with solara.Column():
-            InputAndDisplay(item=title, label="Title", create=new_title, remove=clear_title)
-            InputAndDisplay(item=comments, label="Comments", create=new_comments, remove=clear_comments)
+            InputAndDisplay(
+                item=title, label="Title", create=new_title, remove=clear_title
+            )
+            InputAndDisplay(
+                item=comments,
+                label="Comments",
+                create=new_comments,
+                remove=clear_comments,
+            )
         with solara.Column():
-            solara.InputText(label="Topics", value=new_topic, on_value=add_topic_to_section)
+            solara.InputText(
+                label="Topics", value=topic_input, on_value=add_topic_to_section
+            )
             for topic in reactive_section.value.topics():
-                solara.Text(f"{topic.instance.text}")
+                Chip(item=f"{topic}", event_close=remove_topic)
 
 
 @solara.component
 def CompletedSectionCard(reactive_section: solara.Reactive):
-    section = reactive_section.value
+    section: Section = reactive_section.value
+
     with solara.Row(justify="center"):
         start = seconds_to_hms(section.instance.start // 1000)
         end = seconds_to_hms(section.instance.end // 1000)
@@ -132,16 +146,20 @@ def CompletedSectionCard(reactive_section: solara.Reactive):
     with solara.Row(justify="center"):
         if section.instance.title != "":
             solara.Text(f"{section.instance.title}")
+    with solara.Row(justify="center"):
         if section.instance.comments != "":
             solara.Text(f"{section.instance.comments}")
+    with solara.ColumnsResponsive():
         if len(section.instance.topics) > 0:
-            for topic in section.instance.topics:
-                solara.Text(f"{topic}")
+            for topic in section.topics():
+                Chip(item=f"{topic}")
+
 
 @solara.component
 def SectionCard(section: Section):
     fine_tuned = solara.use_reactive(section.instance.fine_tuned)
     reactive_section = solara.use_reactive(section)
+
     def lock():
         section.instance.fine_tuned = True
         section.instance.save()
@@ -153,12 +171,9 @@ def SectionCard(section: Section):
         section.instance.save()
         fine_tuned.set(False)
 
-
-
     with SwapTransition(show_first=fine_tuned.value, name="fade"):
         CompletedSectionCard(reactive_section)
         NotCompletedSectionCard(reactive_section)
-
 
     with solara.Row(justify="center"):
         with SwapTransition(show_first=fine_tuned.value, name="fade"):
@@ -221,7 +236,7 @@ def HeaderRow(video):
 @solara.component
 def FineTuner(video: Video):
     current_page = solara.use_reactive(1)
-    per_page = 1
+    per_page = 2
     HeaderRow(video)
     sections, num_sections, num_pages = video.sections_paginated(
         current_page=current_page, per_page=per_page

@@ -2,7 +2,7 @@ import solara
 import solara.lab
 from loguru import logger
 
-from hmtc.components.shared import InputAndDisplay, MySpinner
+from hmtc.components.shared import Chip, InputAndDisplay, MySpinner
 
 open_delete_confirmation = solara.reactive(False)
 
@@ -25,3 +25,5 @@ def Sandbox():
     )
     with solara.Columns():
         MySpinner()
+        Chip(item="first chip", event_close=lambda: logger.debug("removing"))
+        Chip(item="second chip")

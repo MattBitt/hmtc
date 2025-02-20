@@ -84,7 +84,7 @@ def SectionDetails(sect, video, sections, remove_section):
             video_duration=video.instance.duration * 1000,
             event_remove_section=remove_section,
         )
-        
+
         with solara.Row(justify="space-around"):
             solara.Button(
                 label="Delete",
@@ -94,9 +94,8 @@ def SectionDetails(sect, video, sections, remove_section):
             )
             with solara.Column(margin=1):
                 InputAndDisplay(
-                comment, "Comments", create=create_comment, remove=remove_comment
-            )
-
+                    comment, "Comments", create=create_comment, remove=remove_comment
+                )
 
 
 @solara.component

@@ -197,7 +197,7 @@ def JellyfinPanel(video, load_in_jellyfin, sections):
             on_click=load_in_jellyfin,
             classes=["button"],
         )
-        with solara.Columns([1,1]):
+        with solara.Columns([1, 1]):
             solara.Button(
                 icon_name=Icons.REFRESH.value,
                 on_click=refresh_library,

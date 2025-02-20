@@ -23,3 +23,8 @@ class Topic(BaseDomain):
             "text": self.instance.text,
             "num_sections": num_sections,
         }
+
+    def __str__(self):
+        if self.instance is None:
+            return f"Empty Topic."
+        return f"{self.instance.text}"
