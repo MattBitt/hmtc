@@ -230,7 +230,7 @@ def HeaderRow(video):
                     on_click=lambda: jf_playpause(),
                     classes=["button"],
                 )
-                JFPanel(video)
+                # JFPanel(video)
 
 
 @solara.component
