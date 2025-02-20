@@ -133,9 +133,7 @@ module.exports = {
   },
 
   watch: {
-    localTime(newVal) {
-      // You can keep this if you want to track changes without console logs
-    },
+    localTime(newVal) {},
   },
 };
 </script>

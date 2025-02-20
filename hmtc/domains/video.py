@@ -184,3 +184,8 @@ class Video(BaseDomain):
                 "video_id": self.instance.id,
             }
         )
+
+    def __str__(self):
+        if self.instance is None:
+            return ""
+        return str(self.instance.title)
