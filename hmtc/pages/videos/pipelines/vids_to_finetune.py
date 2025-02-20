@@ -74,14 +74,18 @@ def PaginatedVideos():
     current_page = solara.use_reactive(1)
     # omegle = Album.get_by(title="Omegle Bars")
     guerrilla = Album.get_by(title="Guerrilla Bars")
-    base_query = VideoModel.select(VideoModel).where(
-        (VideoModel.unique_content == True)
-        & VideoModel.id.in_(
-            SectionModel.select(SectionModel.video_id)
-            .where(SectionModel.fine_tuned == False)
-            .distinct()
+    base_query = (
+        VideoModel.select(VideoModel)
+        .where(
+            (VideoModel.unique_content == True)
+            & VideoModel.id.in_(
+                SectionModel.select(SectionModel.video_id).where(
+                    SectionModel.fine_tuned == False
+                )
+            )
+            & (VideoModel.duration > 90)
         )
-        & (VideoModel.duration > 90)
+        .distinct()
     )
 
     # if omegle is not None:
