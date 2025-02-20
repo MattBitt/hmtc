@@ -81,6 +81,7 @@ def PaginatedVideos():
             .where(SectionModel.fine_tuned == False)
             .distinct()
         )
+        & (VideoModel.duration > 90)
     )
 
     # if omegle is not None:
