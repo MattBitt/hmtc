@@ -50,8 +50,6 @@ def Dashboard():
                         icon=Icons.SECTION.value,
                         value=Section.repo.count(),
                     )
-                with solara.Column():
-                    SectionStats()
 
             with solara.Columns([6, 6]):
                 with solara.Link(f"/api/superchats"):
@@ -82,6 +80,8 @@ def Dashboard():
                         icon=Icons.TRACK.value,
                         value=Track.repo.count(),
                     )
+        with solara.Column():
+            SectionStats()
     with solara.Columns([4, 4, 4]):
         with solara.Link(f"/api/channels"):
             DomainCard(
