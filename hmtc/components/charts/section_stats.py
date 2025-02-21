@@ -73,10 +73,8 @@ def SectionStats():
             SectionModel.fine_tuned == True
         )
     )
-    if ft_sections_ms is not None:
-        ft_section_hours = ft_sections_ms // 1000 // 3600
-    else:
-        ft_section_hours = 0
+
+    ft_section_hours = ft_sections_ms // 1000 // 3600
 
     stats = {
         "non_unique_video_hours": non_unique_video_hours,

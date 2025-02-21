@@ -236,7 +236,10 @@ def HeaderRow(video):
 @solara.component
 def FineTuner(video: Video):
     current_page = solara.use_reactive(1)
-    per_page = 2
+    # 2/21/25
+    # having issues with frontend updating between page loads
+    # essentially disabling pagination here
+    per_page = 16
     HeaderRow(video)
     sections, num_sections, num_pages = video.sections_paginated(
         current_page=current_page, per_page=per_page
