@@ -190,7 +190,7 @@ def JellyfinPanel(video, load_in_jellyfin, sections):
             reactive_sections=sections,
         )
 
-        JFPanel(video)
+        # JFPanel(video)
         solara.Button(
             label="Load",
             icon_name=Icons.LOAD_MEDIA.value,
