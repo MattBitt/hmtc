@@ -80,8 +80,8 @@ def Dashboard():
                         icon=Icons.TRACK.value,
                         value=Track.repo.count(),
                     )
-        with solara.Column():
             SectionStats()
+
     with solara.Columns([4, 4, 4]):
         with solara.Link(f"/api/channels"):
             DomainCard(

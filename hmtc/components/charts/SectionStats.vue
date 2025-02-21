@@ -7,25 +7,24 @@
       </v-row>
       <v-col cols="12">
         <v-row justify="space-between">
-          <h4>Unique Videos</h4>
-          <v-chip color="myprimary">{{ stats.video_hours }}</v-chip>
-        </v-row>
-        <v-row justify="space-between">
-          <h4>Non-Unique Videos</h4>
-          <v-chip color="myprimary">{{ stats.non_unique_video_hours }}</v-chip>
+          <h4>Videos</h4>
+          <v-chip color="myprimary">Unique {{ stats.video_hours }}</v-chip>
+          <v-chip color="myprimary">Non-Unique {{ stats.non_unique_video_hours }}</v-chip>
         </v-row>
 
         <v-row justify="space-between">
-          <h4>Musical Sections</h4>
-          <v-chip color="myprimary">{{ stats.section_hours }}</v-chip>
-        </v-row>
-        <v-row justify="space-between">
-          <h4>Non-Musical Sections</h4>
-          <v-chip color="myprimary">{{ stats.non_musical_section_hours }}</v-chip>
+          <h4>Analyzed</h4>
+          <v-chip color="myprimary">Music {{ stats.section_hours }}</v-chip>
+          <v-chip color="myprimary"
+            >Non Music{{ stats.non_musical_section_hours }}</v-chip
+          >
         </v-row>
         <v-row justify="space-between">
           <h4>Fine Tuned</h4>
-          <v-chip color="myprimary">{{ stats.fine_tuned_section_hours }}</v-chip>
+          <v-chip color="myprimary"
+            >{{ stats.fine_tuned_section_hours }}
+            {{ (stats.fine_tuned_section_hours / stats.section_hours) * 100 }}</v-chip
+          >
         </v-row>
       </v-col>
     </v-card>
