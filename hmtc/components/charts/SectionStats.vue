@@ -10,13 +10,27 @@
           <h4>Videos</h4>
           <v-chip color="myprimary">Unique {{ stats.video_hours }}</v-chip>
           <v-chip color="myprimary">Non-Unique {{ stats.non_unique_video_hours }}</v-chip>
+          <v-chip color="myprimary"
+            >Total {{ stats.video_hours + stats.non_unique_video_hours }}</v-chip
+          >
         </v-row>
 
         <v-row justify="space-between">
           <h4>Analyzed</h4>
           <v-chip color="myprimary">Music {{ stats.section_hours }}</v-chip>
           <v-chip color="myprimary"
-            >Non Music{{ stats.non_musical_section_hours }}</v-chip
+            >Non Music {{ stats.non_musical_section_hours }}</v-chip
+          >
+          <v-chip color="myprimary"
+            >Total
+            {{
+              Math.round(
+                ((stats.section_hours + stats.non_musical_section_hours) /
+                  stats.video_hours) *
+                  100 *
+                  100
+              ) / 100
+            }}</v-chip
           >
         </v-row>
         <v-row justify="space-between">
