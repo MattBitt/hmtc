@@ -22,8 +22,11 @@
         <v-row justify="space-between">
           <h4>Fine Tuned</h4>
           <v-chip color="myprimary"
-            >{{ stats.fine_tuned_section_hours }}
-            {{ (stats.fine_tuned_section_hours / stats.section_hours) * 100 }}</v-chip
+            >{{ stats.fine_tuned_section_hours }} ({{
+              Math.round(
+                (stats.fine_tuned_section_hours / stats.section_hours) * 100 * 100
+              ) / 100
+            }}%)</v-chip
           >
         </v-row>
       </v-col>
