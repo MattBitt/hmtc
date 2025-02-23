@@ -105,10 +105,11 @@ def create_disc_folders():
 def delete_nonunique_sections():
     non_unique_vids = VideoModel.select().where(VideoModel.unique_content == False)
     sects = SectionModel.select().where(SectionModel.video_id.in_(non_unique_vids))
+
     logger.debug(f"{len(sects)}")
     for sect in sects:
         logger.debug(f"Deleting sections from {sect.video.title}")
-        # sect.delete_instance()
+        sect.delete_instance()
 
 
 @solara.component
