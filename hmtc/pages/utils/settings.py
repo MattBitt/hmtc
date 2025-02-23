@@ -91,15 +91,26 @@ def zero_pad_disc_title(orig_title):
     return "Disc " + padded.zfill(3)
 
 
-def create_disc_folders():
+def title_from_order(order):
+    return "Disc " + str(order).zfill(3)
+
+
+def fix_disc_folders():
     discs = DiscModel.select()
 
     for disc in discs:
-        if disc.folder_name is None or len(disc.folder_name) < 8:
-            disc.folder_name = zero_pad_disc_title(disc.title)
+        num = int(disc.folder_name[-3:])
+        if num == disc.order:
+            logger.debug(f"Nothing to do here for {disc.folder_name}")
+            continue
+        else:
+            logger.debug(f"Need to rename {disc.folder_name} to be order {disc.order}")
+            new_title = title_from_order(disc.order)
+            disc.folder_name = new_title
+            disc.title = new_title
             disc.save()
-        d = Disc(disc.id)
-        d.create_folders()
+            d = Disc(disc.id)
+            d.create_folders()
 
 
 def delete_nonunique_sections():
@@ -124,8 +135,8 @@ def Folders():
                 classes=["button"],
             )
             solara.Button(
-                "Create Disc Folders",
-                on_click=create_disc_folders,
+                "Fix Disc Folders",
+                on_click=fix_disc_folders,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
             )
@@ -168,4 +179,6 @@ def SectionsControls():
 def Page():
     router = solara.use_router()
     SectionsControls()
-    Folders()
+    with solara.Columns([6, 6]):
+        Folders()
+        solara.Markdown(f"Spacer...")

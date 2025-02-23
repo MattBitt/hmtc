@@ -73,7 +73,7 @@ class Album(BaseDomain):
             .scalar()
         )
         if last_disc is None:
-            last_disc = 1
+            last_disc = 0
         if existing_disc is not None:
             num_vids_on_existing_disc = (
                 DiscVideoModel.select()
@@ -88,8 +88,8 @@ class Album(BaseDomain):
             logger.success(f"Added video to existing: {existing_disc}")
         else:
             disc = DiscModel.create(
-                title=f"Disc {last_disc+1}",
-                folder_name=f"Disc {last_disc+1}",
+                title=f"Disc {str(last_disc+1).zfill(3)}",
+                folder_name=f"Disc {str(last_disc+1).zfill(3)}",
                 order=last_disc + 1,
                 album_id=self.instance.id,
             )
@@ -133,39 +133,46 @@ class Album(BaseDomain):
     def move_disc_up(self, disc: Disc):
 
         order_a = disc.instance.order
+        folder_a = disc.instance.folder_name
         disc_b = self.get_disc_before(order_a)
         if disc_b is None:
             logger.error(f"No Disc found before this one {disc.instance}")
             return
         disc_b = Disc(disc_b)
         order_b = disc_b.instance.order
+        folder_b = disc_b.instance.folder_name
         with db_instance.atomic():
-            DiscModel.update(order=MAX_DISCS).where(
+
+            temp_folder_name = "Disc 999"
+            DiscModel.update(order=MAX_DISCS, folder_name=temp_folder_name).where(
                 DiscModel.id == disc.instance.id
             ).execute()
-            DiscModel.update(order=order_a).where(
+            DiscModel.update(order=order_a, folder_name=folder_a).where(
                 DiscModel.id == disc_b.instance.id
             ).execute()
-            DiscModel.update(order=order_b).where(
+            DiscModel.update(order=order_b, folder_name=folder_b).where(
                 DiscModel.id == disc.instance.id
             ).execute()
 
     def move_disc_down(self, disc):
         order_a = disc.instance.order
+        folder_a = disc.instance.folder_name
         disc_b = self.get_disc_after(order_a)
         if disc_b is None:
             logger.error(f"No Disc found after this one {disc.instance}")
             return
         disc_b = Disc(disc_b)
         order_b = disc_b.instance.order
+        folder_b = disc_b.instance.folder_name
         with db_instance.atomic():
-            DiscModel.update(order=MAX_DISCS).where(
+            temp_folder_name = "Disc 999"
+            DiscModel.update(order=MAX_DISCS, folder_name=temp_folder_name).where(
                 DiscModel.id == disc.instance.id
             ).execute()
-            DiscModel.update(order=order_a).where(
+            DiscModel.update(order=order_a, folder_name=folder_a).where(
                 DiscModel.id == disc_b.instance.id
             ).execute()
-            DiscModel.update(order=order_b).where(
+            DiscModel.update(order=order_b, folder_name=folder_b).where(
                 DiscModel.id == disc.instance.id
             ).execute()
 

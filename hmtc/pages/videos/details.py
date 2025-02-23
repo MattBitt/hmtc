@@ -6,6 +6,7 @@ from flask import session
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
+from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.config import init_config
 from hmtc.domains.album import Album
@@ -89,8 +90,6 @@ def NoAlbum(video, choosing_disc):
             values=albums,
             on_value=choose_disc,
         )
-    with solara.Link(f"/api/albums/"):
-        solara.Button(f"Album Table", classes=["button"], icon_name=Icons.ALBUM.value)
     new_item = ["Create New"]
     if choosing_disc.value is True:
         _album = Album.get_by(title=album_title.value)
@@ -123,6 +122,9 @@ def NoAlbum(video, choosing_disc):
 
 @solara.component
 def HasAlbum(album, video):
+    if album.value is None:
+        logger.error("Album is None here....")
+        return
     _album = Album.get_by(title=album.value.instance.title)
     if _album is None:
         solara.Error(f"_album is None!!!!!")
@@ -139,9 +141,8 @@ def HasAlbum(album, video):
 def AlbumPanel(album, video):
     choosing_disc = solara.use_reactive(False)
 
-    if album.value is None or choosing_disc.value:
+    with SwapTransition(show_first=(album.value is None), name="fade"):
         NoAlbum(video=video, choosing_disc=choosing_disc)
-    else:
         HasAlbum(album=album, video=video)
 
 
