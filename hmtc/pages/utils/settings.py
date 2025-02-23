@@ -109,7 +109,8 @@ def delete_nonunique_sections():
     logger.debug(f"{len(sects)}")
     for sect in sects:
         logger.debug(f"Deleting sections from {sect.video.title}")
-        sect.delete_instance()
+        section = Section(sect.id)
+        section.delete()
 
 
 @solara.component
