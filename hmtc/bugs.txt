@@ -7,9 +7,6 @@ delete GPU from 3098
 
 improvements
 
-add title and comments field to the section selector
-
-
 bug:
 portrait (other aspect ratios) images mess up the layout flow
 

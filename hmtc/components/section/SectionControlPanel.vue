@@ -65,7 +65,7 @@ module.exports = {
 
   methods: {
     createSection(start, end) {
-      console.log("Creating section", start, end);
+      // console.log("Creating section", start, end);
 
       const args = {
         start: start,
@@ -75,15 +75,15 @@ module.exports = {
     },
 
     deleteAllSections() {
-      console.log("Deleting all sections");
+      // console.log("Deleting all sections");
       this.delete_all_sections();
     },
     createOneSection() {
-      console.log("Creating a new section");
+      // console.log("Creating a new section");
       this.createSection(0, this.video.duration);
     },
     createEvenSections() {
-      console.log("Creating even sections");
+      // console.log("Creating even sections");
       for (let i = 0; i < this.numEvenSections; i++) {
         this.createSection(i * 180, (i + 1) * 180);
       }

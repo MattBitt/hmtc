@@ -30,7 +30,7 @@
                   100 *
                   100
               ) / 100
-            }}</v-chip
+            }}%</v-chip
           >
         </v-row>
         <v-row justify="space-between">

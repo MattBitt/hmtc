@@ -60,7 +60,7 @@ def DiscCard(disc: Disc, refresh_counter):
 
     num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
-        card_title = f"{disc.instance.order} - {dv.video.title}"
+        card_title = f"{disc.instance.order} - {dv.video.title[:40]}"
 
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
@@ -135,12 +135,14 @@ def AlbumCard(album: Album, refresh_counter):
             icon_name=Icons.DELETE.value,
             on_click=delete_discs,
             classes=["button mywarning"],
+            disabled=True,
         )
         solara.Markdown(f"# {album.instance.title}")
         solara.Button(
             f"Reset Disc Numbers",
             on_click=reset_disc_numbers,
             classes=["button mywarning"],
+            disabled=True,
         )
 
 

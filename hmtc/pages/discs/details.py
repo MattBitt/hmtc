@@ -56,7 +56,7 @@ def DiscVideoCard(
         card_title = f"{video.instance.title} (only video on this disc)"
 
     else:
-        card_title = f"Video {order}: {disc.instance.title}"
+        card_title = f"Video {order}: {disc.instance.title[:40]}"
 
     with solara.Card(title=f"{card_title}", subtitle=f"{disc.instance.folder_name}"):
         with solara.Columns([4, 8]):
