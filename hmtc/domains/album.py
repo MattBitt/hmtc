@@ -1,8 +1,8 @@
 from typing import Any, Dict
-
+import re
 from loguru import logger
 from peewee import fn
-
+from pathlib import Path
 from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
@@ -18,7 +18,8 @@ from hmtc.utils.general import paginate
 
 config = init_config()
 db_instance = init_db(db_null, config)
-
+config = init_config()
+STORAGE = Path(config["STORAGE"])
 # using this for swapping the order
 # im sure there's a better way...
 MAX_DISCS = 5000
@@ -29,6 +30,12 @@ class Album(BaseDomain):
     repo = AlbumRepo()
     file_repo = FileRepo(AlbumFiles)
     instance: AlbumModel = None
+    
+    @classmethod
+    def create(cls, data):
+        folder = cls.album_folder(data['title'])
+        folder.mkdir(exist_ok=True)
+        super.create(data)
 
     def serialize(self) -> Dict[str, Any]:
         num_discs = (
@@ -193,3 +200,11 @@ class Album(BaseDomain):
         p = paginate(query=album_discs, page=current_page.value, per_page=per_page)
 
         return p
+
+    
+    def album_folder(self):
+        clean = re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", self.instance.title)
+        path = STORAGE / "video_library"
+        path = path / clean
+
+        return path

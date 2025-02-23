@@ -42,6 +42,7 @@ def NewAlbum():
                     {"title": new_item.value, "release_date": date.today()}
                 )
                 success.set(f"{new_album} was created!")
+                
             except Exception as e:
                 error.set(f"Error {e}")
 
