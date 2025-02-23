@@ -80,7 +80,8 @@ def Dashboard():
                         icon=Icons.TRACK.value,
                         value=Track.repo.count(),
                     )
-            SectionStats()
+    with solara.Row(justify="Center"):
+        SectionStats()
 
     with solara.Columns([4, 4, 4]):
         with solara.Link(f"/api/channels"):

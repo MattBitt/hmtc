@@ -22,7 +22,7 @@
             >Non Music {{ stats.non_musical_section_hours }}</v-chip
           >
           <v-chip color="myprimary"
-            >Total
+            >Total {{ stats.section_hours + stats.non_musical_section_hours }}(
             {{
               Math.round(
                 ((stats.section_hours + stats.non_musical_section_hours) /
@@ -30,7 +30,7 @@
                   100 *
                   100
               ) / 100
-            }}%</v-chip
+            }}%)</v-chip
           >
         </v-row>
         <v-row justify="space-between">
