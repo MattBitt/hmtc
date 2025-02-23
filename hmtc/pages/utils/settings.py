@@ -102,6 +102,15 @@ def create_disc_folders():
         d.create_folders()
 
 
+def delete_nonunique_sections():
+    non_unique_vids = VideoModel.select().where(VideoModel.unique_content == False)
+    sects = SectionModel.select().where(SectionModel.video_id.in_(non_unique_vids))
+    logger.debug(f"{len(sects)}")
+    for sect in sects:
+        logger.debug(f"Deleting sections from {sect.video.title}")
+        # sect.delete_instance()
+
+
 @solara.component
 def Folders():
     with solara.Card("Album Folders"):
@@ -132,8 +141,8 @@ def SectionsControls():
                     classes=["button"],
                 )
                 solara.Button(
-                    "Create Short Sections",
-                    on_click=create_short_sections,
+                    "Delete Non-Unique Sections",
+                    on_click=delete_nonunique_sections,
                     icon_name=Icons.SECTION.value,
                     classes=["button"],
                 )
