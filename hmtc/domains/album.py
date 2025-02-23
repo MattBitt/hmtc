@@ -1,8 +1,10 @@
-from typing import Any, Dict
 import re
+from pathlib import Path
+from typing import Any, Dict
+
 from loguru import logger
 from peewee import fn
-from pathlib import Path
+
 from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
@@ -14,12 +16,11 @@ from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.album_repo import AlbumRepo
 from hmtc.repos.file_repo import FileRepo
-from hmtc.utils.general import paginate
+from hmtc.utils.general import clean_filename, paginate
 
 config = init_config()
 db_instance = init_db(db_null, config)
-config = init_config()
-STORAGE = Path(config["STORAGE"])
+STORAGE = Path(config["STORAGE"]) / "libraries"
 # using this for swapping the order
 # im sure there's a better way...
 MAX_DISCS = 5000
@@ -30,12 +31,17 @@ class Album(BaseDomain):
     repo = AlbumRepo()
     file_repo = FileRepo(AlbumFiles)
     instance: AlbumModel = None
-    
-    @classmethod
-    def create(cls, data):
-        folder = cls.album_folder(data['title'])
-        folder.mkdir(exist_ok=True)
-        super.create(data)
+    libraries = ["audio", "video"]
+
+    def folder(self, library):
+        cleaned_title = clean_filename(self.instance.title)
+        return STORAGE / f"{library}/Harry Mack/{cleaned_title}"
+
+    def create_folders(self):
+        cleaned_title = clean_filename(self.instance.title)
+        for lib in self.libraries:
+            folder = STORAGE / f"{lib}/Harry Mack/{cleaned_title}"
+            folder.mkdir(exist_ok=True, parents=True)
 
     def serialize(self) -> Dict[str, Any]:
         num_discs = (
@@ -200,11 +206,3 @@ class Album(BaseDomain):
         p = paginate(query=album_discs, page=current_page.value, per_page=per_page)
 
         return p
-
-    
-    def album_folder(self):
-        clean = re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", self.instance.title)
-        path = STORAGE / "video_library"
-        path = path / clean
-
-        return path

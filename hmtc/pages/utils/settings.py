@@ -8,6 +8,7 @@ from hmtc.assets.icons.icon_repo import Icons
 from hmtc.config import init_config
 from hmtc.domains.album import Album
 from hmtc.domains.channel import Channel
+from hmtc.domains.disc import Disc
 from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
@@ -78,6 +79,47 @@ def create_short_sections():
     logger.success(f"Finished creating {len(short_vids_with_no_sections)} sections.")
 
 
+def create_album_folders():
+    albums = AlbumModel.select()
+    for alb in albums:
+        a = Album(alb.id)
+        a.create_folders()
+
+
+def zero_pad_disc_title(orig_title):
+    padded = orig_title[5:]
+    return "Disc " + padded.zfill(3)
+
+
+def create_disc_folders():
+    discs = DiscModel.select()
+
+    for disc in discs:
+        if disc.folder_name is None or len(disc.folder_name) < 8:
+            disc.folder_name = zero_pad_disc_title(disc.title)
+            disc.save()
+        d = Disc(disc.id)
+        d.create_folders()
+
+
+@solara.component
+def Folders():
+    with solara.Card("Album Folders"):
+        with solara.Column():
+            solara.Button(
+                "Create Album Folders",
+                on_click=create_album_folders,
+                icon_name=Icons.ALBUM.value,
+                classes=["button"],
+            )
+            solara.Button(
+                "Create Disc Folders",
+                on_click=create_disc_folders,
+                icon_name=Icons.DISC.value,
+                classes=["button"],
+            )
+
+
 @solara.component
 def SectionsControls():
     with solara.Columns([6, 6]):
@@ -115,3 +157,4 @@ def SectionsControls():
 def Page():
     router = solara.use_router()
     SectionsControls()
+    Folders()

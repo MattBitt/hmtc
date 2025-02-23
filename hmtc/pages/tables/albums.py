@@ -41,8 +41,9 @@ def NewAlbum():
                 new_album = Album.create(
                     {"title": new_item.value, "release_date": date.today()}
                 )
+                new_album.create_folders()
                 success.set(f"{new_album} was created!")
-                
+
             except Exception as e:
                 error.set(f"Error {e}")
 

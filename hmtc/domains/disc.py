@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Dict
 
 from loguru import logger
@@ -12,15 +13,17 @@ from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 from hmtc.repos.disc_repo import DiscRepo
-from hmtc.utils.general import paginate
+from hmtc.utils.general import clean_filename, paginate
 
 config = init_config()
+STORAGE = Path(config["STORAGE"]) / "libraries"
 db_instance = init_db(db_null, config)
 
 
 class Disc(BaseDomain):
     model = DiscModel
     repo = DiscRepo()
+    libraries = ["audio", "video"]
 
     def serialize(self) -> Dict[str, Any]:
         return {
@@ -28,6 +31,22 @@ class Disc(BaseDomain):
             "title": self.instance.title,
             "album_id": self.instance.album_id,
         }
+
+    def folder(self, library):
+        cleaned_title = clean_filename(self.instance.title)
+        return (
+            STORAGE
+            / f"{library}/Harry Mack/{cleaned_title}/{self.instance.folder_name}"
+        )
+
+    def create_folders(self):
+        cleaned_title = clean_filename(self.instance.album.title)
+        for lib in self.libraries:
+            folder = (
+                STORAGE
+                / f"{lib}/Harry Mack/{cleaned_title}/{self.instance.folder_name}"
+            )
+            folder.mkdir(exist_ok=True, parents=True)
 
     def num_videos_on_disc(self):
         return (
