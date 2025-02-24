@@ -91,12 +91,11 @@ def fix_album_discs():
         logger.debug(f"{album} has {len(discs)} discs currently. Checking for gaps")
         for index, disc in enumerate(discs, 1):
             if disc.order != index:
+                logger.debug(f"Found non-match {index=} {disc.order=}")
                 disc.order = index
                 disc.title = title_from_order(index)
                 disc.folder_name = title_from_order(index)
                 disc.save()
-
-            logger.debug(f"looking for Disc {index}")
 
 
 @solara.component
