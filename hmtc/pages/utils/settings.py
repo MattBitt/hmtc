@@ -79,6 +79,7 @@ def title_from_order(order):
 
 
 def fix_album_discs():
+    # fixes gaps in contiguous discs
     albums = AlbumModel.select()
     for album in albums:
         # this is a list so it doesn't alter the query when updating the order
@@ -106,6 +107,48 @@ def fix_album_discs():
                 disc.save()
 
 
+def reorder_exclusives():
+    albums = AlbumModel.select().where(
+        (AlbumModel.title == "Omegle Bars") | (AlbumModel.title == "Guerrilla Bars")
+    )
+    for album in albums:
+        exclusive_disc = (
+            DiscModel.select()
+            .where((DiscModel.album_id == album.id) & (DiscModel.order == 0))
+            .get_or_none()
+        )
+        if exclusive_disc is None:
+            logger.error(f"No 'exclusive disc' found for {album}")
+            continue
+        dvs = DiscVideoModel.select().where(DiscVideoModel.disc_id == exclusive_disc.id)
+        num_videos = len(dvs)
+
+        for dv in dvs:
+            dv.order = dv.order + 1000
+            dv.save()
+        vids_on_disk = [dv.video.id for dv in dvs]
+        vids_in_order = (
+            VideoModel.select()
+            .where(VideoModel.id.in_(vids_on_disk))
+            .order_by(VideoModel.upload_date.asc())
+        )
+        for i, vid in enumerate(vids_in_order, 1):
+            _dv = (
+                DiscVideoModel.select()
+                .where(
+                    (DiscVideoModel.disc_id == exclusive_disc.id)
+                    & (DiscVideoModel.video_id == vid.id)
+                )
+                .get_or_none()
+            )
+            if _dv is None:
+                logger.error(f"_dv is None...")
+                continue
+            _dv.order = i
+            _dv.save()
+        logger.debug(f"About to reorder {exclusive_disc} on album {album}")
+
+
 @solara.component
 def Folders():
     with solara.Card("Album Folders"):
@@ -119,6 +162,12 @@ def Folders():
             solara.Button(
                 "Fix Album Disc Ordering",
                 on_click=fix_album_discs,
+                icon_name=Icons.DISC.value,
+                classes=["button"],
+            )
+            solara.Button(
+                "Reorder Exclusive Discs - Video Order",
+                on_click=reorder_exclusives,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
             )
