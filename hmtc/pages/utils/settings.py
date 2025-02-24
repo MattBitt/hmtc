@@ -62,23 +62,6 @@ def refresh_from_youtube():
             create_video_from_folder(WORKING / youtube_id)
 
 
-def create_short_sections():
-    vids_with_sections = SectionModel.select(SectionModel.video_id).distinct()
-    short_vids_with_no_sections = VideoModel.select().where(
-        (
-            VideoModel.id.not_in(vids_with_sections)
-            & (VideoModel.duration < 600)
-            & (VideoModel.unique_content == True)
-        )
-    )
-
-    for vid in short_vids_with_no_sections:
-        video = Video(vid)
-        video.create_single_section()
-
-    logger.success(f"Finished creating {len(short_vids_with_no_sections)} sections.")
-
-
 def create_album_folders():
     albums = AlbumModel.select()
     for alb in albums:
@@ -116,35 +99,6 @@ def fix_album_discs():
             logger.debug(f"looking for Disc {index}")
 
 
-def fix_disc_folders():
-    discs = DiscModel.select()
-
-    for disc in discs:
-        num = int(disc.folder_name[-3:])
-        if num == disc.order:
-            logger.debug(f"Nothing to do here for {disc.folder_name}")
-            continue
-        else:
-            logger.debug(f"Need to rename {disc.folder_name} to be order {disc.order}")
-            new_title = title_from_order(disc.order)
-            disc.folder_name = new_title
-            disc.title = new_title
-            disc.save()
-            d = Disc(disc.id)
-            d.create_folders()
-
-
-def delete_nonunique_sections():
-    non_unique_vids = VideoModel.select().where(VideoModel.unique_content == False)
-    sects = SectionModel.select().where(SectionModel.video_id.in_(non_unique_vids))
-
-    logger.debug(f"{len(sects)}")
-    for sect in sects:
-        logger.debug(f"Deleting sections from {sect.video.title}")
-        section = Section(sect.id)
-        section.delete()
-
-
 @solara.component
 def Folders():
     with solara.Card("Album Folders"):
@@ -172,12 +126,6 @@ def SectionsControls():
                     "Check for New Videos",
                     on_click=refresh_from_youtube,
                     icon_name=Icons.DOWNLOAD.value,
-                    classes=["button"],
-                )
-                solara.Button(
-                    "Delete Non-Unique Sections",
-                    on_click=delete_nonunique_sections,
-                    icon_name=Icons.SECTION.value,
                     classes=["button"],
                 )
         with solara.Card("Pipelines"):
