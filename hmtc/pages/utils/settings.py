@@ -95,6 +95,27 @@ def title_from_order(order):
     return "Disc " + str(order).zfill(3)
 
 
+def fix_album_discs():
+    albums = AlbumModel.select()
+    for album in albums:
+        # this is a list so it doesn't alter the query when updating the order
+        # may not be needed...
+        discs = list(
+            DiscModel.select()
+            .where(DiscModel.album_id == album.id)
+            .order_by(DiscModel.order.asc())
+        )
+        logger.debug(f"{album} has {len(discs)} discs currently. Checking for gaps")
+        for index, disc in enumerate(discs, 1):
+            if disc.order != index:
+                disc.order = index
+                disc.title = title_from_order(index)
+                disc.folder_name = title_from_order(index)
+                disc.save()
+
+            logger.debug(f"looking for Disc {index}")
+
+
 def fix_disc_folders():
     discs = DiscModel.select()
 
@@ -135,8 +156,8 @@ def Folders():
                 classes=["button"],
             )
             solara.Button(
-                "Fix Disc Folders",
-                on_click=fix_disc_folders,
+                "Fix Album Disc Ordering",
+                on_click=fix_album_discs,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
             )

@@ -20,7 +20,11 @@ def Page():
 
     headers = [
         {"text": "ID", "value": "id"},
+        {"text": "Album Title", "value": "album_title"},
         {"text": "Title", "value": "title"},
+        {"text": "Folder", "value": "folder_name"},
+        {"text": "Order", "value": "order"},
+        {"text": "Num Videos", "value": "num_videos"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]
     search_fields = [Disc.title]

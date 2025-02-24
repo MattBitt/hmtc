@@ -26,10 +26,14 @@ class Disc(BaseDomain):
     libraries = ["audio", "video"]
 
     def serialize(self) -> Dict[str, Any]:
+
         return {
             "id": self.instance.id,
             "title": self.instance.title,
-            "album_id": self.instance.album_id,
+            "folder_name": self.instance.folder_name,
+            "order": self.instance.order,
+            "album_title": self.instance.album.title,
+            "num_videos": self.num_videos_on_disc(),
         }
 
     def folder(self, library):
