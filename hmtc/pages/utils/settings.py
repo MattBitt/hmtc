@@ -89,7 +89,15 @@ def fix_album_discs():
             .order_by(DiscModel.order.asc())
         )
         logger.debug(f"{album} has {len(discs)} discs currently. Checking for gaps")
-        for index, disc in enumerate(discs, 1):
+        if len(discs) == 0:
+            logger.debug(f"No discs found for {album}. Skipping")
+            continue
+        start = discs[0].order
+        if start > 1:
+            logger.error(f"Error")
+            continue
+
+        for index, disc in enumerate(discs, start):
             if disc.order != index:
                 logger.debug(f"Found non-match {index=} {disc.order=}")
                 disc.order = index
