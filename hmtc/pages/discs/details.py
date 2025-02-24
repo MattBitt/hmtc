@@ -59,6 +59,8 @@ def DiscVideoCard(
         card_title = f"Video {order}: {video.instance.title[:40]}"
 
     with solara.Card(title=f"{card_title}", subtitle=f"{disc.instance.folder_name}"):
+        with solara.Row():
+            solara.Text(f"{video.instance.upload_date}")
         with solara.Columns([4, 8]):
             with solara.Row():
                 solara.Image(video.poster(thumbnail=True), width="150px")
