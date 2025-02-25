@@ -52,6 +52,9 @@ def DiscCard(disc: Disc, refresh_counter):
         disc.delete()
         refresh_counter.set(refresh_counter.value + 1)
 
+    def create_tracks():
+        disc.create_tracks()
+
     dv = (
         DiscVideoModel.select()
         .where(DiscVideoModel.disc_id == disc.instance.id)
@@ -115,6 +118,13 @@ def DiscCard(disc: Disc, refresh_counter):
                                 classes=["button"],
                                 icon_name=Icons.DISC.value,
                             )
+
+                    solara.Button(
+                        "Create Tracks",
+                        classes=["button"],
+                        icon_name=Icons.TRACK.value,
+                        on_click=create_tracks,
+                    )
 
 
 @solara.component

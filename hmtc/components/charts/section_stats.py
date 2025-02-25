@@ -31,18 +31,16 @@ def SectionStats():
             VideoModel.unique_content == False
         )
     )
-    logger.debug(f"{non_unique_video_seconds=}")
+
     non_unique_video_hours = non_unique_video_seconds // 3600
-    logger.debug(f"{non_unique_video_hours=}")
 
     video_seconds = scalar_or_0(
         VideoModel.select(fn.SUM(VideoModel.duration)).where(
             VideoModel.unique_content == True
         )
     )
-    logger.debug(f"{video_seconds=}")
+
     video_hours = video_seconds // 3600
-    logger.debug(f"{video_hours=}")
 
     sections_ms = scalar_or_0(
         SectionModel.select(fn.SUM(SectionModel.end - SectionModel.start)).where(
@@ -53,9 +51,9 @@ def SectionStats():
             )
         )
     )
-    logger.debug(f"{sections_ms=}")
+
     section_hours = sections_ms // 1000 // 3600
-    logger.debug(f"{section_hours=}")
+
     videos_with_sections_seconds = scalar_or_0(
         VideoModel.select(fn.SUM(VideoModel.duration)).where(
             (VideoModel.unique_content == True)
@@ -64,9 +62,8 @@ def SectionStats():
     )
 
     non_musical_section_seconds = videos_with_sections_seconds - (sections_ms / 1000)
-    logger.debug(f"{non_musical_section_seconds=}")
+
     non_musical_section_hours = non_musical_section_seconds // 3600
-    logger.debug(f"{non_musical_section_hours=}")
 
     ft_sections_ms = scalar_or_0(
         SectionModel.select(fn.SUM(SectionModel.end - SectionModel.start)).where(
@@ -83,5 +80,5 @@ def SectionStats():
         "section_hours": section_hours,
         "fine_tuned_section_hours": ft_section_hours,
     }
-    logger.debug(f"calling stats with {stats}")
+
     _SectionStats(title="Section Stats", icon=Icons.STATS.value, stats=stats)

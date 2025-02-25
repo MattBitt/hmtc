@@ -10,6 +10,8 @@ from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.video import Video
 from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
+from hmtc.models import Section as SectionModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 from hmtc.repos.disc_repo import DiscRepo
@@ -160,3 +162,41 @@ class Disc(BaseDomain):
             return
         disc_vid.delete_instance()
         logger.success(f"Video {video} removed from Disc {self}")
+
+    def num_tracks(self):
+        num = (
+            TrackModel.select(fn.COUNT(TrackModel.id))
+            .where(TrackModel.disc_id == self.instance.id)
+            .scalar()
+        )
+        if num is None:
+            return 0
+        return num
+
+    def create_tracks(self):
+        from hmtc.domains.section import Section
+        from hmtc.domains.track import Track
+
+        if self.num_videos_on_disc() > 1:
+            logger.error(f"Not implemented yet")
+            return
+        if self.num_tracks() > 0:
+            logger.error(f"Delete the tracks first")
+            return
+        dv = (
+            DiscVideoModel.select()
+            .where(DiscVideoModel.disc_id == self.instance.id)
+            .get()
+        )
+        video = Video(dv.video.id)
+        track_number = 0
+        for section in video.sections():
+            track_number += 1
+            logger.debug(f"Creating a track from {section}")
+            sect = Section(section)
+            Track.create_from_section(sect, track_number, self)
+
+        logger.debug(f"Finsihed creating {track_number} tracks")
+
+    def remove_tracks(self):
+        pass

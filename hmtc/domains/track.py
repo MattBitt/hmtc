@@ -22,10 +22,22 @@ class Track(BaseDomain):
             "track_number_verbose": self.instance.track_number_verbose,
             "length": self.instance.length,
             "jellyfin_id": self.instance.jellyfin_id,
-            "section": self.instance.section,
-            "disc": self.instance.disc,
+            "section_id": self.instance.section.id,
+            "disc_id": self.instance.disc.id,
         }
 
     def delete_file(self, filetype):
         _file = self.get_file(filetype)
         pass
+
+    @classmethod
+    def create_from_section(cls, section, track_number, disc):
+        TrackModel.create(
+            **{
+                "title": "asdf",
+                "track_number": track_number,
+                "length": 15,
+                "section_id": section.instance.id,
+                "disc_id": disc.instance.id,
+            }
+        )

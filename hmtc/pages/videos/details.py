@@ -189,12 +189,10 @@ def FilesPanel(video: Video):
 @solara.component
 def SectionsPanel(video: Video):
     sections = video.sections()
-    
+
     solara.Text(f"{len(sections)} sections found")
     fine_tuned = len([x for x in sections if x.fine_tuned])
     solara.Text(f"{fine_tuned} fine tuned")
-    
-
 
 
 @solara.component

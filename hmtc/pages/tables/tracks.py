@@ -27,7 +27,7 @@ def Page():
         {"text": "Title", "value": "title"},
         {"text": "Track Number", "value": "track_number"},
         {"text": "Album", "value": "album.title", "sortable": False},
-        {"text": "Section", "value": "section", "sortable": False},
+        {"text": "Section", "value": "section_id", "sortable": False},
         {"text": "Length", "value": "length"},
         {"text": "Actions", "value": "actions", "sortable": False},
     ]

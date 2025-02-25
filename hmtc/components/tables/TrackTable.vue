@@ -9,19 +9,14 @@
           <v-toolbar-title>Edit Track {{ currentItem.id }}</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-toolbar-items>
-            <v-btn dark text :disabled="!valid" @click="saveItemToDB">
-              Save
-            </v-btn>
+            <v-btn dark text :disabled="!valid" @click="saveItemToDB"> Save </v-btn>
           </v-toolbar-items>
         </v-toolbar>
         <v-card-text>
           <v-container>
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="currentItem.title"
-                  label="Title"
-                ></v-text-field>
+                <v-text-field v-model="currentItem.title" label="Title"></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">
                 <v-text-field
@@ -52,9 +47,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn class="button" @click="closeDelete">Cancel</v-btn>
-          <v-btn class="button mywarning" outlined @click="deleteItemConfirm"
-            >OK</v-btn
-          >
+          <v-btn class="button mywarning" outlined @click="deleteItemConfirm">OK</v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
@@ -125,14 +118,14 @@
         <v-icon x-large color="primary" class="mb-4" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <a :href="'/domains/album-details/' + item.disc.album.id">
+        <!-- <a :href="'/domains/album-details/' + item.disc.album.id">
           <v-icon x-large color="primary" class="mb-4">mdi-album</v-icon>
         </a>
         <a :href="'/domains/video-details/' + item.section.video_id">
           <v-icon x-large color="primary" class="mb-4"
             >mdi-rhombus-split</v-icon
           >
-        </a>
+        </a> -->
       </template>
     </v-data-table>
   </div>
