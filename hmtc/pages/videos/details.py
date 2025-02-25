@@ -6,6 +6,7 @@ from flask import session
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
+from hmtc.components.shared import Chip
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.components.video.video_info_panel import VideoInfoPanel
 from hmtc.config import init_config
@@ -15,6 +16,7 @@ from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
+from hmtc.utils.time_functions import seconds_to_hms
 from hmtc.utils.youtube_functions import download_video_file, get_video_info
 
 config = init_config()
@@ -185,12 +187,49 @@ def FilesPanel(video: Video):
 
 
 @solara.component
+def SectionCard(section: Section):
+    with solara.Row():
+        solara.Text(f"Some info about this section")
+    with solara.Row():
+        solara.Text(f"Some info about this section")
+    with solara.Row():
+        solara.Text(f"Some info about this section")
+
+    with solara.ColumnsResponsive():
+        for topic in section.topics():
+            Chip(topic.instance.text)
+
+
+@solara.component
+def SectionsPanel(video: Video):
+    sections = video.sections()
+
+    if len(sections) == 0:
+        with solara.Card():
+            solara.Warning(f"No Sections Created for {video}")
+            return
+    if len(sections) > 10:
+        _sections = sections[:10]
+
+    else:
+        _sections = sections
+
+    with solara.Card():
+
+        for section in _sections:
+            s = Section(section)
+            section_string = f"{seconds_to_hms(s.instance.start // 1000)} - {seconds_to_hms(s.instance.end // 1000)}"
+            with solara.Card(title=section_string):
+                SectionCard(s)
+
+
+@solara.component
 def Tabs(selected, video, sections):
+
     with solara.lab.Tabs():
         with solara.lab.Tab("Sections"):
             with solara.Column():
-                with solara.Card():
-                    solara.Markdown(f"{len(sections.value)} sections - Summary Panel")
+                SectionsPanel(video)
 
         with solara.lab.Tab("Files"):
             with solara.Column():

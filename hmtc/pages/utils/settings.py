@@ -158,18 +158,21 @@ def Folders():
                 on_click=create_album_folders,
                 icon_name=Icons.ALBUM.value,
                 classes=["button"],
+                disabled=True,  # ran on 2/23/25
             )
             solara.Button(
                 "Fix Album Disc Ordering",
                 on_click=fix_album_discs,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
+                disabled=True,  # ran on 2/23/25
             )
             solara.Button(
                 "Reorder Exclusive Discs - Video Order",
                 on_click=reorder_exclusives,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
+                disabled=True,  # ran on 2/23/25
             )
 
 
