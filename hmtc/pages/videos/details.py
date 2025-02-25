@@ -187,40 +187,14 @@ def FilesPanel(video: Video):
 
 
 @solara.component
-def SectionCard(section: Section):
-    with solara.Row():
-        solara.Text(f"Some info about this section")
-    with solara.Row():
-        solara.Text(f"Some info about this section")
-    with solara.Row():
-        solara.Text(f"Some info about this section")
-
-    with solara.ColumnsResponsive():
-        for topic in section.topics():
-            Chip(topic.instance.text)
-
-
-@solara.component
 def SectionsPanel(video: Video):
     sections = video.sections()
+    
+    solara.Text(f"{len(sections)} sections found")
+    fine_tuned = len([x for x in sections if x.fine_tuned])
+    solara.Text(f"{fine_tuned} fine tuned")
+    
 
-    if len(sections) == 0:
-        with solara.Card():
-            solara.Warning(f"No Sections Created for {video}")
-            return
-    if len(sections) > 10:
-        _sections = sections[:10]
-
-    else:
-        _sections = sections
-
-    with solara.Card():
-
-        for section in _sections:
-            s = Section(section)
-            section_string = f"{seconds_to_hms(s.instance.start // 1000)} - {seconds_to_hms(s.instance.end // 1000)}"
-            with solara.Card(title=section_string):
-                SectionCard(s)
 
 
 @solara.component
