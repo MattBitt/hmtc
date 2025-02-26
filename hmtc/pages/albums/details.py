@@ -3,7 +3,7 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.shared import PaginationControls
+from hmtc.components.shared import PaginationControls, MySpinner
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
@@ -37,6 +37,7 @@ def parse_url_args():
 def DiscCard(disc: Disc, refresh_counter):
 
     has_tracks = solara.use_reactive(disc.tracks().exists())
+    creating = solara.use_reactive(False)
 
     def move_up():
 
@@ -58,12 +59,14 @@ def DiscCard(disc: Disc, refresh_counter):
         refresh_counter.set(refresh_counter.value + 1)
 
     def create_tracks():
+        creating.set(True)
         disc.create_tracks()
-        has_tracks.set(True)
+        creating.set(False)
+        
 
     def remove_tracks():
         disc.remove_tracks()
-        has_tracks.set(False)
+        
 
     dv = (
         DiscVideoModel.select()
@@ -79,68 +82,71 @@ def DiscCard(disc: Disc, refresh_counter):
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
 
     with solara.Card(f"{card_title}"):
-        solara.Text(f"{disc.instance.folder_name}")
-        with solara.Columns([4, 8]):
-            with solara.Row():
-                if dv is not None and dv.video is not None:
-                    solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
-                else:
-                    solara.Error(f"No Poster found...")
-
-            with solara.Row():
-                with solara.Column():
-                    solara.Button(
-                        "Delete Disc",
-                        on_click=remove_video,
-                        classes=["button mywarning"],
-                        icon_name=Icons.DELETE.value,
-                    )
-                with solara.Column():
-                    solara.Button(
-                        "Move Up",
-                        on_click=move_up,
-                        icon_name=Icons.UP_BOX.value,
-                        classes=["button"],
-                        disabled=disc.instance.order <= 1,
-                    )
-                    solara.Button(
-                        "Move Down",
-                        on_click=move_down,
-                        icon_name=Icons.DOWN_BOX.value,
-                        classes=["button"],
-                        disabled=disc.instance.order == 0,
-                    )
-                with solara.Column():
-                    if num_videos_on_disc == 1:
-
-                        with solara.Link(f"/api/videos/details/{dv.video.id}"):
-                            solara.Button(
-                                "Details",
-                                classes=["button"],
-                                icon_name=Icons.VIDEO.value,
-                            )
-
+        if creating.value:
+            MySpinner()
+        else:
+            solara.Text(f"{disc.instance.folder_name}")
+            with solara.Columns([4, 8]):
+                with solara.Row():
+                    if dv is not None and dv.video is not None:
+                        solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
                     else:
+                        solara.Error(f"No Poster found...")
 
-                        with solara.Link(f"/api/discs/details/{disc.instance.id}"):
-                            solara.Button(
-                                "Details",
-                                classes=["button"],
-                                icon_name=Icons.DISC.value,
-                            )
-                    with SwapTransition(show_first=has_tracks.value, name="fade"):
+                with solara.Row():
+                    with solara.Column():
                         solara.Button(
-                            "Delete Tracks",
+                            "Delete Disc",
+                            on_click=remove_video,
                             classes=["button mywarning"],
-                            icon_name=Icons.TRACK.value,
-                            on_click=remove_tracks,
+                            icon_name=Icons.DELETE.value,
+                        )
+                    with solara.Column():
+                        solara.Button(
+                            "Move Up",
+                            on_click=move_up,
+                            icon_name=Icons.UP_BOX.value,
+                            classes=["button"],
+                            disabled=disc.instance.order <= 1,
                         )
                         solara.Button(
-                            "Create Tracks",
+                            "Move Down",
+                            on_click=move_down,
+                            icon_name=Icons.DOWN_BOX.value,
                             classes=["button"],
-                            icon_name=Icons.TRACK.value,
-                            on_click=create_tracks,
+                            disabled=disc.instance.order == 0,
                         )
+                    with solara.Column():
+                        if num_videos_on_disc == 1:
+
+                            with solara.Link(f"/api/videos/details/{dv.video.id}"):
+                                solara.Button(
+                                    "Details",
+                                    classes=["button"],
+                                    icon_name=Icons.VIDEO.value,
+                                )
+
+                        else:
+
+                            with solara.Link(f"/api/discs/details/{disc.instance.id}"):
+                                solara.Button(
+                                    "Details",
+                                    classes=["button"],
+                                    icon_name=Icons.DISC.value,
+                                )
+                        with SwapTransition(show_first=has_tracks.value, name="fade"):
+                            solara.Button(
+                                "Delete Tracks",
+                                classes=["button mywarning"],
+                                icon_name=Icons.TRACK.value,
+                                on_click=remove_tracks,
+                            )
+                            solara.Button(
+                                "Create Tracks",
+                                classes=["button"],
+                                icon_name=Icons.TRACK.value,
+                                on_click=create_tracks,
+                            )
 
 
 @solara.component

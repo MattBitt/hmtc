@@ -201,6 +201,7 @@ class Disc(BaseDomain):
         if self.num_tracks() > 0:
             logger.error(f"Delete the tracks first")
             return
+        
         dv = (
             DiscVideoModel.select()
             .where(DiscVideoModel.disc_id == self.instance.id)
@@ -216,13 +217,16 @@ class Disc(BaseDomain):
 
             logger.debug(f"Creating a track from {section}")
             sect = Section(section)
+            if sect.my_title() is None:
+                logger.error(f"No info found in section.")
+                return
             prefix = self.instance.album.prefix
             disc_number = str(int(self.instance.folder_name[-3:]))
             if prefix is not None:
                 if int(disc_number) >= 100:
                     title = f"{prefix}{disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
                 else:
-                    title = f"{prefix} {disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
+                    title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(2)} {sect.my_title()}"
             else:
                 title = f"{sect.my_title()}"
             mp4_file_path = Path(self.folder("video")) / f"{title}.mp4"

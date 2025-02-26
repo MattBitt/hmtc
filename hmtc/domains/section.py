@@ -33,7 +33,8 @@ class Section(BaseDomain):
 
         if self.instance.comments is not None:
             return self.instance.comments[:40]
-        raise ValueError(f"Can't create a title without some info in the section.")
+        
+        return None
 
     @classmethod
     def get_for_video(cls, video_id):
