@@ -475,11 +475,13 @@ class VideoFile(File):
 
 
 class TrackFiles(BaseModel):
-    FILETYPES = ["info", "audio"]
+    FILETYPES = ["info", "audio", "video", "subtitle"]
 
     item = ForeignKeyField(Track, backref="files", unique=True)
     info = ForeignKeyField(InfoFile, null=True)
     audio = ForeignKeyField(AudioFile, null=True)
+    video = ForeignKeyField(VideoFile, null=True)
+    subtitle = ForeignKeyField(SubtitleFile, null=True)
 
 
 class AlbumFiles(BaseModel):

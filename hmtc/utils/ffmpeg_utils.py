@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import ffmpeg
 
 """
@@ -12,26 +14,34 @@ ffmpeg -i input.mp4 -f ffmetadata output.txt
 """
 
 
-def extract_audio(input: str, output: str):
-    ### command ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
+def extract_video(input: Path, output: Path, start_time: int, end_time: int):
+    try:
+        _input = str(input)
+        _output = str(output)
+        input_file = ffmpeg.input(_input)
 
-    # Load the video file
-    input_file = ffmpeg.input(input)
-
-    # Extract the audio and save it as an MP3 file
-    input_file.output(output, acodec="mp3").run()
+        input_file.output(_output, vcodec="copy", ss=start_time, to=end_time).run()
+    except Exception as e:
+        raise Exception(f"Error ripping track: {e}")
 
 
-def rip_track(input: str, output: str, start_time: int, end_time: int):
+def extract_audio(input: Path, output: Path, start_time: int, end_time: int):
     # Load the video file
     try:
-        input_file = ffmpeg.input(input)
+        _input = str(input)
+        _output = str(output)
+        input_file = ffmpeg.input(_input)
 
         # Extract the audio and save it as an MP3 file
-        input_file.output(output, acodec="mp3", ss=start_time, to=end_time).run()
+        input_file.output(_output, acodec="mp3", ss=start_time, to=end_time).run()
     except Exception as e:
         raise Exception(f"Error ripping track: {e}")
 
 
 if __name__ == "__main__":
-    extract_audio("hmtc/utils/sample.webm", "hmtc/utils/sample.mp3")
+    extract_video(
+        "hmtc/utils/temp/6sYh6iuMUA8.webm",
+        "hmtc/utils/temp/sample.mp4",
+        "00:10:00",
+        "00:12:34",
+    )

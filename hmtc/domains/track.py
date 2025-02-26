@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Any, Dict
-
+from loguru import logger
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import Track as TrackModel
 from hmtc.models import TrackFiles
+from hmtc.models import Thumbnail as ThumbnailModel
 from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.track_repo import TrackRepo
 
@@ -26,18 +27,65 @@ class Track(BaseDomain):
             "disc_id": self.instance.disc.id,
         }
 
-    def delete_file(self, filetype):
-        _file = self.get_file(filetype)
-        pass
+    def delete(self):
+        # added this on 2/25/25. 
+        # copied from the videos domain
+        
+        tf = (
+            TrackFiles.select()
+            .where(TrackFiles.item_id == self.instance.id)
+            .get_or_none()
+        )
+        if tf is not None:
+            for ft in TrackFiles.FILETYPES:
+                file_model = getattr(tf, ft)
+                if file_model is not None:
+                    if ft == "poster":
+                        thumb = (
+                            ThumbnailModel.select()
+                            .where(ThumbnailModel.image_id == file_model.id)
+                            .get()
+                        )
+                        Path(thumb.path).unlink()
+                        thumb.delete_instance()
+                    Path(file_model.path).unlink()
+                    setattr(tf, ft, None)
+                    tf.save()
+                    file_model.delete_instance()
+            tf.delete_instance()
+        self.instance.delete_instance()
+
 
     @classmethod
-    def create_from_section(cls, section, track_number, disc):
-        TrackModel.create(
+    def create_from_section(cls, section, track_number, disc, title):
+        length = (section.instance.end - section.instance.start) / 1000
+        new_track = TrackModel.create(
             **{
-                "title": "asdf",
+                "title": title,
                 "track_number": track_number,
-                "length": 15,
+                "length": length,
                 "section_id": section.instance.id,
                 "disc_id": disc.instance.id,
             }
         )
+        return Track(new_track.id)
+
+    def id3_dict(self):
+        id3_tags = {}
+        id3_tags["title"] = self.instance.title
+        id3_tags["titlesort"] = self.instance.title
+
+        id3_tags["artist"] = "Harry Mack"
+
+        id3_tags["album"] = self.instance.disc.album.title
+        id3_tags["albumsort"] = self.instance.disc.album.title
+        id3_tags["albumartist"] = ["Harry Mack"]
+        
+        id3_tags["date"] = str(self.instance.section.video.upload_date)[0:4]
+        id3_tags["originaldate"] = str(self.instance.section.video.upload_date)
+        
+        id3_tags["tracknumber"] = str(self.instance.track_number)
+        id3_tags["discnumber"] = str(int(self.instance.disc.folder_name[-3:]))
+        
+        
+        return id3_tags

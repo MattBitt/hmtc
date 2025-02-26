@@ -15,8 +15,10 @@ from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import db_null
 from hmtc.repos.disc_repo import DiscRepo
+from hmtc.utils.ffmpeg_utils import extract_audio, extract_video
 from hmtc.utils.general import clean_filename, paginate
-
+from hmtc.utils.time_functions import seconds_to_hms
+from hmtc.utils.mutagen_utils import write_id3_tags,write_mp4_metadata
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "libraries"
 db_instance = init_db(db_null, config)
@@ -39,7 +41,7 @@ class Disc(BaseDomain):
         }
 
     def folder(self, library):
-        cleaned_title = clean_filename(self.instance.title)
+        cleaned_title = clean_filename(self.instance.album.title)
         return (
             STORAGE
             / f"{library}/Harry Mack/{cleaned_title}/{self.instance.folder_name}"
@@ -59,6 +61,18 @@ class Disc(BaseDomain):
             DiscVideoModel.select(fn.COUNT(DiscVideoModel.id))
             .where(DiscVideoModel.disc_id == self.instance.id)
             .scalar()
+        )
+
+    def disc_number(self):
+        return int(self.instance.folder_name[-3:])
+
+    def add_file(self, file: Path, library: str):
+        year = self.instance.upload_date.strftime("%Y")
+        target_path = self.folder(library=library)
+        new_name = self.instance.youtube_id
+
+        self.file_repo.add(
+            item=self.instance, source=file, target_path=target_path, stem=new_name
         )
 
     def videos_paginated(self, current_page, per_page):
@@ -194,9 +208,52 @@ class Disc(BaseDomain):
             track_number += 1
             logger.debug(f"Creating a track from {section}")
             sect = Section(section)
-            Track.create_from_section(sect, track_number, self)
+            title = f"{track_number} - OB 57.1 - banana"
+            mp4_file_path = Path(self.folder("video")) / f"{title}.mp4"
+            if mp4_file_path.exists():
+                logger.error(f"{mp4_file_path} already exists. Quitting")
+                return
+            mp4_file_path.parent.mkdir(exist_ok=True, parents=True)
 
-        logger.debug(f"Finsihed creating {track_number} tracks")
+            mp3_file_path = Path(self.folder("audio")) / f"{title}.mp3"
+            if mp3_file_path.exists():
+                logger.error(f"{mp3_file_path} already exists. Quitting")
+                return
+            mp3_file_path.parent.mkdir(exist_ok=True, parents=True)
+
+            input_file = Path(video.file_repo.get(video.instance.id, "video").path)
+            if not input_file.exists():
+                logger.error(f"{input_file} already exists. Quitting")
+                return
+            extract_video(
+                input=input_file,
+                output=mp4_file_path,
+                start_time=seconds_to_hms(sect.instance.start),
+                end_time=seconds_to_hms(sect.instance.end),
+            )
+            extract_audio(
+                input=input_file,
+                output=mp3_file_path,
+                start_time=seconds_to_hms(sect.instance.start),
+                end_time=seconds_to_hms(sect.instance.end),
+            )
+
+            new_track = Track.create_from_section(sect, track_number, self, title)
+            write_id3_tags(mp3_file_path, new_track.id3_dict())
+            new_track.file_repo.add(
+                item=new_track.instance,
+                source=mp4_file_path,
+                target_path=mp4_file_path.parent,
+                stem=mp4_file_path.name,
+            )
+            new_track.file_repo.add(
+                item=new_track.instance,
+                source=mp3_file_path,
+                target_path=mp3_file_path.parent,
+                stem=mp3_file_path.name,
+            )
+
+        logger.debug(f"Finished creating {track_number} tracks")
 
     def remove_tracks(self):
         pass
