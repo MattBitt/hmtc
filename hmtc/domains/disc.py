@@ -18,7 +18,7 @@ from hmtc.repos.disc_repo import DiscRepo
 from hmtc.utils.ffmpeg_utils import extract_audio, extract_video
 from hmtc.utils.general import clean_filename, paginate
 from hmtc.utils.mutagen_utils import write_id3_tags, write_mp4_metadata
-from hmtc.utils.time_functions import seconds_to_hms
+from hmtc.utils.time_functions import ms_to_hms_and_ms, seconds_to_hms
 
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "libraries"
@@ -201,7 +201,7 @@ class Disc(BaseDomain):
         if self.num_tracks() > 0:
             logger.error(f"Delete the tracks first")
             return
-        
+
         dv = (
             DiscVideoModel.select()
             .where(DiscVideoModel.disc_id == self.instance.id)
@@ -229,6 +229,7 @@ class Disc(BaseDomain):
                     title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(2)} {sect.my_title()}"
             else:
                 title = f"{sect.my_title()}"
+
             mp4_file_path = Path(self.folder("video")) / f"{title}.mp4"
             if mp4_file_path.exists():
                 logger.error(f"{mp4_file_path} already exists. Quitting")
@@ -245,21 +246,34 @@ class Disc(BaseDomain):
             if not input_file.exists():
                 logger.error(f"{input_file} already exists. Quitting")
                 return
+
             extract_video(
                 input=input_file,
                 output=mp4_file_path,
-                start_time=seconds_to_hms(sect.instance.start // 1000),
-                end_time=seconds_to_hms(sect.instance.end // 1000),
+                start_time=ms_to_hms_and_ms(sect.instance.start),
+                end_time=ms_to_hms_and_ms(sect.instance.end),
             )
             extract_audio(
                 input=input_file,
                 output=mp3_file_path,
-                start_time=seconds_to_hms(sect.instance.start // 1000),
-                end_time=seconds_to_hms(sect.instance.end // 1000),
+                start_time=ms_to_hms_and_ms(sect.instance.start),
+                end_time=ms_to_hms_and_ms(sect.instance.end),
             )
 
             new_track = Track.create_from_section(sect, track_number, self, title)
+            # seems like the jellyfin libraries work best with
+            # id3 tags for audio and a title.nfo file for video
+
             write_id3_tags(mp3_file_path, new_track.id3_dict())
+            nfo = new_track.create_nfo(mp4_file_path.parent)
+
+            new_track.file_repo.add(
+                item=new_track.instance,
+                source=nfo,
+                target_path=nfo.parent,
+                stem=nfo.name,
+            )
+
             new_track.file_repo.add(
                 item=new_track.instance,
                 source=mp4_file_path,

@@ -33,7 +33,7 @@ class Section(BaseDomain):
 
         if self.instance.comments is not None:
             return self.instance.comments[:40]
-        
+
         return None
 
     @classmethod

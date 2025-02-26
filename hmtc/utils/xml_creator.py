@@ -2,6 +2,8 @@ import xml.dom.minidom
 import xml.etree.cElementTree as ET
 from pathlib import Path
 
+from hmtc.domains.track import Track
+
 m_encoding = "UTF-8"
 
 
@@ -55,4 +57,25 @@ def create_album_xml(path: Path, album_data: dict):
         xfile.close()
 
 
-# Example usage
+def create_track_xml(path: Path, track: Track):
+    root = ET.Element("musicvideo")
+
+    title = ET.SubElement(root, "title")
+    title.text = track.instance.title
+
+    artist = ET.SubElement(root, "artist")
+    artist.text = "Harry Mack"
+
+    album = ET.SubElement(root, "album")
+    album.text = track.instance.disc.album.title
+
+    year = ET.SubElement(root, "year")
+    year.text = str(track.instance.section.video.upload_date)[0:4]
+
+    dom = xml.dom.minidom.parseString(ET.tostring(root))
+    xml_string = dom.toprettyxml()
+    part1, part2 = xml_string.split("?>")
+
+    with open(path, "w") as xfile:
+        xfile.write(part1 + 'encoding="{}"?>\n'.format(m_encoding) + part2)
+        xfile.close()

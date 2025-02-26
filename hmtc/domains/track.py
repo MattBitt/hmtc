@@ -89,3 +89,10 @@ class Track(BaseDomain):
         id3_tags["discnumber"] = str(int(self.instance.disc.folder_name[-3:]))
 
         return id3_tags
+
+    def create_nfo(self, folder):
+        from hmtc.utils.xml_creator import create_track_xml
+
+        nfo = folder / (f"{self.instance.title}.nfo")
+        create_track_xml(nfo, self)
+        return nfo

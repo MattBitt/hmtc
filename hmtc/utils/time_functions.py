@@ -2,6 +2,14 @@ import time
 from datetime import datetime, timedelta
 
 
+def ms_to_hms_and_ms(milliseconds):
+    seconds = milliseconds / 1000
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    _seconds = seconds % 60
+    return f"{hours:02}:{minutes:02}:{_seconds:02}"
+
+
 def seconds_to_hms(seconds):
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60

@@ -219,7 +219,10 @@ def process_file(file, target, stem):
             new_file = VideoFile.create(**file_dict)
 
         case "info":
-            final_path = file_dict["path"].with_suffix(".info.json")
+            if file_dict["path"].suffixes[-1] == ".nfo":
+                final_path = file_dict["path"]
+            else:
+                final_path = file_dict["path"].with_suffix(".info.json")
             if file.parent != target.parent:
                 MOVE_FILE(file, final_path)
             file_dict["path"] = final_path
