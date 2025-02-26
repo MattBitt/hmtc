@@ -102,6 +102,7 @@ class Series(BaseModel):
 class Album(BaseModel):
     title = CharField(unique=True)
     release_date = DateField(null=True)
+    prefix = CharField(unique=True, null=True)
 
     def __repr__(self):
         return f"AlbumModel({self.id} - {self.title=})"

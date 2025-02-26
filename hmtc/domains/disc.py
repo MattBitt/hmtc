@@ -17,8 +17,9 @@ from hmtc.models import db_null
 from hmtc.repos.disc_repo import DiscRepo
 from hmtc.utils.ffmpeg_utils import extract_audio, extract_video
 from hmtc.utils.general import clean_filename, paginate
+from hmtc.utils.mutagen_utils import write_id3_tags, write_mp4_metadata
 from hmtc.utils.time_functions import seconds_to_hms
-from hmtc.utils.mutagen_utils import write_id3_tags,write_mp4_metadata
+
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "libraries"
 db_instance = init_db(db_null, config)
@@ -74,6 +75,9 @@ class Disc(BaseDomain):
         self.file_repo.add(
             item=self.instance, source=file, target_path=target_path, stem=new_name
         )
+
+    def tracks(self):
+        return TrackModel.select().where(TrackModel.disc_id == self.instance.id)
 
     def videos_paginated(self, current_page, per_page):
         disc_vids = (
@@ -206,9 +210,21 @@ class Disc(BaseDomain):
         track_number = 0
         for section in video.sections():
             track_number += 1
+            if track_number > 100:
+                logger.error(f"Too many tracks!!!!!")
+                return None
+
             logger.debug(f"Creating a track from {section}")
             sect = Section(section)
-            title = f"{track_number} - OB 57.1 - banana"
+            prefix = self.instance.album.prefix
+            disc_number = str(int(self.instance.folder_name[-3:]))
+            if prefix is not None:
+                if int(disc_number) >= 100:
+                    title = f"{prefix}{disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
+                else:
+                    title = f"{prefix} {disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
+            else:
+                title = f"{sect.my_title()}"
             mp4_file_path = Path(self.folder("video")) / f"{title}.mp4"
             if mp4_file_path.exists():
                 logger.error(f"{mp4_file_path} already exists. Quitting")
@@ -228,14 +244,14 @@ class Disc(BaseDomain):
             extract_video(
                 input=input_file,
                 output=mp4_file_path,
-                start_time=seconds_to_hms(sect.instance.start),
-                end_time=seconds_to_hms(sect.instance.end),
+                start_time=seconds_to_hms(sect.instance.start // 1000),
+                end_time=seconds_to_hms(sect.instance.end // 1000),
             )
             extract_audio(
                 input=input_file,
                 output=mp3_file_path,
-                start_time=seconds_to_hms(sect.instance.start),
-                end_time=seconds_to_hms(sect.instance.end),
+                start_time=seconds_to_hms(sect.instance.start // 1000),
+                end_time=seconds_to_hms(sect.instance.end // 1000),
             )
 
             new_track = Track.create_from_section(sect, track_number, self, title)
@@ -256,4 +272,9 @@ class Disc(BaseDomain):
         logger.debug(f"Finished creating {track_number} tracks")
 
     def remove_tracks(self):
-        pass
+        from hmtc.domains.track import Track
+
+        logger.debug(f"Disc {self} is about to remove its {self.num_tracks()} tracks.")
+        for track in self.tracks():
+            t = Track(track.id)
+            t.delete()

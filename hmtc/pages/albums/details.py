@@ -4,12 +4,14 @@ from peewee import fn
 
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared import PaginationControls
+from hmtc.components.transitions.swap import SwapTransition
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
 from hmtc.models import (
     DiscVideo as DiscVideoModel,
 )
+from hmtc.models import Track as TrackModel
 
 selected_videos = solara.reactive([])
 
@@ -33,6 +35,9 @@ def parse_url_args():
 
 @solara.component
 def DiscCard(disc: Disc, refresh_counter):
+
+    has_tracks = solara.use_reactive(disc.tracks().exists())
+
     def move_up():
 
         album = Album(disc.instance.album)
@@ -54,6 +59,11 @@ def DiscCard(disc: Disc, refresh_counter):
 
     def create_tracks():
         disc.create_tracks()
+        has_tracks.set(True)
+
+    def remove_tracks():
+        disc.remove_tracks()
+        has_tracks.set(False)
 
     dv = (
         DiscVideoModel.select()
@@ -118,13 +128,19 @@ def DiscCard(disc: Disc, refresh_counter):
                                 classes=["button"],
                                 icon_name=Icons.DISC.value,
                             )
-
-                    solara.Button(
-                        "Create Tracks",
-                        classes=["button"],
-                        icon_name=Icons.TRACK.value,
-                        on_click=create_tracks,
-                    )
+                    with SwapTransition(show_first=has_tracks.value, name="fade"):
+                        solara.Button(
+                            "Delete Tracks",
+                            classes=["button mywarning"],
+                            icon_name=Icons.TRACK.value,
+                            on_click=remove_tracks,
+                        )
+                        solara.Button(
+                            "Create Tracks",
+                            classes=["button"],
+                            icon_name=Icons.TRACK.value,
+                            on_click=create_tracks,
+                        )
 
 
 @solara.component

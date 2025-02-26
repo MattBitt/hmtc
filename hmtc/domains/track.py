@@ -1,10 +1,12 @@
 from pathlib import Path
 from typing import Any, Dict
+
 from loguru import logger
+
 from hmtc.domains.base_domain import BaseDomain
+from hmtc.models import Thumbnail as ThumbnailModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import TrackFiles
-from hmtc.models import Thumbnail as ThumbnailModel
 from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.track_repo import TrackRepo
 
@@ -28,9 +30,9 @@ class Track(BaseDomain):
         }
 
     def delete(self):
-        # added this on 2/25/25. 
+        # added this on 2/25/25.
         # copied from the videos domain
-        
+
         tf = (
             TrackFiles.select()
             .where(TrackFiles.item_id == self.instance.id)
@@ -54,7 +56,6 @@ class Track(BaseDomain):
                     file_model.delete_instance()
             tf.delete_instance()
         self.instance.delete_instance()
-
 
     @classmethod
     def create_from_section(cls, section, track_number, disc, title):
@@ -80,12 +81,11 @@ class Track(BaseDomain):
         id3_tags["album"] = self.instance.disc.album.title
         id3_tags["albumsort"] = self.instance.disc.album.title
         id3_tags["albumartist"] = ["Harry Mack"]
-        
+
         id3_tags["date"] = str(self.instance.section.video.upload_date)[0:4]
         id3_tags["originaldate"] = str(self.instance.section.video.upload_date)
-        
+
         id3_tags["tracknumber"] = str(self.instance.track_number)
         id3_tags["discnumber"] = str(int(self.instance.disc.folder_name[-3:]))
-        
-        
+
         return id3_tags

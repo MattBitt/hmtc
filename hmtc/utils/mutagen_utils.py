@@ -13,10 +13,10 @@ from mutagen.easyid3 import EasyID3
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import APIC, ID3, TALB, TIT2, TIT3, TPE1, TRCK, TYER, PictureType
 from mutagen.mp3 import MP3
+from mutagen.mp4 import MP4, MP4Cover
 
 from hmtc.config import init_config
 from hmtc.utils.image import convert_webp_to_png
-from mutagen.mp4 import MP4, MP4Cover
 
 config = init_config()
 WORKING = Path(config["WORKING"])
@@ -76,7 +76,6 @@ def embed_image(audio_file: Path, image_file: Path):
         image_file.unlink()
 
 
-
 def read_id3_tags(file):
     try:
         audio = MP3(file, ID3=EasyID3)
@@ -95,6 +94,7 @@ def write_id3_tags(file, tags):
     except Exception as e:
         logger.error(e)
 
+
 def write_mp4_metadata(file: Path, tags: dict):
     taggerMP4 = MP4(file)
 
@@ -102,21 +102,22 @@ def write_mp4_metadata(file: Path, tags: dict):
     taggerMP4.save()
     print(taggerMP4.pprint())
     taggerMP4["xa9ART"] = ["Harry Mack"]
-    
-    taggerMP4["aART"] = ["Harry Mack"] + ([tags['artist']] if 'artist' in tags else [])
-    taggerMP4["soaa"] = ["Mack, Harry"] # album artist sort order
-    
-    taggerMP4["xa9alb"] = tags['album_title'] # album
-    taggerMP4["soal"] = tags.get("album_title_sort", tags["album_title"]) # album sort
-    
-    taggerMP4["xa9nam"] = tags['track_title'] # track title
-    taggerMP4["sonm"] = tags.get("track_title_sort", tags["track_title"]) # title sort
-    taggerMP4["xa9day"] = tags['upload_date']
-    taggerMP4['trkn'] = [(int(tags['track_number']), 0)] # track number
-    taggerMP4['disk'] = [(int(tags['disc_number']), 0)] # disc number
-    
+
+    taggerMP4["aART"] = ["Harry Mack"] + ([tags["artist"]] if "artist" in tags else [])
+    taggerMP4["soaa"] = ["Mack, Harry"]  # album artist sort order
+
+    taggerMP4["xa9alb"] = tags["album_title"]  # album
+    taggerMP4["soal"] = tags.get("album_title_sort", tags["album_title"])  # album sort
+
+    taggerMP4["xa9nam"] = tags["track_title"]  # track title
+    taggerMP4["sonm"] = tags.get("track_title_sort", tags["track_title"])  # title sort
+    taggerMP4["xa9day"] = tags["upload_date"]
+    taggerMP4["trkn"] = [(int(tags["track_number"]), 0)]  # track number
+    taggerMP4["disk"] = [(int(tags["disc_number"]), 0)]  # disc number
+
     taggerMP4.save()
     print(taggerMP4.pprint())
+
 
 # filez = glob.glob("hmtc/utils/working_audio_file.mp3")
 # new_tag = {}

@@ -12,23 +12,28 @@
   "Album": [
     {
       "title": "Omegle Bars",
-      "release_date": "2020-08-26"
+      "release_date": "2020-08-26",
+      "prefix": "OB"
     },
     {
       "title": "The Singles",
       "release_date": "2024-01-01"
+  
     },
     {
       "title": "Wordplay Wednesday",
-      "release_date": "2019-07-17"
+      "release_date": "2019-07-17",
+      "prefix": "WW"
     },
     {
       "title": "Flow State",
-      "release_date": "2019-07-17"
+      "release_date": "2019-07-17",
+      "prefix": "FS"
     },
     {
       "title": "Guerrilla Bars",
-      "release_date": "2019-07-17"
+      "release_date": "2019-07-17",
+      "prefix": "GB"
     }
   ],
   "Series": [
