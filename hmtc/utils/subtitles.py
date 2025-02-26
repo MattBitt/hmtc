@@ -152,6 +152,35 @@ def merge_subtitles(subtitle_path):
     return merged_subs
 
 
+def rip_subs_from_srt(input: Path, output: Path, time_range: tuple = None):
+    """Extracts a portion of subtitles from an SRT file based on the specified time range."""
+    if time_range is None or len(time_range) != 2:
+        logger.error("Invalid time range provided.")
+        return
+
+    start_time, end_time = time_range
+    subtitles = read_srt_file(input)
+    extracted_subs = []
+
+    for sub in subtitles:
+        if sub.start.total_seconds() >= start_time and sub.end.total_seconds() <= end_time:
+            extracted_subs.append(sub)
+
+    with open(output, "w") as f:
+        f.write(srt.compose(extracted_subs))
+
+    logger.info(f"Extracted {len(extracted_subs)} subtitles to {output}.")
+
+
+def extract_subs(input: Path, output: Path, start_time: int, end_time: int):
+
+    try:
+        rip_subs_from_srt(input, output, (start_time, end_time))
+        
+    except Exception as e:
+        raise Exception(f"Error ripping track: {e}")
+
+
 if __name__ == "__main__":
     # Example usage
     subtitles = "hmtc/utils/temp/omegle_50.srt"

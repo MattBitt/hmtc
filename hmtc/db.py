@@ -20,7 +20,7 @@ TABLES = [
     SectionTopic,
     Series,
     SubtitleFile,
-    LyricFile,
+    LyricsFile,
     Superchat,
     SuperchatSegment,
     Thumbnail,

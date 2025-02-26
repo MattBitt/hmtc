@@ -436,12 +436,12 @@ class SubtitleFile(File):
         return f"SubtitleFile({self.id} - {self.path=})"
 
 
-class LyricFile(File):
+class LyricsFile(File):
     def __repr__(self):
-        return f"LyricFile({self.id} - {self.path=})"
+        return f"LyricsFile({self.id} - {self.path=})"
 
     def __str__(self):
-        return f"LyricFile({self.id} - {self.path=})"
+        return f"LyricsFile({self.id} - {self.path=})"
 
 
 class AudioFile(File):
@@ -476,14 +476,16 @@ class VideoFile(File):
 
 
 class TrackFiles(BaseModel):
-    FILETYPES = ["info", "audio", "video", "subtitle"]
+    FILETYPES = ["info", "audio", "video", "subtitle", "lyrics"]
 
     item = ForeignKeyField(Track, backref="files", unique=True)
     info = ForeignKeyField(InfoFile, null=True)
-    audio = ForeignKeyField(AudioFile, null=True)
+
     video = ForeignKeyField(VideoFile, null=True)
     subtitle = ForeignKeyField(SubtitleFile, null=True)
-
+    
+    audio = ForeignKeyField(AudioFile, null=True)
+    lyrics = ForeignKeyField(LyricsFile, null=True)
 
 class AlbumFiles(BaseModel):
     FILETYPES = ["info", "poster"]
@@ -549,7 +551,7 @@ __all__ = [
     "AudioFile",
     "VideoFile",
     "SubtitleFile",
-    "LyricFile",
+    "LyricsFile",
     "OmegleSection",
     "Thumbnail",
 ]

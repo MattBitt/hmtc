@@ -15,7 +15,7 @@ from hmtc.models import (
     BaseModel,
     ImageFile,
     InfoFile,
-    LyricFile,
+    LyricsFile,
     SubtitleFile,
     Thumbnail,
     VideoFile,
@@ -219,8 +219,11 @@ def process_file(file, target, stem):
             new_file = VideoFile.create(**file_dict)
 
         case "info":
-            if file_dict["path"].suffixes[-1] == ".nfo":
-                final_path = file_dict["path"]
+            if len(file_dict['path'].suffixes) > 0:
+                if file_dict["path"].suffixes[-1] == ".nfo":
+                    final_path = file_dict["path"]
+                else:
+                    raise ValueError(f"What kind of file is this???/")
             else:
                 final_path = file_dict["path"].with_suffix(".info.json")
             if file.parent != target.parent:
@@ -235,7 +238,7 @@ def process_file(file, target, stem):
                 MOVE_FILE(file, final_path)
             file_dict["path"] = final_path
 
-            new_file = LyricFile.create(**file_dict)
+            new_file = LyricsFile.create(**file_dict)
 
         case "subtitle":
 
@@ -279,7 +282,7 @@ def table_from_string(filetype) -> BaseModel:
         case "poster":
             return ImageFile
         case "lyrics":
-            return LyricFile
+            return LyricsFile
         case "subtitle":
             return SubtitleFile
 
@@ -290,6 +293,10 @@ class FileRepo:
         self.model = model
 
     def add(self, item: BaseModel, source: Path, target_path: Path, stem: str) -> None:
+        if not source.is_file():
+            logger.debug(f"Skipping folder")
+            return
+        
         filetype = get_filetype(source)
         if filetype in self.model.FILETYPES:
             try:
