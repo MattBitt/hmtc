@@ -17,13 +17,13 @@ refresh_counter = solara.reactive(1)
 
 
 @solara.component
-def SecondRow(section: Section):
+def SecondRow(video: Video):
     error = solara.use_reactive("")
     success = solara.use_reactive("")
 
     with solara.Column():
         with solara.Card("Section That Needs Info"):
-            with solara.Link(f"/api/videos/finetuner/{section.instance.video_id}"):
+            with solara.Link(f"/api/videos/finetuner/{video.instance.id}"):
                 solara.Button(
                     label=f"Fine Tuner",
                     icon_name=Icons.FINETUNER.value,
@@ -32,14 +32,14 @@ def SecondRow(section: Section):
 
 
 @solara.component
-def MainRow(section: Section):
-    if section.instance is None:
+def MainRow(video: Video):
+    if video.instance is None:
         with solara.Row(justify="center"):
             solara.Error("Instance is None...")
             return
     with solara.Card():
         with solara.Row(justify="center"):
-            solara.Text(f"{section.instance.title}")
+            solara.Text(f"{video.instance.title}")
 
 
 @solara.component
@@ -59,6 +59,7 @@ def PaginatedVideos():
     logger.debug(f"section ids found: {sids} ")
     vids_of_interest = [s.video_id for s in sections]
     logger.debug(f"Found {len(vids_of_interest)} videos with problematic sections")
+    logger.debug(f"{vids_of_interest=}")
     base_query = VideoModel.select().where(VideoModel.id.in_(vids_of_interest))
 
     page_query = base_query.order_by(VideoModel.duration.asc())
@@ -76,13 +77,14 @@ def PaginatedVideos():
     if current_page.value > num_pages:
         current_page.set(num_pages)
 
-    section = Section(_query.first())
+    video = Video(_query.first())
+
     with solara.Row(justify="center"):
         solara.Markdown(f"#### Sections Fine Tuned - with no Info (2/27/25)")
     with solara.Row(justify="center"):
-        MainRow(section)
+        MainRow(video)
     with solara.Row(justify="center"):
-        SecondRow(section)
+        SecondRow(video)
     with solara.Row(justify="center"):
         PaginationControls(
             current_page=current_page, num_pages=num_pages, num_items=num_items
