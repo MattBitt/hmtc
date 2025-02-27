@@ -11,7 +11,7 @@ from hmtc.domains.video import Video
 from hmtc.models import (
     DiscVideo as DiscVideoModel,
 )
-from hmtc.models import Track as TrackModel
+from hmtc.models import Video as VideoModel
 
 selected_videos = solara.reactive([])
 
@@ -31,16 +31,15 @@ def parse_url_args():
     return _album
 
 
-
 # show one of these for each disc in the album (if unlocked)
 # paginated
 @solara.component
 def DiscCard(disc: Disc, refresh_counter):
-    
+
     has_tracks = solara.use_reactive(disc.tracks().exists())
     num_sections = disc.num_sections()
     num_sections_ft = disc.num_sections(fine_tuned=True)
-    
+
     def move_up():
 
         album = Album(disc.instance.album)
@@ -137,12 +136,13 @@ def DiscCard(disc: Disc, refresh_counter):
                             icon_name=Icons.TRACK.value,
                             on_click=remove_tracks,
                         )
+
                         solara.Button(
-                            "Create Tracks",
+                            f"Create Tracks ({num_sections_ft if num_sections > 0 else ""})",
                             classes=["button"],
                             icon_name=Icons.TRACK.value,
                             on_click=create_tracks,
-                            disabled=(num_sections_ft == 0)
+                            disabled=(num_sections_ft == 0),
                         )
 
 
@@ -210,14 +210,35 @@ def AlbumCard(
 def AlbumDiscsSummary(album: Album, refresh_counter: solara.Reactive):
     solara.Text(f"{album.instance.title} {refresh_counter.value} Summary")
     first_vid = Video(album.instance.discs[0].dv.first().video_id)
-    with solara.Row():
+    total_video_duration = (
+        VideoModel.select(fn.SUM(VideoModel.duration))
+        .where(VideoModel.id.in_(album.discs_and_videos()))
+        .scalar()
+    )
+    with solara.Columns([6, 6]):
         solara.Image(first_vid.poster(thumbnail=False), width="450px")
-        solara.Text(f"{album.videos_count()} videos", classes=["video-info-text"])
-        solara.Text(f"{album.tracks_count()} tracks", classes=["video-info-text"])
-        solara.Text(f"{album.track_duration()} seconds", classes=["video-info-text"])
-        
-        
-    
+        with solara.Column():
+            with solara.Row():
+                solara.Text(
+                    f"{album.videos_count()} videos", classes=["video-info-text"]
+                )
+                solara.Text(
+                    f"{total_video_duration} seconds ", classes=["video-info-text"]
+                )
+            with solara.Row():
+                solara.Text(
+                    f"{album.tracks_count()} tracks", classes=["video-info-text"]
+                )
+                solara.Text(
+                    f"{album.track_duration()} seconds", classes=["video-info-text"]
+                )
+
+                if total_video_duration > 0:
+                    solara.Text(
+                        f"{album.track_duration()/total_video_duration}",
+                        classes=["video-info-text"],
+                    )
+
 
 @solara.component
 def AlbumDiscs(

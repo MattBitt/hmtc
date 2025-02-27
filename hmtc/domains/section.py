@@ -25,14 +25,11 @@ class Section(BaseDomain):
         }
 
     def my_title(self):
-        if self.instance.title is not None:
+        if self.instance.title is not None and self.instance.title != "":
             return self.instance.title
         _topics = [t.instance.text for t in self.topics()]
         if len(_topics) > 0:
             return ",".join(_topics)[:40]
-
-        if self.instance.comments is not None:
-            return self.instance.comments[:40]
 
         return None
 

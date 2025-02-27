@@ -134,5 +134,5 @@ def VideoInfoPanel(video_domain):
                     label=f"Fine Tuner",
                     icon_name=Icons.FINETUNER.value,
                     classes=["button"],
-                    disabled=(num_sections == 0)
+                    disabled=(num_sections == 0),
                 )

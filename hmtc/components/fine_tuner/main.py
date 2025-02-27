@@ -161,6 +161,15 @@ def SectionCard(section: Section):
     reactive_section = solara.use_reactive(section)
 
     def lock():
+        if section.instance.title == "" or section.instance.title is None:
+            section.instance.title = section.my_title()
+
+        if section.my_title() is None:
+            logger.error(
+                f"No Title or Topics entered for this section. Can't create a title from nothing."
+            )
+            return
+
         section.instance.fine_tuned = True
         section.instance.save()
         fine_tuned.set(True)

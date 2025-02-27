@@ -225,15 +225,23 @@ class Album(BaseDomain):
 
     def tracks_count(self):
         discs = DiscModel.select().where(DiscModel.album_id == self.instance.id)
-        n = TrackModel.select(fn.COUNT(TrackModel.id)).where(TrackModel.disc_id.in_(discs)).scalar()
+        n = (
+            TrackModel.select(fn.COUNT(TrackModel.id))
+            .where(TrackModel.disc_id.in_(discs))
+            .scalar()
+        )
         if n is None:
             return 0
         else:
             return n
-    
+
     def track_duration(self):
         discs = DiscModel.select().where(DiscModel.album_id == self.instance.id)
-        n = TrackModel.select(fn.SUM(TrackModel.length)).where(TrackModel.disc_id.in_(discs)).scalar()
+        n = (
+            TrackModel.select(fn.SUM(TrackModel.length))
+            .where(TrackModel.disc_id.in_(discs))
+            .scalar()
+        )
         if n is None:
             return 0
         else:
