@@ -223,6 +223,12 @@ def SectionsControls():
                         icon_name=Icons.FINETUNER.value,
                         classes=["button"],
                     )
+                with solara.Link(f"/api/videos/pipeline/sections"):
+                    solara.Button(
+                        "Sections",
+                        icon_name=Icons.SECTION.value,
+                        classes=["button"],
+                    )
 
 
 @solara.component
