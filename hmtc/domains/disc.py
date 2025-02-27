@@ -192,7 +192,29 @@ class Disc(BaseDomain):
         if num is None:
             return 0
         return num
+    
+    def num_sections(self, fine_tuned=False):
+        if self.num_videos_on_disc() > 1:
+            logger.error(f"Not implemented yet")
+            return 0
 
+        video = self.instance.dv.first().video
+        
+        query = (
+            SectionModel.select(fn.COUNT(SectionModel.id))
+            .where(SectionModel.video_id == video.id)
+            
+        )
+        if fine_tuned:
+            query = query.where(SectionModel.fine_tuned == True)
+        
+        num = query.scalar()
+        
+        if num is None:
+            return 0
+        return num
+        #return SectionModel.select(fn.COUNT(SectionModel.id)).where(SectionModel.video_id == self.)
+    
     def create_tracks(self):
         from hmtc.domains.section import Section
         from hmtc.domains.track import Track

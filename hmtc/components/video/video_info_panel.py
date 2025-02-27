@@ -47,7 +47,7 @@ def VideoInfoPanel(video_domain):
     ]  # list of sections in seconds
 
     section_percentage = sum(section_durations) / video.duration * 100
-
+    num_sections = len(sections)
     num_segments = 0
 
     with solara.Row(justify="center"):
@@ -134,4 +134,5 @@ def VideoInfoPanel(video_domain):
                     label=f"Fine Tuner",
                     icon_name=Icons.FINETUNER.value,
                     classes=["button"],
+                    disabled=(num_sections == 0)
                 )

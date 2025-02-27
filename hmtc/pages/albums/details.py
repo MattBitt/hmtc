@@ -30,16 +30,17 @@ def parse_url_args():
         raise ValueError(f"Album with ID {_id} NOT found")
     return _album
 
-    return _id
 
 
 # show one of these for each disc in the album (if unlocked)
 # paginated
 @solara.component
 def DiscCard(disc: Disc, refresh_counter):
-
+    
     has_tracks = solara.use_reactive(disc.tracks().exists())
-
+    num_sections = disc.num_sections()
+    num_sections_ft = disc.num_sections(fine_tuned=True)
+    
     def move_up():
 
         album = Album(disc.instance.album)
@@ -78,8 +79,10 @@ def DiscCard(disc: Disc, refresh_counter):
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
 
     with solara.Card(f"{card_title}"):
-        solara.Text(f"{disc.instance.folder_name}")
-        with solara.Columns([4, 8]):
+        with solara.Row():
+            solara.Text(f"{disc.instance.folder_name}")
+            solara.Text(f"{num_sections=} {num_sections_ft=}")
+        with solara.Columns([2, 10]):
             with solara.Row():
                 if dv is not None and dv.video is not None:
                     solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
@@ -139,6 +142,7 @@ def DiscCard(disc: Disc, refresh_counter):
                             classes=["button"],
                             icon_name=Icons.TRACK.value,
                             on_click=create_tracks,
+                            disabled=(num_sections_ft == 0)
                         )
 
 
@@ -149,12 +153,12 @@ def AlbumCard(
 ):
 
     def lock_discs():
-        # album.lock_discs()
+        album.lock_discs()
         discs_locked.set(True)
         refresh_counter.set(refresh_counter.value + 1)
 
     def unlock_discs():
-        # album.unlock_discs()
+        album.unlock_discs()
         discs_locked.set(False)
         refresh_counter.set(refresh_counter.value + 1)
 
@@ -206,8 +210,14 @@ def AlbumCard(
 def AlbumDiscsSummary(album: Album, refresh_counter: solara.Reactive):
     solara.Text(f"{album.instance.title} {refresh_counter.value} Summary")
     first_vid = Video(album.instance.discs[0].dv.first().video_id)
-    solara.Image(first_vid.poster(thumbnail=False), width="450px")
-
+    with solara.Row():
+        solara.Image(first_vid.poster(thumbnail=False), width="450px")
+        solara.Text(f"{album.videos_count()} videos", classes=["video-info-text"])
+        solara.Text(f"{album.tracks_count()} tracks", classes=["video-info-text"])
+        solara.Text(f"{album.track_duration()} seconds", classes=["video-info-text"])
+        
+        
+    
 
 @solara.component
 def AlbumDiscs(

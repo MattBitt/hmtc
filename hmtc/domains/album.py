@@ -13,6 +13,7 @@ from hmtc.models import Album as AlbumModel
 from hmtc.models import AlbumFiles, db_null
 from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.album_repo import AlbumRepo
 from hmtc.repos.file_repo import FileRepo
@@ -221,3 +222,19 @@ class Album(BaseDomain):
     def unlock_discs(self):
         self.instance.discs_order_locked = False
         self.instance.save()
+
+    def tracks_count(self):
+        discs = DiscModel.select().where(DiscModel.album_id == self.instance.id)
+        n = TrackModel.select(fn.COUNT(TrackModel.id)).where(TrackModel.disc_id.in_(discs)).scalar()
+        if n is None:
+            return 0
+        else:
+            return n
+    
+    def track_duration(self):
+        discs = DiscModel.select().where(DiscModel.album_id == self.instance.id)
+        n = TrackModel.select(fn.SUM(TrackModel.length)).where(TrackModel.disc_id.in_(discs)).scalar()
+        if n is None:
+            return 0
+        else:
+            return n
