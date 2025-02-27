@@ -19,6 +19,7 @@ from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
 from hmtc.models import Section as SectionModel
 from hmtc.models import SubtitleFile as SubtitleFileModel
 from hmtc.models import Topic as TopicModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.utils.importer.existing_files import (
     create_omegle_sections,
@@ -149,6 +150,21 @@ def reorder_exclusives():
         logger.debug(f"About to reorder {exclusive_disc} on album {album}")
 
 
+def create_tracks_from_ft_sections():
+    sections_with_tracks = TrackModel.select(TrackModel.section_id).distinct()
+    sections = SectionModel.select().where(
+        (SectionModel.fine_tuned == True)
+        & (SectionModel.id.not_in(sections_with_tracks))
+    )
+    for section in sections:
+        dv = section.video.dv.first()
+        if dv is None:
+            logger.debug(f"No disc (Album) assigned....")
+            return
+        disc = Disc(dv.disc_id)
+        disc.create_tracks()
+
+
 @solara.component
 def Folders():
     with solara.Card("Album Folders"):
@@ -185,6 +201,12 @@ def SectionsControls():
                     "Check for New Videos",
                     on_click=refresh_from_youtube,
                     icon_name=Icons.DOWNLOAD.value,
+                    classes=["button"],
+                )
+                solara.Button(
+                    "Create Tracks From FT Sections",
+                    on_click=create_tracks_from_ft_sections,
+                    icon_name=Icons.TRACK.value,
                     classes=["button"],
                 )
         with solara.Card("Pipelines"):
