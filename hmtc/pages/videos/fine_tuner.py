@@ -34,9 +34,12 @@ def Page():
     # using this page to fine tune sections
     # auto load the video in jellyfin if possible
     media = search_for_media("videos", video.instance.youtube_id)
-    load_media_item(media["Id"])
-    time.sleep(0.1)
-    jf_playpause()
+    if media is None:
+        solara.Error(f"No found in Jellyfin....")
+    else:
+        load_media_item(media["Id"])
+        time.sleep(0.1)
+        jf_playpause()
 
     with solara.Column(classes=["main-container"]):
         FineTuner(video)
