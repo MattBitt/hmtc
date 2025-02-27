@@ -346,7 +346,7 @@ class Disc(BaseDomain):
                     end_time=ms_to_hms_and_ms(sect.instance.end),
                 )
 
-                # add audio file to db
+                # add subtitle file to db
                 new_track.file_repo.add(
                     item=new_track.instance,
                     source=subtitle_file_path,
@@ -354,7 +354,7 @@ class Disc(BaseDomain):
                     stem=subtitle_file_path.name,
                 )
 
-                # add audio file to db
+                # add lyrics file to db
                 new_track.file_repo.add(
                     item=new_track.instance,
                     source=lyrics_file_path,

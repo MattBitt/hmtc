@@ -71,8 +71,15 @@ def NoAlbum(video, choosing_disc):
         if disc_folder_name == "Create New":
             _album.add_video(video=video.instance)
         else:
-            _disc = Disc.get_by(folder_name=disc_folder_name)
-            _album.add_video(video=video.instance, existing_disc=_disc.instance)
+            _disc = (
+                DiscModel.select()
+                .where(
+                    (DiscModel.folder_name == disc_folder_name)
+                    & (DiscModel.album_id == _album.instance.id)
+                )
+                .get()
+            )
+            _album.add_video(video=video.instance, existing_disc=_disc)
         # disc.set(_disc)
         #        album.set(_album)
         choosing_disc.set(False)

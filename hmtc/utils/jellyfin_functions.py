@@ -52,7 +52,9 @@ def jf_user_request(method, _url, params=None, data=None):
     elif resp.status_code == 204:
         return 204
     else:
-        logger.error(f"An error occurred while attempting to retrieve data from the API. {resp}")
+        logger.error(
+            f"An error occurred while attempting to retrieve data from the API. {resp}"
+        )
         return None
 
 
