@@ -23,9 +23,9 @@ from hmtc.pages.users.main import UsersHomePage
 from hmtc.pages.utils.settings import Page as SettingsPage
 from hmtc.pages.videos.details import Page as VideoDetails
 from hmtc.pages.videos.fine_tuner import Page as FineTunerPage
+from hmtc.pages.videos.pipelines.sections import Page as SectionsMissingTitles
 from hmtc.pages.videos.pipelines.vids_to_finetune import Page as VidstoFineTune
 from hmtc.pages.videos.pipelines.vids_to_sectionalize import Page as VidstoSectionalize
-from hmtc.pages.videos.pipelines.sections import Page as SectionsMissingTitles
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
 
 

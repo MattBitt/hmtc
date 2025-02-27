@@ -8,6 +8,7 @@ from hmtc.domains.section import Section
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Section as SectionModel
+from hmtc.models import SectionTopic as SectionTopicModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFiles as VideoFilesModel
 from hmtc.utils.general import paginate
@@ -16,44 +17,18 @@ refresh_counter = solara.reactive(1)
 
 
 @solara.component
-def SecondRow(
-    section: Section
-):
+def SecondRow(section: Section):
     error = solara.use_reactive("")
     success = solara.use_reactive("")
-    video = Video()
-    unique = solara.use_reactive(video.instance.unique_content)
-
-    def toggle_unique():
-        new_unique = not video.instance.unique_content
-        video.instance.unique_content = new_unique
-        video.instance.save()
-        unique.set(new_unique)
-        refresh_counter.set(refresh_counter.value + 1)
 
     with solara.Column():
-
-        with solara.Card("Other"):
-
-            with solara.ColumnsResponsive():
+        with solara.Card("Section That Needs Info"):
+            with solara.Link(f"/api/videos/finetuner/{section.instance.video_id}"):
                 solara.Button(
-                    f"Unique: {str(unique.value)}",
-                    on_click=toggle_unique,
-                    icon_name=Icons.UNIQUE.value,
+                    label=f"Fine Tuner",
+                    icon_name=Icons.FINETUNER.value,
                     classes=["button"],
                 )
-                with solara.Link(f"/api/videos/sectionalizer/{video.instance.id}"):
-                    solara.Button(
-                        f"Sectionalizer",
-                        icon_name=Icons.SECTION.value,
-                        classes=["button"],
-                    )
-                with solara.Link(f"/api/videos/finetuner/{video.instance.id}"):
-                    solara.Button(
-                        f"Fine Tuner",
-                        icon_name=Icons.FINETUNER.value,
-                        classes=["button"],
-                    )
 
 
 @solara.component
@@ -70,13 +45,20 @@ def MainRow(section: Section):
 @solara.component
 def PaginatedVideos():
     current_page = solara.use_reactive(1)
-
-    base_query = (
-        SectionModel.select().where((SectionModel.fine_tuned == True) & (SectionModel.title.is_null(True)))
+    sections_with_topics = SectionTopicModel.select(
+        SectionTopicModel.section_id
+    ).distinct()
+    sections = SectionModel.select().where(
+        (SectionModel.fine_tuned == True)
+        & ((SectionModel.title.is_null(True)) | (SectionModel.title == ""))
+        & (SectionModel.id.not_in(sections_with_topics))
     )
+    # sections = all sections without a title or topics and marked fine_tuned
+    # i want the video of each of these sections
+    vids_of_interest = [s.video_id for s in sections]
+    base_query = VideoModel.select().where(VideoModel.id.in_(vids_of_interest))
 
-
-    page_query = base_query.order_by(SectionModel.id.asc())
+    page_query = base_query.order_by(VideoModel.duration.asc())
 
     if len(page_query) == 0:
         solara.Warning(f"No Sections Found meeting these criteria.")
@@ -93,9 +75,7 @@ def PaginatedVideos():
 
     section = Section(_query.first())
     with solara.Row(justify="center"):
-        solara.Markdown(
-            f"#### Sections Fine Tuned - with no Info (2/27/25)"
-        )
+        solara.Markdown(f"#### Sections Fine Tuned - with no Info (2/27/25)")
     with solara.Row(justify="center"):
         MainRow(section)
     with solara.Row(justify="center"):
