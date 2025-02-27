@@ -17,10 +17,11 @@ from hmtc.models import db_null
 from hmtc.repos.disc_repo import DiscRepo
 from hmtc.utils.ffmpeg_utils import extract_audio, extract_video
 from hmtc.utils.general import clean_filename, paginate
-from hmtc.utils.mutagen_utils import write_id3_tags, write_mp4_metadata
-from hmtc.utils.time_functions import ms_to_hms_and_ms, seconds_to_hms
-from hmtc.utils.subtitles import extract_subs
 from hmtc.utils.lyric_utils import extract_lyrics
+from hmtc.utils.mutagen_utils import write_id3_tags, write_mp4_metadata
+from hmtc.utils.subtitles import extract_subs
+from hmtc.utils.time_functions import ms_to_hms_and_ms, seconds_to_hms
+
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "libraries"
 db_instance = init_db(db_null, config)
@@ -262,7 +263,7 @@ class Disc(BaseDomain):
             )
 
             new_track = Track.create_from_section(sect, track_number, self, title)
-            
+
             # seems like the jellyfin libraries work best with
             # id3 tags for audio and a title.nfo file for video
 
@@ -290,47 +291,41 @@ class Disc(BaseDomain):
             )
 
             # if i have subtitles, i should create them for the tracks as well
-            # jellyfin seems to want .srt files for the music video 
+            # jellyfin seems to want .srt files for the music video
             # and .lrc for the audio (haven't seen autoscroll work yet)
-            
-        
-        
+
             subtitle_file_path = Path(self.folder("video")) / f"{title}.srt"
             if subtitle_file_path.exists():
                 logger.error(f"{subtitle_file_path} already exists. Quitting")
                 return
             subtitle_file_path.parent.mkdir(exist_ok=True, parents=True)
-            
+
             lyrics_file_path = Path(self.folder("audio")) / f"{title}.lrc"
             if lyrics_file_path.exists():
                 logger.error(f"{lyrics_file_path} already exists. Quitting")
                 return
             lyrics_file_path.parent.mkdir(exist_ok=True, parents=True)
-            
+
             subtitle_input = video.file_repo.get(video.instance.id, "subtitle")
             if subtitle_input is not None:
                 subtitle_input_file = Path(subtitle_input.path)
                 if not subtitle_input_file.exists():
                     logger.error(f"{subtitle_input_file} already exists. Quitting")
                     return
-                
-                
+
                 extract_subs(
-                                    
                     input=subtitle_input_file,
                     output=subtitle_file_path,
                     start_time=sect.instance.start // 1000,
                     end_time=sect.instance.end // 1000,
-                
                 )
-                extract_lyrics(                
+                extract_lyrics(
                     input=subtitle_input_file,
                     output=lyrics_file_path,
                     start_time=ms_to_hms_and_ms(sect.instance.start),
                     end_time=ms_to_hms_and_ms(sect.instance.end),
                 )
-                
-                
+
                 # add audio file to db
                 new_track.file_repo.add(
                     item=new_track.instance,
@@ -338,7 +333,7 @@ class Disc(BaseDomain):
                     target_path=subtitle_file_path.parent,
                     stem=subtitle_file_path.name,
                 )
-                
+
                 # add audio file to db
                 new_track.file_repo.add(
                     item=new_track.instance,
@@ -346,8 +341,7 @@ class Disc(BaseDomain):
                     target_path=lyrics_file_path.parent,
                     stem=lyrics_file_path.name,
                 )
-            
-            
+
         logger.success(f"Finished creating {track_number} tracks")
 
     def remove_tracks(self):

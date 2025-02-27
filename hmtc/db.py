@@ -14,6 +14,7 @@ TABLES = [
     ChannelFiles,
     Disc,
     DiscVideo,
+    DiscFiles,
     InfoFile,
     ImageFile,
     Section,

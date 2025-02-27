@@ -163,7 +163,10 @@ def rip_subs_from_srt(input: Path, output: Path, time_range: tuple = None):
     extracted_subs = []
 
     for sub in subtitles:
-        if sub.start.total_seconds() >= start_time and sub.end.total_seconds() <= end_time:
+        if (
+            sub.start.total_seconds() >= start_time
+            and sub.end.total_seconds() <= end_time
+        ):
             extracted_subs.append(sub)
 
     with open(output, "w") as f:
@@ -176,7 +179,7 @@ def extract_subs(input: Path, output: Path, start_time: int, end_time: int):
 
     try:
         rip_subs_from_srt(input, output, (start_time, end_time))
-        
+
     except Exception as e:
         raise Exception(f"Error ripping track: {e}")
 

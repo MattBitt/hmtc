@@ -213,3 +213,11 @@ class Album(BaseDomain):
         p = paginate(query=album_discs, page=current_page.value, per_page=per_page)
 
         return p
+
+    def lock_discs(self):
+        self.instance.discs_order_locked = True
+        self.instance.save()
+
+    def unlock_discs(self):
+        self.instance.discs_order_locked = False
+        self.instance.save()

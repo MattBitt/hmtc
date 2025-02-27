@@ -219,7 +219,7 @@ def process_file(file, target, stem):
             new_file = VideoFile.create(**file_dict)
 
         case "info":
-            if len(file_dict['path'].suffixes) > 0:
+            if len(file_dict["path"].suffixes) > 0:
                 if file_dict["path"].suffixes[-1] == ".nfo":
                     final_path = file_dict["path"]
                 else:
@@ -296,7 +296,7 @@ class FileRepo:
         if not source.is_file():
             logger.debug(f"Skipping folder")
             return
-        
+
         filetype = get_filetype(source)
         if filetype in self.model.FILETYPES:
             try:

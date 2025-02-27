@@ -13,8 +13,6 @@ def create_lyrics_file(input_file: Path, output_file: Path, section):
         input_file, output_file, time_range=(section.start / 1000, section.end / 1000)
     )
 
- 
-
 
 # need a max limit for time range (in seconds)
 def convert_vtt_to_lrc(input_file: str, output_file: str, time_range=(0, 1000000)):
@@ -92,40 +90,42 @@ def convert_vtt_to_lrc(input_file: str, output_file: str, time_range=(0, 1000000
 
 def convert_srt_to_lrc(srt_file: Path, lrc_file: Path, time_range: tuple = None):
     """Converts an .srt file to a .lrc file, optionally filtering by time range."""
-    with open(srt_file, 'r', encoding='utf-8') as srt:
+    with open(srt_file, "r", encoding="utf-8") as srt:
         lines = srt.readlines()
 
     lrc_lines = []
     for line in lines:
-        if '-->' in line:
+        if "-->" in line:
             # Extract start and end times
-            time_info = line.split(' --> ')
+            time_info = line.split(" --> ")
             start_time = time_info[0].strip()
             end_time = time_info[1].strip()
 
             # Convert SRT time format to LRC time format
-            start_time_lrc = start_time.replace(',', '.')
-            end_time_lrc = end_time.replace(',', '.')
+            start_time_lrc = start_time.replace(",", ".")
+            end_time_lrc = end_time.replace(",", ".")
 
             # Check if the time range is specified
             if time_range:
                 if not (time_range[0] <= start_time_lrc <= time_range[1]):
                     continue
 
-            lrc_lines.append(f'[{start_time_lrc}]')
+            lrc_lines.append(f"[{start_time_lrc}]")
         elif line.strip() and lrc_lines:
             lrc_lines.append(line.strip())
 
-    with open(lrc_file, 'w', encoding='utf-8') as lrc:
-        lrc.write('\n'.join(lrc_lines) + '\n')
+    with open(lrc_file, "w", encoding="utf-8") as lrc:
+        lrc.write("\n".join(lrc_lines) + "\n")
+
 
 def extract_lyrics(input: Path, output: Path, start_time: int, end_time: int):
 
     try:
         convert_srt_to_lrc(input, output, (start_time, end_time))
-        
+
     except Exception as e:
         raise Exception(f"Error ripping track: {e}")
+
 
 if __name__ == "__main__":
     convert_srt_to_lrc("hmtc/utils/temp/6sYh6iuMUA8.srt", "hmtc/utils/temp/output.lrc")

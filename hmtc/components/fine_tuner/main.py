@@ -239,6 +239,7 @@ def FineTuner(video: Video):
     # 2/21/25
     # having issues with frontend updating between page loads
     # essentially disabling pagination here
+    # at least until a video has > 16 sections...
     per_page = 16
     HeaderRow(video)
     sections, num_sections, num_pages = video.sections_paginated(

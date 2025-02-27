@@ -103,6 +103,7 @@ class Album(BaseModel):
     title = CharField(unique=True)
     release_date = DateField(null=True)
     prefix = CharField(unique=True, null=True)
+    discs_order_locked = BooleanField(default=False)
 
     def __repr__(self):
         return f"AlbumModel({self.id} - {self.title=})"
@@ -115,7 +116,7 @@ class Disc(BaseModel):
     title = CharField()
     folder_name = CharField(null=True)  # likely Disk 1/2/3...
     order = IntegerField()  # disc order on the album
-
+    vids_order_locked = BooleanField(default=False)
     album = ForeignKeyField(Album, backref="discs", on_delete="CASCADE")
 
     class Meta:
@@ -483,9 +484,10 @@ class TrackFiles(BaseModel):
 
     video = ForeignKeyField(VideoFile, null=True)
     subtitle = ForeignKeyField(SubtitleFile, null=True)
-    
+
     audio = ForeignKeyField(AudioFile, null=True)
     lyrics = ForeignKeyField(LyricsFile, null=True)
+
 
 class AlbumFiles(BaseModel):
     FILETYPES = ["info", "poster"]
@@ -515,6 +517,14 @@ class ChannelFiles(BaseModel):
     poster = ForeignKeyField(ImageFile, null=True)
 
 
+class DiscFiles(BaseModel):
+    FILETYPES = ["info", "poster"]
+    PATH = STORAGE / "dont_use_me"
+    item = ForeignKeyField(Disc, backref="files", unique=True)
+    info = ForeignKeyField(InfoFile, null=True)
+    poster = ForeignKeyField(ImageFile, null=True)
+
+
 __all__ = [
     # ... existing entries ...
     "File",
@@ -533,6 +543,7 @@ __all__ = [
     "ChannelFiles",
     "Disc",
     "DiscVideo",
+    "DiscFiles",
     "Section",
     "SectionTopic",
     "Series",
