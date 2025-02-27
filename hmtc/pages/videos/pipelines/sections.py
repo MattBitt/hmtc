@@ -48,14 +48,17 @@ def PaginatedVideos():
     sections_with_topics = SectionTopicModel.select(
         SectionTopicModel.section_id
     ).distinct()
+    sids = [s.section.id for s in sections_with_topics]
     sections = SectionModel.select().where(
         (SectionModel.fine_tuned == True)
         & ((SectionModel.title.is_null(True)) | (SectionModel.title == ""))
-        & (SectionModel.id.not_in(sections_with_topics))
+        & (SectionModel.id.not_in(sids))
     )
     # sections = all sections without a title or topics and marked fine_tuned
     # i want the video of each of these sections
+    logger.debug(f"section ids found: {sids} ")
     vids_of_interest = [s.video_id for s in sections]
+    logger.debug(f"Found {len(vids_of_interest)} videos with problematic sections")
     base_query = VideoModel.select().where(VideoModel.id.in_(vids_of_interest))
 
     page_query = base_query.order_by(VideoModel.duration.asc())
