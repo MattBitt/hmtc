@@ -67,6 +67,8 @@ class Album(BaseDomain):
         }
 
     def add_video(self, video: VideoModel, existing_disc=None):
+        from hmtc.domains.video import Video
+
         logger.debug(f"Adding {video} to {self} ")
         last_disc = (
             DiscModel.select(fn.MAX(DiscModel.order))
@@ -94,12 +96,12 @@ class Album(BaseDomain):
                 order=last_disc + 1,
                 album_id=self.instance.id,
             )
+            disc_item = Disc(disc.id)
+            video_item = Video(video.id)
+            disc_item.use_poster_from_video(video_item)
             logger.success(f"Created disc: {disc}")
             dv = DiscVideoModel.create(video=video, disc=disc, order=1)
             logger.success(f"Created disc video: {dv}")
-        # how many discs do i have = n
-        # create a disc 'Disc n+1'
-        # create a discvideo
 
     def videos_count(self):
         _discs = self.instance.discs

@@ -116,20 +116,19 @@ def jf_post(url, data=None):
     return jf_request("POST", url, data=data)
 
 
-def create_jellyfin_playlist(title="New Playlist"):
-    # doesn't work as of 10/25/2024
+def create_jellyfin_playlist(title="New Playlist created from HMTC"):
     url = "/Playlists"
     favs = get_user_favorites()
     fav_ids = [x["Id"] for x in favs]
     payload = {
         "Name": str(title),
         "UserId": user_jf_id,
-        "MediaType": "Music",
+        "MediaType": "Unknown",
         "Ids": fav_ids,
         "Users": [{"UserId": user_jf_id, "CanEdit": True}],
-        "IsPublic": True,
+        "IsPublic": False,
     }
-    res = jf_user_post(url=url, data=payload)
+    res = jf_user_post(url=url, data=json.dumps(payload))
     return res
 
 
@@ -286,7 +285,7 @@ def sources_library_id():
 def tracks_library_id():
     libraries = get_user_libraries()
     for lib in libraries:
-        if lib["Name"] == "HarryMackTracks":
+        if lib["Name"] == "Tracks (videos)":
             return lib["Id"]
     return None
 
@@ -397,5 +396,5 @@ def load_media_item(media_id):
 
 if __name__ == "__main__":
 
-    media = search_for_media("videos", "lZutXgamSZI")
-    load_media_item(media["Id"])
+    res = search_for_media("tracks-videos", "asdf")
+    print(res)

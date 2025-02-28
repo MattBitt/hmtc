@@ -14,6 +14,7 @@ from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import Channel as ChannelModel
 from hmtc.models import Disc as DiscModel
+from hmtc.models import DiscFiles as DiscFilesModel
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import ImageFile, OmegleSection, Thumbnail, VideoFiles
 from hmtc.models import Section as SectionModel
@@ -68,6 +69,20 @@ def create_album_folders():
     for alb in albums:
         a = Album(alb.id)
         a.create_folders()
+
+
+def create_disc_posters():
+    discs_with_posters = DiscFilesModel.select().where(
+        DiscFilesModel.poster_id.is_null(False)
+    )
+    discs_without = DiscModel.select().where(DiscModel.id.not_in(discs_with_posters))
+    logger.debug(f"Found {len(discs_without)} missing posters")
+    for disc in discs_without:
+        _disc = Disc(disc)
+        vid = _disc.videos()[0]
+        video = Video(vid)
+        _disc.use_poster_from_video(video)
+        logger.debug(f"{video}")
 
 
 def zero_pad_disc_title(orig_title):
@@ -170,25 +185,11 @@ def Folders():
     with solara.Card("Album Folders"):
         with solara.Column():
             solara.Button(
-                "Create Album Folders",
-                on_click=create_album_folders,
-                icon_name=Icons.ALBUM.value,
-                classes=["button"],
-                disabled=True,  # ran on 2/23/25
-            )
-            solara.Button(
-                "Fix Album Disc Ordering",
-                on_click=fix_album_discs,
+                "Create Disc Posters",
+                on_click=create_disc_posters,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
-                disabled=True,  # ran on 2/23/25
-            )
-            solara.Button(
-                "Reorder Exclusive Discs - Video Order",
-                on_click=reorder_exclusives,
-                icon_name=Icons.DISC.value,
-                classes=["button"],
-                disabled=True,  # ran on 2/23/25
+                disabled=False,
             )
 
 

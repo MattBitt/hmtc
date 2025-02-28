@@ -1,3 +1,4 @@
+import shutil
 import time
 from pathlib import Path
 from typing import Any, Dict
@@ -46,6 +47,19 @@ def setup_folders(config):
         check_folder_exist_and_writable(path)
 
 
+def cleanup_output_folders(path):
+    if config["general"]["environment"] == "development":
+        for lib in ["video", "audio"]:
+            _path = Path(path / lib)
+            if _path.exists():
+                shutil.rmtree(Path(path / lib))
+            else:
+                logger.error(f"library folder {_path} doesn't exist.")
+        logger.warning(f"Deleted the Library Files")
+    else:
+        logger.error("You Shouldn't be here...")
+
+
 def main(config):
     setup_folders(config)
     setup_logging(config)
@@ -60,6 +74,7 @@ def main(config):
         seed_database_from_json(db_instance)
         import_existing_video_files_to_db(_STORAGE)
         rename_vids_for_albums(db_instance)
+        cleanup_output_folders(Path(config["STORAGE"]) / "libraries")
 
     else:
         create_tables(db_instance)

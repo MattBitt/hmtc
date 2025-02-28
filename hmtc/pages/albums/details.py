@@ -83,10 +83,7 @@ def DiscCard(disc: Disc, refresh_counter):
             solara.Text(f"{num_sections=} {num_sections_ft=}")
         with solara.Columns([2, 10]):
             with solara.Row():
-                if dv is not None and dv.video is not None:
-                    solara.Image(Video(dv.video).poster(thumbnail=True), width="150px")
-                else:
-                    solara.Error(f"No Poster found...")
+                solara.Image(disc.poster(thumbnail=True), width="150px")
 
             with solara.Row():
                 with solara.Column():

@@ -190,7 +190,7 @@ def FilesPanel(video: Video):
                 on_click=lambda: download_video(video),
                 classes=["button"],
             )
-        solara.Button(f"Create/Download Audio", classes=["button"])
+            solara.Button(f"Create/Download Audio", classes=["button"], disabled=True)
 
 
 @solara.component

@@ -9,20 +9,22 @@ from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.video import Video
 from hmtc.models import Disc as DiscModel
+from hmtc.models import DiscFiles, db_null
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
-from hmtc.models import db_null
 from hmtc.repos.disc_repo import DiscRepo
+from hmtc.repos.file_repo import FileRepo
 from hmtc.utils.ffmpeg_utils import extract_audio, extract_video
-from hmtc.utils.general import clean_filename, paginate
+from hmtc.utils.general import clean_filename, my_copy_file, paginate
 from hmtc.utils.lyric_utils import extract_lyrics
 from hmtc.utils.mutagen_utils import write_id3_tags, write_mp4_metadata
 from hmtc.utils.subtitles import extract_subs
 from hmtc.utils.time_functions import ms_to_hms_and_ms, seconds_to_hms
 
 config = init_config()
+WORKING = Path(config["WORKING"])
 STORAGE = Path(config["STORAGE"]) / "libraries"
 db_instance = init_db(db_null, config)
 
@@ -30,6 +32,7 @@ db_instance = init_db(db_null, config)
 class Disc(BaseDomain):
     model = DiscModel
     repo = DiscRepo()
+    file_repo = FileRepo(DiscFiles)
     libraries = ["audio", "video"]
 
     def serialize(self) -> Dict[str, Any]:
@@ -70,9 +73,12 @@ class Disc(BaseDomain):
         return int(self.instance.folder_name[-3:])
 
     def add_file(self, file: Path, library: str):
-        year = self.instance.upload_date.strftime("%Y")
         target_path = self.folder(library=library)
-        new_name = self.instance.youtube_id
+
+        # this is going to name everything as 'poster'
+        # need to differentiate between filetypes at some
+        # point.
+        new_name = "poster"
 
         self.file_repo.add(
             item=self.instance, source=file, target_path=target_path, stem=new_name
@@ -80,6 +86,12 @@ class Disc(BaseDomain):
 
     def tracks(self):
         return TrackModel.select().where(TrackModel.disc_id == self.instance.id)
+
+    def videos(self):
+        dvs = DiscVideoModel.select(DiscVideoModel.video_id).where(
+            DiscVideoModel.disc_id == self.instance.id
+        )
+        return VideoModel.select().where(VideoModel.id.in_(dvs))
 
     def videos_paginated(self, current_page, per_page):
         disc_vids = (
@@ -372,3 +384,15 @@ class Disc(BaseDomain):
         for track in self.tracks():
             t = Track(track.id)
             t.delete()
+
+    def use_poster_from_video(self, video: Video):
+        # need to update the image in both libraries (i think)
+        poster = video.file_repo.get(video.instance.id, "poster")
+        if poster is None:
+            logger.error(f"No Poster found for {video}")
+            return
+        # copy the poster to the working directory, then add it to the disc item
+        path = Path(poster.path)
+        target = WORKING / path.name
+        my_copy_file(path, target)
+        self.add_file(target, "video")

@@ -17,21 +17,26 @@ STORAGE = config["STORAGE"]
 
 
 def rename_vids_for_albums(db_instance):
+    # now just marking all existing videos unique
+    # in dev mode only
     vids = VideoModel.select().order_by(VideoModel.upload_date.asc())
-    if len(vids) < 4:
-        logger.error("Not enough videos")
-        return
-    for i, vid in enumerate(vids[:5]):
-        vid.title = f"Omegle Bars {i}"
+    for vid in vids:
         vid.unique_content = True
         vid.save()
-    for i, vid in enumerate(vids[5:8:]):
-        vid.title = f"Guerrilla Bars {i}"
-        vid.unique_content = True
-        vid.save()
-    for vid in vids[8:]:
-        vid.unique_content = True
-        vid.save()
+    # if len(vids) < 4:
+    #     logger.error("Not enough videos")
+    #     return
+    # for i, vid in enumerate(vids[:5]):
+    #     vid.title = f"Omegle Bars {i}"
+    #     vid.unique_content = True
+    #     vid.save()
+    # for i, vid in enumerate(vids[5:8:]):
+    #     vid.title = f"Guerrilla Bars {i}"
+    #     vid.unique_content = True
+    #     vid.save()
+    # for vid in vids[8:]:
+    #     vid.unique_content = True
+    #     vid.save()
 
 
 def seed_database_from_json(db_instance):
