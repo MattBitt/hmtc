@@ -182,7 +182,7 @@ def create_tracks_from_ft_sections():
 
 @solara.component
 def Folders():
-    with solara.Card("Album Folders"):
+    with solara.Card("Album"):
         with solara.Column():
             solara.Button(
                 "Create Disc Posters",
@@ -211,7 +211,7 @@ def SectionsControls():
                     classes=["button"],
                 )
         with solara.Card("Pipelines"):
-            with solara.Columns():
+            with solara.Column():
                 with solara.Link(f"/api/videos/pipeline/sectionalize"):
                     solara.Button(
                         "Sectionalize",
@@ -229,6 +229,7 @@ def SectionsControls():
                         "Sections",
                         icon_name=Icons.SECTION.value,
                         classes=["button"],
+                        disabled=True, # ran on 2/28/25
                     )
 
 

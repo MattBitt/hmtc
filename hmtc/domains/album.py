@@ -44,6 +44,19 @@ class Album(BaseDomain):
             folder = STORAGE / f"{lib}/Harry Mack/{cleaned_title}"
             folder.mkdir(exist_ok=True, parents=True)
 
+    def add_file(self, file: Path, library: str):
+        target_path = self.folder(library=library)
+
+        # this is going to name everything as 'poster'
+        # need to differentiate between filetypes at some
+        # point.
+        new_name = "poster"
+        if not file.exists():
+            raise ValueError(f"{file} doesn't exist. Quitting")
+        self.file_repo.add(
+            item=self.instance, source=file, target_path=target_path, stem=new_name
+        )
+
     def serialize(self) -> Dict[str, Any]:
         num_discs = (
             DiscModel.select(fn.COUNT(DiscModel.id))
