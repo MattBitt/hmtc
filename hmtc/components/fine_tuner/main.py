@@ -81,7 +81,6 @@ def NotCompletedSectionCard(reactive_section: solara.Reactive):
     def add_topic_to_section(topic_string):
         st = section.add_topic(topic_string)
         if st is None:
-            logger.error(f"Error adding topic.")
             return
 
         reactive_section.set(Section(section.instance.id))

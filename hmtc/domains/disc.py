@@ -195,14 +195,18 @@ class Disc(BaseDomain):
 
     def num_sections(self, fine_tuned=False):
         if self.num_videos_on_disc() > 1:
-            logger.error(f"Not implemented yet")
-            return 0
-
-        video = self.instance.dv.first().video
-
-        query = SectionModel.select(fn.COUNT(SectionModel.id)).where(
-            SectionModel.video_id == video.id
-        )
+            dvs = DiscVideoModel.select().where(
+                DiscVideoModel.disc_id == self.instance.id
+            )
+            vid_ids = [v.video_id for v in dvs]
+            query = SectionModel.select(fn.COUNT(SectionModel.id)).where(
+                SectionModel.video_id.in_(vid_ids)
+            )
+        else:
+            video = self.instance.dv.first().video
+            query = SectionModel.select(fn.COUNT(SectionModel.id)).where(
+                SectionModel.video_id == video.id
+            )
         if fine_tuned:
             query = query.where(SectionModel.fine_tuned == True)
 
@@ -217,152 +221,149 @@ class Disc(BaseDomain):
         from hmtc.domains.section import Section
         from hmtc.domains.track import Track
 
-        if self.num_videos_on_disc() > 1:
-            logger.error(f"Not implemented yet")
-            return
         if self.num_tracks() > 0:
             logger.error(f"Delete the tracks first")
             return
 
-        dv = (
-            DiscVideoModel.select()
-            .where(DiscVideoModel.disc_id == self.instance.id)
-            .get()
-        )
-        video = Video(dv.video.id)
+        dvs = DiscVideoModel.select().where(DiscVideoModel.disc_id == self.instance.id)
         track_number = 0
-        for section in video.sections():
-            track_number += 1
-            if track_number > 100:
-                logger.error(f"Too many tracks!!!!!")
-                return None
+        for dv in dvs:
+            video = Video(dv.video.id)
 
-            logger.debug(f"Creating a track from {section}")
-            sect = Section(section)
-            if sect.my_title() is None:
-                logger.error(f"No info found in section.")
-                return
-            prefix = self.instance.album.prefix
-            disc_number = str(int(self.instance.folder_name[-3:]))
-            if prefix is not None:
-                if int(disc_number) >= 100:
-                    title = f"{prefix}{disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
+            for section in video.sections():
+                if not section.fine_tuned:
+                    continue
+                track_number += 1
+                if track_number > 100:
+                    logger.error(f"Too many tracks!!!!!")
+                    return None
+
+                logger.debug(f"Creating a track from {section}")
+                sect = Section(section)
+                if sect.my_title() is None:
+                    logger.error(f"No info found in section.")
+                    return
+                prefix = self.instance.album.prefix
+                disc_number = str(int(self.instance.folder_name[-3:]))
+                if prefix is not None:
+                    if int(disc_number) >= 100:
+                        title = f"{prefix}{disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
+                    else:
+                        title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(2)} {sect.my_title()}"
                 else:
-                    title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(2)} {sect.my_title()}"
-            else:
-                title = f"{sect.my_title()}"
+                    title = f"{sect.my_title()}"
 
-            mp4_file_path = Path(self.folder("video")) / f"{title}.mp4"
-            if mp4_file_path.exists():
-                logger.error(f"{mp4_file_path} already exists. Quitting")
-                return
-            mp4_file_path.parent.mkdir(exist_ok=True, parents=True)
+                mp4_file_path = Path(self.folder("video")) / f"{title}.mp4"
+                if mp4_file_path.exists():
+                    logger.error(f"{mp4_file_path} already exists. Quitting")
+                    return
+                mp4_file_path.parent.mkdir(exist_ok=True, parents=True)
 
-            mp3_file_path = Path(self.folder("audio")) / f"{title}.mp3"
-            if mp3_file_path.exists():
-                logger.error(f"{mp3_file_path} already exists. Quitting")
-                return
-            mp3_file_path.parent.mkdir(exist_ok=True, parents=True)
+                mp3_file_path = Path(self.folder("audio")) / f"{title}.mp3"
+                if mp3_file_path.exists():
+                    logger.error(f"{mp3_file_path} already exists. Quitting")
+                    return
+                mp3_file_path.parent.mkdir(exist_ok=True, parents=True)
 
-            input_file = Path(video.file_repo.get(video.instance.id, "video").path)
-            if not input_file.exists():
-                logger.error(f"{input_file} already exists. Quitting")
-                return
-
-            extract_video(
-                input=input_file,
-                output=mp4_file_path,
-                start_time=ms_to_hms_and_ms(sect.instance.start),
-                end_time=ms_to_hms_and_ms(sect.instance.end),
-            )
-            extract_audio(
-                input=input_file,
-                output=mp3_file_path,
-                start_time=ms_to_hms_and_ms(sect.instance.start),
-                end_time=ms_to_hms_and_ms(sect.instance.end),
-            )
-
-            new_track = Track.create_from_section(sect, track_number, self, title)
-
-            # seems like the jellyfin libraries work best with
-            # id3 tags for audio and a title.nfo file for video
-
-            write_id3_tags(mp3_file_path, new_track.id3_dict())
-            nfo = new_track.create_nfo(mp4_file_path.parent)
-            new_track.file_repo.add(
-                item=new_track.instance,
-                source=nfo,
-                target_path=nfo.parent,
-                stem=nfo.name,
-            )
-            # add video file to db
-            new_track.file_repo.add(
-                item=new_track.instance,
-                source=mp4_file_path,
-                target_path=mp4_file_path.parent,
-                stem=mp4_file_path.name,
-            )
-            # add audio file to db
-            new_track.file_repo.add(
-                item=new_track.instance,
-                source=mp3_file_path,
-                target_path=mp3_file_path.parent,
-                stem=mp3_file_path.name,
-            )
-
-            # if i have subtitles, i should create them for the tracks as well
-            # jellyfin seems to want .srt files for the music video
-            # and .lrc for the audio (haven't seen autoscroll work yet)
-
-            subtitle_file_path = Path(self.folder("video")) / f"{title}.srt"
-            if subtitle_file_path.exists():
-                logger.error(f"{subtitle_file_path} already exists. Quitting")
-                return
-            subtitle_file_path.parent.mkdir(exist_ok=True, parents=True)
-
-            lyrics_file_path = Path(self.folder("audio")) / f"{title}.lrc"
-            if lyrics_file_path.exists():
-                logger.error(f"{lyrics_file_path} already exists. Quitting")
-                return
-            lyrics_file_path.parent.mkdir(exist_ok=True, parents=True)
-
-            subtitle_input = video.file_repo.get(video.instance.id, "subtitle")
-            if subtitle_input is not None:
-                subtitle_input_file = Path(subtitle_input.path)
-                if not subtitle_input_file.exists():
-                    logger.error(f"{subtitle_input_file} already exists. Quitting")
+                input_file = Path(video.file_repo.get(video.instance.id, "video").path)
+                if not input_file.exists():
+                    logger.error(f"{input_file} already exists. Quitting")
                     return
 
-                extract_subs(
-                    input=subtitle_input_file,
-                    output=subtitle_file_path,
-                    start_time=sect.instance.start // 1000,
-                    end_time=sect.instance.end // 1000,
+                extract_video(
+                    input=input_file,
+                    output=mp4_file_path,
+                    start_time=ms_to_hms_and_ms(sect.instance.start),
+                    end_time=ms_to_hms_and_ms(sect.instance.end),
                 )
-                extract_lyrics(
-                    input=subtitle_input_file,
-                    output=lyrics_file_path,
+                extract_audio(
+                    input=input_file,
+                    output=mp3_file_path,
                     start_time=ms_to_hms_and_ms(sect.instance.start),
                     end_time=ms_to_hms_and_ms(sect.instance.end),
                 )
 
-                # add subtitle file to db
+                new_track = Track.create_from_section(sect, track_number, self, title)
+
+                # seems like the jellyfin libraries work best with
+                # id3 tags for audio and a title.nfo file for video
+
+                write_id3_tags(mp3_file_path, new_track.id3_dict())
+                nfo = new_track.create_nfo(mp4_file_path.parent)
                 new_track.file_repo.add(
                     item=new_track.instance,
-                    source=subtitle_file_path,
-                    target_path=subtitle_file_path.parent,
-                    stem=subtitle_file_path.name,
+                    source=nfo,
+                    target_path=nfo.parent,
+                    stem=nfo.name,
                 )
-
-                # add lyrics file to db
+                # add video file to db
                 new_track.file_repo.add(
                     item=new_track.instance,
-                    source=lyrics_file_path,
-                    target_path=lyrics_file_path.parent,
-                    stem=lyrics_file_path.name,
+                    source=mp4_file_path,
+                    target_path=mp4_file_path.parent,
+                    stem=mp4_file_path.name,
+                )
+                # add audio file to db
+                new_track.file_repo.add(
+                    item=new_track.instance,
+                    source=mp3_file_path,
+                    target_path=mp3_file_path.parent,
+                    stem=mp3_file_path.name,
                 )
 
-        logger.success(f"Finished creating {track_number} tracks")
+                # if i have subtitles, i should create them for the tracks as well
+                # jellyfin seems to want .srt files for the music video
+                # and .lrc for the audio (haven't seen autoscroll work yet)
+
+                subtitle_file_path = Path(self.folder("video")) / f"{title}.srt"
+                if subtitle_file_path.exists():
+                    logger.error(f"{subtitle_file_path} already exists. Quitting")
+                    return
+                subtitle_file_path.parent.mkdir(exist_ok=True, parents=True)
+
+                lyrics_file_path = Path(self.folder("audio")) / f"{title}.lrc"
+                if lyrics_file_path.exists():
+                    logger.error(f"{lyrics_file_path} already exists. Quitting")
+                    return
+                lyrics_file_path.parent.mkdir(exist_ok=True, parents=True)
+
+                subtitle_input = video.file_repo.get(video.instance.id, "subtitle")
+                if subtitle_input is not None:
+                    subtitle_input_file = Path(subtitle_input.path)
+                    if not subtitle_input_file.exists():
+                        logger.error(f"{subtitle_input_file} already exists. Quitting")
+                        return
+
+                    extract_subs(
+                        input=subtitle_input_file,
+                        output=subtitle_file_path,
+                        start_time=sect.instance.start // 1000,
+                        end_time=sect.instance.end // 1000,
+                    )
+                    extract_lyrics(
+                        input=subtitle_input_file,
+                        output=lyrics_file_path,
+                        start_time=ms_to_hms_and_ms(sect.instance.start),
+                        end_time=ms_to_hms_and_ms(sect.instance.end),
+                    )
+
+                    # add subtitle file to db
+                    new_track.file_repo.add(
+                        item=new_track.instance,
+                        source=subtitle_file_path,
+                        target_path=subtitle_file_path.parent,
+                        stem=subtitle_file_path.name,
+                    )
+
+                    # add lyrics file to db
+                    new_track.file_repo.add(
+                        item=new_track.instance,
+                        source=lyrics_file_path,
+                        target_path=lyrics_file_path.parent,
+                        stem=lyrics_file_path.name,
+                    )
+
+            logger.success(f"Finished creating {track_number} tracks")
 
     def remove_tracks(self):
         from hmtc.domains.track import Track
