@@ -115,7 +115,7 @@ def DiscCard(disc: Disc, refresh_counter):
                         icon_name=Icons.DELETE.value,
                     )
                     solara.Button(
-                        "Move to Compilation Disc",
+                        "Compilation",
                         on_click=move_to_compilation_disc,
                         classes=["button"],
                         icon_name=Icons.MOVE.value,
@@ -243,7 +243,11 @@ def AlbumCard(
             album.move_disc_to_compilation(disc)
 
     def delete_tracks():
-        logger.debug(album.tracks())
+        for _disc in album.discs():
+            disc = Disc(_disc.id)
+            disc.remove_tracks()
+
+        refresh_counter.set(refresh_counter.value + 1)
 
     num_tracks = album.num_tracks()
 

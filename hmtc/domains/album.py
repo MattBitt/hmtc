@@ -223,13 +223,16 @@ class Album(BaseDomain):
             _disc = Disc(disc)
             _disc.delete()
 
-    def discs_paginated(self, current_page, per_page):
-        album_discs = (
+    def discs(self):
+        return (
             DiscModel.select()
             .where(DiscModel.album_id == self.instance.id)
             .order_by(DiscModel.order)
         )
-        p = paginate(query=album_discs, page=current_page.value, per_page=per_page)
+
+    def discs_paginated(self, current_page, per_page):
+
+        p = paginate(query=self.discs(), page=current_page.value, per_page=per_page)
 
         return p
 
