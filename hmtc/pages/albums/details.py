@@ -267,7 +267,6 @@ def AlbumCard(
                     f"Reset Disc Numbers",
                     on_click=reset_disc_numbers,
                     classes=["button mywarning"],
-                    disabled=True,
                 )
 
                 solara.Button(
