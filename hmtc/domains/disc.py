@@ -88,10 +88,12 @@ class Disc(BaseDomain):
         return TrackModel.select().where(TrackModel.disc_id == self.instance.id)
 
     def videos(self):
-        dvs = DiscVideoModel.select(DiscVideoModel.video_id).where(
-            DiscVideoModel.disc_id == self.instance.id
+        return (
+            VideoModel.select()
+            .join(DiscVideoModel, on=(VideoModel.id == DiscVideoModel.video_id))
+            .where(DiscVideoModel.disc_id == self.instance.id)
+            .order_by(DiscVideoModel.order.asc())
         )
-        return VideoModel.select().where(VideoModel.id.in_(dvs))
 
     def videos_paginated(self, current_page, per_page):
         disc_vids = (
