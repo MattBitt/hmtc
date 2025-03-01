@@ -233,7 +233,7 @@ def AlbumCard(
         discs = DiscModel.select().where(DiscModel.album_id == album.instance.id)
         for _disc in discs:
             disc = Disc(_disc)
-            if disc.num_videos_on_disc() > 1:
+            if disc.num_videos_on_disc() != 1:
                 continue
 
             video = disc.videos()[0]
@@ -241,6 +241,7 @@ def AlbumCard(
                 continue
 
             album.move_disc_to_compilation(disc)
+        refresh_counter.set(refresh_counter.value + 1)
 
     def delete_tracks():
         for _disc in album.discs():
