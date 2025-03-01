@@ -4,6 +4,7 @@ from enum import Enum
 class Icons(Enum):
     ALBUM = "mdi-album"
     ARTIST = "mdi-account"
+    AUDIO = "mdi-speaker"
     BEAT = "mdi-music"
     CHANNEL = "mdi-format-list-bulleted"
     DELETE = "mdi-delete"

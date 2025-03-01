@@ -29,6 +29,7 @@ from hmtc.utils.importer.existing_files import (
     import_existing_video_files_to_db,
     import_sections,
 )
+from hmtc.utils.mutagen_utils import write_id3_tags, write_mp4_metadata
 from hmtc.utils.subtitles import convert_vtt_to_srt
 from hmtc.utils.youtube_functions import (
     download_video_file,
@@ -180,6 +181,19 @@ def create_tracks_from_ft_sections():
         disc.create_tracks()
 
 
+def fix_id3_release_date():
+    from hmtc.domains.track import Track
+
+    tracks = TrackModel.select()
+    for _track in tracks:
+        track = Track(_track)
+
+        new_tag = dict(date=str(track.instance.disc.album.release_date)[0:4])
+        mp3_file = track.get_file("audio")
+        if mp3_file is not None:
+            write_id3_tags(mp3_file, new_tag)
+
+
 @solara.component
 def Folders():
     with solara.Card("Album"):
@@ -234,9 +248,22 @@ def SectionsControls():
 
 
 @solara.component
+def AlbumCard():
+
+    with solara.Card("Videos"):
+        with solara.Column():
+            solara.Button(
+                "Fix release date on ID3 tags",
+                on_click=fix_id3_release_date,
+                icon_name=Icons.AUDIO.value,
+                classes=["button"],
+            )
+
+
+@solara.component
 def Page():
     router = solara.use_router()
     SectionsControls()
     with solara.Columns([6, 6]):
         Folders()
-        solara.Markdown(f"Spacer...")
+        AlbumCard()
