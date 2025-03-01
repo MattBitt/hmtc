@@ -76,15 +76,17 @@ def DiscVideoCard(
         with solara.Row():
             solara.Text(f"{video.instance.upload_date}")
         with solara.Columns([2, 10]):
-            with solara.Row():
+            with solara.Column():
                 p = video.poster(thumbnail=True)
                 if p is not None:
-                    solara.Image(p, width="150px")
-                    solara.Button(
-                        icon_name=Icons.IMAGE.value,
-                        classes=["button"],
-                        on_click=use_poster,
-                    )
+                    with solara.Row(justify="center"):
+                        solara.Image(p, width="150px")
+                    with solara.Row(justify="center"):
+                        solara.Button(
+                            icon_name=Icons.IMAGE.value,
+                            classes=["button"],
+                            on_click=use_poster,
+                        )
                 else:
                     solara.Error(f"No Poster found for {video}")
 

@@ -241,7 +241,11 @@ class Album(BaseDomain):
         self.instance.discs_order_locked = False
         self.instance.save()
 
-    def tracks_count(self):
+    def tracks(self):
+        discs = DiscModel.select().where(DiscModel.album_id == self.instance.id)
+        return TrackModel.select().where(TrackModel.disc_id.in_(discs))
+
+    def num_tracks(self):
         discs = DiscModel.select().where(DiscModel.album_id == self.instance.id)
         n = (
             TrackModel.select(fn.COUNT(TrackModel.id))

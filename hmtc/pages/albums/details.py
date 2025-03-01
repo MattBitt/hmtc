@@ -242,6 +242,11 @@ def AlbumCard(
 
             album.move_disc_to_compilation(disc)
 
+    def delete_tracks():
+        logger.debug(album.tracks())
+
+    num_tracks = album.num_tracks()
+
     with solara.Row(justify="space-around"):
         with solara.Columns([4, 4, 4]):
             with solara.Column():
@@ -261,11 +266,19 @@ def AlbumCard(
                 )
 
                 solara.Button(
-                    f"Move Short Vids to Comp Disc",
+                    f"Delete Tracks",
+                    on_click=delete_tracks,
+                    icon_name=Icons.DELETE.value,
+                    classes=["button mywarning"],
+                    disabled=(num_tracks == 0),
+                )
+
+                solara.Button(
+                    f"Move Shorts",
                     on_click=move_short_vids,
                     icon_name=Icons.MOVE.value,
                     classes=["button"],
-                    disabled=False,  # planning on running on 3/1/25
+                    disabled=(num_tracks > 0),
                 )
 
             with SwapTransition(show_first=poster.value is not None, name="fade"):
@@ -330,9 +343,7 @@ def AlbumDiscsSummary(album: Album, refresh_counter: solara.Reactive):
                     f"{total_video_duration} seconds ", classes=["video-info-text"]
                 )
             with solara.Row():
-                solara.Text(
-                    f"{album.tracks_count()} tracks", classes=["video-info-text"]
-                )
+                solara.Text(f"{album.num_tracks()} tracks", classes=["video-info-text"])
                 solara.Text(
                     f"{album.track_duration()} seconds", classes=["video-info-text"]
                 )
