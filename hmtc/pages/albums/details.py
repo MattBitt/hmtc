@@ -13,6 +13,7 @@ from hmtc.db import init_db
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
+from hmtc.models import Disc as DiscModel
 from hmtc.models import (
     DiscVideo as DiscVideoModel,
 )
@@ -50,6 +51,7 @@ def DiscCard(disc: Disc, refresh_counter):
     has_tracks = solara.use_reactive(disc.tracks().exists())
     num_sections = disc.num_sections()
     num_sections_ft = disc.num_sections(fine_tuned=True)
+    num_tracks = disc.num_tracks()
 
     def move_up():
 
@@ -81,17 +83,47 @@ def DiscCard(disc: Disc, refresh_counter):
         .first()
     )
 
+    def move_to_compilation_disc():
+        from hmtc.domains.album import Album
+        from hmtc.domains.video import Video
+
+        comp_disc = (
+            DiscModel.select()
+            .where(
+                (DiscModel.title == "Disc 000")
+                & (DiscModel.album_id == disc.instance.album.id)
+            )
+            .get_or_none()
+        )
+        if comp_disc is None:
+            comp_disc = DiscModel.create(
+                title=f"Disc 000",
+                folder_name=f"Disc 000",
+                order=0,
+                album_id=disc.instance.album.id,
+            )
+        disc.delete()
+
+        _disc = Disc(comp_disc)
+        video = Video(dv.video.id)
+
+        album = Album(_disc.instance.album.id)
+
+        album.add_video(video.instance, existing_disc=_disc.instance)
+        refresh_counter.set(refresh_counter.value + 1)
+
     num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title[:40]}"
-
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
+
+    disable_move_to_comp = (num_videos_on_disc > 1) or disc.instance.title == "Disc 000"
 
     with solara.Card(f"{card_title}"):
         with solara.Row():
             solara.Text(f"{disc.instance.folder_name}")
-            solara.Text(f"{num_sections=} {num_sections_ft=}")
+            solara.Text(f"{num_sections=} {num_sections_ft=} {num_tracks=}")
         with solara.Columns([2, 10]):
             with solara.Row():
                 solara.Image(disc.poster(thumbnail=True), width="150px")
@@ -103,6 +135,13 @@ def DiscCard(disc: Disc, refresh_counter):
                         on_click=remove_disc,
                         classes=["button mywarning"],
                         icon_name=Icons.DELETE.value,
+                    )
+                    solara.Button(
+                        "Move to Compilation Disc",
+                        on_click=move_to_compilation_disc,
+                        classes=["button"],
+                        icon_name=Icons.MOVE.value,
+                        disabled=disable_move_to_comp,  # already a compilation
                     )
                 with solara.Column():
                     solara.Button(
@@ -144,9 +183,13 @@ def DiscCard(disc: Disc, refresh_counter):
                             icon_name=Icons.TRACK.value,
                             on_click=remove_tracks,
                         )
+                        if num_sections == 0:
+                            caption = "Create Sections First!"
+                        else:
+                            caption = f"Create Tracks ({num_sections_ft})"
 
                         solara.Button(
-                            f"Create Tracks ({num_sections_ft if num_sections > 0 else ""})",
+                            label=caption,
                             classes=["button"],
                             icon_name=Icons.TRACK.value,
                             on_click=create_tracks,
@@ -267,14 +310,17 @@ def AlbumCard(
 @solara.component
 def AlbumDiscsSummary(album: Album, refresh_counter: solara.Reactive):
     solara.Text(f"{album.instance.title} {refresh_counter.value} Summary")
-    first_vid = Video(album.instance.discs[0].dv.first().video_id)
+
     total_video_duration = (
         VideoModel.select(fn.SUM(VideoModel.duration))
         .where(VideoModel.id.in_(album.discs_and_videos()))
         .scalar()
     )
+    if total_video_duration is None:
+        total_video_duration = 0
+
     with solara.Columns([6, 6]):
-        solara.Image(first_vid.poster(thumbnail=False), width="450px")
+        solara.Image(album.poster(thumbnail=False), width="450px")
         with solara.Column():
             with solara.Row():
                 solara.Text(

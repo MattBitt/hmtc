@@ -43,6 +43,14 @@ def DiscVideoCard(
         disc.remove_video(video)
         refresh_counter.set(refresh_counter.value + 1)
 
+    def move_to_new_disc():
+        from hmtc.domains.album import Album
+
+        disc.remove_video(video)
+        album = Album(disc.instance.album.id)
+        album.add_video(video.instance)
+        refresh_counter.set(refresh_counter.value + 1)
+
     num_videos_on_disc = disc.num_videos_on_disc()
     order = (
         DiscVideoModel.select(DiscVideoModel.order)
@@ -60,20 +68,39 @@ def DiscVideoCard(
     else:
         card_title = f"Video {order}: {video.instance.title[:40]}"
 
-    with solara.Card(title=f"{card_title}", subtitle=f"{disc.instance.folder_name}"):
+    def use_poster():
+        disc.use_poster_from_video(video)
+        refresh_counter.set(refresh_counter.value + 1)
+
+    with solara.Card(title=f"{card_title}"):
         with solara.Row():
             solara.Text(f"{video.instance.upload_date}")
-        with solara.Columns([4, 8]):
+        with solara.Columns([2, 10]):
             with solara.Row():
-                solara.Image(video.poster(thumbnail=True), width="150px")
+                p = video.poster(thumbnail=True)
+                if p is not None:
+                    solara.Image(p, width="150px")
+                    solara.Button(
+                        icon_name=Icons.IMAGE.value,
+                        classes=["button"],
+                        on_click=use_poster,
+                    )
+                else:
+                    solara.Error(f"No Poster found for {video}")
 
             with solara.Row():
                 with solara.Column():
                     solara.Button(
-                        "Remove Video",
+                        "Remove from Album",
                         on_click=remove_video,
                         classes=["button mywarning"],
                         icon_name=Icons.DELETE.value,
+                    )
+                    solara.Button(
+                        "Move to New Disc",
+                        on_click=move_to_new_disc,
+                        classes=["button"],
+                        icon_name=Icons.MOVE.value,
                     )
                 with solara.Column():
                     solara.Button(

@@ -217,7 +217,12 @@ class Disc(BaseDomain):
                 SectionModel.video_id.in_(vid_ids)
             )
         else:
-            video = self.instance.dv.first().video
+            _x = self.instance.dv.get_or_none()
+            if _x is None:
+                logger.error(f"_x is none. lol")
+                return
+
+            video = _x.video
             query = SectionModel.select(fn.COUNT(SectionModel.id)).where(
                 SectionModel.video_id == video.id
             )
@@ -389,6 +394,10 @@ class Disc(BaseDomain):
 
     def use_poster_from_video(self, video: Video):
         # need to update the image in both libraries (i think)
+        existing_poster = self.file_repo.get(self.instance.id, "poster")
+        if existing_poster is not None:
+            self.file_repo.delete(self.instance.id, "poster")
+
         poster = video.file_repo.get(video.instance.id, "poster")
         if poster is None:
             logger.error(f"No Poster found for {video}")

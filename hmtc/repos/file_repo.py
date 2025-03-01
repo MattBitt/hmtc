@@ -409,7 +409,9 @@ class FileRepo:
         for filetype in self.model.FILETYPES:
             self.delete(item_id, filetype)
 
-        self.model.select().where(self.model.item_id == item_id).get().delete_instance()
+        x = self.model.select().where(self.model.item_id == item_id).get_or_none()
+        if x:
+            x.delete_instance()
 
     def num_files(self, another_item_id):
         item = (

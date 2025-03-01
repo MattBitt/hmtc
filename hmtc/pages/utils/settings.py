@@ -173,7 +173,7 @@ def create_tracks_from_ft_sections():
         & (SectionModel.id.not_in(sections_with_tracks))
     )
     for section in sections:
-        dv = section.video.dv.first()
+        dv = section.video.dv.get_or_none()
         if dv is None:
             logger.debug(f"No disc (Album) assigned....")
             return
@@ -223,7 +223,7 @@ def Folders():
                 on_click=create_disc_posters,
                 icon_name=Icons.DISC.value,
                 classes=["button"],
-                disabled=False,
+                disabled=True,  # ran in prod on 3/1/25
             )
 
 
@@ -277,12 +277,14 @@ def AlbumCard():
                 on_click=update_album_release_dates,
                 icon_name=Icons.ALBUM.value,
                 classes=["button"],
+                disabled=True,  # ran in prod on 3/1/25
             )
             solara.Button(
                 "Fix release date on ID3 tags",
                 on_click=fix_id3_release_date,
                 icon_name=Icons.AUDIO.value,
                 classes=["button"],
+                disabled=True,  # ran in prod on 3/1/25
             )
 
 
