@@ -14,18 +14,6 @@ from hmtc.domains.album import Album
 from hmtc.models import Album as AlbumModel
 
 
-def parse_url_args():
-    router = solara.use_router()
-    level = solara.use_route_level()
-
-    logger.debug(f"Router Parts: {router.parts}")
-    logger.debug(f"Router Level: {level}")
-
-
-def view_details(router, item):
-    router.push(f"/domains/album-details/{item['id']}")
-
-
 @solara.component
 def NewAlbum():
     new_item = solara.use_reactive("")
@@ -70,8 +58,6 @@ def NewAlbum():
 def Page():
 
     router = solara.use_router()
-
-    parse_url_args()
 
     headers = [
         {

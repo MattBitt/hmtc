@@ -1,3 +1,5 @@
+import os
+import shutil
 from pathlib import Path
 
 import peewee
@@ -166,6 +168,15 @@ def reorder_exclusives():
         logger.debug(f"About to reorder {exclusive_disc} on album {album}")
 
 
+def delete_empty_folders():
+    library_folder = STORAGE / "libraries"
+    for item in library_folder.glob("**/*"):
+        if item.is_file():
+            continue
+        if len(os.listdir(item)) == 0:
+            shutil.rmtree(item)
+
+
 def create_tracks_from_ft_sections():
     sections_with_tracks = TrackModel.select(TrackModel.section_id).distinct()
     sections = SectionModel.select().where(
@@ -273,11 +284,11 @@ def AlbumCard():
     with solara.Card("Videos"):
         with solara.Column():
             solara.Button(
-                "Update album release date to match first vid",
-                on_click=update_album_release_dates,
-                icon_name=Icons.ALBUM.value,
-                classes=["button"],
-                disabled=True,  # ran in prod on 3/1/25
+                "Delete Empty Folders in Libraries",
+                on_click=delete_empty_folders,
+                icon_name=Icons.DELETE.value,
+                classes=["button mywarning"],
+                disabled=False,
             )
             solara.Button(
                 "Fix release date on ID3 tags",

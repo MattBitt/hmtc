@@ -11,7 +11,7 @@ T = TypeVar("T", bound="BaseDomain")
 class BaseDomain:
     model: Model = None
     repo = None
-    file_repo = NotImplementedError("file_repo not implemented")
+    file_repo = None
 
     def __init__(self, item_id: Optional[int] = None):
         if item_id and self.repo is not None:
@@ -29,7 +29,8 @@ class BaseDomain:
             self.instance.save()
 
     def delete(self) -> None:
-        self.file_repo.delete_files(self.instance.id)
+        if self.file_repo is not None:
+            self.file_repo.delete_files(self.instance.id)
 
         if self.instance:
             self.instance.delete_instance()
@@ -70,7 +71,7 @@ class BaseDomain:
 
     # the methods for the domains that include files
     def add_file(self, file: Path):
-        raise NotImplemented
+        raise ValueError(f"asdfasdfasdf")
 
     def get_file(self, filetype) -> Path | None:
         _file = self.file_repo.get(item_id=self.instance.id, filetype=filetype)
