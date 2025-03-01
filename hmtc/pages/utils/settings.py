@@ -281,7 +281,7 @@ def SectionsControls():
 @solara.component
 def AlbumCard():
 
-    with solara.Card("Videos"):
+    with solara.Card("Quick Fixes"):
         with solara.Column():
             solara.Button(
                 "Delete Empty Folders in Libraries",
