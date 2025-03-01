@@ -184,6 +184,9 @@ def create_tracks_from_ft_sections():
 def fix_id3_release_date():
     from hmtc.domains.track import Track
 
+    # this was used to fix the initial tracks created with
+    # the video upload date as the id3 tag. this made jf
+    # saw the albums as sepearate.
     tracks = TrackModel.select()
     for _track in tracks:
         track = Track(_track)
@@ -192,6 +195,23 @@ def fix_id3_release_date():
         mp3_file = track.get_file("audio")
         if mp3_file is not None:
             write_id3_tags(mp3_file, new_tag)
+
+
+def update_album_release_dates():
+    from hmtc.domains.album import Album
+
+    albums = AlbumModel.select()
+    for _album in albums:
+        album = Album(_album)
+        first_vid = (
+            album.discs_and_videos()
+            .order_by(VideoModel.upload_date.asc())
+            .get_or_none()
+        )
+
+        if first_vid is not None:
+            album.instance.release_date = first_vid.upload_date
+            album.instance.save()
 
 
 @solara.component
@@ -252,6 +272,12 @@ def AlbumCard():
 
     with solara.Card("Videos"):
         with solara.Column():
+            solara.Button(
+                "Update album release date to match first vid",
+                on_click=update_album_release_dates,
+                icon_name=Icons.ALBUM.value,
+                classes=["button"],
+            )
             solara.Button(
                 "Fix release date on ID3 tags",
                 on_click=fix_id3_release_date,
