@@ -9,6 +9,23 @@ from pathlib import Path
 
 from loguru import logger
 
+from hmtc.assets.colors import Colors
+
+
+# sets the color of the app bar based on the current dev enviorment
+def get_app_bar_color(env) -> str:
+
+    match env:
+        case "development":
+            color = Colors.ERROR
+        case "staging":
+            color = Colors.WARNING
+        case "production":
+            color = Colors.PRIMARY
+        case _:
+            color = Colors.SUCCESS
+    return str(color)
+
 
 def clean_filename(dirty):
     return re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", dirty)

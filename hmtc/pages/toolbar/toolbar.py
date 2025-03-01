@@ -9,18 +9,8 @@ from hmtc.utils.version_manager import get_version
 VERSION = f"v{get_version()}"
 
 
-@solara.component_vue("./AvatarMenu.vue")
-def AvatarMenu(user, version, event_logout_user):
-    pass
-
-
 @solara.component
-def MainToolbar(user, logged_in):
-
-    def logout_user(*args):
-        logger.debug(args)
-        user.set(None)
-        logged_in.set(False)
+def MainToolbar():
 
     with solara.Row(style={"background-color": Colors.PRIMARY}):
         with solara.Link(f"/"):
@@ -50,10 +40,6 @@ def MainToolbar(user, logged_in):
                 icon_name=Icons.SANDBOX.value,
                 icon=True,
             )
-
-        if user.value:
-            AvatarMenu(
-                user=user.value.serialize(),
-                version=VERSION,
-                event_logout_user=logout_user,
-            )
+        with solara.Row(style={"background-color": Colors.PRIMARY}):
+            ver = VERSION.split(".")[-1]
+            solara.Text(f"{ver}", classes=["seven-seg-tiny", "mt-2", "mr-2"])
