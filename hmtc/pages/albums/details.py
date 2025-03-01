@@ -1,13 +1,15 @@
-import solara
 import shutil
 from pathlib import Path
+
+import solara
 from loguru import logger
 from peewee import fn
-from hmtc.config import init_config
-from hmtc.db import init_db
+
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.shared import PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
+from hmtc.config import init_config
+from hmtc.db import init_db
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
@@ -17,13 +19,13 @@ from hmtc.models import (
 from hmtc.models import Video as VideoModel
 from hmtc.repos.file_repo import get_filetype
 
-
 selected_videos = solara.reactive([])
 
 config = init_config()
 
 STORAGE = Path(config["STORAGE"]) / "libraries"
 WORKING = Path(config["WORKING"])
+
 
 def parse_url_args():
     router = solara.use_router()
@@ -61,7 +63,7 @@ def DiscCard(disc: Disc, refresh_counter):
         album.move_disc_down(disc)
         refresh_counter.set(refresh_counter.value + 1)
 
-    def remove_video():
+    def remove_disc():
         disc.delete()
         refresh_counter.set(refresh_counter.value + 1)
 
@@ -98,7 +100,7 @@ def DiscCard(disc: Disc, refresh_counter):
                 with solara.Column():
                     solara.Button(
                         "Delete Disc",
-                        on_click=remove_video,
+                        on_click=remove_disc,
                         classes=["button mywarning"],
                         icon_name=Icons.DELETE.value,
                     )
@@ -158,6 +160,8 @@ def AlbumCard(
     album: Album, refresh_counter: solara.Reactive, discs_locked: solara.Reactive
 ):
 
+    poster = solara.use_reactive(album.poster())
+
     def lock_discs():
         album.lock_discs()
         discs_locked.set(True)
@@ -186,21 +190,26 @@ def AlbumCard(
             logger.error(f"Only taking posters. Not {ft} {file}")
             return
 
-        new_file = WORKING / 'poster.jpg'
-        new_file2 = WORKING / 'poster2.jpg'
-        
-        with open(new_file , 'wb') as f:
-            f.write(file['file_obj'].read())
-        
+        new_file = WORKING / "poster.jpg"
+        new_file2 = WORKING / "poster2.jpg"
+
+        with open(new_file, "wb") as f:
+            f.write(file["file_obj"].read())
+
         shutil.copy(new_file, new_file2)
-        
+
         album.add_file(new_file, "video")
         album.add_file(new_file2, "audio")
-        
+
         logger.debug(f"Adding poster to {album} {ft}")
+        poster.set(album.poster())
+
+    def remove_poster():
+        album.file_repo.delete(album.instance.id, "poster")
+        poster.set("Placeholder Image")
 
     with solara.Row(justify="space-around"):
-        with solara.Columns([4,4,4]):
+        with solara.Columns([4, 4, 4]):
             with solara.Column():
                 solara.Button(
                     f"Delete All Discs",
@@ -216,11 +225,15 @@ def AlbumCard(
                     classes=["button mywarning"],
                     disabled=True,
                 )
+            with SwapTransition(show_first=poster.value is not None, name="fade"):
+                with solara.Column():
+                    solara.Markdown(f"# {album.instance.title}")
+                    solara.Image(poster.value, width="300px")
+                with solara.Column():
+                    solara.Markdown(f"# {album.instance.title}")
+                    solara.Markdown(f"# No poster found. Add one now!")
+
             with solara.Column():
-                solara.Markdown(f"# {album.instance.title}")
-                solara.Image(album.poster(), width="300px")
-                
-            with solara.Column():   
                 with SwapTransition(show_first=discs_locked.value, name="fade"):
                     solara.Button(
                         f"Unlock Discs",
@@ -234,7 +247,19 @@ def AlbumCard(
                         icon_name=Icons.LOCK.value,
                         classes=["button"],
                     )
-                solara.FileDrop(label="Drop file to see dataframe!", on_file=add_poster, lazy=True)
+                with SwapTransition(
+                    show_first=poster.value == "Placeholder Image", name="fade"
+                ):
+                    solara.FileDrop(
+                        label=f"Add a Poster for {album.instance.title}!",
+                        on_file=add_poster,
+                        lazy=True,
+                    )
+                    solara.Button(
+                        f"Delete the album poster.",
+                        on_click=remove_poster,
+                        classes=["button"],
+                    )
 
 
 # shows when the discs have been locked. can assume at least

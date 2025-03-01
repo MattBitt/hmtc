@@ -17,8 +17,10 @@ from hmtc.models import (
     InfoFile,
     LyricsFile,
     SubtitleFile,
-    Thumbnail,
     VideoFile,
+)
+from hmtc.models import (
+    Thumbnail as ThumbnailModel,
 )
 from hmtc.utils.subtitles import convert_vtt_to_srt
 
@@ -139,7 +141,9 @@ def create_thumbnail(image, imagefile_id):
         logger.error("This is a thumbnail already.")
         return
     outfile = image.parent / (image.stem + ".thumbnail.jpg")
-    existing = Thumbnail.select().where(Thumbnail.path == str(outfile)).get_or_none()
+    existing = (
+        ThumbnailModel.select().where(ThumbnailModel.path == str(outfile)).get_or_none()
+    )
     if outfile.exists():
         if existing:
             logger.error(f"Do {outfile} and {existing} point to the same thing?")
@@ -152,7 +156,7 @@ def create_thumbnail(image, imagefile_id):
             im = im.convert("RGB")
         im.thumbnail(size, Image.Resampling.LANCZOS)
         im.save(outfile, "JPEG")
-        thumb = Thumbnail.create(path=outfile, image_id=imagefile_id)
+        thumb = ThumbnailModel.create(path=outfile, image_id=imagefile_id)
         thumb.save()
         # logger.success(f"Created thumbnail for {image} and {imagefile_id}")
 
@@ -321,6 +325,7 @@ class FileRepo:
                 return file["file"]
 
     def delete(self, item_id: int, filetype: str):
+
         files = self.my_files(item_id)
         for file in files:
             if file["filetype"] == filetype:
@@ -335,9 +340,10 @@ class FileRepo:
                     .where((self.model.item_id == item_id))
                     .get_or_none()
                 )
+                if item_file_row is None:
+                    raise ValueError(f"{item_file_row} is None")
 
                 if filetype == "video":
-                    logger.debug(f"Found {filetype} file. Deleting")
                     file_id = item_file_row.video.id
                     item_file_row.video = None
                     item_file_row.save()
@@ -345,32 +351,65 @@ class FileRepo:
                     res2 = VideoFile.select().where(VideoFile.id == file_id).get()
                     res2.delete_instance()
 
+                elif filetype == "poster":
+                    file_id = item_file_row.poster.id
+                    item_file_row.poster = None
+                    item_file_row.save()
+
+                    res2 = ImageFile.select().where(ImageFile.id == file_id).get()
+                    thumb = (
+                        ThumbnailModel.select()
+                        .where(ThumbnailModel.image_id == res2.id)
+                        .get()
+                    )
+                    Path(thumb.path).unlink()
+                    thumb.delete_instance()
+                    res2.delete_instance()
+
+                elif filetype == "audio":
+                    file_id = item_file_row.audio.id
+                    item_file_row.audio = None
+                    item_file_row.save()
+
+                    res2 = AudioFile.select().where(AudioFile.id == file_id).get()
+                    res2.delete_instance()
+
+                elif filetype == "subtitle":
+                    file_id = item_file_row.subtitle.id
+                    item_file_row.subtitle = None
+                    item_file_row.save()
+
+                    res2 = SubtitleFile.select().where(SubtitleFile.id == file_id).get()
+                    res2.delete_instance()
+
+                elif filetype == "info":
+                    file_id = item_file_row.info.id
+                    item_file_row.info = None
+                    item_file_row.save()
+
+                    res2 = InfoFile.select().where(InfoFile.id == file_id).get()
+                    res2.delete_instance()
+
+                elif filetype == "lyrics":
+                    file_id = item_file_row.lyrics.id
+                    item_file_row.lyrics = None
+                    item_file_row.save()
+
+                    res2 = LyricsFile.select().where(LyricsFile.id == file_id).get()
+                    res2.delete_instance()
+                else:
+                    raise ValueError(
+                        f"{filetype} not understood. What are you deleting?"
+                    )
                 logger.success(f"Deleted {filetype} {file} successfully.")
                 path.unlink()
 
     def delete_files(self, item_id):
-        # this function is incomplete (at best)
-        # only mentioned info files, but don't think i tested
-        # it much...
-        item_file_row = (
-            self.model.select().where((self.model.item_id == item_id)).get_or_none()
-        )
 
         for filetype in self.model.FILETYPES:
+            self.delete(item_id, filetype)
 
-            if filetype == "info":
-                info_file = Path(item_file_row.info.path)
-                info_file.unlink()
-                file_id = item_file_row.info.id
-                item_file_row.info = None
-                item_file_row.save()
-
-                logger.debug(f"Found {filetype} file. Deleting")
-
-                res2 = InfoFile.select().where(InfoFile.id == file_id).get()
-                res2.delete_instance()
-
-        item_file_row.delete_instance()
+        self.model.select().where(self.model.item_id == item_id).get().delete_instance()
 
     def num_files(self, another_item_id):
         item = (

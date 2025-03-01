@@ -11,8 +11,10 @@ from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.disc import Disc
 from hmtc.models import Album as AlbumModel
 from hmtc.models import AlbumFiles, db_null
+from hmtc.models import AlbumFiles as AlbumFilesModel
 from hmtc.models import Disc as DiscModel
 from hmtc.models import DiscVideo as DiscVideoModel
+from hmtc.models import Thumbnail as ThumbnailModel
 from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.repos.album_repo import AlbumRepo
@@ -78,6 +80,33 @@ class Album(BaseDomain):
             "num_discs": num_discs,
             "num_videos": num_videos,
         }
+
+    def delete(self):
+        # added this on 2/28/25. copied from the video domain class
+        logger.debug("deleting from the Video domain class")
+        df = (
+            AlbumFilesModel.select()
+            .where(AlbumFilesModel.item_id == self.instance.id)
+            .get_or_none()
+        )
+        if df is not None:
+            for ft in AlbumFilesModel.FILETYPES:
+                file_model = getattr(df, ft)
+                if file_model is not None:
+                    if ft == "poster":
+                        thumb = (
+                            ThumbnailModel.select()
+                            .where(ThumbnailModel.image_id == file_model.id)
+                            .get()
+                        )
+                        Path(thumb.path).unlink()
+                        thumb.delete_instance()
+                    Path(file_model.path).unlink()
+                    setattr(df, ft, None)
+                    df.save()
+                    file_model.delete_instance()
+            df.delete_instance()
+        self.instance.delete_instance()
 
     def add_video(self, video: VideoModel, existing_disc=None):
         from hmtc.domains.video import Video

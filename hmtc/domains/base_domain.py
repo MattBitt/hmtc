@@ -29,11 +29,7 @@ class BaseDomain:
             self.instance.save()
 
     def delete(self) -> None:
-        try:
-            self.file_repo.delete_files(self.instance.id)
-        except Exception as e:
-            if not isinstance(self.file_repo, NotImplementedError):
-                logger.debug(f"Error Deleting Files {e}")
+        self.file_repo.delete_files(self.instance.id)
 
         if self.instance:
             self.instance.delete_instance()

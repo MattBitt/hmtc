@@ -229,7 +229,7 @@ def SectionsControls():
                         "Sections",
                         icon_name=Icons.SECTION.value,
                         classes=["button"],
-                        disabled=True, # ran on 2/28/25
+                        disabled=True,  # ran on 2/28/25
                     )
 
 
