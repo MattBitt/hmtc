@@ -84,32 +84,10 @@ def DiscCard(disc: Disc, refresh_counter):
     )
 
     def move_to_compilation_disc():
-        from hmtc.domains.album import Album
-        from hmtc.domains.video import Video
 
-        comp_disc = (
-            DiscModel.select()
-            .where(
-                (DiscModel.title == "Disc 000")
-                & (DiscModel.album_id == disc.instance.album.id)
-            )
-            .get_or_none()
-        )
-        if comp_disc is None:
-            comp_disc = DiscModel.create(
-                title=f"Disc 000",
-                folder_name=f"Disc 000",
-                order=0,
-                album_id=disc.instance.album.id,
-            )
-        disc.delete()
+        album = Album(disc.instance.album.id)
+        album.move_disc_to_compilation(disc)
 
-        _disc = Disc(comp_disc)
-        video = Video(dv.video.id)
-
-        album = Album(_disc.instance.album.id)
-
-        album.add_video(video.instance, existing_disc=_disc.instance)
         refresh_counter.set(refresh_counter.value + 1)
 
     num_videos_on_disc = disc.num_videos_on_disc()
@@ -251,6 +229,19 @@ def AlbumCard(
         album.file_repo.delete(album.instance.id, "poster")
         poster.set("Placeholder Image")
 
+    def move_short_vids():
+        discs = DiscModel.select().where(DiscModel.album_id == album.instance.id)
+        for _disc in discs:
+            disc = Disc(_disc)
+            if disc.num_videos_on_disc() > 1:
+                continue
+
+            video = disc.videos()[0]
+            if video.duration > 600:  # 10 minutes
+                continue
+
+            album.move_disc_to_compilation(disc)
+
     with solara.Row(justify="space-around"):
         with solara.Columns([4, 4, 4]):
             with solara.Column():
@@ -268,6 +259,15 @@ def AlbumCard(
                     classes=["button mywarning"],
                     disabled=True,
                 )
+
+                solara.Button(
+                    f"Move Short Vids to Comp Disc",
+                    on_click=move_short_vids,
+                    icon_name=Icons.MOVE.value,
+                    classes=["button"],
+                    disabled=False,  # planning on running on 3/1/25
+                )
+
             with SwapTransition(show_first=poster.value is not None, name="fade"):
                 with solara.Column():
                     solara.Markdown(f"# {album.instance.title}")

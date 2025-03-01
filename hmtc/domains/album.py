@@ -9,6 +9,7 @@ from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.disc import Disc
+from hmtc.domains.video import Video
 from hmtc.models import Album as AlbumModel
 from hmtc.models import AlbumFiles, db_null
 from hmtc.models import AlbumFiles as AlbumFilesModel
@@ -80,33 +81,6 @@ class Album(BaseDomain):
             "num_discs": num_discs,
             "num_videos": num_videos,
         }
-
-    def delete(self):
-        # added this on 2/28/25. copied from the video domain class
-        logger.debug("deleting from the Video domain class")
-        df = (
-            AlbumFilesModel.select()
-            .where(AlbumFilesModel.item_id == self.instance.id)
-            .get_or_none()
-        )
-        if df is not None:
-            for ft in AlbumFilesModel.FILETYPES:
-                file_model = getattr(df, ft)
-                if file_model is not None:
-                    if ft == "poster":
-                        thumb = (
-                            ThumbnailModel.select()
-                            .where(ThumbnailModel.image_id == file_model.id)
-                            .get()
-                        )
-                        Path(thumb.path).unlink()
-                        thumb.delete_instance()
-                    Path(file_model.path).unlink()
-                    setattr(df, ft, None)
-                    df.save()
-                    file_model.delete_instance()
-            df.delete_instance()
-        self.instance.delete_instance()
 
     def add_video(self, video: VideoModel, existing_disc=None):
         from hmtc.domains.video import Video
@@ -290,3 +264,29 @@ class Album(BaseDomain):
             return 0
         else:
             return n
+
+    def move_disc_to_compilation(self, disc: Disc):
+        comp_disc = (
+            DiscModel.select()
+            .where(
+                (DiscModel.title == "Disc 000")
+                & (DiscModel.album_id == disc.instance.album.id)
+            )
+            .get_or_none()
+        )
+        if comp_disc is None:
+            comp_disc = DiscModel.create(
+                title=f"Disc 000",
+                folder_name=f"Disc 000",
+                order=0,
+                album_id=disc.instance.album.id,
+            )
+        dv = disc.instance.dv.get_or_none()
+
+        if dv is not None:
+            video = Video(dv.video.id)
+
+        _disc = Disc(comp_disc.id)
+
+        self.add_video(video.instance, existing_disc=_disc.instance)
+        disc.delete()
