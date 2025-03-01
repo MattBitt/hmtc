@@ -12,6 +12,7 @@ from hmtc.config import init_config
 from hmtc.domains.user import User
 from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
+from hmtc.components.check_and_fix.main import CheckAndFix
 from hmtc.routes import admin_routes, api_routes
 
 config = init_config()
@@ -127,13 +128,19 @@ def LoginForm():
         if login_failed.value:
             solara.Error("Wrong username or password")
 
+@solara.component
+def CheckAndFixLocal():
+    solara.Text(f'local asdfasdfasdf and fi')
 
 @solara.component
 def Home():
-    if logged_in.value:
-        UsersHomePage()
-    else:
-        LoginForm()
+    # disabling fake login page 3/1/25
+    UsersHomePage()
+    CheckAndFix()
+    CheckAndFix()
+    CheckAndFixLocal()
+    
+    
 
 
 @solara.component

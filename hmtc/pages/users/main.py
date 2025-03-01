@@ -24,3 +24,5 @@ def UsersHomePage():
         with solara.Column(align="center", style={"background-color": Colors.SURFACE}):
             logo_image = ImageManager(Path("hmtc/assets/images/harry-mack-logo.png"))
             solara.Image(image=logo_image.image)
+        with solara.Column():
+            solara.Markdown(f"sick that im quesy")
