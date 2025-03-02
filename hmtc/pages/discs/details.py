@@ -2,6 +2,7 @@ import solara
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
+from hmtc.components.check_and_fix.main import CheckAndFix
 from hmtc.components.shared import PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.domains.disc import Disc
@@ -17,7 +18,8 @@ def parse_url_args():
     _id = router.parts[-1]
     if not _id.isnumeric():
         raise ValueError(f"Video ID must be an integer")
-    return _id
+
+    return Disc(_id)
 
 
 @solara.component
@@ -135,104 +137,112 @@ def CheckVideoOrderButton(
         solara.Text(f"Only 1 disc. Nothing to do")
         return
 
-    def check():
-        vids = disc.videos()
-        date1 = vids[0].upload_date
-        for vid in vids[1:]:
-            if vid.upload_date > date1:
-                date1 = vid.upload_date
-            else:
-                video_order_correct.set(False)
 
-        if video_order_correct.value is None:
-            video_order_correct.set(True)
-
-        checked.set(True)
-
-    solara.Button(
-        f"Check the order of the {num_vids} videos", classes=["button"], on_click=check
-    )
+def check(disc: Disc):
+    vids = disc.videos()
+    date1 = vids[0].upload_date
+    for vid in vids[1:]:
+        if vid.upload_date < date1:
+            date1 = vid.upload_date
+            return False
+    return True
 
 
-@solara.component
-def ResetVideoOrderButton(disc: Disc):
+def reset(disc: Disc):
+
     num_vids = int(disc.num_videos_on_disc())
 
     if num_vids == 1:
         solara.Text(f"Only 1 disc. Nothing to do")
         return
 
-    def reset():
-        counter = num_vids * 10  # just making room for the new ones
-        dvs = (
-            DiscVideoModel.select()
-            .where(DiscVideoModel.disc_id == disc.instance.id)
-            .order_by(DiscVideoModel.order)
-        )
-        vid_ids = [x.video.id for x in dvs]
-        for dv in dvs:
-            # update the order to a temp number for all of them
-            # starting at temp_counter
-            dv.order = counter
-            dv.save()
-            counter += 1
-        vids_in_order = (
-            VideoModel.select()
-            .where(VideoModel.id.in_(vid_ids))
-            .order_by(VideoModel.upload_date.asc())
-        )
-
-        counter = 1
-        for vid in vids_in_order:
-            dv = (
-                DiscVideoModel.select()
-                .where(
-                    (DiscVideoModel.disc_id == disc.instance.id)
-                    & (DiscVideoModel.video_id == vid.id)
-                )
-                .get()
-            )
-            dv.order = counter
-            dv.save()
-            counter += 1
-
-    solara.Button(
-        f"Reset Video Order ({num_vids} videos)",
-        classes=["button mywarning"],
-        on_click=reset,
+    counter = num_vids * 10  # just making room for the new ones
+    dvs = (
+        DiscVideoModel.select()
+        .where(DiscVideoModel.disc_id == disc.instance.id)
+        .order_by(DiscVideoModel.order)
+    )
+    vid_ids = [x.video.id for x in dvs]
+    for dv in dvs:
+        # update the order to a temp number for all of them
+        # starting at temp_counter
+        dv.order = counter
+        dv.save()
+        counter += 1
+    vids_in_order = (
+        VideoModel.select()
+        .where(VideoModel.id.in_(vid_ids))
+        .order_by(VideoModel.upload_date.asc())
     )
 
+    counter = 1
+    for vid in vids_in_order:
+        dv = (
+            DiscVideoModel.select()
+            .where(
+                (DiscVideoModel.disc_id == disc.instance.id)
+                & (DiscVideoModel.video_id == vid.id)
+            )
+            .get()
+        )
+        dv.order = counter
+        dv.save()
+        counter += 1
+
 
 @solara.component
-def MainRow(disc: Disc):
+def DiscCard(disc: Disc):
 
-    video_order_correct = solara.use_reactive(None)
-    checked = solara.use_reactive(False)
-    if disc.instance is None:
-        with solara.Row(justify="center"):
-            solara.Error("Instance is None...")
-            return
+    def clickme():
+        pass
 
+    poster = solara.use_reactive(disc.poster())
     num_videos_on_disc = disc.num_videos_on_disc()
-    with solara.Row():
-        with solara.Columns([6, 6]):
+    with solara.Row(justify="space-around"):
+        with solara.Columns([4, 4, 4]):
             with solara.Column():
-                with SwapTransition(show_first=(checked.value == False), name="fade"):
-                    CheckVideoOrderButton(disc, checked, video_order_correct)
-                    with SwapTransition(
-                        show_first=(video_order_correct.value == False)
-                    ):
-                        ResetVideoOrderButton(disc)
-                        solara.Success(f"All Good!")
+                CheckAndFix(
+                    disc,
+                    check_label="Check Video Order",
+                    check_icon=Icons.DISC.value,
+                    check_function=check,
+                    repair_label="Fix Video Order",
+                    repair_icon=Icons.DELETE.value,
+                    repair_function=reset,
+                )
+            with solara.Column():
+                with SwapTransition(show_first=poster.value is not None, name="fade"):
+                    with solara.Column():
+                        solara.Markdown(f"# {disc.instance.title}")
+                        solara.Image(poster.value, width="300px")
+                    with solara.Column():
+                        solara.Markdown(f"# {disc.instance.title}")
+                        solara.Markdown(f"# No poster found. Add one now!")
 
             with solara.Column():
+                solara.Markdown(f"## {disc.instance.album.title[:40]}")
                 solara.Markdown(
-                    f"## {disc.instance.album.title} - {disc.instance.title} ({num_videos_on_disc} Videos) "
+                    f"{disc.instance.title[:40]} ({num_videos_on_disc} Videos)"
                 )
 
+                with SwapTransition(
+                    show_first=poster.value == "Placeholder Image", name="fade"
+                ):
+                    solara.FileDrop(
+                        label=f"Add a Poster for {disc.instance.title}!",
+                        on_file=clickme,
+                        lazy=True,
+                    )
+                    solara.Button(
+                        f"Poster",
+                        on_click=clickme,
+                        classes=["button mywarning"],
+                        icon_name=Icons.DELETE.value,
+                    )
+
 
 @solara.component
-def DiscDetails(disc: Disc):
+def DiscVideos(disc: Disc):
     current_page = solara.use_reactive(1)
 
     disc_vids, num_items, num_pages = disc.videos_paginated(current_page, per_page=3)
@@ -242,9 +252,6 @@ def DiscDetails(disc: Disc):
 
     if current_page.value > num_pages:
         current_page.set(num_pages)
-
-    with solara.Row(justify="center"):
-        MainRow(disc)
 
     for video in disc_vids:
         DiscVideoCard(disc, Video(video))
@@ -256,15 +263,11 @@ def DiscDetails(disc: Disc):
 
 @solara.component
 def Page():
-    disc_id = parse_url_args()
-    try:
-        disc = Disc(disc_id)
-    except Exception as e:
-        logger.error(f"Exception {e}")
-        with solara.Error(f"Disc Id {disc_id} not found."):
-            with solara.Link("/"):
-                solara.Button("Home", classes=["button"])
-        return
+
+    disc = parse_url_args()
+
     with solara.Column(classes=["main-container"]):
         if refresh_counter.value > 0:
-            DiscDetails(disc)
+            with solara.Card():
+                DiscCard(disc)
+                DiscVideos(disc)

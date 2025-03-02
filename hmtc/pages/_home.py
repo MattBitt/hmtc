@@ -1,14 +1,17 @@
 import dataclasses
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Callable, Dict, Optional, cast
 
 import solara
 import solara.lab
 from flask import session
 from loguru import logger
 
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.check_and_fix.main import CheckAndFix
+from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
+from hmtc.domains.base_domain import BaseDomain
 from hmtc.domains.user import User
 from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
@@ -23,16 +26,9 @@ config = init_config()
 env = config["general"]["environment"]
 
 
-# move this to its own folder in component once its 'finished'
-@solara.component
-def CheckAndFix():
-    solara.Text(f"local and refreshing automagically!")
-
-
 @solara.component
 def Home():
     UsersHomePage()
-    CheckAndFix()
 
 
 @solara.component

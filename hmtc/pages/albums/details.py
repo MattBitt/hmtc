@@ -20,7 +20,8 @@ from hmtc.models import (
 from hmtc.models import Video as VideoModel
 from hmtc.repos.file_repo import get_filetype
 
-selected_videos = solara.reactive([])
+refresh_counter = solara.reactive(1)
+
 
 config = init_config()
 
@@ -34,19 +35,13 @@ def parse_url_args():
     if not _id.isnumeric():
         raise ValueError(f"Video ID must be an integer")
 
-    _album = Album(_id)
-    try:
-        _album = Album(_id)
-    except Exception as e:
-        logger.error(f"Exception {e}")
-        raise ValueError(f"Album with ID {_id} NOT found")
-    return _album
+    return Album(_id)
 
 
 # show one of these for each disc in the album (if unlocked)
 # paginated
 @solara.component
-def DiscCard(disc: Disc, refresh_counter):
+def AlbumDiscCard(disc: Disc, refresh_counter):
 
     has_tracks = solara.use_reactive(disc.tracks().exists())
     num_sections = disc.num_sections()
@@ -182,6 +177,7 @@ def AlbumCard(
 ):
 
     poster = solara.use_reactive(album.poster())
+    num_tracks = album.num_tracks()
 
     def lock_discs():
         album.lock_discs()
@@ -249,8 +245,6 @@ def AlbumCard(
             disc.remove_tracks()
 
         refresh_counter.set(refresh_counter.value + 1)
-
-    num_tracks = album.num_tracks()
 
     with solara.Row(justify="space-around"):
         with solara.Columns([4, 4, 4]):
@@ -380,7 +374,7 @@ def AlbumDiscs(
         with solara.Card():
             for disc in album_discs:
                 _disc = Disc(disc)
-                DiscCard(_disc, refresh_counter)
+                AlbumDiscCard(_disc, refresh_counter)
 
             PaginationControls(
                 current_page=current_page, num_pages=num_pages, num_items=num_items
@@ -390,11 +384,10 @@ def AlbumDiscs(
 @solara.component
 def Page():
 
-    refresh_counter = solara.use_reactive(1)
+    album = parse_url_args()
+    discs_locked = solara.use_reactive(album.instance.discs_order_locked)
 
-    _album = parse_url_args()
-    discs_locked = solara.use_reactive(_album.instance.discs_order_locked)
     with solara.Column(classes=["main-container"]):
         if refresh_counter.value > 0:
-            AlbumCard(_album, refresh_counter, discs_locked)
-            AlbumDiscs(_album, refresh_counter, discs_locked)
+            AlbumCard(album, refresh_counter, discs_locked)
+            AlbumDiscs(album, refresh_counter, discs_locked)
