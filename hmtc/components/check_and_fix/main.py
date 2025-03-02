@@ -16,6 +16,7 @@ def CheckAndFix(
     repair_label: str,
     repair_icon: str,
     repair_function: Callable,
+    repair_class:str = ""
 ):
     # have i performed the check for the item yet
     checked = solara.use_reactive(False)
@@ -39,7 +40,7 @@ def CheckAndFix(
         with SwapTransition(show_first=(result_correct.value == False)):
             solara.Button(
                 f"{repair_label}",
-                classes=["button mywarning"],
+                classes=["button", repair_class],
                 on_click=repair,
                 icon_name=repair_icon,
             )

@@ -297,3 +297,19 @@ class Album(BaseDomain):
 
         self.add_video(video.instance, existing_disc=_disc.instance)
         disc.delete()
+
+    def has_tracks_to_create(self):
+        for _disc in self.instance.discs:
+            disc = Disc(_disc.id)
+            if disc.num_tracks() > 0:
+                continue
+            if disc.num_sections(fine_tuned=True) == 0:
+                continue
+            return True
+        return False
+            
+    
+    def create_tracks(self):
+        for _disc in self.instance.discs:
+            disc = Disc(_disc.id)
+            disc.create_tracks()

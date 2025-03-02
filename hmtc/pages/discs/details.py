@@ -128,16 +128,6 @@ def DiscVideoCard(
                         )
 
 
-@solara.component
-def CheckVideoOrderButton(
-    disc: Disc, checked: solara.Reactive, video_order_correct: solara.Reactive
-):
-    num_vids = disc.num_videos_on_disc()
-    if num_vids == 1:
-        solara.Text(f"Only 1 disc. Nothing to do")
-        return
-
-
 def check(disc: Disc):
     vids = disc.videos()
     date1 = vids[0].upload_date
@@ -191,6 +181,17 @@ def reset(disc: Disc):
 
 
 @solara.component
+def Poster(disc, poster):
+    with SwapTransition(show_first=poster.value is not None, name="fade"):
+        with solara.Column():
+            solara.Markdown(f"# {disc.instance.title}")
+            solara.Image(poster.value, width="300px")
+        with solara.Column():
+            solara.Markdown(f"# {disc.instance.title}")
+            solara.Markdown(f"# No poster found. Add one now!")
+
+
+@solara.component
 def DiscCard(disc: Disc):
 
     def clickme():
@@ -211,13 +212,7 @@ def DiscCard(disc: Disc):
                     repair_function=reset,
                 )
             with solara.Column():
-                with SwapTransition(show_first=poster.value is not None, name="fade"):
-                    with solara.Column():
-                        solara.Markdown(f"# {disc.instance.title}")
-                        solara.Image(poster.value, width="300px")
-                    with solara.Column():
-                        solara.Markdown(f"# {disc.instance.title}")
-                        solara.Markdown(f"# No poster found. Add one now!")
+                Poster(disc, poster)
 
             with solara.Column():
                 solara.Markdown(f"## {disc.instance.album.title[:40]}")
@@ -253,6 +248,7 @@ def DiscVideos(disc: Disc):
     if current_page.value > num_pages:
         current_page.set(num_pages)
 
+    # list of disc videos
     for video in disc_vids:
         DiscVideoCard(disc, Video(video))
     with solara.Row(justify="center"):

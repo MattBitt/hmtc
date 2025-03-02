@@ -6,6 +6,8 @@ from loguru import logger
 from peewee import fn
 
 from hmtc.assets.icons.icon_repo import Icons
+from hmtc.components.check_and_fix.main import CheckAndFix
+from hmtc.components.function_button.main import FunctionButton
 from hmtc.components.shared import PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
@@ -41,7 +43,7 @@ def parse_url_args():
 # show one of these for each disc in the album (if unlocked)
 # paginated
 @solara.component
-def AlbumDiscCard(disc: Disc, refresh_counter):
+def AlbumDiscCard(disc: Disc):
 
     has_tracks = solara.use_reactive(disc.tracks().exists())
     num_sections = disc.num_sections()
@@ -172,9 +174,7 @@ def AlbumDiscCard(disc: Disc, refresh_counter):
 
 # shows at the top of the page. controls locking/unlocking discs
 @solara.component
-def AlbumCard(
-    album: Album, refresh_counter: solara.Reactive, discs_locked: solara.Reactive
-):
+def AlbumCard(album: Album, discs_locked: solara.Reactive):
 
     poster = solara.use_reactive(album.poster())
     num_tracks = album.num_tracks()
@@ -239,11 +239,27 @@ def AlbumCard(
             album.move_disc_to_compilation(disc)
         refresh_counter.set(refresh_counter.value + 1)
 
+
+
     def delete_tracks():
         for _disc in album.discs():
             disc = Disc(_disc.id)
             disc.remove_tracks()
 
+        refresh_counter.set(refresh_counter.value + 1)
+
+    def check(item):
+        logger.debug(f"Checking {item}")
+
+    def fix(item):
+        logger.debug(f"Fixing {item}")
+
+
+    def has_tracks_to_create(album: Album):
+        return album.has_tracks_to_create()
+
+    def create_tracks(item):
+        album.create_tracks()
         refresh_counter.set(refresh_counter.value + 1)
 
     with solara.Row(justify="space-around"):
@@ -257,26 +273,26 @@ def AlbumCard(
                     disabled=True,
                 )
 
-                solara.Button(
-                    f"Reset Disc Numbers",
-                    on_click=reset_disc_numbers,
-                    classes=["button mywarning"],
+                CheckAndFix(
+                    album,
+                    check_label="Check Video Order",
+                    check_icon=Icons.DISC.value,
+                    check_function=check,
+                    repair_label="Fix Video Order",
+                    repair_icon=Icons.DELETE.value,
+                    repair_function=fix,
+                    repair_class='mywarning'
                 )
 
-                solara.Button(
-                    f"Delete Tracks",
-                    on_click=delete_tracks,
-                    icon_name=Icons.DELETE.value,
-                    classes=["button mywarning"],
-                    disabled=(num_tracks == 0),
-                )
-
-                solara.Button(
-                    f"Move Shorts",
-                    on_click=move_short_vids,
-                    icon_name=Icons.MOVE.value,
-                    classes=["button"],
-                    disabled=(num_tracks > 0),
+                CheckAndFix(
+                    album,
+                    check_label="Check for new Tracks",
+                    check_icon=Icons.TRACK.value,
+                    check_function=has_tracks_to_create,
+                    repair_label="Create Tracks ",
+                    repair_icon=Icons.TRACK.value,
+                    repair_function=create_tracks,
+                    repair_class='mywarning'
                 )
 
             with SwapTransition(show_first=poster.value is not None, name="fade"):
@@ -319,7 +335,7 @@ def AlbumCard(
 # shows when the discs have been locked. can assume at least
 # 1 disc exists
 @solara.component
-def AlbumDiscsSummary(album: Album, refresh_counter: solara.Reactive):
+def AlbumDiscsSummary(album: Album):
     solara.Text(f"{album.instance.title} {refresh_counter.value} Summary")
 
     total_video_duration = (
@@ -354,9 +370,7 @@ def AlbumDiscsSummary(album: Album, refresh_counter: solara.Reactive):
 
 
 @solara.component
-def AlbumDiscs(
-    album: Album, refresh_counter: solara.Reactive, discs_locked: solara.Reactive
-):
+def AlbumDiscs(album: Album, discs_locked: solara.Reactive):
     current_page = solara.use_reactive(1)
 
     album_discs, num_items, num_pages = album.discs_paginated(current_page, per_page=3)
@@ -366,19 +380,20 @@ def AlbumDiscs(
 
     if current_page.value > num_pages:
         current_page.set(num_pages)
+
     with SwapTransition(show_first=discs_locked.value, name="fade"):
 
         with solara.Card():
-            AlbumDiscsSummary(album, refresh_counter)
-
+            AlbumDiscsSummary(album)
+        # list of album discs
         with solara.Card():
             for disc in album_discs:
                 _disc = Disc(disc)
-                AlbumDiscCard(_disc, refresh_counter)
-
-            PaginationControls(
-                current_page=current_page, num_pages=num_pages, num_items=num_items
-            )
+                AlbumDiscCard(_disc)
+            with solara.Row(justify="center"):
+                PaginationControls(
+                    current_page=current_page, num_pages=num_pages, num_items=num_items
+                )
 
 
 @solara.component
@@ -389,5 +404,5 @@ def Page():
 
     with solara.Column(classes=["main-container"]):
         if refresh_counter.value > 0:
-            AlbumCard(album, refresh_counter, discs_locked)
-            AlbumDiscs(album, refresh_counter, discs_locked)
+            AlbumCard(album, discs_locked)
+            AlbumDiscs(album, discs_locked)

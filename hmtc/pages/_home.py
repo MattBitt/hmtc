@@ -8,7 +8,7 @@ from flask import session
 from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
-from hmtc.components.check_and_fix.main import CheckAndFix
+from hmtc.components.function_button.main import FunctionButton
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
@@ -25,11 +25,14 @@ WORKING = Path(config["WORKING"])
 config = init_config()
 env = config["general"]["environment"]
 
+def asdf(item):
+    logger.debug(f"Running function {item}")
+    return True
 
 @solara.component
 def Home():
     UsersHomePage()
-
+    FunctionButton(item={'id': 1}, label="Some Function", icon='mdi-home', some_function=asdf)
 
 @solara.component
 def MyLayout(children=[]):
