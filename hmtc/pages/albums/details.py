@@ -8,7 +8,7 @@ from peewee import fn
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.check_and_fix.main import CheckAndFix
 from hmtc.components.function_button.main import FunctionButton
-from hmtc.components.shared import PaginationControls
+from hmtc.components.shared import Chip, PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
 from hmtc.db import init_db
@@ -95,10 +95,21 @@ def AlbumDiscCard(disc: Disc):
 
     disable_move_to_comp = (num_videos_on_disc > 1) or disc.instance.title == "Disc 000"
 
+    if num_sections > num_sections_ft:
+        color = "info"
+    elif num_sections_ft > num_tracks:
+        color = "warning"
+    elif num_sections_ft > num_sections or num_tracks > num_sections_ft:
+        color = "error"
+    else:
+        color = "primary"
     with solara.Card(f"{card_title}"):
         with solara.Row():
-            solara.Text(f"{disc.instance.folder_name}")
-            solara.Text(f"{num_sections=} {num_sections_ft=} {num_tracks=}")
+            Chip(f"{disc.instance.folder_name}")
+            Chip(f"Sections/Fine Tuned/Tracks")
+
+            Chip(f"{num_sections}/{num_sections_ft}/{num_tracks}", color=color)
+
         with solara.Columns([2, 10]):
             with solara.Row():
                 solara.Image(disc.poster(thumbnail=True), width="150px")
@@ -172,6 +183,34 @@ def AlbumDiscCard(disc: Disc):
                         )
 
 
+def check_disc_order(album: Album):
+    logger.debug(f"Checking {album}")
+    return album.is_disc_order_correct()
+
+
+def fix_disc_order(album: Album):
+    logger.debug(f"Fixing {album}")
+    album.fix_disc_order()
+    refresh_counter.set(refresh_counter.value + 1)
+
+
+def has_tracks_to_create(album: Album):
+    return not album.has_tracks_to_create()
+
+
+def create_tracks(album: Album):
+    album.create_tracks()
+    refresh_counter.set(refresh_counter.value + 1)
+
+
+def delete_tracks(album: Album):
+    for _disc in album.discs():
+        disc = Disc(_disc.id)
+        disc.remove_tracks()
+
+    refresh_counter.set(refresh_counter.value + 1)
+
+
 # shows at the top of the page. controls locking/unlocking discs
 @solara.component
 def AlbumCard(album: Album, discs_locked: solara.Reactive):
@@ -239,29 +278,6 @@ def AlbumCard(album: Album, discs_locked: solara.Reactive):
             album.move_disc_to_compilation(disc)
         refresh_counter.set(refresh_counter.value + 1)
 
-
-
-    def delete_tracks():
-        for _disc in album.discs():
-            disc = Disc(_disc.id)
-            disc.remove_tracks()
-
-        refresh_counter.set(refresh_counter.value + 1)
-
-    def check(item):
-        logger.debug(f"Checking {item}")
-
-    def fix(item):
-        logger.debug(f"Fixing {item}")
-
-
-    def has_tracks_to_create(album: Album):
-        return album.has_tracks_to_create()
-
-    def create_tracks(item):
-        album.create_tracks()
-        refresh_counter.set(refresh_counter.value + 1)
-
     with solara.Row(justify="space-around"):
         with solara.Columns([4, 4, 4]):
             with solara.Column():
@@ -277,22 +293,24 @@ def AlbumCard(album: Album, discs_locked: solara.Reactive):
                     album,
                     check_label="Check Video Order",
                     check_icon=Icons.DISC.value,
-                    check_function=check,
+                    check_function=check_disc_order,
                     repair_label="Fix Video Order",
-                    repair_icon=Icons.DELETE.value,
-                    repair_function=fix,
-                    repair_class='mywarning'
+                    repair_icon=Icons.REPAIR.value,
+                    repair_function=fix_disc_order,
+                    repair_class="mywarning",
+                    success_message="All Videos are in Order",
                 )
 
                 CheckAndFix(
                     album,
-                    check_label="Check for new Tracks",
+                    check_label="New Tracks?",
                     check_icon=Icons.TRACK.value,
                     check_function=has_tracks_to_create,
-                    repair_label="Create Tracks ",
+                    repair_label="Create Tracks",
                     repair_icon=Icons.TRACK.value,
                     repair_function=create_tracks,
-                    repair_class='mywarning'
+                    repair_class="mywarning",
+                    success_message="No Tracks to Create!",
                 )
 
             with SwapTransition(show_first=poster.value is not None, name="fade"):

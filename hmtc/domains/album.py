@@ -299,17 +299,34 @@ class Album(BaseDomain):
         disc.delete()
 
     def has_tracks_to_create(self):
+        to_create = 0
         for _disc in self.instance.discs:
             disc = Disc(_disc.id)
-            if disc.num_tracks() > 0:
+            ns = disc.num_sections(fine_tuned=True)
+            if ns == 0:
                 continue
-            if disc.num_sections(fine_tuned=True) == 0:
-                continue
+            else:
+                for section in disc.sections(fine_tuned=True):
+                    existing = [t for t in disc.tracks() if t.section_id == section.id]
+                    if len(existing) > 0:
+                        # section already has a track created
+                        continue
+                    # there is a fine tuned section and no track created
+                    else:
+                        to_create += 1
+
+        if to_create > 0:
+            logger.debug(f"Found {to_create} sections without tracks")
             return True
         return False
-            
-    
+
     def create_tracks(self):
         for _disc in self.instance.discs:
             disc = Disc(_disc.id)
             disc.create_tracks()
+
+    def is_disc_order_correct(self):
+        return False
+
+    def fix_disc_order(self):
+        pass

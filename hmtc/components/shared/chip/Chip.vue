@@ -1,13 +1,15 @@
 <template>
   <div>
-    <v-chip color="info" :close="closable" @click:close="closeItem"> {{ item }} </v-chip>
+    <v-chip :color="color" :close="closable" @click:close="closeItem">
+      <span class="chipText">{{ item }}</span>
+    </v-chip>
   </div>
 </template>
 
 <script>
 module.exports = {
   name: "Chip",
-  props: { item: String, closable: Boolean },
+  props: { item: String, closable: Boolean, color: String },
   emits: [],
   data() {
     return {};
@@ -21,4 +23,9 @@ module.exports = {
   computed: {},
 };
 </script>
-<style></style>
+<style>
+.chipText {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+</style>

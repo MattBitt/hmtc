@@ -207,8 +207,33 @@ class Disc(BaseDomain):
             return 0
         return num
 
+    def sections(self, fine_tuned=False):
+        num_vids = self.num_videos_on_disc()
+        if num_vids == 0:
+            logger.debug(f"No videos found on this disc.")
+            return 0
+
+        if num_vids > 1:
+            dvs = DiscVideoModel.select().where(
+                DiscVideoModel.disc_id == self.instance.id
+            )
+            vid_ids = [v.video_id for v in dvs]
+            query = SectionModel.select().where(SectionModel.video_id.in_(vid_ids))
+        else:
+            video = self.instance.dv.get()
+            query = SectionModel.select().where(SectionModel.video_id == video.id)
+        if fine_tuned:
+            query = query.where(SectionModel.fine_tuned == True)
+
+        return query
+
     def num_sections(self, fine_tuned=False):
-        if self.num_videos_on_disc() > 1:
+        num_vids = self.num_videos_on_disc()
+        if num_vids == 0:
+            logger.debug(f"No videos found on this disc.")
+            return 0
+
+        if num_vids > 1:
             dvs = DiscVideoModel.select().where(
                 DiscVideoModel.disc_id == self.instance.id
             )
@@ -217,15 +242,11 @@ class Disc(BaseDomain):
                 SectionModel.video_id.in_(vid_ids)
             )
         else:
-            _x = self.instance.dv.get_or_none()
-            if _x is None:
-                logger.error(f"_x is none. lol")
-                return
-
-            video = _x.video
+            video = self.instance.dv.get().video
             query = SectionModel.select(fn.COUNT(SectionModel.id)).where(
                 SectionModel.video_id == video.id
             )
+
         if fine_tuned:
             query = query.where(SectionModel.fine_tuned == True)
 
@@ -233,8 +254,8 @@ class Disc(BaseDomain):
 
         if num is None:
             return 0
+
         return num
-        # return SectionModel.select(fn.COUNT(SectionModel.id)).where(SectionModel.video_id == self.)
 
     def create_tracks(self):
         from hmtc.domains.section import Section

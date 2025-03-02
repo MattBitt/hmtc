@@ -22,6 +22,7 @@ class Icons(Enum):
     LOCK = "mdi-bookmark-check-outline"
     MOVE = "mdi-cursor-pointer"
     PLAYPAUSE = "mdi-play-pause"
+    REPAIR = "mdi-auto-fix"
     REFRESH = "mdi-refresh"
     SANDBOX = "mdi-shovel"
     SEARCH = "mdi-magnify"

@@ -25,6 +25,11 @@ def MainToolbar():
                 icon_name=Icons.VIDEO.value,
                 icon=True,
             )
+        with solara.Link(f"/api/albums"):
+            solara.Button(
+                icon_name=Icons.ALBUM.value,
+                icon=True,
+            )
         with solara.Link(f"/admin/dashboards/files"):
             solara.Button(
                 icon_name=Icons.FILE.value,

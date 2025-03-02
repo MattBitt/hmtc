@@ -5,9 +5,16 @@ on production
 delete billboards from 3676
 delete GPU from 3098
 
-improvements
+
 
 bug:
 portrait (other aspect ratios) images mess up the layout flow
 
 topics should be case insensitive
+
+
+
+
+enhancements:
+fine-tuner:
+    inspect titles and (topics) for bad characters (file/folder names)

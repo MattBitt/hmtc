@@ -193,11 +193,15 @@ def Poster(disc, poster):
 
 @solara.component
 def DiscCard(disc: Disc):
+    poster = solara.use_reactive(disc.poster())
 
     def clickme():
         pass
 
-    poster = solara.use_reactive(disc.poster())
+    def remove_poster():
+        disc.file_repo.delete(disc.instance.id, "poster")
+        poster.set("Placeholder Image")
+
     num_videos_on_disc = disc.num_videos_on_disc()
     with solara.Row(justify="space-around"):
         with solara.Columns([4, 4, 4]):
@@ -223,14 +227,15 @@ def DiscCard(disc: Disc):
                 with SwapTransition(
                     show_first=poster.value == "Placeholder Image", name="fade"
                 ):
-                    solara.FileDrop(
-                        label=f"Add a Poster for {disc.instance.title}!",
-                        on_file=clickme,
-                        lazy=True,
-                    )
+                    # solara.FileDrop(
+                    #     label=f"Add a Poster for {disc.instance.title}!",
+                    #     on_file=clickme,
+                    #     lazy=True,
+                    # )
+                    solara.Markdown(f"FileDrop Not implemented for discs.")
                     solara.Button(
                         f"Poster",
-                        on_click=clickme,
+                        on_click=remove_poster,
                         classes=["button mywarning"],
                         icon_name=Icons.DELETE.value,
                     )

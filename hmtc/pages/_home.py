@@ -25,14 +25,19 @@ WORKING = Path(config["WORKING"])
 config = init_config()
 env = config["general"]["environment"]
 
+
 def asdf(item):
     logger.debug(f"Running function {item}")
     return True
 
+
 @solara.component
 def Home():
     UsersHomePage()
-    FunctionButton(item={'id': 1}, label="Some Function", icon='mdi-home', some_function=asdf)
+    FunctionButton(
+        item={"id": 1}, label="Some Function", icon="mdi-home", some_function=asdf
+    )
+
 
 @solara.component
 def MyLayout(children=[]):

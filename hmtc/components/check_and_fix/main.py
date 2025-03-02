@@ -16,7 +16,8 @@ def CheckAndFix(
     repair_label: str,
     repair_icon: str,
     repair_function: Callable,
-    repair_class:str = ""
+    repair_class: str = "",
+    success_message: str = "All Good!!",
 ):
     # have i performed the check for the item yet
     checked = solara.use_reactive(False)
@@ -44,4 +45,4 @@ def CheckAndFix(
                 on_click=repair,
                 icon_name=repair_icon,
             )
-            solara.Success(f"All Good!")
+            solara.Success(f"{success_message}")
