@@ -8,12 +8,13 @@ from peewee import fn
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.check_and_fix.main import CheckAndFix
 from hmtc.components.function_button.main import FunctionButton
-from hmtc.components.shared import Chip, PaginationControls
+from hmtc.components.shared import Chip, MyList, PaginationControls
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
 from hmtc.db import init_db
 from hmtc.domains.album import Album
 from hmtc.domains.disc import Disc
+from hmtc.domains.track import Track
 from hmtc.domains.video import Video
 from hmtc.models import Disc as DiscModel
 from hmtc.models import (
@@ -46,7 +47,6 @@ def parse_url_args():
 def AlbumDiscCard(disc: Disc):
 
     has_tracks = solara.use_reactive(disc.tracks().exists())
-
 
     def move_up():
 
@@ -88,28 +88,34 @@ def AlbumDiscCard(disc: Disc):
     num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title[:40]}"
+        card_cols = [2, 7, 3]
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
+        card_cols = [2, 10]
 
     disable_move_to_comp = (num_videos_on_disc > 1) or disc.instance.title == "Disc 000"
-
-
 
     if disc.instance.xlarge:
         caption = " (X-LARGE)"
     else:
         caption = ""
-    with solara.Card(f"{card_title}"):
-        with solara.Row():
-            Chip(f"{disc.instance.title}{caption}")
-            Chip(f"Sections/Fine Tuned/Tracks")
-            Chip(f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}", color=disc.section_status_color())
 
-        with solara.Columns([2, 10]):
+    with solara.Columns([9, 3]):
+        with solara.Column():
             with solara.Row():
-                solara.Image(disc.poster(thumbnail=True), width="150px")
+                solara.Text(f"{card_title}")
+            with solara.Row():
+                Chip(f"{disc.instance.title}{caption}")
+                Chip(f"Sections/Fine Tuned/Tracks")
+                Chip(
+                    f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}",
+                    color=disc.section_status_color(),
+                )
 
-            with solara.Row():
+            with solara.Columns([3, 3, 3, 3]):
+                with solara.Column():
+                    solara.Image(disc.poster(thumbnail=True), width="150px")
+
                 with solara.Column():
                     solara.Button(
                         "Delete Disc",
@@ -165,11 +171,11 @@ def AlbumDiscCard(disc: Disc):
                             on_click=remove_tracks,
                         )
                         if disc.num_sections() == 0:
-                            caption = "Create Sections First!"
+                            caption = "No Sections"
                         elif disc.num_sections(fine_tuned=True) == 0:
-                            caption = "Fine Tune the Sections"
+                            caption = "No Sections FT"
                         else:
-                            caption = f"Create Tracks ({disc.num_sections(fine_tuned=True)})"
+                            caption = f"Tracks ({disc.num_sections(fine_tuned=True)})"
 
                         solara.Button(
                             label=caption,
@@ -178,6 +184,17 @@ def AlbumDiscCard(disc: Disc):
                             on_click=create_tracks,
                             disabled=({disc.num_sections(fine_tuned=True)} == 0),
                         )
+        with solara.Column():
+            if disc.num_videos_on_disc() == 1:
+                if disc.num_tracks() > 0:
+                    _tracks = [t.title for t in disc.tracks()[:4]]
+
+                    MyList(title="Tracks", items=_tracks)
+                else:
+                    Chip("No Tracks Created", color="warning")
+            else:
+                Chip("Compilation Details")
+                Chip("XX Vids")
 
 
 def check_disc_order(album: Album):

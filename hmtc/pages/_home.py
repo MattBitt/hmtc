@@ -9,6 +9,7 @@ from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.function_button.main import FunctionButton
+from hmtc.components.shared import MyList
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
@@ -17,7 +18,7 @@ from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.routes import admin_routes, api_routes
 from hmtc.utils.general import get_app_bar_color
-from hmtc.components.shared import MyList
+
 config = init_config()
 STORAGE = Path(config["STORAGE"])
 WORKING = Path(config["WORKING"])
@@ -34,7 +35,10 @@ def asdf(item):
 @solara.component
 def Home():
     UsersHomePage()
-    MyList(title="My First List", items=['matt', 'lindsay is my wife and htis is a long description', 'walle'])
+    MyList(
+        title="My First List",
+        items=["matt", "lindsay is my wife and htis is a long description", "walle"],
+    )
 
 
 @solara.component

@@ -275,26 +275,30 @@ class Disc(BaseDomain):
                     continue
                 track_number += 1
 
-                # 001 X-LARGE VS #01
+                # 001 X-LARGE VS # 01
                 track_number_padding = 3 if self.instance.xlarge else 2
 
                 if track_number > 100 and not self.instance.xlarge:
                     logger.error(f"Too many tracks. This needs to be an X-large disc")
                     return None
 
-                logger.debug(f"Creating a track from {section}")
                 sect = Section(section)
                 if sect.my_title() is None:
                     logger.error(f"No info found in section.")
                     return
+
                 prefix = self.instance.album.prefix
+
                 disc_number = str(int(self.instance.folder_name[-3:]))
 
                 if prefix is not None:
-                    if int(disc_number) >= 100:
+                    if int(disc_number) == 0:
+                        title = f"{prefix}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
+                    elif int(disc_number) >= 100:
                         title = f"{prefix}{disc_number}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
                     else:
                         title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
+
                 else:
                     title = f"{sect.my_title()}"
 
@@ -333,7 +337,8 @@ class Disc(BaseDomain):
                 # seems like the jellyfin libraries work best with
                 # id3 tags for audio and a title.nfo file for video
 
-                write_id3_tags(mp3_file_path, new_track.id3_dict())
+                poster = Path(self.poster_file().path)
+                write_id3_tags(mp3_file_path, new_track.id3_dict(), poster)
                 nfo = new_track.create_nfo(mp4_file_path.parent)
                 new_track.file_repo.add(
                     item=new_track.instance,
@@ -439,7 +444,11 @@ class Disc(BaseDomain):
             return "info"
         elif self.num_sections(fine_tuned=True) > self.num_tracks():
             return "warning"
-        elif self.num_sections(fine_tuned=True) > self.num_sections() or self.num_tracks() > self.num_sections(fine_tuned=True):
+        elif self.num_sections(
+            fine_tuned=True
+        ) > self.num_sections() or self.num_tracks() > self.num_sections(
+            fine_tuned=True
+        ):
             return "error"
         else:
             return "primary"

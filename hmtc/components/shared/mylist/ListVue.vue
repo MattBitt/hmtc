@@ -1,8 +1,8 @@
 <template>
-  <v-card class="" max-width="300" tile>
+  <v-card class="" max-width="300">
     <v-list>
       <v-subheader>{{ title }}</v-subheader>
-      <v-list-item-group v-model="selectedItem" color="primary">
+      <v-list-item-group color="primary">
         <v-list-item v-for="(item, i) in items" :key="i">
           <v-list-item-content>
             <v-list-item-title v-text="item"></v-list-item-title>

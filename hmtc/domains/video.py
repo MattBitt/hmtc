@@ -10,6 +10,7 @@ from hmtc.domains.base_domain import BaseDomain
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Section as SectionModel
 from hmtc.models import Thumbnail as ThumbnailModel
+from hmtc.models import Track as TrackModel
 from hmtc.models import Video as VideoModel
 from hmtc.models import VideoFiles
 from hmtc.repos.file_repo import FileRepo
@@ -156,6 +157,14 @@ class Video(BaseDomain):
                 "video_id": self.instance.id,
             }
         )
+
+    def tracks(self):
+        return TrackModel.select().where(
+            TrackModel.section_id.in_(self.instance.sections)
+        )
+
+    def num_tracks(self):
+        return len(self.tracks())
 
     def __str__(self):
         if self.instance is None:

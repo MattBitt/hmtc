@@ -85,11 +85,13 @@ def read_id3_tags(file):
         logger.error(e)
 
 
-def write_id3_tags(file, tags):
+def write_id3_tags(file, tags, poster):
     try:
         audio = MP3(file, ID3=EasyID3)
         for k, v in tags.items():
             audio[k] = v
+        # if not str(poster).endswith('webp'):
+        #     embed_image(audio, poster)
         audio.save()
     except Exception as e:
         logger.error(e)
@@ -136,28 +138,30 @@ def write_mp4_metadata(file: Path, tags: dict):
 # print(mp3file.pprint())
 # embed_image("hmtc/utils/working_audio_file.mp3", "hmtc/utils/working_image.png")
 if __name__ == "__main__":
-    tags = {
-        "artist": "Podcast Host",
-        "album_title": "Flow State",
-        "track_title": "OB 58.3 - chocolate.mp4",
-        "track_number": "3",
-        "disc_number": "2",
-        "upload_date": "2024-09-23",
-    }
+    # tags = {
+    #     "artist": "Podcast Host",
+    #     "album_title": "Flow State",
+    #     "track_title": "OB 58.3 - chocolate.mp4",
+    #     "track_number": "3",
+    #     "disc_number": "2",
+    #     "upload_date": "2024-09-23",
+    # }
 
     # file = "/home/matt/apps/data_for_development/hmtc/development/storage/libraries/video/Harry Mack/Flow State/Disc 002/OB 58.3 - chocolate.mp4"
     # write_mp4_metadata(file=Path(file), tags=tags)
 
-    id3_tags = {}
-    id3_tags["date"] = "2021"
-    id3_tags["originaldate"] = "2021-01-03"
-    id3_tags["artist"] = "Harry Mack"
-    id3_tags["albumartist"] = ["Harry Mack"]
-    id3_tags["album"] = "Flow State"
-    id3_tags["title"] = "banana"
-    id3_tags["tracknumber"] = "1"
-    id3_tags["discnumber"] = "6"
-    id3_tags["albumsort"] = "Flow State"
-    id3_tags["titlesort"] = "banana"
-    file = "/home/matt/apps/data_for_development/hmtc/development/storage/libraries/audio/Harry Mack/Flow State/Disc 001/OB 57.1 - banana.mp3"
-    write_id3_tags(file, id3_tags)
+    # id3_tags = {}
+    # id3_tags["date"] = "2021"
+    # id3_tags["originaldate"] = "2021-01-03"
+    # id3_tags["artist"] = "Harry Mack"
+    # id3_tags["albumartist"] = ["Harry Mack"]
+    # id3_tags["album"] = "Flow State"
+    # id3_tags["title"] = "banana"
+    # id3_tags["tracknumber"] = "1"
+    # id3_tags["discnumber"] = "6"
+    # id3_tags["albumsort"] = "Flow State"
+    # id3_tags["titlesort"] = "banana"
+    # file = "/home/matt/apps/data_for_development/hmtc/development/storage/libraries/audio/Harry Mack/Flow State/Disc 001/OB 57.1 - banana.mp3"
+    # write_id3_tags(file, id3_tags)
+    image = Path("hmtc/utils/temp/omegle.png")
+    audio = Path("hmtc/utils/temp/OB 01.01 asdfasdfasdf.mp3")
