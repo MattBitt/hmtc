@@ -84,24 +84,22 @@ def DiscVideoCard(
                 Chip(f"{seconds_to_hms(video.instance.duration)}")
                 Chip(f"Sections/Fine Tuned/Tracks")
                 Chip(
-                    f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}",
-                    color=disc.section_status_color(),
+                    f"{video.num_sections()}/{video.num_sections(fine_tuned=True)}/{video.num_tracks()}",
+                    color=video.section_status_color(),
                 )
 
             with solara.Columns([3, 3, 3, 3]):
                 with solara.Column():
                     p = video.poster(thumbnail=True)
-                    if p is not None:
-                        with solara.Row(justify="center"):
-                            solara.Image(p, width="150px")
-                        with solara.Row(justify="center"):
-                            solara.Button(
-                                icon_name=Icons.IMAGE.value,
-                                classes=["button"],
-                                on_click=use_poster,
-                            )
-                    else:
-                        solara.Error(f"No Poster found for {video}")
+
+                    with solara.Row(justify="center"):
+                        solara.Image(p, width="150px")
+                    with solara.Row(justify="center"):
+                        solara.Button(
+                            icon_name=Icons.IMAGE.value,
+                            classes=["button"],
+                            on_click=use_poster,
+                        )
 
                 with solara.Column():
                     solara.Button(

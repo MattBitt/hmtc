@@ -293,7 +293,7 @@ class Disc(BaseDomain):
 
                 if prefix is not None:
                     if int(disc_number) == 0:
-                        title = f"{prefix}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
+                        title = f"{prefix} X{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
                     elif int(disc_number) >= 100:
                         title = f"{prefix}{disc_number}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
                     else:
@@ -438,17 +438,3 @@ class Disc(BaseDomain):
         target = WORKING / path.name
         my_copy_file(path, target)
         self.add_file(target, "video")
-
-    def section_status_color(self):
-        if self.num_sections() > self.num_sections(fine_tuned=True):
-            return "info"
-        elif self.num_sections(fine_tuned=True) > self.num_tracks():
-            return "warning"
-        elif self.num_sections(
-            fine_tuned=True
-        ) > self.num_sections() or self.num_tracks() > self.num_sections(
-            fine_tuned=True
-        ):
-            return "error"
-        else:
-            return "primary"

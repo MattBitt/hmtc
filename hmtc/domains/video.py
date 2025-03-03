@@ -96,12 +96,21 @@ class Video(BaseDomain):
             query=video_sections, page=current_page.value, per_page=per_page
         )
 
-    def sections(self):
-        return (
+    def sections(self, fine_tuned=False):
+
+        query = (
             SectionModel.select()
             .where(SectionModel.video_id == self.instance.id)
             .order_by(SectionModel.start)
         )
+
+        if fine_tuned:
+            query = query.where(SectionModel.fine_tuned == True)
+
+        return query
+
+    def num_sections(self, fine_tuned=False):
+        return len(self.sections(fine_tuned=fine_tuned))
 
     def album(self):
         from hmtc.domains.album import Album
@@ -159,8 +168,10 @@ class Video(BaseDomain):
         )
 
     def tracks(self):
-        return TrackModel.select().where(
-            TrackModel.section_id.in_(self.instance.sections)
+        return (
+            TrackModel.select()
+            .where(TrackModel.section_id.in_(self.instance.sections))
+            .order_by(TrackModel.track_number)
         )
 
     def num_tracks(self):
