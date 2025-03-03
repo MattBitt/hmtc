@@ -433,3 +433,13 @@ class Disc(BaseDomain):
         target = WORKING / path.name
         my_copy_file(path, target)
         self.add_file(target, "video")
+
+    def section_status_color(self):
+        if self.num_sections() > self.num_sections(fine_tuned=True):
+            return "info"
+        elif self.num_sections(fine_tuned=True) > self.num_tracks():
+            return "warning"
+        elif self.num_sections(fine_tuned=True) > self.num_sections() or self.num_tracks() > self.num_sections(fine_tuned=True):
+            return "error"
+        else:
+            return "primary"

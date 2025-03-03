@@ -46,9 +46,7 @@ def parse_url_args():
 def AlbumDiscCard(disc: Disc):
 
     has_tracks = solara.use_reactive(disc.tracks().exists())
-    num_sections = disc.num_sections()
-    num_sections_ft = disc.num_sections(fine_tuned=True)
-    num_tracks = disc.num_tracks()
+
 
     def move_up():
 
@@ -95,14 +93,7 @@ def AlbumDiscCard(disc: Disc):
 
     disable_move_to_comp = (num_videos_on_disc > 1) or disc.instance.title == "Disc 000"
 
-    if num_sections > num_sections_ft:
-        color = "info"
-    elif num_sections_ft > num_tracks:
-        color = "warning"
-    elif num_sections_ft > num_sections or num_tracks > num_sections_ft:
-        color = "error"
-    else:
-        color = "primary"
+
 
     if disc.instance.xlarge:
         caption = " (X-LARGE)"
@@ -110,10 +101,9 @@ def AlbumDiscCard(disc: Disc):
         caption = ""
     with solara.Card(f"{card_title}"):
         with solara.Row():
-            Chip(f"{disc.instance.folder_name}{caption}")
+            Chip(f"{disc.instance.title}{caption}")
             Chip(f"Sections/Fine Tuned/Tracks")
-
-            Chip(f"{num_sections}/{num_sections_ft}/{num_tracks}", color=color)
+            Chip(f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}", color=disc.section_status_color())
 
         with solara.Columns([2, 10]):
             with solara.Row():
@@ -174,17 +164,19 @@ def AlbumDiscCard(disc: Disc):
                             icon_name=Icons.TRACK.value,
                             on_click=remove_tracks,
                         )
-                        if num_sections == 0:
+                        if disc.num_sections() == 0:
                             caption = "Create Sections First!"
+                        elif disc.num_sections(fine_tuned=True) == 0:
+                            caption = "Fine Tune the Sections"
                         else:
-                            caption = f"Create Tracks ({num_sections_ft})"
+                            caption = f"Create Tracks ({disc.num_sections(fine_tuned=True)})"
 
                         solara.Button(
                             label=caption,
                             classes=["button"],
                             icon_name=Icons.TRACK.value,
                             on_click=create_tracks,
-                            disabled=(num_sections_ft == 0),
+                            disabled=({disc.num_sections(fine_tuned=True)} == 0),
                         )
 
 

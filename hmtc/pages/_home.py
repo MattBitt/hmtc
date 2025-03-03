@@ -17,7 +17,7 @@ from hmtc.pages.toolbar.toolbar import MainToolbar
 from hmtc.pages.users.main import UsersHomePage
 from hmtc.routes import admin_routes, api_routes
 from hmtc.utils.general import get_app_bar_color
-
+from hmtc.components.shared import MyList
 config = init_config()
 STORAGE = Path(config["STORAGE"])
 WORKING = Path(config["WORKING"])
@@ -34,9 +34,7 @@ def asdf(item):
 @solara.component
 def Home():
     UsersHomePage()
-    FunctionButton(
-        item={"id": 1}, label="Some Function", icon="mdi-home", some_function=asdf
-    )
+    MyList(title="My First List", items=['matt', 'lindsay is my wife and htis is a long description', 'walle'])
 
 
 @solara.component

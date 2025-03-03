@@ -3,12 +3,13 @@ from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.check_and_fix.main import CheckAndFix
-from hmtc.components.shared import PaginationControls
+from hmtc.components.shared import PaginationControls, Chip
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.domains.disc import Disc
 from hmtc.domains.video import Video
 from hmtc.models import DiscVideo as DiscVideoModel
 from hmtc.models import Video as VideoModel
+from hmtc.utils.time_functions import seconds_to_hms
 
 refresh_counter = solara.reactive(1)
 
@@ -53,6 +54,12 @@ def DiscVideoCard(
         album.add_video(video.instance)
         refresh_counter.set(refresh_counter.value + 1)
 
+    def use_poster():
+        disc.use_poster_from_video(video)
+        refresh_counter.set(refresh_counter.value + 1)
+
+
+
     num_videos_on_disc = disc.num_videos_on_disc()
     order = (
         DiscVideoModel.select(DiscVideoModel.order)
@@ -70,14 +77,17 @@ def DiscVideoCard(
     else:
         card_title = f"Video {order}: {video.instance.title[:40]}"
 
-    def use_poster():
-        disc.use_poster_from_video(video)
-        refresh_counter.set(refresh_counter.value + 1)
+
 
     with solara.Card(title=f"{card_title}"):
         with solara.Row():
-            solara.Text(f"{video.instance.upload_date}")
-        with solara.Columns([2, 10]):
+            Chip(f"{video.instance.upload_date}")
+            Chip(f"{seconds_to_hms(video.instance.duration)}")
+            Chip(f"Sections/Fine Tuned/Tracks")
+            Chip(f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}", color=disc.section_status_color())
+
+        
+        with solara.Columns([2, 5, 5]):
             with solara.Column():
                 p = video.poster(thumbnail=True)
                 if p is not None:
@@ -124,9 +134,17 @@ def DiscVideoCard(
                 with solara.Column():
                     with solara.Link(f"/api/videos/details/{video.instance.id}"):
                         solara.Button(
-                            "Details", icon_name=Icons.SECTION.value, classes=["button"]
+                            "Details", icon_name=Icons.VIDEO.value, classes=["button"]
                         )
-
+            
+            with solara.Row():
+                with solara.Column():
+                    solara.Button(
+                        "Remove from Album",
+                        on_click=remove_video,
+                        classes=["button mywarning"],
+                        icon_name=Icons.DELETE.value,
+                    )
 
 def check(disc: Disc):
     vids = disc.videos()
