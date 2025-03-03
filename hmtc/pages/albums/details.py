@@ -103,9 +103,14 @@ def AlbumDiscCard(disc: Disc):
         color = "error"
     else:
         color = "primary"
+
+    if disc.instance.xlarge:
+        caption = " (X-LARGE)"
+    else:
+        caption = ""
     with solara.Card(f"{card_title}"):
         with solara.Row():
-            Chip(f"{disc.instance.folder_name}")
+            Chip(f"{disc.instance.folder_name}{caption}")
             Chip(f"Sections/Fine Tuned/Tracks")
 
             Chip(f"{num_sections}/{num_sections_ft}/{num_tracks}", color=color)

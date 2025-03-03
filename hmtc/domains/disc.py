@@ -274,8 +274,12 @@ class Disc(BaseDomain):
                 if not section.fine_tuned:
                     continue
                 track_number += 1
-                if track_number > 100:
-                    logger.error(f"Too many tracks!!!!!")
+
+                # 001 X-LARGE VS #01
+                track_number_padding = 3 if self.instance.xlarge else 2
+
+                if track_number > 100 and not self.instance.xlarge:
+                    logger.error(f"Too many tracks. This needs to be an X-large disc")
                     return None
 
                 logger.debug(f"Creating a track from {section}")
@@ -285,11 +289,12 @@ class Disc(BaseDomain):
                     return
                 prefix = self.instance.album.prefix
                 disc_number = str(int(self.instance.folder_name[-3:]))
+
                 if prefix is not None:
                     if int(disc_number) >= 100:
-                        title = f"{prefix}{disc_number}.{str(track_number).zfill(2)} {sect.my_title()}"
+                        title = f"{prefix}{disc_number}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
                     else:
-                        title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(2)} {sect.my_title()}"
+                        title = f"{prefix} {disc_number.zfill(2)}.{str(track_number).zfill(track_number_padding)} {sect.my_title()}"
                 else:
                     title = f"{sect.my_title()}"
 

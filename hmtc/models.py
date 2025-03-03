@@ -118,6 +118,8 @@ class Disc(BaseModel):
     order = IntegerField()  # disc order on the album
     vids_order_locked = BooleanField(default=False)
     album = ForeignKeyField(Album, backref="discs", on_delete="CASCADE")
+    xlarge = BooleanField(default=False)  # controls zero padding in track names
+    prefix = CharField(null=True)
 
     class Meta:
         indexes = ((("order", "album"), True),)
