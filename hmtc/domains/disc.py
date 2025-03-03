@@ -95,6 +95,9 @@ class Disc(BaseDomain):
             .order_by(DiscVideoModel.order.asc())
         )
 
+    def video_duration(self):
+        return sum([x.duration for x in self.videos()])
+
     def videos_paginated(self, current_page, per_page):
         disc_vids = (
             VideoModel.select()
@@ -266,9 +269,16 @@ class Disc(BaseDomain):
             return
 
         dvs = DiscVideoModel.select().where(DiscVideoModel.disc_id == self.instance.id)
+        vid_ids = [x.video.id for x in dvs]
+        vids = (
+            VideoModel.select()
+            .where(VideoModel.id.in_(vid_ids))
+            .order_by(VideoModel.upload_date.asc())
+        )
         track_number = 0
-        for dv in dvs:
-            video = Video(dv.video.id)
+
+        for vid in vids:
+            video = Video(vid.id)
 
             for section in video.sections():
                 if not section.fine_tuned:
@@ -339,7 +349,9 @@ class Disc(BaseDomain):
 
                 poster = Path(self.poster_file().path)
                 write_id3_tags(mp3_file_path, new_track.id3_dict(), poster)
+
                 nfo = new_track.create_nfo(mp4_file_path.parent)
+
                 new_track.file_repo.add(
                     item=new_track.instance,
                     source=nfo,

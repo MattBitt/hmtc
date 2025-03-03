@@ -35,10 +35,6 @@ def asdf(item):
 @solara.component
 def Home():
     UsersHomePage()
-    MyList(
-        title="My First List",
-        items=["matt", "lindsay is my wife and htis is a long description", "walle"],
-    )
 
 
 @solara.component

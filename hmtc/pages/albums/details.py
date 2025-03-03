@@ -22,6 +22,7 @@ from hmtc.models import (
 )
 from hmtc.models import Video as VideoModel
 from hmtc.repos.file_repo import get_filetype
+from hmtc.utils.time_functions import seconds_to_hms
 
 refresh_counter = solara.reactive(1)
 
@@ -88,10 +89,9 @@ def AlbumDiscCard(disc: Disc):
     num_videos_on_disc = disc.num_videos_on_disc()
     if num_videos_on_disc == 1:
         card_title = f"{disc.instance.order} - {dv.video.title[:40]}"
-        card_cols = [2, 7, 3]
+
     else:
         card_title = f"{disc.instance.order}: ({num_videos_on_disc} Videos)"
-        card_cols = [2, 10]
 
     disable_move_to_comp = (num_videos_on_disc > 1) or disc.instance.title == "Disc 000"
 
@@ -106,6 +106,7 @@ def AlbumDiscCard(disc: Disc):
                 solara.Text(f"{card_title}")
             with solara.Row():
                 Chip(f"{disc.instance.title}{caption}")
+                Chip(f"{seconds_to_hms(disc.video_duration())}")
                 Chip(f"Sections/Fine Tuned/Tracks")
                 Chip(
                     f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}",
@@ -136,14 +137,14 @@ def AlbumDiscCard(disc: Disc):
                         on_click=move_up,
                         icon_name=Icons.UP_BOX.value,
                         classes=["button"],
-                        disabled=disc.instance.order <= 1,
+                        disabled=(disc.instance.order <= 1) or (disc.num_tracks() > 0),
                     )
                     solara.Button(
                         "Move Down",
                         on_click=move_down,
                         icon_name=Icons.DOWN_BOX.value,
                         classes=["button"],
-                        disabled=disc.instance.order == 0,
+                        disabled=(disc.instance.order == 0) or (disc.num_tracks() > 0),
                     )
                 with solara.Column():
                     if num_videos_on_disc == 1:
@@ -193,8 +194,9 @@ def AlbumDiscCard(disc: Disc):
                 else:
                     Chip("No Tracks Created", color="warning")
             else:
-                Chip("Compilation Details")
-                Chip("XX Vids")
+                with solara.Row():
+                    Chip(f"{disc.num_videos_on_disc()} Videos")
+                    Chip(f"{seconds_to_hms(disc.video_duration())}")
 
 
 def check_disc_order(album: Album):

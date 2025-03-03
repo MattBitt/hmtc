@@ -53,6 +53,7 @@ def SectionDetails(sect, video, sections, remove_section):
                 icon_name=Icons.DELETE.value,
                 classes=["button mywarning"],
                 on_click=remove_section,
+                disabled=(sect.instance.track.get_or_none() is not None),
             )
             with solara.Column(margin=1):
                 InputAndDisplay(
@@ -63,6 +64,7 @@ def SectionDetails(sect, video, sections, remove_section):
 @solara.component
 def SectionPages(video: Video, sections):
     # used by the sectionalizer page
+
     def remove_section(section):
         _id = section.instance.id
         section.delete()
