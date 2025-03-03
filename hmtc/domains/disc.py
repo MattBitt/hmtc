@@ -87,6 +87,9 @@ class Disc(BaseDomain):
     def tracks(self):
         return TrackModel.select().where(TrackModel.disc_id == self.instance.id)
 
+    def tracks_duration(self):
+        return sum([x.length for x in self.tracks()])
+
     def videos(self):
         return (
             VideoModel.select()

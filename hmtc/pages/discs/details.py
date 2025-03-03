@@ -59,6 +59,7 @@ def DiscVideoCard(
         refresh_counter.set(refresh_counter.value + 1)
 
     num_videos_on_disc = disc.num_videos_on_disc()
+
     order = (
         DiscVideoModel.select(DiscVideoModel.order)
         .where(
@@ -75,25 +76,25 @@ def DiscVideoCard(
     else:
         card_title = f"Video {order}: {video.instance.title[:40]}"
 
-    with solara.Columns([9, 3]):
+    with solara.Columns([8, 4]):
         with solara.Column():
             with solara.Row():
                 solara.Text(f"{card_title}")
             with solara.Row():
                 Chip(f"{video.instance.upload_date}")
                 Chip(f"{seconds_to_hms(video.instance.duration)}")
-                Chip(f"Sections/Fine Tuned/Tracks")
+                Chip(f"S/FT/T")
                 Chip(
                     f"{video.num_sections()}/{video.num_sections(fine_tuned=True)}/{video.num_tracks()}",
                     color=video.section_status_color(),
                 )
 
-            with solara.Columns([3, 3, 3, 3]):
+            with solara.Columns([2, 2, 3, 5]):
                 with solara.Column():
                     p = video.poster(thumbnail=True)
 
                     with solara.Row(justify="center"):
-                        solara.Image(p, width="150px")
+                        solara.Image(p, width="100px")
                     with solara.Row(justify="center"):
                         solara.Button(
                             icon_name=Icons.IMAGE.value,
@@ -103,31 +104,28 @@ def DiscVideoCard(
 
                 with solara.Column():
                     solara.Button(
-                        "Remove",
                         on_click=remove_video,
                         classes=["button mywarning"],
-                        icon_name=Icons.DELETE.value,
+                        icon_name=Icons.VIDEO.value,
                     )
                     solara.Button(
-                        "Compilation",
+                        "New Disc",
                         on_click=move_to_new_disc,
                         classes=["button"],
                         icon_name=Icons.MOVE.value,
                     )
                 with solara.Column():
                     solara.Button(
-                        "Move Up",
                         on_click=move_up,
                         icon_name=Icons.UP_BOX.value,
                         classes=["button"],
-                        disabled=order == 1,
+                        disabled=(order == 1) or disc.num_tracks() > 0,
                     )
                     solara.Button(
-                        "Move Down",
                         on_click=move_down,
                         icon_name=Icons.DOWN_BOX.value,
                         classes=["button"],
-                        disabled=order == num_videos_on_disc,
+                        disabled=(order == num_videos_on_disc) or disc.num_tracks() > 0,
                     )
                 with solara.Column():
                     with solara.Link(f"/api/videos/details/{video.instance.id}"):
@@ -150,8 +148,9 @@ def check(disc: Disc):
     vids = disc.videos()
     date1 = vids[0].upload_date
     for vid in vids[1:]:
-        if vid.upload_date < date1:
+        if vid.upload_date > date1:
             date1 = vid.upload_date
+        else:
             return False
     return True
 

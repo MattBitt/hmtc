@@ -230,6 +230,9 @@ class Album(BaseDomain):
             .order_by(DiscModel.order)
         )
 
+    def num_discs(self):
+        return len(self.discs())
+
     def discs_paginated(self, current_page, per_page):
 
         p = paginate(query=self.discs(), page=current_page.value, per_page=per_page)
@@ -326,7 +329,11 @@ class Album(BaseDomain):
             disc.create_tracks()
 
     def is_disc_order_correct(self):
-        return False
 
-    def fix_disc_order(self):
-        pass
+        # skipping 0 since its the compilation disc
+        _discs = [x for x in self.discs() if x.order != 0]
+        for i, disc in enumerate(_discs, 1):
+            if i != disc.order:
+                return False
+
+        return True

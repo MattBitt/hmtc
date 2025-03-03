@@ -95,37 +95,33 @@ def AlbumDiscCard(disc: Disc):
 
     disable_move_to_comp = (num_videos_on_disc > 1) or disc.instance.title == "Disc 000"
 
-    if disc.instance.xlarge:
-        caption = " (X-LARGE)"
-    else:
-        caption = ""
-
-    with solara.Columns([9, 3]):
+    with solara.Columns([8, 4]):
         with solara.Column():
             with solara.Row():
                 solara.Text(f"{card_title}")
             with solara.Row():
-                Chip(f"{disc.instance.title}{caption}")
+                if disc.instance.xlarge:
+                    Chip("X-LARGE")
+
                 Chip(f"{seconds_to_hms(disc.video_duration())}")
-                Chip(f"Sections/Fine Tuned/Tracks")
+                Chip(f"S/FT/T")
                 Chip(
                     f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}",
                     color=disc.section_status_color(),
                 )
 
-            with solara.Columns([3, 3, 3, 3]):
+            with solara.Columns([2, 3, 3, 4]):
                 with solara.Column():
-                    solara.Image(disc.poster(thumbnail=True), width="150px")
+                    solara.Image(disc.poster(thumbnail=True), width="100px")
 
                 with solara.Column():
                     solara.Button(
-                        "Delete Disc",
                         on_click=remove_disc,
                         classes=["button mywarning"],
-                        icon_name=Icons.DELETE.value,
+                        icon_name=Icons.DISC.value,
                     )
                     solara.Button(
-                        "Compilation",
+                        "Comp",
                         on_click=move_to_compilation_disc,
                         classes=["button"],
                         icon_name=Icons.MOVE.value,
@@ -133,14 +129,12 @@ def AlbumDiscCard(disc: Disc):
                     )
                 with solara.Column():
                     solara.Button(
-                        "Move Up",
                         on_click=move_up,
                         icon_name=Icons.UP_BOX.value,
                         classes=["button"],
                         disabled=(disc.instance.order <= 1) or (disc.num_tracks() > 0),
                     )
                     solara.Button(
-                        "Move Down",
                         on_click=move_down,
                         icon_name=Icons.DOWN_BOX.value,
                         classes=["button"],
@@ -166,9 +160,9 @@ def AlbumDiscCard(disc: Disc):
                             )
                     with SwapTransition(show_first=has_tracks.value, name="fade"):
                         solara.Button(
-                            "Delete Tracks",
+                            "Tracks",
                             classes=["button mywarning"],
-                            icon_name=Icons.TRACK.value,
+                            icon_name=Icons.DELETE.value,
                             on_click=remove_tracks,
                         )
                         if disc.num_sections() == 0:
@@ -197,16 +191,20 @@ def AlbumDiscCard(disc: Disc):
                 with solara.Row():
                     Chip(f"{disc.num_videos_on_disc()} Videos")
                     Chip(f"{seconds_to_hms(disc.video_duration())}")
+                with solara.Row():
+                    Chip(f"{disc.num_tracks()} Tracks")
+                    Chip(f"{seconds_to_hms(disc.tracks_duration())}")
 
 
 def check_disc_order(album: Album):
     logger.debug(f"Checking {album}")
-    return album.is_disc_order_correct()
+    result = album.is_disc_order_correct()
+    return result
 
 
 def fix_disc_order(album: Album):
     logger.debug(f"Fixing {album}")
-    album.fix_disc_order()
+    album.reset_disc_numbers()
     refresh_counter.set(refresh_counter.value + 1)
 
 
