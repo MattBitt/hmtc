@@ -219,7 +219,10 @@ class Video(BaseDomain):
 
         counter = 0
         for frame, image in grab_superchats_from_video(mkv):
-            logger.debug(f"{frame=} at the beginning of the loop")
+
+            if limit is not None and counter > limit:
+                logger.debug(f"Stopping for the limit of {limit}")
+                break
 
             new_superchat = Superchat.create(
                 {
