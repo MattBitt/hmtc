@@ -427,6 +427,7 @@ def AlbumDiscs(album: Album, discs_locked: solara.Reactive):
                     current_page=current_page, num_pages=num_pages, num_items=num_items
                 )
 
+
 @solara.component
 def Page():
 

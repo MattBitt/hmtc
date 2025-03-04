@@ -20,7 +20,7 @@ def MainToolbar():
                 icon_name=Icons.DOMAIN.value,
                 icon=True,
             )
-        
+
         with solara.Link(f"/api/nowplaying"):
             solara.Button(
                 icon_name=Icons.JELLYFISH.value,

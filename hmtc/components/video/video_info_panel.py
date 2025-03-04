@@ -143,5 +143,3 @@ def VideoInfoPanel(video_domain):
                     classes=["button"],
                     disabled=False,
                 )
-                
-        

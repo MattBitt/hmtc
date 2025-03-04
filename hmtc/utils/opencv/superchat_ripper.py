@@ -24,16 +24,10 @@ MIN_HEIGHT = 100
 
 
 class SuperChatRipper:
-    def __init__(self, image: np.ndarray):
-        if image is None:
-            logger.error("Image is None")
-            raise ValueError("Image is None")
-        self.image = image
 
-
+    @staticmethod
     def find_superchat(image, debug=False) -> tuple:
-        
-        
+
         xs = image.shape[0]
         ys = image.shape[1] * 0.5  # need to make this configurable
         image = image[0 : int(xs), 0 : int(ys)].copy()
@@ -69,18 +63,19 @@ class SuperChatRipper:
             return image, False
 
         return image[y : y + h, x : x + w], True
-    
-    @staticmethod
-    def grab_superchats_from_video(video_path: Path):
-        ie = ImageExtractor(video_path)
-        if ie is None:
-            # logger.error(f"Could not create ImageExtractor for video {video_path}")
-            raise ValueError(f"Could not create ImageExtractor for video {video_path}")
-        seconds = 0
-        N = 5
-        for frame in ie.frame_each_n_seconds(N):
-            sc_image, found = SuperChatRipper.find_superchat(frame)
-            seconds += N
-            
-            if found:
-                yield seconds, sc_image
+
+
+def grab_superchats_from_video(video_path: Path, interval=5):
+    ie = ImageExtractor(video_path)
+    if ie is None:
+        raise ValueError(f"Could not create ImageExtractor for video {video_path}")
+
+    seconds = 0
+
+    logger.debug(f"Grabbing superchats from {video_path} starting at {0}")
+    for frame in ie.frame_each_n_seconds(interval):
+        sc_image, found = SuperChatRipper.find_superchat(frame)
+        seconds += interval
+
+        if found:
+            yield seconds, sc_image

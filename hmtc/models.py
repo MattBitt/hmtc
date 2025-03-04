@@ -526,13 +526,13 @@ class DiscFiles(BaseModel):
     info = ForeignKeyField(InfoFile, null=True)
     poster = ForeignKeyField(ImageFile, null=True)
 
+
 class SuperchatFiles(BaseModel):
     FILETYPES = ["poster"]
-    
-    item = ForeignKeyField(Superchat, backref="files", unique=True)
-    
-    poster = ForeignKeyField(ImageFile, null=True)
 
+    item = ForeignKeyField(Superchat, backref="files", unique=True)
+
+    poster = ForeignKeyField(ImageFile, null=True)
 
 
 __all__ = [

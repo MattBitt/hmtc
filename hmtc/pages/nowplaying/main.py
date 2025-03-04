@@ -14,12 +14,9 @@ from hmtc.utils.jellyfin_functions import (
 )
 
 
-
 @solara.component
 def Page():
-    
 
-    sess = get_user_session()['NowPlayingItem']
+    sess = get_user_session()["NowPlayingItem"]
     JFPanel(video=None)
-    solara.Markdown(f"wow") 
-    
+    solara.Markdown(f"wow")

@@ -441,5 +441,3 @@ class FileRepo:
             if this_file is not None:
                 _files.append({"filetype": filetype, "file": this_file})
         return _files
-
-        

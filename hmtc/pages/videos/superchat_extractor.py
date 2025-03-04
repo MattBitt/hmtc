@@ -1,10 +1,11 @@
 import solara
 from loguru import logger
 
-
+from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.sectionalizer import Sectionalizer
-from hmtc.components.shared import PaginationControls
+from hmtc.components.shared import Chip, PaginationControls
 from hmtc.domains.section import Section
+from hmtc.domains.superchat import Superchat
 from hmtc.domains.topic import Topic
 from hmtc.domains.video import Video
 
@@ -21,34 +22,69 @@ def parse_url_args():
 
 time_cursor = solara.reactive(0)
 
+
 @solara.component
 def ControlPanel(video: Video):
-    logger.debug(f'{video}')
-    
-    def find_5():
-        video.extract_superchats(5)
-    
+    logger.debug(f"{video}")
+
+    # Create a reactive variable for superchats
+    superchats_list = solara.reactive([])
+
+    def find_30():
+        video.extract_superchats(30)
+        superchats_list.set(video.superchats())  # Update the reactive variable
+        refresh.set(refresh.value + 1)
+
     def find_all():
         video.extract_superchats()
-    
-    
-    solara.Text(f'{video}')
-    with solara.Columns([1,2,1]):
-        
+        superchats_list.set(video.superchats())  # Update the reactive variable
+        refresh.set(refresh.value + 1)
+
+    def delete_superchats():
+        video.delete_superchats()
+        superchats_list.set(video.superchats())  # Update the reactive variable
+        refresh.set(refresh.value + 1)
+
+    solara.Text(f"{video}")
+    with solara.Columns([1, 2, 1]):
+
         with solara.Column():
-            solara.Button("Find Superchats (5)", on_click=find_5, classes=['button'])
-            solara.Button("Find Superchats (All)", on_click=find_all, classes=['button'])
-        
+            solara.Button(
+                "Find 30",
+                on_click=find_30,
+                classes=["button"],
+                icon_name=Icons.SEARCH.value,
+            )
+            solara.Button(
+                "Find All",
+                on_click=find_all,
+                classes=["button"],
+                icon_name=Icons.SEARCH.value,
+            )
+            solara.Button(
+                "Delete",
+                on_click=delete_superchats,
+                classes=["button mywarning"],
+                icon_name=Icons.SUPERCHAT.value,
+            )
         with solara.Column():
-            solara.Image(video.poster(), width='500px')
+            solara.Image(video.poster(), width="400px")
 
         with solara.Column():
             solara.Button("click me")
 
+
 @solara.component
 def SuperchatList(superchats):
-    logger.debug(superchats.select())
-    solara.Markdown(f"Superchat Cards Go Here...")
+
+    with solara.ColumnsResponsive(4, large=2):
+
+        for _superchat in superchats:
+            superchat = Superchat(_superchat)
+            with solara.Row(justify="center"):
+                Chip(str(_superchat.frame), color="info")
+                solara.Image(superchat.poster(), width="300px")
+
 
 @solara.component
 def Page():
@@ -56,13 +92,13 @@ def Page():
     video_id = parse_url_args()
     video = Video(video_id)
     current_page = solara.use_reactive(1)
-    
-    per_page = 4
-    
+
+    per_page = 12
+
     _superchats, num_items, num_pages = video.superchats_paginated(
         current_page=current_page, per_page=per_page
     )
-    
+    logger.debug(len(_superchats))
     if refresh.value > 0:
         with solara.Column(classes=["main-container"]):
             ControlPanel(video)

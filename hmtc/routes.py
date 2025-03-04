@@ -4,6 +4,7 @@ from hmtc.pages.albums.details import Page as AlbumDetails
 from hmtc.pages.dashboards.domains import Page as DomainsDashboard
 from hmtc.pages.dashboards.files import Page as FilesDashboard
 from hmtc.pages.discs.details import Page as DiscDetails
+from hmtc.pages.nowplaying.main import Page as NowPlaying
 from hmtc.pages.sandbox.main import Sandbox
 from hmtc.pages.tables.albums import Page as AlbumsPage
 from hmtc.pages.tables.artists import Page as ArtistsPage
@@ -27,8 +28,8 @@ from hmtc.pages.videos.pipelines.sections import Page as SectionsMissingTitles
 from hmtc.pages.videos.pipelines.vids_to_finetune import Page as VidstoFineTune
 from hmtc.pages.videos.pipelines.vids_to_sectionalize import Page as VidstoSectionalize
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
-from hmtc.pages.nowplaying.main import Page as NowPlaying
 from hmtc.pages.videos.superchat_extractor import Page as SuperchatExtractor
+
 
 def api_routes():
     return solara.Route(
@@ -77,7 +78,6 @@ def api_routes():
                         component=SuperchatExtractor,
                         label="Superchat Extractor Page",
                     ),
-
                     solara.Route(
                         path="pipeline",
                         label="Video Sections Fine Tuner",
@@ -97,7 +97,6 @@ def api_routes():
                                 component=SectionsMissingTitles,
                                 label="Sections Missing Titles Pipeline",
                             ),
-                            
                         ],
                     ),
                 ],
@@ -252,7 +251,6 @@ def api_routes():
                     ),
                 ],
             ),
-
         ],
     )
 

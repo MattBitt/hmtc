@@ -118,4 +118,3 @@ class BaseDomain:
             return "error"
         else:
             return "success"
-        
