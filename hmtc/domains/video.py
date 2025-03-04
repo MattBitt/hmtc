@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
-
+import cv2
 from loguru import logger
 from peewee import ModelSelect, fn
 from PIL import Image
@@ -17,6 +17,9 @@ from hmtc.repos.file_repo import FileRepo
 from hmtc.repos.video_repo import VideoRepo
 from hmtc.utils.general import paginate
 from hmtc.utils.youtube_functions import get_video_info
+from hmtc.models import Superchat as SuperchatModel
+from hmtc.utils.opencv.superchat_ripper import SuperChatRipper
+from hmtc.utils.opencv.image_manager import ImageManager
 
 config = init_config()
 STORAGE = Path(config["STORAGE"]) / "videos"
@@ -181,3 +184,38 @@ class Video(BaseDomain):
         if self.instance is None:
             return ""
         return str(self.instance.title)
+        
+    def superchats(self):
+        return SuperchatModel.select().where(SuperchatModel.video_id == self.instance.id).order_by(SuperchatModel.frame.asc())
+    
+    def num_superchats(self):
+        return len(self.superchats())
+    
+    def superchats_paginated(self, current_page, per_page):
+        video_superchats = self.superchats()
+        return paginate(
+            query=video_superchats, page=current_page.value, per_page=per_page
+        )
+        
+    def extract_superchats(self, limit=None):
+        from hmtc.domains.superchat import Superchat
+
+        mkv = self.get_file("video")
+        if mkv is None:
+            logger.error(f"No Video File Found.")
+            return None
+        ripper = SuperChatRipper.grab_superchats_from_video(mkv)
+        for frame, image in ripper:
+            new_superchat = Superchat.create(
+                
+                {"frame": frame,
+                "video_id": self.instance.id,
+                }
+            )
+            new_superchat.save_image(image)
+
+            logger.debug(new_superchat)
+        
+        
+        logger.debug(f"extracting superchats from {self} limit {limit}")
+        

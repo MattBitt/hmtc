@@ -30,10 +30,13 @@ class SuperChatRipper:
             raise ValueError("Image is None")
         self.image = image
 
-    def find_superchat(self, debug=False) -> tuple:
-        xs = self.image.shape[0]
-        ys = self.image.shape[1] * 0.5  # need to make this configurable
-        image = self.image[0 : int(xs), 0 : int(ys)].copy()
+
+    def find_superchat(image, debug=False) -> tuple:
+        
+        
+        xs = image.shape[0]
+        ys = image.shape[1] * 0.5  # need to make this configurable
+        image = image[0 : int(xs), 0 : int(ys)].copy()
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define color range for bright colors (adjust as needed)
@@ -66,14 +69,18 @@ class SuperChatRipper:
             return image, False
 
         return image[y : y + h, x : x + w], True
-
-    def grab_superchats_from_video(self, video_path: Path):
+    
+    @staticmethod
+    def grab_superchats_from_video(video_path: Path):
         ie = ImageExtractor(video_path)
         if ie is None:
             # logger.error(f"Could not create ImageExtractor for video {video_path}")
             raise ValueError(f"Could not create ImageExtractor for video {video_path}")
-
-        for frame in ie.frame_each_n_seconds(5):
-            sc_image, found = self.find_superchat(frame)
+        seconds = 0
+        N = 5
+        for frame in ie.frame_each_n_seconds(N):
+            sc_image, found = SuperChatRipper.find_superchat(frame)
+            seconds += N
+            
             if found:
-                yield sc_image
+                yield seconds, sc_image

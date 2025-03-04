@@ -24,6 +24,7 @@ TABLES = [
     LyricsFile,
     Superchat,
     SuperchatSegment,
+    SuperchatFiles,
     Thumbnail,
     Topic,
     Track,

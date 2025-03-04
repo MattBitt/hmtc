@@ -29,6 +29,7 @@ from hmtc.pages.videos.pipelines.vids_to_sectionalize import Page as VidstoSecti
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
 from hmtc.pages.nowplaying.main import Page as NowPlaying
 from hmtc.pages.videos.superchat_extractor import Page as SuperchatExtractor
+
 def api_routes():
     return solara.Route(
         path="api",
@@ -74,8 +75,9 @@ def api_routes():
                     solara.Route(
                         path="superchatextractor",
                         component=SuperchatExtractor,
-                        label="Superchat Extractor",
+                        label="Superchat Extractor Page",
                     ),
+
                     solara.Route(
                         path="pipeline",
                         label="Video Sections Fine Tuner",
