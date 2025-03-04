@@ -136,3 +136,11 @@ def VideoInfoPanel(video_domain):
                     classes=["button"],
                     disabled=(num_sections == 0),
                 )
+        
+            with solara.Link(f"/api/videos/superchatextractor/{video.id}"):
+                solara.Button(
+                    label=f"Extractor",
+                    icon_name=Icons.SUPERCHAT.value,
+                    classes=["button"],
+                    disabled=False,
+                )

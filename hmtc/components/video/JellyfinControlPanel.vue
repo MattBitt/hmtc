@@ -163,7 +163,6 @@ module.exports = {
   props: {
     enable_live_updating: Boolean,
     jellyfin_status: Object,
-    page_jellyfin_id: String,
   },
 
   data() {

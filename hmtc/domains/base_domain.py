@@ -104,6 +104,8 @@ class BaseDomain:
             return Path(video_file.path)
 
     def section_status_color(self):
+        if self.num_sections() == 0:
+            return "warning"
         if self.num_sections() > self.num_sections(fine_tuned=True):
             return "info"
         elif self.num_sections(fine_tuned=True) > self.num_tracks():
@@ -116,3 +118,5 @@ class BaseDomain:
             return "error"
         else:
             return "success"
+            
+        

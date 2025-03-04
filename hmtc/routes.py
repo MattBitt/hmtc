@@ -27,8 +27,8 @@ from hmtc.pages.videos.pipelines.sections import Page as SectionsMissingTitles
 from hmtc.pages.videos.pipelines.vids_to_finetune import Page as VidstoFineTune
 from hmtc.pages.videos.pipelines.vids_to_sectionalize import Page as VidstoSectionalize
 from hmtc.pages.videos.sectionalizer import Page as VideoSectionalizer
-
-
+from hmtc.pages.nowplaying.main import Page as NowPlaying
+from hmtc.pages.videos.superchat_extractor import Page as SuperchatExtractor
 def api_routes():
     return solara.Route(
         path="api",
@@ -72,6 +72,11 @@ def api_routes():
                         label="Video Sections Fine Tuner",
                     ),
                     solara.Route(
+                        path="superchatextractor",
+                        component=SuperchatExtractor,
+                        label="Superchat Extractor",
+                    ),
+                    solara.Route(
                         path="pipeline",
                         label="Video Sections Fine Tuner",
                         children=[
@@ -90,6 +95,7 @@ def api_routes():
                                 component=SectionsMissingTitles,
                                 label="Sections Missing Titles Pipeline",
                             ),
+                            
                         ],
                     ),
                 ],
@@ -234,6 +240,17 @@ def api_routes():
                     ),
                 ],
             ),
+            solara.Route(
+                path="nowplaying",
+                children=[
+                    solara.Route(
+                        path="/",
+                        component=NowPlaying,
+                        label="Now Playing",
+                    ),
+                ],
+            ),
+
         ],
     )
 

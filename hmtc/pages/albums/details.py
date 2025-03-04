@@ -103,7 +103,7 @@ def AlbumDiscCard(disc: Disc):
                 if disc.instance.xlarge:
                     Chip("X-LARGE")
 
-                Chip(f"{seconds_to_hms(disc.video_duration())}")
+                Chip(f"{seconds_to_hms(disc.video_duration())}", color="info")
                 Chip(f"S/FT/T")
                 Chip(
                     f"{disc.num_sections()}/{disc.num_sections(fine_tuned=True)}/{disc.num_tracks()}",
@@ -189,11 +189,11 @@ def AlbumDiscCard(disc: Disc):
                     Chip("No Tracks Created", color="warning")
             else:
                 with solara.Row():
-                    Chip(f"{disc.num_videos_on_disc()} Videos")
-                    Chip(f"{seconds_to_hms(disc.video_duration())}")
+                    Chip(f"{disc.num_videos_on_disc()} Videos", color="info")
+                    Chip(f"{seconds_to_hms(disc.video_duration())}", color="info")
                 with solara.Row():
-                    Chip(f"{disc.num_tracks()} Tracks")
-                    Chip(f"{seconds_to_hms(disc.tracks_duration())}")
+                    Chip(f"{disc.num_tracks()} Tracks", color="info")
+                    Chip(f"{seconds_to_hms(disc.tracks_duration())}", color="info")
 
 
 def check_disc_order(album: Album):
@@ -426,7 +426,6 @@ def AlbumDiscs(album: Album, discs_locked: solara.Reactive):
                 PaginationControls(
                     current_page=current_page, num_pages=num_pages, num_items=num_items
                 )
-
 
 @solara.component
 def Page():

@@ -9,7 +9,7 @@ from loguru import logger
 
 from hmtc.assets.icons.icon_repo import Icons
 from hmtc.components.function_button.main import FunctionButton
-from hmtc.components.shared import MyList
+from hmtc.components.shared import MyList, MyButton
 from hmtc.components.transitions.swap import SwapTransition
 from hmtc.config import init_config
 from hmtc.domains.base_domain import BaseDomain
@@ -27,7 +27,7 @@ config = init_config()
 env = config["general"]["environment"]
 
 
-def asdf(item):
+def asdf(*item):
     logger.debug(f"Running function {item}")
     return True
 
@@ -35,7 +35,7 @@ def asdf(item):
 @solara.component
 def Home():
     UsersHomePage()
-
+    MyButton(label="My First Button", on_click=asdf, icon_name=Icons.SECTION.value)
 
 @solara.component
 def MyLayout(children=[]):
