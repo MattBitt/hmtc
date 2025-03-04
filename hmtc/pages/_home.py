@@ -35,7 +35,6 @@ def asdf(*item):
 @solara.component
 def Home():
     UsersHomePage()
-    MyButton(label="My First Button", on_click=asdf, icon_name=Icons.SECTION.value)
 
 
 @solara.component

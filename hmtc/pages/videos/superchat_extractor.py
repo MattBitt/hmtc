@@ -27,7 +27,7 @@ time_cursor = solara.reactive(0)
 
 
 @solara.component
-def ControlPanel(video: Video, superchats: solara.Reactive):
+def ControlPanel(video: Video, superchats: solara.Reactive, selected: solara.Reactive):
     LIMIT = 30
 
     # Create a reactive variable for superchats
@@ -86,19 +86,55 @@ def ControlPanel(video: Video, superchats: solara.Reactive):
             solara.Image(video.poster(), width="400px")
 
         with solara.Column():
-            solara.Button("click me")
+            for s in selected.value:
+                solara.Markdown(f"### {s.instance.id}({s.instance.frame})")
 
 
 @solara.component
-def SuperchatList(superchats):
+def SuperchatCard(superchat, selected):
+
+    def toggle(*args):
+
+        if superchat in selected.value:
+            logger.debug(
+                f"toggling {superchat.instance.id}({superchat.instance.frame}) to NOT SELECTED"
+            )
+            selected.set(
+                [x for x in selected.value if x.instance.id != superchat.instance.id]
+            )
+        else:
+            logger.debug(
+                f"toggling {superchat.instance.id}({superchat.instance.frame}) to SELECTED"
+            )
+            selected.set([*selected.value, superchat])
+
+    style = {
+        "width": "100%",
+        "height": "100%",
+        "display": "flex",
+        "flex-direction": "column",
+        "align-items": "stretch",
+    }
+
+    if superchat.instance.id in [s.instance.id for s in selected.value]:
+        _class = ["seven-seg", "selected"]
+    else:
+        _class = ["version-number"]
+
+    with solara.Button(on_click=toggle, style=style, classes=_class):
+        Chip(str(superchat.instance.frame), color="info")
+        solara.Image(superchat.poster(), width="300px")
+
+
+@solara.component
+def SuperchatList(superchats, selected):
 
     with solara.ColumnsResponsive(4, large=2):
 
         for _superchat in superchats.value:
             superchat = Superchat(_superchat)
-            with solara.Row(justify="center"):
-                Chip(str(_superchat.frame), color="info")
-                solara.Image(superchat.poster(), width="300px")
+            with solara.Row(justify="center", style={"height": "100px"}):
+                SuperchatCard(superchat, selected)
 
 
 @solara.component
@@ -107,7 +143,7 @@ def Page():
     video_id = parse_url_args()
     video = Video(video_id)
     current_page = solara.use_reactive(1)
-
+    selected = solara.use_reactive([])
     per_page = 12
 
     _superchats, num_items, num_pages = video.superchats_paginated(
@@ -118,8 +154,8 @@ def Page():
 
     if refresh.value > 0:
         with solara.Column(classes=["main-container"]):
-            ControlPanel(video, superchats)
-            SuperchatList(superchats)
+            ControlPanel(video, superchats, selected)
+            SuperchatList(superchats, selected)
             PaginationControls(
                 current_page=current_page, num_pages=num_pages, num_items=num_items
             )

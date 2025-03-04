@@ -182,3 +182,7 @@ a {
   font-weight: 600;
   border-radius: 10px;
 }
+
+.selected {
+  background: var(--success) !important;
+}
